@@ -491,10 +491,7 @@ function saveAppointmentLocally(appointment) {
     existing.push(appointment);
 
 
-    localStorage.setItem(
-        "smartCityAppointments",
-        JSON.stringify(existing)
-    );
+fetch("http://localhost:5000/api/doctors")
 
 }
 
@@ -980,14 +977,7 @@ function setupPatientForm() {
              * patient data is stored locally.
              */
 
-            localStorage.setItem(
-
-                "patient_" +
-                patientID,
-
-                JSON.stringify(patient)
-
-            );
+fetch("http://localhost:5000/api/doctors")
 
 
             const generated =
@@ -3010,13 +3000,7 @@ function saveHospitalInfo() {
     };
 
 
-    localStorage.setItem(
-
-        "hospitalInformation",
-
-        JSON.stringify(data)
-
-    );
+fetch("http://localhost:5000/api/doctors")
 
 
     showSavedMessage(
@@ -3079,13 +3063,7 @@ function saveDoctor() {
     doctors.push(doctor);
 
 
-    localStorage.setItem(
-
-        "hospitalDoctors",
-
-        JSON.stringify(doctors)
-
-    );
+fetch("http://localhost:5000/api/doctors")
 
 
     showSavedMessage(
@@ -3157,13 +3135,7 @@ function saveDoctorSlot() {
     slots.push(slot);
 
 
-    localStorage.setItem(
-
-        "hospitalDoctorSlots",
-
-        JSON.stringify(slots)
-
-    );
+fetch("http://localhost:5000/api/doctors")
 
 
     showSavedMessage(
@@ -3215,14 +3187,7 @@ function saveAmbulance() {
     }
 
 
-    localStorage.setItem(
-
-        "ambulance_" +
-        ambulance.id,
-
-        JSON.stringify(ambulance)
-
-    );
+fetch("http://localhost:5000/api/doctors")
 
 
     showSavedMessage(
@@ -3268,13 +3233,7 @@ function saveBeds() {
     };
 
 
-    localStorage.setItem(
-
-        "hospitalBeds",
-
-        JSON.stringify(beds)
-
-    );
+fetch("http://localhost:5000/api/doctors")
 
 
     updateBedDisplay(beds);
@@ -3392,13 +3351,7 @@ function saveEmergency() {
     };
 
 
-    localStorage.setItem(
-
-        "hospitalEmergency",
-
-        JSON.stringify(emergency)
-
-    );
+fetch("http://localhost:5000/api/doctors")
 
 
     showSavedMessage(
@@ -3445,10 +3398,7 @@ function showSavedMessage(message) {
    SAVE BILL / PHARMACY HISTORY WITH PATIENT ID
 ===================================================== */
 
-// YAHAN STEP 8 KA CODE AAYEGA
-/* =====================================================
-   PRESCRIPTION UPLOAD
-===================================================== */
+
 
 async function uploadPrescription() {
 
