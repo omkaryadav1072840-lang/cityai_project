@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Hospital | SmartCity AI</title>
+
+    <link
+        rel="stylesheet"
+        href="hospital.css"
+    >
+
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     TOP NAVIGATION
+===================================================== -->
+
+<header class="hospital-navbar">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            🏙️
+        </div>
+
+        <div>
+
+            <h2>
+                Smart<span>City AI</span>
+            </h2>
+
+            <p>
+                Smart Healthcare System
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="nav-right">
+
+        <div class="system-status">
+
+            <span></span>
+
+            SYSTEM ONLINE
+
+        </div>
+
+
+        <a
+            href="../../index.html"
+            class="back-home"
+        >
+            ← Main Dashboard
+        </a>
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     HERO
+===================================================== -->
+
+<section class="hospital-hero">
+
+    <div class="hero-content">
+
+        <div class="hero-label">
+            <span>🏥</span>
+            SMART HEALTHCARE
+        </div>
+
+
+        <h1>
+
+            Hospital &
+
+            <span>
+                Healthcare
+            </span>
+
+            Services
+
+        </h1>
+
+
+        <p>
+
+            Access hospitals, doctors, appointments,
+            emergency services, ambulance tracking,
+            patient records, prescriptions and healthcare
+            facilities from one intelligent platform.
+
+        </p>
+
+
+        <div class="hero-actions">
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="openDoctorBooking()"
+            >
+                📅 Book Doctor
+            </button>
+
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="openEmergency()"
+            >
+                🚨 Emergency
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="hero-visual">
+
+        <div class="hospital-circle">
+            🏥
+        </div>
+
+
+        <div class="floating-card card-one">
+
+            <strong>
+                24/7
+            </strong>
+
+            <span>
+                Emergency
+            </span>
+
+        </div>
+
+
+        <div class="floating-card card-two">
+
+            <strong>
+                LIVE
+            </strong>
+
+            <span>
+                Ambulance
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     QUICK STATISTICS
+===================================================== -->
+
+<section class="stats-section">
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            🏥
+        </div>
+
+        <div>
+
+            <span>
+                Nearby Hospitals
+            </span>
+
+            <strong id="hospitalCount">
+                24
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            👨‍⚕️
+        </div>
+
+        <div>
+
+            <span>
+                Doctors Available
+            </span>
+
+            <strong id="doctorCount">
+                186
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            🚑
+        </div>
+
+        <div>
+
+            <span>
+                Ambulances Active
+            </span>
+
+            <strong id="ambulanceCount">
+                18
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            🛏️
+        </div>
+
+        <div>
+
+            <span>
+                Beds Available
+            </span>
+
+            <strong id="bedCount">
+                327
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="hospital-container">
+
+
+    <!-- =================================================
+         SERVICES
+    ================================================= -->
+
+    <section>
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    HEALTHCARE SERVICES
+                </span>
+
+                <h2>
+                    Everything You Need
+                </h2>
+
+                <p>
+                    Manage your healthcare needs from one place.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="service-grid">
+
+
+            <!-- HOSPITAL -->
+
+            <div class="service-card">
+
+                <div class="service-icon blue">
+                    🏥
+                </div>
+
+                <h3>
+                    Find Hospitals
+                </h3>
+
+                <p>
+                    Find nearby hospitals, emergency
+                    departments and healthcare facilities.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="showHospitals()"
+                >
+                    Find Hospitals →
+                </button>
+
+            </div>
+
+
+
+            <!-- DOCTORS -->
+
+            <div class="service-card">
+
+                <div class="service-icon green">
+                    👨‍⚕️
+                </div>
+
+                <h3>
+                    Find Doctors
+                </h3>
+
+                <p>
+                    Search doctors by department,
+                    specialization and availability.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="showDoctors()"
+                >
+                    View Doctors →
+                </button>
+
+            </div>
+
+
+
+            <!-- APPOINTMENT -->
+
+            <div class="service-card">
+
+                <div class="service-icon purple">
+                    📅
+                </div>
+
+                <h3>
+                    Doctor Appointment
+                </h3>
+
+                <p>
+                    Select a doctor, date and time
+                    and book your appointment online.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openDoctorBooking()"
+                >
+                    Book Appointment →
+                </button>
+
+            </div>
+
+
+
+            <!-- MY APPOINTMENTS -->
+
+            <div class="service-card">
+
+                <div class="service-icon purple">
+                    📅
+                </div>
+
+                <h3>
+                    My Appointments
+                </h3>
+
+                <p>
+                    View your booked appointments,
+                    doctor, date, time and status.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openMyAppointments()"
+                >
+                    My Appointments →
+                </button>
+
+            </div>
+
+
+
+            <!-- AMBULANCE -->
+
+            <div class="service-card">
+
+                <div class="service-icon red">
+                    🚑
+                </div>
+
+                <h3>
+                    Ambulance Tracking
+                </h3>
+
+                <p>
+                    Request an ambulance and track
+                    its current location and status.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="trackAmbulance()"
+                >
+                    Track Ambulance →
+                </button>
+
+            </div>
+
+
+
+            <!-- PATIENT ID -->
+
+            <div class="service-card">
+
+                <div class="service-icon cyan">
+                    🪪
+                </div>
+
+                <h3>
+                    Patient ID
+                </h3>
+
+                <p>
+                    Create a unique patient ID and
+                    generate a QR code for medical records.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openPatientRegistration()"
+                >
+                    Create Patient ID →
+                </button>
+
+            </div>
+
+
+
+            <!-- PATIENT RECORD -->
+
+            <div class="service-card">
+
+                <div class="service-icon orange">
+                    📋
+                </div>
+
+                <h3>
+                    Patient Records
+                </h3>
+
+                <p>
+                    Access appointments, prescriptions,
+                    reports and medical history.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openPatientFile()"
+                >
+                    Open Patient File →
+                </button>
+
+            </div>
+
+
+
+            <!-- BEDS -->
+
+            <div class="service-card">
+
+                <div class="service-icon teal">
+                    🛏️
+                </div>
+
+                <h3>
+                    Bed Availability
+                </h3>
+
+                <p>
+                    Check available ICU, emergency
+                    and general hospital beds.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="showBeds()"
+                >
+                    Check Beds →
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PHARMACY
+            ================================================= -->
+
+            <div class="service-card">
+
+                <div class="service-icon pink">
+                    💊
+                </div>
+
+                <h3>
+                    Pharmacy
+                </h3>
+
+                <p>
+                    Search medicines, check availability
+                    and upload your prescription.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="showPharmacy()"
+                >
+                    Open Pharmacy →
+                </button>
+
+                <button
+                    type="button"
+                    class="prescription-btn"
+                    onclick="openPrescriptionUpload()"
+                >
+                    📤 Upload Prescription
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 UPLOAD PRESCRIPTION
+            ================================================= -->
+
+            <div class="service-card">
+
+                <div class="service-icon orange">
+                    📄
+                </div>
+
+                <h3>
+                    Upload Prescription
+                </h3>
+
+                <p>
+                    Upload a prescription using your
+                    Patient ID for pharmacy processing.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openPrescriptionUpload()"
+                >
+                    Upload Prescription →
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         HOSPITALS
+    ================================================= -->
+
+    <section class="content-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    LIVE HEALTHCARE NETWORK
+                </span>
+
+                <h2>
+                    Nearby Hospitals
+                </h2>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="outline-btn"
+                onclick="showHospitals()"
+            >
+                View All
+            </button>
+
+        </div>
+
+
+        <div
+            id="hospitalList"
+            class="hospital-list"
+        >
+
+            <div class="hospital-row">
+
+                <div class="hospital-logo">
+                    🏥
+                </div>
+
+                <div class="hospital-info">
+
+                    <h3>
+                        City General Hospital
+                    </h3>
+
+                    <p>
+                        📍 2.4 km away • Emergency available
+                    </p>
+
+                </div>
+
+                <div class="hospital-status available">
+
+                    <span></span>
+
+                    Open
+
+                </div>
+
+                <button
+                    type="button"
+                    onclick="viewHospital('City General Hospital')"
+                >
+                    View
+                </button>
+
+            </div>
+
+
+
+            <div class="hospital-row">
+
+                <div class="hospital-logo">
+                    🏥
+                </div>
+
+                <div class="hospital-info">
+
+                    <h3>
+                        SmartCare Medical Center
+                    </h3>
+
+                    <p>
+                        📍 4.1 km away • 24/7 Emergency
+                    </p>
+
+                </div>
+
+                <div class="hospital-status available">
+
+                    <span></span>
+
+                    Open
+
+                </div>
+
+                <button
+                    type="button"
+                    onclick="viewHospital('SmartCare Medical Center')"
+                >
+                    View
+                </button>
+
+            </div>
+
+
+
+            <div class="hospital-row">
+
+                <div class="hospital-logo">
+                    🏥
+                </div>
+
+                <div class="hospital-info">
+
+                    <h3>
+                        District Health Hospital
+                    </h3>
+
+                    <p>
+                        📍 5.7 km away • ICU available
+                    </p>
+
+                </div>
+
+                <div class="hospital-status busy">
+
+                    <span></span>
+
+                    Busy
+
+                </div>
+
+                <button
+                    type="button"
+                    onclick="viewHospital('District Health Hospital')"
+                >
+                    View
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         DOCTORS
+    ================================================= -->
+
+    <section class="content-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    MEDICAL PROFESSIONALS
+                </span>
+
+                <h2>
+                    Available Doctors
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="doctorList"
+            class="doctor-grid"
+        >
+
+
+            <div class="doctor-card">
+
+                <div class="doctor-avatar">
+                    👨‍⚕️
+                </div>
+
+                <h3>
+                    Dr. Rahul Sharma
+                </h3>
+
+                <p>
+                    General Physician
+                </p>
+
+                <div class="doctor-status">
+                    ● Available
+                </div>
+
+                <button
+                    type="button"
+                    onclick="bookSpecificDoctor('Dr. Rahul Sharma')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+
+
+            <div class="doctor-card">
+
+                <div class="doctor-avatar">
+                    👩‍⚕️
+                </div>
+
+                <h3>
+                    Dr. Priya Singh
+                </h3>
+
+                <p>
+                    Cardiologist
+                </p>
+
+                <div class="doctor-status">
+                    ● Available
+                </div>
+
+                <button
+                    type="button"
+                    onclick="bookSpecificDoctor('Dr. Priya Singh')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+
+
+            <div class="doctor-card">
+
+                <div class="doctor-avatar">
+                    👨‍⚕️
+                </div>
+
+                <h3>
+                    Dr. Amit Verma
+                </h3>
+
+                <p>
+                    Orthopedic Specialist
+                </p>
+
+                <div class="doctor-status busy-text">
+                    ● In Consultation
+                </div>
+
+                <button
+                    type="button"
+                    onclick="bookSpecificDoctor('Dr. Amit Verma')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         BEDS
+    ================================================= -->
+
+    <section class="content-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span>
+                    HOSPITAL CAPACITY
+                </span>
+
+                <h2>
+                    Bed Availability
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="bed-grid">
+
+            <div class="bed-card">
+
+                <span>
+                    General
+                </span>
+
+                <strong id="generalBedDisplay">
+                    184
+                </strong>
+
+                <div class="progress">
+                    <i style="width:62%;"></i>
+                </div>
+
+                <small>
+                    Available beds
+                </small>
+
+            </div>
+
+
+
+            <div class="bed-card">
+
+                <span>
+                    ICU
+                </span>
+
+                <strong id="icuBedDisplay">
+                    38
+                </strong>
+
+                <div class="progress">
+                    <i style="width:35%;"></i>
+                </div>
+
+                <small>
+                    Available beds
+                </small>
+
+            </div>
+
+
+
+            <div class="bed-card">
+
+                <span>
+                    Emergency
+                </span>
+
+                <strong id="emergencyBedDisplay">
+                    21
+                </strong>
+
+                <div class="progress">
+                    <i style="width:24%;"></i>
+                </div>
+
+                <small>
+                    Available beds
+                </small>
+
+            </div>
+
+
+
+            <div class="bed-card">
+
+                <span>
+                    Private
+                </span>
+
+                <strong id="privateBedDisplay">
+                    84
+                </strong>
+
+                <div class="progress">
+                    <i style="width:51%;"></i>
+                </div>
+
+                <small>
+                    Available beds
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         EMERGENCY
+    ================================================= -->
+
+    <section class="emergency-banner">
+
+        <div>
+
+            <span>
+                🚨 EMERGENCY SERVICES
+            </span>
+
+            <h2>
+                Need immediate medical help?
+            </h2>
+
+            <p>
+                Quickly contact emergency services
+                or request an ambulance.
+            </p>
+
+        </div>
+
+
+        <button
+            type="button"
+            onclick="openEmergency()"
+        >
+            🚨 GET EMERGENCY HELP
+        </button>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =====================================================
+     PATIENT REGISTRATION MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="patientModal"
+>
+
+    <div class="modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('patientModal')"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            🪪 Create Patient ID
+        </h2>
+
+        <p>
+            Create a unique digital patient identity.
+        </p>
+
+
+        <form id="patientForm">
+
+            <input
+                id="patientName"
+                type="text"
+                placeholder="Patient Full Name"
+                required
+            >
+
+
+            <input
+                id="patientDOB"
+                type="date"
+                required
+            >
+
+
+            <select
+                id="patientGender"
+                required
+            >
+
+                <option value="">
+                    Select Gender
+                </option>
+
+                <option value="Male">
+                    Male
+                </option>
+
+                <option value="Female">
+                    Female
+                </option>
+
+                <option value="Other">
+                    Other
+                </option>
+
+            </select>
+
+
+            <input
+                id="patientPhone"
+                type="tel"
+                placeholder="Phone Number"
+                required
+            >
+
+
+            <button
+                type="submit"
+                class="primary-btn full"
+            >
+                CREATE PATIENT ID
+            </button>
+
+        </form>
+
+
+        <div
+            id="patientResult"
+            class="patient-result"
+        >
+
+            <h3>
+                Patient ID Created
+            </h3>
+
+
+            <strong id="generatedPatientId">
+                --
+            </strong>
+
+
+            <div
+                id="patientQRCode"
+                class="patient-qr"
+            ></div>
+
+
+            <p>
+                Show this QR code at the
+                hospital or doctor's computer.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     DOCTOR BOOKING MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="doctorModal"
+>
+
+    <div class="modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('doctorModal')"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            📅 Book Doctor Appointment
+        </h2>
+
+        <p>
+            Select doctor, date and time.
+        </p>
+
+
+        <select id="doctorSelect">
+
+            <option value="">
+                Select Doctor
+            </option>
+
+            <option value="Dr. Rahul Sharma">
+                Dr. Rahul Sharma — General Physician
+            </option>
+
+            <option value="Dr. Priya Singh">
+                Dr. Priya Singh — Cardiologist
+            </option>
+
+            <option value="Dr. Amit Verma">
+                Dr. Amit Verma — Orthopedic
+            </option>
+
+        </select>
+
+
+        <input
+            type="date"
+            id="appointmentDate"
+        >
+
+
+        <select id="appointmentTime">
+
+            <option value="">
+                Select Time
+            </option>
+
+            <option value="10:00 AM">
+                10:00 AM
+            </option>
+
+            <option value="11:00 AM">
+                11:00 AM
+            </option>
+
+            <option value="12:00 PM">
+                12:00 PM
+            </option>
+
+            <option value="03:00 PM">
+                03:00 PM
+            </option>
+
+            <option value="04:00 PM">
+                04:00 PM
+            </option>
+
+            <option value="06:00 PM">
+                06:00 PM
+            </option>
+
+        </select>
+
+
+        <input
+            type="text"
+            id="appointmentPatientId"
+            placeholder="Patient ID"
+        >
+
+
+        <button
+            type="button"
+            class="primary-btn full"
+            onclick="bookDoctorSlot()"
+        >
+            CONFIRM APPOINTMENT
+        </button>
+
+
+        <div
+            id="appointmentResult"
+            class="appointment-result"
+        ></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MY APPOINTMENTS MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="appointmentsModal"
+>
+
+    <div class="modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('appointmentsModal')"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            📅 My Appointments
+        </h2>
+
+        <p>
+            Enter your Patient ID to view your appointments.
+        </p>
+
+
+        <input
+            type="text"
+            id="myAppointmentPatientId"
+            placeholder="Enter Patient ID"
+        >
+
+
+        <button
+            type="button"
+            class="primary-btn full"
+            onclick="loadMyAppointments()"
+        >
+            🔍 VIEW APPOINTMENTS
+        </button>
+
+
+        <div
+            id="myAppointmentsResult"
+            class="appointment-result"
+        ></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     AMBULANCE TRACKING MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="ambulanceModal"
+>
+
+    <div class="modal-box ambulance-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('ambulanceModal')"
+        >
+            ×
+        </button>
+
+        <div class="modal-title-icon">
+            🚑
+        </div>
+
+        <h2>
+            Ambulance Tracking
+        </h2>
+
+        <p class="modal-subtitle">
+            View available ambulance and current status.
+        </p>
+
+        <div id="ambulanceResult">
+
+            <div class="loading-card">
+                ⏳ Loading ambulance information...
+            </div>
+
+        </div>
+
+        <div class="ambulance-actions">
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="refreshAmbulance()"
+            >
+                🔄 Refresh
+            </button>
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="openEmergency()"
+            >
+                🚨 Emergency
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PHARMACY / MEDICINE MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="pharmacyModal"
+>
+
+    <div class="modal-box pharmacy-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('pharmacyModal')"
+        >
+            ×
+        </button>
+
+        <div class="modal-title-icon">
+            💊
+        </div>
+
+        <h2>
+            Pharmacy & Medicines
+        </h2>
+
+        <p class="modal-subtitle">
+            Search medicines and check availability.
+        </p>
+
+
+        <div class="medicine-search">
+
+            <input
+                type="text"
+                id="medicineSearch"
+                placeholder="🔎 Search medicine..."
+                oninput="searchMedicines()"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <div id="medicineResult">
+
+            <div class="loading-card">
+                🔎 Search for a medicine.
+            </div>
+
+        </div>
+
+
+        <div class="pharmacy-upload-section">
+
+            <div class="pharmacy-upload-text">
+
+                <strong>
+                    Have a prescription?
+                </strong>
+
+                <span>
+                    Upload it to process your medicines.
+                </span>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="openPrescriptionUpload()"
+            >
+                📤 Upload Prescription
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     UPLOAD PRESCRIPTION MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="prescriptionModal"
+>
+
+    <div class="modal-box prescription-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('prescriptionModal')"
+        >
+            ×
+        </button>
+
+
+        <div class="modal-title-icon">
+            📤
+        </div>
+
+
+        <h2>
+            Upload Prescription
+        </h2>
+
+
+        <p class="modal-subtitle">
+            Upload your prescription using your Patient ID.
+        </p>
+
+
+        <form
+            id="prescriptionForm"
+            enctype="multipart/form-data"
+        >
+
+            <label for="prescriptionPatientId">
+                Patient ID
+            </label>
+
+            <input
+                type="text"
+                id="prescriptionPatientId"
+                name="patientId"
+                placeholder="Enter Patient ID"
+                required
+            >
+
+
+            <label for="prescriptionFile">
+                Prescription File
+            </label>
+
+            <input
+                type="file"
+                id="prescriptionFile"
+                name="prescription"
+                accept=".jpg,.jpeg,.png,.pdf"
+                required
+            >
+
+
+            <small class="file-help">
+                Accepted formats: JPG, JPEG, PNG and PDF
+            </small>
+
+
+            <button
+                type="submit"
+                class="primary-btn full"
+            >
+                📤 UPLOAD PRESCRIPTION
+            </button>
+
+        </form>
+
+
+        <div
+            id="prescriptionResult"
+            class="appointment-result"
+        ></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     EMERGENCY MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="emergencyModal"
+>
+
+    <div class="modal-box emergency-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('emergencyModal')"
+        >
+            ×
+        </button>
+
+        <div class="emergency-icon-large">
+            🚨
+        </div>
+
+        <h2>
+            Emergency Services
+        </h2>
+
+        <p class="modal-subtitle">
+            Get immediate medical assistance.
+        </p>
+
+
+        <div class="emergency-status-card">
+
+            <div class="emergency-status-top">
+
+                <span class="status-dot"></span>
+
+                <strong>
+                    Emergency Services Available
+                </strong>
+
+            </div>
+
+            <p>
+                Emergency department is currently
+                available for immediate assistance.
+            </p>
+
+        </div>
+
+
+        <div class="emergency-contact-grid">
+
+            <div class="emergency-contact-card">
+
+                <span>
+                    📞
+                </span>
+
+                <strong>
+                    112
+                </strong>
+
+                <small>
+                    National Emergency
+                </small>
+
+            </div>
+
+
+            <div class="emergency-contact-card">
+
+                <span>
+                    🚑
+                </span>
+
+                <strong>
+                    Ambulance
+                </strong>
+
+                <small>
+                    Emergency Transport
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <div class="emergency-actions">
+
+            <button
+                type="button"
+                class="emergency-call-btn"
+                onclick="callEmergency()"
+            >
+                📞 CALL 112
+            </button>
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="trackAmbulance()"
+            >
+                🚑 Track Ambulance
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PATIENT FILE MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="patientFileModal"
+>
+
+    <div class="modal-box patient-file-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('patientFileModal')"
+        >
+            ×
+        </button>
+
+        <div class="modal-title-icon">
+            📋
+        </div>
+
+        <h2>
+            Patient Medical Record
+        </h2>
+
+        <p class="modal-subtitle">
+            Enter Patient ID to access the medical record.
+        </p>
+
+
+        <div class="patient-search-box">
+
+            <input
+                type="text"
+                id="patientFileSearch"
+                placeholder="Enter Patient ID"
+            >
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="searchPatientFile()"
+            >
+                🔍 Search
+            </button>
+
+        </div>
+
+
+        <div id="patientFileResult">
+
+            <div class="empty-state">
+
+                <div>
+                    👤
+                </div>
+
+                <h3>
+                    Search Patient
+                </h3>
+
+                <p>
+                    Enter a Patient ID to view the record.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     STAFF CONTROL PANEL
+===================================================== -->
+
+<section
+    id="hospitalStaffPanel"
+    class="staff-panel"
+    style="display:none;"
+>
+
+    <div class="staff-header">
+
+        <div>
+
+            <span>
+                AUTHORIZED STAFF
+            </span>
+
+            <h2>
+                Hospital Management
+            </h2>
+
+            <p>
+                Manage healthcare services and hospital data.
+            </p>
+
+        </div>
+
+
+        <div class="staff-badge">
+            🛡️ HOSPITAL STAFF
+        </div>
+
+    </div>
+
+
+    <div class="staff-grid">
+
+
+        <!-- HOSPITAL -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    🏥
+                </span>
+
+                <small>
+                    HOSPITAL
+                </small>
+
+            </div>
+
+            <h3>
+                Hospital Information
+            </h3>
+
+            <p>
+                Update hospital name, emergency
+                status and contact information.
+            </p>
+
+            <button
+                type="button"
+                onclick="openEditPanel('hospitalInfo')"
+            >
+                ✏️ Edit
+            </button>
+
+        </div>
+
+
+
+        <!-- DOCTORS -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    👨‍⚕️
+                </span>
+
+                <small>
+                    MEDICAL STAFF
+                </small>
+
+            </div>
+
+            <h3>
+                Doctors
+            </h3>
+
+            <p>
+                Add doctors and update their
+                specialization and availability.
+            </p>
+
+            <button
+                type="button"
+                onclick="openEditPanel('doctors')"
+            >
+                ✏️ Edit
+            </button>
+
+        </div>
+
+
+
+        <!-- SLOTS -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    📅
+                </span>
+
+                <small>
+                    APPOINTMENTS
+                </small>
+
+            </div>
+
+            <h3>
+                Doctor Slots
+            </h3>
+
+            <p>
+                Manage doctor appointment slots
+                and available timings.
+            </p>
+
+            <button
+                type="button"
+                onclick="openEditPanel('slots')"
+            >
+                ✏️ Edit
+            </button>
+
+        </div>
+
+
+
+        <!-- AMBULANCE -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    🚑
+                </span>
+
+                <small>
+                    EMERGENCY
+                </small>
+
+            </div>
+
+            <h3>
+                Ambulance Status
+            </h3>
+
+            <p>
+                Update ambulance availability
+                and operational status.
+            </p>
+
+            <button
+                type="button"
+                onclick="openEditPanel('ambulance')"
+            >
+                ✏️ Edit
+            </button>
+
+        </div>
+
+
+
+        <!-- BEDS -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    🛏️
+                </span>
+
+                <small>
+                    CAPACITY
+                </small>
+
+            </div>
+
+            <h3>
+                Bed Availability
+            </h3>
+
+            <p>
+                Update general, ICU, emergency
+                and private bed availability.
+            </p>
+
+            <button
+                type="button"
+                onclick="openEditPanel('beds')"
+            >
+                ✏️ Edit
+            </button>
+
+        </div>
+
+
+
+        <!-- EMERGENCY -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    🚨
+                </span>
+
+                <small>
+                    EMERGENCY
+                </small>
+
+            </div>
+
+            <h3>
+                Emergency Status
+            </h3>
+
+            <p>
+                Update emergency department
+                availability and status.
+            </p>
+
+            <button
+                type="button"
+                onclick="openEditPanel('emergency')"
+            >
+                ✏️ Edit
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     STAFF EDIT MODAL
+===================================================== -->
+
+<div
+    id="staffEditModal"
+    class="modal"
+>
+
+    <div class="modal-box staff-edit-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('staffEditModal')"
+        >
+            ×
+        </button>
+
+
+        <div id="editContent"></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     QR CODE LIBRARY
+===================================================== -->
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+></script>
+
+
+
+<!-- =====================================================
+     HOSPITAL JS
+===================================================== -->
+
+<script
+    src="hospital.js"
+></script>
+
+
+</body>
+</html>

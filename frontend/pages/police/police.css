@@ -1,0 +1,893 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f1f5f9;
+    color: #172033;
+}
+
+
+/* NAVBAR */
+
+.navbar {
+    height: 70px;
+
+    padding: 0 7%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    background: white;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.logo span {
+    color: #2563eb;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-right a {
+    text-decoration: none;
+    color: #172033;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.user-badge {
+    background: #eff6ff;
+    color: #2563eb;
+
+    padding: 9px 14px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+}
+
+
+/* HERO */
+
+.police-hero {
+    min-height: 410px;
+
+    padding: 65px 8%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff,
+            #f8fafc
+        );
+}
+
+.hero-content {
+    max-width: 650px;
+}
+
+.hero-label {
+    color: #2563eb;
+
+    font-size: 10px;
+
+    letter-spacing: 2px;
+
+    font-weight: 900;
+}
+
+.hero-content h1 {
+    font-size: 48px;
+
+    line-height: 1.1;
+
+    margin: 15px 0;
+}
+
+.hero-content h1 span {
+    color: #2563eb;
+}
+
+.hero-content p {
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+    max-width: 550px;
+}
+
+.hero-buttons {
+    display: flex;
+
+    gap: 12px;
+
+    margin-top: 25px;
+}
+
+.hero-buttons button {
+    border: none;
+
+    background: #2563eb;
+
+    color: white;
+
+    padding: 13px 19px;
+
+    border-radius: 9px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.hero-buttons .secondary-btn {
+    background: white;
+
+    color: #2563eb;
+
+    border: 1px solid #dbeafe;
+}
+
+.police-circle {
+    width: 210px;
+    height: 210px;
+
+    background: white;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    box-shadow:
+        0 20px 50px
+        rgba(15, 23, 42, .12);
+}
+
+.police-circle div {
+    font-size: 70px;
+}
+
+.police-circle span {
+    color: #2563eb;
+
+    font-size: 10px;
+
+    font-weight: 900;
+}
+
+
+/* STATS */
+
+.stats-section {
+    padding: 30px 8%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+    background: white;
+}
+
+.stat-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 20px;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 14px;
+
+    background: white;
+}
+
+.stat-icon {
+    width: 45px;
+    height: 45px;
+
+    border-radius: 12px;
+
+    background: #eff6ff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 20px;
+}
+
+.stat-card span {
+    font-size: 9px;
+
+    color: #64748b;
+
+    font-weight: 900;
+}
+
+.stat-card h2 {
+    margin-top: 5px;
+
+    font-size: 23px;
+}
+
+
+/* SECTION */
+
+.analytics-section,
+.incident-section,
+.staff-section {
+    padding: 65px 8%;
+}
+
+.section-title {
+    margin-bottom: 30px;
+}
+
+.section-title > span {
+    color: #2563eb;
+
+    font-size: 9px;
+
+    letter-spacing: 1.5px;
+
+    font-weight: 900;
+}
+
+.section-title h2 {
+    font-size: 30px;
+
+    margin-top: 8px;
+}
+
+.section-title p {
+    color: #64748b;
+
+    font-size: 13px;
+
+    margin-top: 8px;
+}
+
+
+/* SOURCE */
+
+.data-source-box {
+    padding: 17px 20px;
+
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+}
+
+.data-source-box strong {
+    font-size: 9px;
+
+    color: #64748b;
+}
+
+.data-source-box p {
+    margin-top: 5px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.source-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.source-right span {
+    font-size: 9px;
+
+    font-weight: 900;
+
+    color: #d97706;
+}
+
+.source-right button {
+    border: none;
+
+    background: #172033;
+
+    color: white;
+
+    padding: 9px 13px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 9px;
+
+    font-weight: 800;
+}
+
+
+/* CHART GRID */
+
+.analytics-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 18px;
+}
+
+.chart-card,
+.category-card {
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 17px;
+
+    padding: 22px;
+}
+
+.chart-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.chart-header > div span {
+    color: #64748b;
+
+    font-size: 8px;
+
+    font-weight: 900;
+}
+
+.chart-header h3 {
+    margin-top: 5px;
+
+    font-size: 15px;
+}
+
+.chart-badge {
+    padding: 6px 9px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-radius: 20px;
+
+    font-size: 8px;
+
+    font-weight: 900;
+}
+
+.chart-wrapper {
+    height: 300px;
+}
+
+
+/* CATEGORY */
+
+.category-card {
+    margin-top: 18px;
+}
+
+.category-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(6, 1fr);
+
+    gap: 12px;
+}
+
+.category-item {
+    padding: 16px;
+
+    background: #f8fafc;
+
+    border-radius: 11px;
+
+    text-align: center;
+}
+
+.category-item strong {
+    display: block;
+
+    font-size: 20px;
+}
+
+.category-item span {
+    color: #64748b;
+
+    font-size: 9px;
+
+    margin-top: 5px;
+
+    display: block;
+}
+
+
+/* WARNING */
+
+.data-warning {
+    margin-top: 18px;
+
+    padding: 13px 15px;
+
+    border-radius: 10px;
+
+    background: #fffbeb;
+
+    color: #92400e;
+
+    font-size: 10px;
+
+    display: flex;
+
+    gap: 8px;
+}
+
+
+/* INCIDENT */
+
+.incident-section {
+    background: white;
+}
+
+.incident-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.incident-card {
+    border: 1px solid #e2e8f0;
+
+    border-radius: 14px;
+
+    padding: 18px;
+
+    background: #fff;
+}
+
+.incident-top {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+.incident-id {
+    font-size: 9px;
+
+    color: #64748b;
+
+    font-weight: 900;
+}
+
+.priority {
+    padding: 5px 8px;
+
+    border-radius: 15px;
+
+    font-size: 8px;
+
+    font-weight: 900;
+}
+
+.priority.HIGH,
+.priority.CRITICAL {
+    background: #fee2e2;
+
+    color: #b91c1c;
+}
+
+.priority.MEDIUM {
+    background: #fef3c7;
+
+    color: #92400e;
+}
+
+.priority.LOW {
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+.incident-card h3 {
+    margin-top: 14px;
+
+    font-size: 14px;
+}
+
+.incident-card p {
+    margin-top: 7px;
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+}
+
+
+/* STAFF */
+
+.staff-section {
+    background: #f8fafc;
+}
+
+.staff-control-panel {
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 20px;
+
+    padding: 25px;
+
+    display: none;
+}
+
+.control-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 23px;
+}
+
+.control-header span {
+    color: #2563eb;
+
+    font-size: 9px;
+
+    font-weight: 900;
+}
+
+.control-header h3 {
+    margin-top: 5px;
+
+    font-size: 20px;
+}
+
+.control-status {
+    padding: 8px 12px;
+
+    border-radius: 20px;
+
+    background: #dcfce7;
+
+    color: #15803d;
+
+    font-size: 9px;
+
+    font-weight: 900;
+}
+
+.control-group {
+    margin-bottom: 20px;
+}
+
+.control-group label {
+    display: block;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+    margin-bottom: 7px;
+}
+
+.control-group select {
+    width: 100%;
+
+    height: 43px;
+
+    border: 1px solid #dbe2ea;
+
+    border-radius: 8px;
+
+    padding: 0 10px;
+}
+
+.control-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+}
+
+.control-card {
+    padding: 17px;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 13px;
+
+    background: white;
+}
+
+.control-icon {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #eff6ff;
+
+    font-size: 19px;
+
+    margin-bottom: 11px;
+}
+
+.control-card h4 {
+    font-size: 13px;
+}
+
+.control-card p {
+    color: #64748b;
+
+    font-size: 9px;
+
+    line-height: 1.5;
+
+    min-height: 30px;
+
+    margin-top: 5px;
+}
+
+.control-card input,
+.control-card select {
+    width: 100%;
+
+    height: 37px;
+
+    margin-top: 10px;
+
+    border: 1px solid #dbe2ea;
+
+    border-radius: 8px;
+
+    padding: 0 8px;
+
+    font-size: 10px;
+}
+
+.control-card button {
+    width: 100%;
+
+    margin-top: 8px;
+
+    padding: 9px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #172033;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 9px;
+
+    font-weight: 800;
+}
+
+.resolve-btn {
+    background: #16a34a !important;
+}
+
+.control-footer {
+    margin-top: 20px;
+
+    display: flex;
+
+    justify-content: flex-end;
+}
+
+.save-control-btn {
+    padding: 13px 20px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: #2563eb;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 10px;
+
+    font-weight: 900;
+}
+
+
+/* TOAST */
+
+.toast {
+    position: fixed;
+
+    right: 25px;
+
+    bottom: 25px;
+
+    background: #172033;
+
+    color: white;
+
+    padding: 13px 18px;
+
+    border-radius: 9px;
+
+    font-size: 11px;
+
+    opacity: 0;
+
+    transform: translateY(20px);
+
+    transition: .3s;
+
+    z-index: 9999;
+}
+
+.toast.show {
+    opacity: 1;
+
+    transform: translateY(0);
+}
+
+
+/* RESPONSIVE */
+
+@media(max-width:1000px) {
+
+    .stats-section {
+        grid-template-columns:
+            repeat(2,1fr);
+    }
+
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .incident-grid {
+        grid-template-columns:
+            repeat(2,1fr);
+    }
+
+    .control-grid {
+        grid-template-columns:
+            repeat(2,1fr);
+    }
+
+    .category-grid {
+        grid-template-columns:
+            repeat(3,1fr);
+    }
+
+}
+
+@media(max-width:650px) {
+
+    .police-hero {
+        flex-direction: column;
+
+        text-align: center;
+
+        gap: 40px;
+    }
+
+    .hero-content h1 {
+        font-size: 36px;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .stats-section,
+    .incident-grid,
+    .control-grid,
+    .category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-source-box {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 12px;
+    }
+
+    .source-right {
+        width: 100%;
+
+        justify-content: space-between;
+    }
+
+    .control-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 12px;
+    }
+
+}

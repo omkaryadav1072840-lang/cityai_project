@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartCity AI - Water Management</title>
+
+    <link rel="stylesheet" href="water.css">
+
+    <!-- Leaflet Map -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+</head>
+
+<body>
+
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+<header class="navbar">
+
+    <div class="logo">
+        Smart<span>City AI</span>
+    </div>
+
+    <div class="page-title">
+        💧 Water Management
+    </div>
+
+    <div class="user-area">
+
+        <span id="roleBadge" class="role-badge">
+            USER
+        </span>
+
+        <button class="profile-btn" onclick="toggleProfile()">
+            👤
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- =====================================================
+     PROFILE DROPDOWN
+===================================================== -->
+
+<div id="profileMenu" class="profile-menu">
+
+    <div class="profile-header">
+        <div class="profile-icon">👤</div>
+
+        <div>
+            <h3 id="profileName">Omkar</h3>
+            <p id="profileRole">User</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <button onclick="switchRole('user')">
+        👤 User Mode
+    </button>
+
+    <button onclick="switchRole('worker')">
+        👷 Worker Mode
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     MAIN CONTAINER
+===================================================== -->
+
+<main class="container">
+
+
+    <!-- =================================================
+         PAGE HEADER
+    ================================================== -->
+
+    <section class="hero-section">
+
+        <div>
+
+            <span class="small-title">
+                SMART WATER SYSTEM
+            </span>
+
+            <h1>
+                Smart Water
+                <span>Management</span>
+            </h1>
+
+            <p>
+                Monitor water supply, report problems,
+                track maintenance and manage city water
+                infrastructure.
+            </p>
+
+        </div>
+
+        <div class="hero-icon">
+            💧
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         QUICK STATS
+    ================================================== -->
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-icon blue">
+                🚰
+            </div>
+
+            <div>
+                <p>Water Supply</p>
+
+                <h2 id="supplyCount">
+                    24
+                </h2>
+
+                <span class="status-good">
+                    ● Areas Active
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon green">
+                🧪
+            </div>
+
+            <div>
+                <p>Water Quality</p>
+
+                <h2>
+                    SAFE
+                </h2>
+
+                <span class="status-good">
+                    ● Normal
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon orange">
+                🏢
+            </div>
+
+            <div>
+                <p>Water Tanks</p>
+
+                <h2 id="tankCount">
+                    18
+                </h2>
+
+                <span>
+                    Active Tanks
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon red">
+                💦
+            </div>
+
+            <div>
+                <p>Open Issues</p>
+
+                <h2 id="issueCount">
+                    08
+                </h2>
+
+                <span class="status-warning">
+                    Need Attention
+                </span>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         USER ACTIONS
+    ================================================== -->
+
+    <section class="section-card user-section">
+
+        <div class="section-heading">
+
+            <div>
+                <span class="section-label">
+                    USER SERVICES
+                </span>
+
+                <h2>
+                    What do you need?
+                </h2>
+            </div>
+
+        </div>
+
+
+        <div class="action-grid">
+
+
+            <!-- REPORT LEAKAGE -->
+
+            <button
+                class="action-card leakage"
+                onclick="openReportModal('leakage')"
+            >
+
+                <div class="action-icon">
+                    💦
+                </div>
+
+                <div>
+                    <h3>
+                        Report Leakage
+                    </h3>
+
+                    <p>
+                        Report a leaking pipe
+                        or water line.
+                    </p>
+                </div>
+
+                <span class="arrow">
+                    →
+                </span>
+
+            </button>
+
+
+            <!-- NO WATER -->
+
+            <button
+                class="action-card no-water"
+                onclick="openReportModal('no-water')"
+            >
+
+                <div class="action-icon">
+                    🚱
+                </div>
+
+                <div>
+                    <h3>
+                        No Water
+                    </h3>
+
+                    <p>
+                        Report water supply
+                        problems.
+                    </p>
+                </div>
+
+                <span class="arrow">
+                    →
+                </span>
+
+            </button>
+
+
+            <!-- TANKER -->
+
+            <button
+                class="action-card tanker"
+                onclick="openTankerModal()"
+            >
+
+                <div class="action-icon">
+                    🚛
+                </div>
+
+                <div>
+                    <h3>
+                        Request Tanker
+                    </h3>
+
+                    <p>
+                        Request emergency
+                        water supply.
+                    </p>
+                </div>
+
+                <span class="arrow">
+                    →
+                </span>
+
+            </button>
+
+
+            <!-- DIRTY WATER -->
+
+            <button
+                class="action-card quality"
+                onclick="openReportModal('dirty-water')"
+            >
+
+                <div class="action-icon">
+                    🧪
+                </div>
+
+                <div>
+                    <h3>
+                        Report Dirty Water
+                    </h3>
+
+                    <p>
+                        Report water quality
+                        problems.
+                    </p>
+                </div>
+
+                <span class="arrow">
+                    →
+                </span>
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         MAP
+    ================================================== -->
+
+    <section class="section-card">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    LIVE MONITORING
+                </span>
+
+                <h2>
+                    Water Infrastructure Map
+                </h2>
+
+            </div>
+
+
+            <div class="map-legend">
+
+                <span>
+                    <i class="dot blue-dot"></i>
+                    Tank
+                </span>
+
+                <span>
+                    <i class="dot green-dot"></i>
+                    Supply
+                </span>
+
+                <span>
+                    <i class="dot red-dot"></i>
+                    Leakage
+                </span>
+
+                <span>
+                    <i class="dot orange-dot"></i>
+                    Maintenance
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="waterMap"
+            class="water-map"
+        ></div>
+
+    </section>
+
+
+    <!-- =================================================
+         SUPPLY + QUALITY
+    ================================================== -->
+
+    <section class="two-column">
+
+
+        <!-- WATER SUPPLY -->
+
+        <div class="section-card">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        SUPPLY
+                    </span>
+
+                    <h2>
+                        Water Supply Status
+                    </h2>
+
+                </div>
+
+                <span class="live-badge">
+                    ● LIVE
+                </span>
+
+            </div>
+
+
+            <div class="supply-status">
+
+                <div class="big-status-icon">
+                    🚰
+                </div>
+
+                <div>
+
+                    <h2 class="green-text">
+                        Supply Available
+                    </h2>
+
+                    <p>
+                        Gorakhpur City Area
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-list">
+
+                <div>
+                    <span>
+                        Pressure
+                    </span>
+
+                    <strong>
+                        Normal
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        Next Supply
+                    </span>
+
+                    <strong>
+                        06:00 AM
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        Duration
+                    </span>
+
+                    <strong>
+                        2 Hours
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- WATER QUALITY -->
+
+        <div class="section-card">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        QUALITY
+                    </span>
+
+                    <h2>
+                        Water Quality
+                    </h2>
+
+                </div>
+
+                <span class="safe-badge">
+                    SAFE
+                </span>
+
+            </div>
+
+
+            <div class="quality-grid">
+
+                <div class="quality-box">
+
+                    <span>
+                        pH
+                    </span>
+
+                    <strong>
+                        7.2
+                    </strong>
+
+                    <small>
+                        Normal
+                    </small>
+
+                </div>
+
+
+                <div class="quality-box">
+
+                    <span>
+                        TDS
+                    </span>
+
+                    <strong>
+                        310
+                    </strong>
+
+                    <small>
+                        ppm
+                    </small>
+
+                </div>
+
+
+                <div class="quality-box">
+
+                    <span>
+                        Turbidity
+                    </span>
+
+                    <strong>
+                        Normal
+                    </strong>
+
+                    <small>
+                        Good
+                    </small>
+
+                </div>
+
+
+                <div class="quality-box">
+
+                    <span>
+                        Chlorine
+                    </span>
+
+                    <strong>
+                        Normal
+                    </strong>
+
+                    <small>
+                        Safe
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         WATER TANKS
+    ================================================== -->
+
+    <section class="section-card">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    INFRASTRUCTURE
+                </span>
+
+                <h2>
+                    Water Tank Monitoring
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="tankContainer"
+            class="tank-grid"
+        >
+
+            <!-- JS WILL LOAD TANKS -->
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         USER REPORTS
+    ================================================== -->
+
+    <section class="section-card user-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-label">
+                    MY ACTIVITY
+                </span>
+
+                <h2>
+                    My Reports
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="userReports"
+            class="report-list"
+        >
+
+            <!-- JS -->
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         WORKER CONTROL PANEL
+         ONLY WORKER CAN ACCESS
+    ================================================== -->
+
+    <section
+        id="workerPanel"
+        class="worker-panel"
+        style="display:none;"
+    >
+
+        <div class="worker-header">
+
+            <div>
+
+                <span class="section-label">
+                    WORKER CONTROL
+                </span>
+
+                <h2>
+                    👷 Maintenance Dashboard
+                </h2>
+
+                <p>
+                    Manage complaints, infrastructure,
+                    water supply and maintenance.
+                </p>
+
+            </div>
+
+            <div class="worker-status">
+                WORKER ACCESS
+            </div>
+
+        </div>
+
+
+        <!-- WORKER STATS -->
+
+        <div class="worker-stats">
+
+            <div class="worker-stat">
+
+                <span>
+                    🔴
+                </span>
+
+                <div>
+
+                    <strong id="pendingIssues">
+                        08
+                    </strong>
+
+                    <small>
+                        Open Issues
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="worker-stat">
+
+                <span>
+                    🔧
+                </span>
+
+                <div>
+
+                    <strong>
+                        05
+                    </strong>
+
+                    <small>
+                        Maintenance
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="worker-stat">
+
+                <span>
+                    🚰
+                </span>
+
+                <div>
+
+                    <strong>
+                        18
+                    </strong>
+
+                    <small>
+                        Active Tanks
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="worker-stat">
+
+                <span>
+                    🧪
+                </span>
+
+                <div>
+
+                    <strong>
+                        24
+                    </strong>
+
+                    <small>
+                        Supply Areas
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             COMPLAINT MANAGEMENT
+        ================================================== -->
+
+        <div class="worker-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        WORKER
+                    </span>
+
+                    <h2>
+                        Complaint Management
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="workerComplaints"
+                class="worker-table"
+            >
+
+                <!-- JS WILL LOAD COMPLAINTS -->
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             INFRASTRUCTURE MANAGEMENT
+        ================================================== -->
+
+        <div class="worker-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        WORKER
+                    </span>
+
+                    <h2>
+                        Infrastructure Management
+                    </h2>
+
+                </div>
+
+                <button
+                    class="primary-btn"
+                    onclick="openTankModal()"
+                >
+                    + Add Water Tank
+                </button>
+
+            </div>
+
+
+            <div class="management-grid">
+
+                <button
+                    class="management-card"
+                    onclick="openTankModal()"
+                >
+
+                    <span>
+                        🏢
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Add Tank
+                        </h3>
+
+                        <p>
+                            Add a new water tank
+                            to the map.
+                        </p>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="management-card"
+                    onclick="editSelectedTank()"
+                >
+
+                    <span>
+                        ✏️
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Edit Tank
+                        </h3>
+
+                        <p>
+                            Update tank information.
+                        </p>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="management-card"
+                    onclick="updateSupply()"
+                >
+
+                    <span>
+                        🚰
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Update Supply
+                        </h3>
+
+                        <p>
+                            Change area supply status.
+                        </p>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="management-card"
+                    onclick="updateWaterQuality()"
+                >
+
+                    <span>
+                        🧪
+                    </span>
+
+                    <div>
+
+                        <h3>
+                            Update Quality
+                        </h3>
+
+                        <p>
+                            Update water test results.
+                        </p>
+
+                    </div>
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MAINTENANCE
+        ================================================== -->
+
+        <div class="worker-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        MAINTENANCE
+                    </span>
+
+                    <h2>
+                        Active Maintenance
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="maintenanceList"
+                class="maintenance-list"
+            >
+
+                <!-- JS WILL LOAD MAINTENANCE -->
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<!-- =====================================================
+     REPORT MODAL
+===================================================== -->
+
+<div
+    id="reportModal"
+    class="modal"
+>
+
+    <div class="modal-box">
+
+        <button
+            class="close-btn"
+            onclick="closeModal('reportModal')"
+        >
+            ×
+        </button>
+
+        <h2>
+            Report Water Problem
+        </h2>
+
+        <p class="modal-subtitle">
+            Submit a complaint to the water department.
+        </p>
+
+
+        <form id="reportForm">
+
+            <input
+                type="hidden"
+                id="reportType"
+            >
+
+
+            <label>
+                Problem Type
+            </label>
+
+            <select id="problemType">
+
+                <option value="leakage">
+                    💦 Water Leakage
+                </option>
+
+                <option value="no-water">
+                    🚱 No Water Supply
+                </option>
+
+                <option value="dirty-water">
+                    🧪 Dirty Water
+                </option>
+
+                <option value="low-pressure">
+                    ⚠️ Low Pressure
+                </option>
+
+            </select>
+
+
+            <label>
+                Location
+            </label>
+
+            <input
+                type="text"
+                id="reportLocation"
+                placeholder="Enter location"
+                required
+            >
+
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="reportDescription"
+                rows="4"
+                placeholder="Describe the problem..."
+                required
+            ></textarea>
+
+
+            <label>
+                Upload Photo
+            </label>
+
+            <input
+                type="file"
+                id="reportPhoto"
+                accept="image/*"
+            >
+
+
+            <button
+                type="submit"
+                class="submit-btn"
+            >
+                Submit Report
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TANKER MODAL
+===================================================== -->
+
+<div
+    id="tankerModal"
+    class="modal"
+>
+
+    <div class="modal-box">
+
+        <button
+            class="close-btn"
+            onclick="closeModal('tankerModal')"
+        >
+            ×
+        </button>
+
+        <h2>
+            🚛 Request Water Tanker
+        </h2>
+
+        <p class="modal-subtitle">
+            Request emergency water delivery.
+        </p>
+
+
+        <form id="tankerForm">
+
+            <label>
+                Delivery Location
+            </label>
+
+            <input
+                type="text"
+                id="tankerLocation"
+                placeholder="Enter delivery location"
+                required
+            >
+
+
+            <label>
+                Water Quantity
+            </label>
+
+            <select id="waterQuantity">
+
+                <option value="1000">
+                    1,000 Litres
+                </option>
+
+                <option value="2000">
+                    2,000 Litres
+                </option>
+
+                <option value="5000">
+                    5,000 Litres
+                </option>
+
+                <option value="10000">
+                    10,000 Litres
+                </option>
+
+            </select>
+
+
+            <label>
+                Priority
+            </label>
+
+            <select id="tankerPriority">
+
+                <option value="normal">
+                    Normal
+                </option>
+
+                <option value="urgent">
+                    Urgent
+                </option>
+
+                <option value="emergency">
+                    Emergency
+                </option>
+
+            </select>
+
+
+            <button
+                type="submit"
+                class="submit-btn"
+            >
+                Request Tanker
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TANK MODAL - WORKER
+===================================================== -->
+
+<div
+    id="tankModal"
+    class="modal"
+>
+
+    <div class="modal-box">
+
+        <button
+            class="close-btn"
+            onclick="closeModal('tankModal')"
+        >
+            ×
+        </button>
+
+        <h2>
+            🏢 Water Tank
+        </h2>
+
+
+        <form id="tankForm">
+
+            <input
+                type="hidden"
+                id="tankId"
+            >
+
+
+            <label>
+                Tank Name
+            </label>
+
+            <input
+                type="text"
+                id="tankName"
+                placeholder="Tank #101"
+                required
+            >
+
+
+            <label>
+                Location
+            </label>
+
+            <input
+                type="text"
+                id="tankLocation"
+                placeholder="Enter location"
+                required
+            >
+
+
+            <div class="form-row">
+
+                <div>
+
+                    <label>
+                        Latitude
+                    </label>
+
+                    <input
+                        type="number"
+                        step="any"
+                        id="tankLat"
+                        required
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Longitude
+                    </label>
+
+                    <input
+                        type="number"
+                        step="any"
+                        id="tankLng"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <label>
+                Capacity (Litres)
+            </label>
+
+            <input
+                type="number"
+                id="tankCapacity"
+                placeholder="50000"
+                required
+            >
+
+
+            <label>
+                Current Level (%)
+            </label>
+
+            <input
+                type="number"
+                id="tankLevel"
+                min="0"
+                max="100"
+                placeholder="75"
+                required
+            >
+
+
+            <label>
+                Pump Status
+            </label>
+
+            <select id="pumpStatus">
+
+                <option value="on">
+                    🟢 ON
+                </option>
+
+                <option value="off">
+                    🔴 OFF
+                </option>
+
+                <option value="maintenance">
+                    🟡 Maintenance
+                </option>
+
+            </select>
+
+
+            <button
+                type="submit"
+                class="submit-btn"
+            >
+                Save Tank
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     TOAST
+===================================================== -->
+
+<div
+    id="toast"
+    class="toast"
+>
+    Successfully updated
+</div>
+
+
+<!-- =====================================================
+     LEAFLET JS
+===================================================== -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<!-- =====================================================
+     WATER JS
+===================================================== -->
+
+<script src="water.js"></script>
+
+</body>
+</html>

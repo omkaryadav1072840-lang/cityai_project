@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SmartCity AI - Waste Management</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" href="waste.css">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<header class="navbar">
+
+    <div class="logo">
+        Smart<span>City AI</span>
+    </div>
+
+    <div class="page-title">
+        ♻️ Waste Management
+    </div>
+
+    <div class="nav-actions">
+
+        <button class="notification-btn" onclick="showNotifications()">
+            🔔
+            <span id="notificationCount">0</span>
+        </button>
+
+        <button class="profile-btn">
+            👤 Omkar
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="container">
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div>
+
+            <div class="eyebrow">
+                SMART WASTE MANAGEMENT
+            </div>
+
+            <h1>
+                Keep Your City
+                <span>Clean & Smart</span> 🌱
+            </h1>
+
+            <p>
+                Monitor garbage bins, report waste,
+                request pickup and track collection vehicles.
+            </p>
+
+        </div>
+
+        <div class="hero-actions">
+
+            <button class="btn white-btn"
+                    onclick="openBinModal()">
+                + Add Bin
+            </button>
+
+            <button class="btn green-btn"
+                    onclick="openReportModal()">
+                📍 Report Waste
+            </button>
+
+            <button class="btn outline-btn"
+                    onclick="openPickupModal()">
+                🚛 Request Pickup
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= DASHBOARD ================= -->
+
+    <section class="stats-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-icon green">
+                🗑️
+            </div>
+
+            <div>
+                <h3 id="totalBins">0</h3>
+                <p>Total Bins</p>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon light-green">
+                🟢
+            </div>
+
+            <div>
+                <h3 id="emptyBins">0</h3>
+                <p>Empty Bins</p>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon yellow">
+                🟡
+            </div>
+
+            <div>
+                <h3 id="halfBins">0</h3>
+                <p>Half Full</p>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon red">
+                🔴
+            </div>
+
+            <div>
+                <h3 id="fullBins">0</h3>
+                <p>Full Bins</p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= MAP ================= -->
+
+    <section class="card map-card">
+
+        <div class="section-head">
+
+            <div>
+                <h2>🗺️ Live Waste Map</h2>
+                <p>Click a bin to manage it.</p>
+            </div>
+
+            <div class="live">
+                <span></span>
+                LIVE
+            </div>
+
+        </div>
+
+        <div id="wasteMap"></div>
+
+        <div class="map-legend">
+
+            <div>
+                <i class="dot empty-dot"></i>
+                Empty
+            </div>
+
+            <div>
+                <i class="dot half-dot"></i>
+                Half Full
+            </div>
+
+            <div>
+                <i class="dot full-dot"></i>
+                Full
+            </div>
+
+            <div>
+                🚛 Vehicle
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= BIN MANAGEMENT ================= -->
+
+    <section class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2>🗑️ Waste Bin Management</h2>
+                <p>Manage all smart bins in the city.</p>
+            </div>
+
+            <button class="small-btn"
+                    onclick="openBinModal()">
+                + Add Bin
+            </button>
+
+        </div>
+
+
+        <div class="filter-row">
+
+            <input
+                id="binSearch"
+                type="text"
+                placeholder="🔍 Search bin or location..."
+                oninput="renderBins()">
+
+
+            <select id="binFilter"
+                    onchange="renderBins()">
+
+                <option value="all">
+                    All Status
+                </option>
+
+                <option value="empty">
+                    🟢 Empty
+                </option>
+
+                <option value="half">
+                    🟡 Half Full
+                </option>
+
+                <option value="full">
+                    🔴 Full
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div id="binList" class="bin-list"></div>
+
+    </section>
+
+
+    <!-- ================= REPORT + PICKUP ================= -->
+
+    <div class="two-columns">
+
+
+        <!-- REPORTS -->
+
+        <section class="card">
+
+            <div class="section-head">
+
+                <div>
+                    <h2>📋 Waste Reports</h2>
+                    <p>Manage citizen complaints.</p>
+                </div>
+
+                <button class="small-btn"
+                        onclick="openReportModal()">
+                    + Report
+                </button>
+
+            </div>
+
+
+            <div id="reportList"></div>
+
+        </section>
+
+
+        <!-- PICKUPS -->
+
+        <section class="card">
+
+            <div class="section-head">
+
+                <div>
+                    <h2>🚛 Pickup Requests</h2>
+                    <p>Manage garbage collection.</p>
+                </div>
+
+                <button class="small-btn"
+                        onclick="openPickupModal()">
+                    + Pickup
+                </button>
+
+            </div>
+
+
+            <div id="pickupList"></div>
+
+        </section>
+
+    </div>
+
+
+    <!-- ================= SCORE ================= -->
+
+    <section class="card score-card">
+
+        <div>
+
+            <h2>🏆 Clean City Score</h2>
+
+            <p>
+                Your contribution towards a cleaner city.
+            </p>
+
+        </div>
+
+        <div class="score-number">
+
+            <strong id="scoreValue">
+                780
+            </strong>
+
+            <span>points</span>
+
+        </div>
+
+        <div class="score-progress">
+
+            <div id="scoreBar"></div>
+
+        </div>
+
+        <div class="score-level"
+             id="scoreLevel">
+            🥇 Gold
+        </div>
+
+    </section>
+
+
+</main>
+
+
+<!-- =====================================================
+     BIN MODAL
+===================================================== -->
+
+<div class="modal" id="binModal">
+
+    <div class="modal-box">
+
+        <button class="close"
+                onclick="closeModal('binModal')">
+            ×
+        </button>
+
+        <h2 id="binModalTitle">
+            Add Smart Bin
+        </h2>
+
+        <p class="modal-subtitle">
+            Enter bin information.
+        </p>
+
+
+        <input type="hidden" id="binId">
+
+
+        <label>Bin Name</label>
+
+        <input
+            id="binName"
+            type="text"
+            placeholder="Example: Bin - City Market">
+
+
+        <label>Location</label>
+
+        <input
+            id="binLocation"
+            type="text"
+            placeholder="Example: Golghar">
+
+
+        <label>Latitude</label>
+
+        <input
+            id="binLat"
+            type="number"
+            step="any"
+            placeholder="26.7606">
+
+
+        <label>Longitude</label>
+
+        <input
+            id="binLng"
+            type="number"
+            step="any"
+            placeholder="83.3732">
+
+
+        <label>Fill Percentage</label>
+
+        <input
+            id="binFill"
+            type="number"
+            min="0"
+            max="100"
+            value="0"
+            oninput="updateModalStatus()">
+
+
+        <div class="fill-preview">
+
+            Status:
+            <strong id="modalBinStatus">
+                Empty
+            </strong>
+
+        </div>
+
+
+        <button class="submit-btn"
+                onclick="saveBin()">
+
+            Save Bin
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     REPORT MODAL
+===================================================== -->
+
+<div class="modal" id="reportModal">
+
+    <div class="modal-box">
+
+        <button class="close"
+                onclick="closeModal('reportModal')">
+            ×
+        </button>
+
+        <h2 id="reportModalTitle">
+            Report Waste
+        </h2>
+
+        <p class="modal-subtitle">
+            Report a garbage problem.
+        </p>
+
+
+        <input type="hidden" id="reportId">
+
+
+        <label>Waste Type</label>
+
+        <select id="reportType">
+
+            <option>Garbage Dump</option>
+            <option>Overflowing Bin</option>
+            <option>Waste on Road</option>
+            <option>Plastic Waste</option>
+            <option>Hazardous Waste</option>
+
+        </select>
+
+
+        <label>Location</label>
+
+        <input
+            id="reportLocation"
+            type="text"
+            placeholder="Enter location">
+
+
+        <label>Description</label>
+
+        <textarea
+            id="reportDescription"
+            placeholder="Describe the problem..."></textarea>
+
+
+        <button class="submit-btn"
+                onclick="saveReport()">
+
+            Submit Report
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PICKUP MODAL
+===================================================== -->
+
+<div class="modal" id="pickupModal">
+
+    <div class="modal-box">
+
+        <button class="close"
+                onclick="closeModal('pickupModal')">
+            ×
+        </button>
+
+        <h2 id="pickupModalTitle">
+            Request Pickup
+        </h2>
+
+        <p class="modal-subtitle">
+            Schedule garbage collection.
+        </p>
+
+
+        <input type="hidden" id="pickupId">
+
+
+        <label>Waste Type</label>
+
+        <select id="pickupType">
+
+            <option>General Waste</option>
+            <option>Wet Waste</option>
+            <option>Dry Waste</option>
+            <option>Recyclable Waste</option>
+
+        </select>
+
+
+        <label>Pickup Date</label>
+
+        <input
+            id="pickupDate"
+            type="date">
+
+
+        <label>Pickup Time</label>
+
+        <select id="pickupTime">
+
+            <option>8:00 AM - 10:00 AM</option>
+            <option>10:00 AM - 12:00 PM</option>
+            <option>2:00 PM - 4:00 PM</option>
+            <option>5:00 PM - 7:00 PM</option>
+
+        </select>
+
+
+        <label>Location</label>
+
+        <input
+            id="pickupLocation"
+            type="text"
+            placeholder="Pickup location">
+
+
+        <button class="submit-btn"
+                onclick="savePickup()">
+
+            Save Pickup
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- LEAFLET -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+<script src="waste.js"></script>
+
+</body>
+</html>

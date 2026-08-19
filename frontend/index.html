@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Smart City AI</title>
+
+
+    <!-- =====================================================
+         LEAFLET CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+
+    <!-- =====================================================
+         LEAFLET ROUTING MACHINE CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+    >
+
+
+    <!-- =====================================================
+         YOUR CSS
+    ====================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="index.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        Smart<span>City AI</span>
+    </div>
+
+
+    <div class="nav-links">
+
+        <a href="#dashboard">
+            Dashboard
+        </a>
+
+        <a href="#traffic">
+            Traffic
+        </a>
+
+        <a href="#waste">
+            Waste
+        </a>
+
+        <a href="#water">
+            Water
+        </a>
+
+        <a href="#emergency">
+            Emergency
+        </a>
+
+        <a href="#map">
+            Map
+        </a>
+
+        <a href="#healthcare">
+            Healthcare
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<main>
+
+
+<!-- =====================================================
+     DASHBOARD / HERO
+===================================================== -->
+
+<section
+    class="hero"
+    id="dashboard"
+>
+
+
+    <!-- =================================================
+         FEATURE SIDEBAR
+    ================================================== -->
+
+    <div class="features">
+
+
+        <!-- TRAFFIC -->
+
+        <a
+            href="pages/traffic/traffic.html"
+            class="feature"
+            onclick="showFeature('traffic', this)"
+        >
+
+            <span>
+                🚦
+            </span>
+
+            <p>
+                Traffic
+            </p>
+
+        </a>
+
+
+
+        <!-- WASTE -->
+
+        <a
+            href="pages/waste/waste.html"
+            class="feature"
+            onclick="showFeature('waste', this)"
+        >
+
+            <span>
+                🗑️
+            </span>
+
+            <p>
+                Waste
+            </p>
+
+        </a>
+
+
+
+        <!-- WATER -->
+
+        <a
+            href="pages/water/water.html"
+            class="feature"
+            onclick="showFeature('water', this)"
+        >
+
+            <span>
+                💧
+            </span>
+
+            <p>
+                Water
+            </p>
+
+        </a>
+
+
+
+        <!-- EMERGENCY -->
+
+        <a
+            href="pages/emergency/emergency.html"
+            class="feature"
+            onclick="showFeature('emergency', this)"
+        >
+
+            <span>
+                🚨
+            </span>
+
+            <p>
+                Emergency
+            </p>
+
+        </a>
+
+
+
+        <!-- PARKING -->
+
+        <a
+            href="pages/parking/parking.html"
+            class="feature"
+            onclick="showFeature('parking', this)"
+        >
+
+            <span>
+                🅿️
+            </span>
+
+            <p>
+                Parking
+            </p>
+
+        </a>
+
+
+
+        <!-- HOSPITAL -->
+
+        <a
+            href="pages/hospital/hospital.html"
+            class="feature"
+            onclick="showFeature('hospital', this)"
+        >
+
+            <span>
+                🏥
+            </span>
+
+            <p>
+                Hospital
+            </p>
+
+        </a>
+
+
+
+        <!-- POLICE -->
+
+        <a
+            href="pages/police/police.html"
+            class="feature"
+            onclick="showFeature('police', this)"
+        >
+
+            <span>
+                👮
+            </span>
+
+            <p>
+                Police
+            </p>
+
+        </a>
+
+
+
+        <!-- FAMOUS PLACES -->
+
+        <a
+            href="pages/places/places.html"
+            class="feature"
+            onclick="showFeature('places', this)"
+        >
+
+            <span>
+                ⭐
+            </span>
+
+            <p>
+                Famous Places
+            </p>
+
+        </a>
+
+    </div>
+
+
+
+    <!-- =================================================
+         AI CARD
+    ================================================== -->
+
+    <div class="ai-card">
+
+
+        <div class="ai-head">
+
+            <div class="ai-avatar">
+                🤖
+            </div>
+
+
+            <div>
+
+                <h1>
+                    Smart
+                    <span>City AI</span>
+                </h1>
+
+                <p>
+                    Your intelligent city assistant
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="ai-display">
+
+            <h2>
+                Welcome to Smart City AI
+            </h2>
+
+            <p>
+                Find city services, locations,
+                traffic and routes.
+            </p>
+
+        </div>
+
+
+
+        <div class="ai-input">
+
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Ask Smart City AI..."
+            >
+
+            <button id="sendButton">
+                Send
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     CURRENT CITY REPORTS
+===================================================== -->
+
+<section
+    class="reports"
+    id="cityReports"
+>
+
+
+    <div class="section-title">
+
+        <div>
+
+            <h2>
+                Current City Reports
+            </h2>
+
+            <p>
+                Smart city service overview
+            </p>
+
+        </div>
+
+
+        <span class="live">
+
+            <i></i>
+
+            LIVE
+
+        </span>
+
+    </div>
+
+
+
+    <div class="reports-grid">
+
+
+        <!-- =================================================
+             TRAFFIC
+        ================================================== -->
+
+        <div
+            class="report-card"
+            id="traffic"
+        >
+
+            <div class="report-icon">
+                🚦
+            </div>
+
+            <h3>
+                Traffic
+            </h3>
+
+            <strong id="trafficValue">
+                Loading...
+            </strong>
+
+            <p>
+                Congestion level
+            </p>
+
+            <div class="progress">
+
+                <span
+                    id="trafficProgress"
+                    style="width:0%"
+                ></span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             WASTE
+        ================================================== -->
+
+        <div
+            class="report-card"
+            id="waste"
+        >
+
+            <div class="report-icon">
+                🗑️
+            </div>
+
+            <h3>
+                Waste Management
+            </h3>
+
+            <strong>
+                68%
+            </strong>
+
+            <p>
+                Average bin fill level
+            </p>
+
+            <div class="progress">
+
+                <span
+                    style="width:68%"
+                ></span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             WATER
+        ================================================== -->
+
+        <div
+            class="report-card"
+            id="water"
+        >
+
+            <div class="report-icon">
+                💧
+            </div>
+
+            <h3>
+                Water Supply
+            </h3>
+
+            <strong>
+                91%
+            </strong>
+
+            <p>
+                Water availability
+            </p>
+
+            <div class="progress">
+
+                <span
+                    style="width:91%"
+                ></span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             AIR QUALITY
+        ================================================== -->
+
+        <div
+            class="report-card"
+            id="airQuality"
+        >
+
+            <div class="report-icon">
+                🌫️
+            </div>
+
+            <h3>
+                Air Quality
+            </h3>
+
+            <strong id="aqiValue">
+                Loading...
+            </strong>
+
+            <p id="aqiStatus">
+                Loading...
+            </p>
+
+            <div class="progress">
+
+                <span
+                    id="aqiProgress"
+                    style="width:0%"
+                ></span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             EMERGENCY
+        ================================================== -->
+
+        <div
+            class="report-card"
+            id="emergency"
+        >
+
+            <div class="report-icon">
+                🚨
+            </div>
+
+            <h3>
+                Emergency
+            </h3>
+
+            <strong id="ambulanceValue">
+                Loading...
+            </strong>
+
+            <p>
+                Ambulances Available
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             STREET LIGHT
+        ================================================== -->
+
+        <div class="report-card">
+
+            <div class="report-icon">
+                💡
+            </div>
+
+            <h3>
+                Street Lights
+            </h3>
+
+            <strong>
+                98%
+            </strong>
+
+            <p>
+                Working normally
+            </p>
+
+            <div class="progress">
+
+                <span
+                    style="width:98%"
+                ></span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SMART CITY MAP
+===================================================== -->
+
+<section
+    class="map-section"
+    id="map"
+>
+
+
+    <div class="map-header">
+
+        <div>
+
+            <h2>
+                Smart City Navigation
+            </h2>
+
+            <p>
+                Explore nearby real places and
+                Smart City locations
+            </p>
+
+        </div>
+
+
+        <span class="live">
+
+            <i></i>
+
+            MAP LIVE
+
+        </span>
+
+    </div>
+
+
+
+    <!-- =================================================
+         SEARCH + LOCATION
+    ================================================== -->
+
+    <div class="map-tools">
+
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="mapSearch"
+                placeholder="Search place or area..."
+            >
+
+            <button
+                onclick="searchLocation()"
+            >
+                🔍 Search
+            </button>
+
+        </div>
+
+
+
+        <button
+            class="location-btn"
+            onclick="getMyLocation()"
+        >
+            📍 My Location
+        </button>
+
+
+
+        <button
+            class="refresh-btn"
+            onclick="refreshMapData()"
+        >
+            🔄 Refresh
+        </button>
+
+    </div>
+
+
+
+    <!-- =================================================
+         MAP FILTERS
+    ================================================== -->
+
+    <div class="map-features">
+
+
+        <button
+            class="map-filter active"
+            onclick="showFeature('all', this)"
+        >
+            🗺️ All
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('traffic', this)"
+        >
+            🚦 Traffic
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('waste', this)"
+        >
+            🗑️ Waste
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('hospital', this)"
+        >
+            🏥 Hospital
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('police', this)"
+        >
+            👮 Police
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('fire', this)"
+        >
+            🚒 Fire
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('parking', this)"
+        >
+            🅿️ Parking
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('water', this)"
+        >
+            💧 Water
+        </button>
+
+
+        <button
+            class="map-filter"
+            onclick="showFeature('places', this)"
+        >
+            ⭐ Famous Places
+        </button>
+
+    </div>
+
+
+
+    <!-- MAP -->
+
+    <div id="cityMap"></div>
+
+
+
+    <!-- NAVIGATION INFORMATION -->
+
+    <div
+        class="navigation-info"
+        id="navigationInfo"
+    >
+
+        <div class="navigation-icon">
+            🧭
+        </div>
+
+        <div>
+
+            <h3>
+                Navigation
+            </h3>
+
+            <p>
+                Click any marker and choose
+                <b>Navigate Here</b>.
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <p class="map-note">
+
+        Real places are loaded from
+        OpenStreetMap.
+
+        Locations marked
+        <b>DEMO / TEST DATA</b>
+        are sample Smart City locations
+        for project demonstration.
+
+    </p>
+
+</section>
+
+
+
+<!-- =====================================================
+     SMART HEALTHCARE
+===================================================== -->
+
+<section
+    class="healthcare-section"
+    id="healthcare"
+>
+
+
+    <!-- =================================================
+         HEALTHCARE HEADER
+    ================================================== -->
+
+    <div class="healthcare-header">
+
+        <div>
+
+            <span class="section-tag">
+                SMART HEALTHCARE
+            </span>
+
+            <h2>
+                Digital Healthcare Services
+            </h2>
+
+            <p>
+                Book hospitals, doctors and ambulances
+                from one place.
+            </p>
+
+        </div>
+
+
+        <div class="health-status">
+
+            <span></span>
+
+            HEALTHCARE ONLINE
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         HEALTHCARE SERVICES
+    ================================================== -->
+
+    <div class="healthcare-grid">
+
+
+        <!-- =================================================
+             HOSPITAL
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                🏥
+            </div>
+
+            <h3>
+                Book Hospital
+            </h3>
+
+            <p>
+                Find nearby hospitals and
+                book an appointment.
+            </p>
+
+            <button
+                type="button"
+                onclick="openHospitalBooking()"
+            >
+                Find Hospital
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             HOSPITAL CONTACT
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                📞
+            </div>
+
+            <h3>
+                Hospital Contact
+            </h3>
+
+            <p>
+                Quickly find hospital
+                emergency contact numbers.
+            </p>
+
+            <button
+                type="button"
+                onclick="openHospitalContacts()"
+            >
+                View Numbers
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             AMBULANCE
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                🚑
+            </div>
+
+            <h3>
+                Track Ambulance
+            </h3>
+
+            <p>
+                Request an ambulance and
+                track its current location.
+            </p>
+
+            <button
+                type="button"
+                onclick="trackAmbulance()"
+            >
+                Track Ambulance
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             DOCTOR
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                👨‍⚕️
+            </div>
+
+            <h3>
+                Book Doctor
+            </h3>
+
+            <p>
+                Select a doctor and book
+                an available time slot.
+            </p>
+
+            <button
+                type="button"
+                onclick="openDoctorBooking()"
+            >
+                Book Slot
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             PATIENT ID
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                🪪
+            </div>
+
+            <h3>
+                Patient ID
+            </h3>
+
+            <p>
+                Create your digital patient
+                profile and healthcare ID.
+            </p>
+
+            <button
+                type="button"
+                onclick="openPatientRegistration()"
+            >
+                Create Patient ID
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             PATIENT FILE
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                📋
+            </div>
+
+            <h3>
+                Patient File
+            </h3>
+
+            <p>
+                Search patient ID and view
+                complete patient information.
+            </p>
+
+            <button
+                type="button"
+                onclick="openPatientFile()"
+            >
+                View Patient File
+            </button>
+
+        </div>
+
+
+    </div>
+    <!-- =================================================
+         HEALTHCARE GRID END
+    ================================================== -->
+
+
+
+    <!-- =====================================================
+         PATIENT FILE MODAL
+         IMPORTANT:
+         THIS IS OUTSIDE HEALTHCARE-GRID
+    ===================================================== -->
+
+    <div
+        class="health-modal"
+        id="patientFileModal"
+    >
+
+        <div
+            class="health-modal-content patient-file-box"
+        >
+
+
+            <!-- CLOSE -->
+
+            <button
+                class="close-health"
+                onclick="closeHealthModal('patientFileModal')"
+            >
+                ×
+            </button>
+
+
+
+            <!-- HEADER -->
+
+            <div class="patient-file-header">
+
+                <div class="patient-file-icon">
+                    📋
+                </div>
+
+                <div>
+
+                    <h2>
+                        Patient File
+                    </h2>
+
+                    <p>
+                        Search and view patient information
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- SEARCH -->
+
+            <div class="patient-search">
+
+                <input
+                    type="text"
+                    id="patientFileId"
+                    placeholder="Enter Patient ID"
+                >
+
+                <button
+                    type="button"
+                    onclick="searchPatientFile()"
+                >
+                    🔍 Search
+                </button>
+
+            </div>
+
+
+
+            <!-- EMPTY MESSAGE -->
+
+            <div
+                class="empty-patient"
+                id="patientFileEmpty"
+            >
+
+                <span>
+                    📁
+                </span>
+
+                <h3>
+                    No Patient Selected
+                </h3>
+
+                <p>
+                    Enter a Patient ID to view
+                    the patient file.
+                </p>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PATIENT DATA
+            ================================================== -->
+
+            <div
+                class="patient-card"
+                id="patientFileData"
+                style="display:none;"
+            >
+
+
+                <div class="patient-card-top">
+
+                    <div>
+
+                        <h3 id="filePatientName">
+                            Patient Name
+                        </h3>
+
+                    </div>
+
+
+                    <span
+                        class="patient-id"
+                        id="filePatientId"
+                    >
+                        PAT-0000
+                    </span>
+
+                </div>
+
+
+
+                <!-- PATIENT DETAILS -->
+
+                <div class="patient-details">
+
+
+                    <!-- PATIENT ID -->
+
+                    <div class="patient-detail">
+
+                        <small>
+                            Patient ID
+                        </small>
+
+                        <strong id="filePatientIdValue">
+                            -
+                        </strong>
+
+                    </div>
+
+
+
+                    <!-- NAME -->
+
+                    <div class="patient-detail">
+
+                        <small>
+                            Name
+                        </small>
+
+                        <strong id="filePatientNameValue">
+                            -
+                        </strong>
+
+                    </div>
+
+
+
+                    <!-- DOB -->
+
+                    <div class="patient-detail">
+
+                        <small>
+                            Date of Birth
+                        </small>
+
+                        <strong id="filePatientDOB">
+                            -
+                        </strong>
+
+                    </div>
+
+
+
+                    <!-- GENDER -->
+
+                    <div class="patient-detail">
+
+                        <small>
+                            Gender
+                        </small>
+
+                        <strong id="filePatientGender">
+                            -
+                        </strong>
+
+                    </div>
+
+
+
+                    <!-- PHONE -->
+
+                    <div class="patient-detail">
+
+                        <small>
+                            Phone Number
+                        </small>
+
+                        <strong id="filePatientPhone">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     QR CODE
+                ================================================== -->
+
+                <div class="patient-file-qr">
+
+                    <h4>
+                        Patient QR Code
+                    </h4>
+
+
+                    <div id="fileQRCode"></div>
+
+
+                    <p>
+                        Scan this QR code to identify
+                        the patient.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PATIENT REGISTRATION
+    ===================================================== -->
+
+    <div
+        class="health-modal"
+        id="patientModal"
+    >
+
+        <div class="health-modal-content">
+
+
+            <!-- CLOSE -->
+
+            <button
+                class="close-health"
+                onclick="closeHealthModal('patientModal')"
+            >
+                ×
+            </button>
+
+
+            <h2>
+                Create Patient ID
+            </h2>
+
+
+            <p>
+                Create your digital healthcare profile.
+            </p>
+
+
+
+            <!-- FORM -->
+
+            <form id="patientForm">
+
+
+                <input
+                    type="text"
+                    id="patientName"
+                    placeholder="Full Name"
+                    required
+                >
+
+
+                <input
+                    type="date"
+                    id="patientDOB"
+                    required
+                >
+
+
+                <select
+                    id="patientGender"
+                    required
+                >
+
+                    <option value="">
+                        Select Gender
+                    </option>
+
+                    <option value="Male">
+                        Male
+                    </option>
+
+                    <option value="Female">
+                        Female
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+
+                <input
+                    type="tel"
+                    id="patientPhone"
+                    placeholder="Phone Number"
+                    required
+                >
+
+
+                <button type="submit">
+                    Create Patient ID
+                </button>
+
+
+            </form>
+
+
+
+            <!-- GENERATED ID -->
+
+            <div
+                id="patientResult"
+                class="patient-result"
+            >
+
+                <h3>
+                    Patient ID Created
+                </h3>
+
+
+                <strong id="generatedPatientId">
+                    --
+                </strong>
+
+
+                <div
+                    id="patientQRCode"
+                    class="patient-qr"
+                ></div>
+
+
+                <p>
+                    Show this QR code at the
+                    hospital/doctor's computer.
+                </p>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         DOCTOR BOOKING
+    ===================================================== -->
+
+    <div
+        class="health-modal"
+        id="doctorModal"
+    >
+
+        <div class="health-modal-content">
+
+
+            <!-- CLOSE -->
+
+            <button
+                class="close-health"
+                onclick="closeHealthModal('doctorModal')"
+            >
+                ×
+            </button>
+
+
+            <h2>
+                Book Doctor Appointment
+            </h2>
+
+
+
+            <select id="doctorSelect">
+
+                <option value="">
+                    Select Doctor
+                </option>
+
+                <option>
+                    Dr. Rahul Sharma — General Physician
+                </option>
+
+                <option>
+                    Dr. Priya Singh — Cardiologist
+                </option>
+
+                <option>
+                    Dr. Amit Verma — Orthopedic
+                </option>
+
+            </select>
+
+
+
+            <input
+                type="date"
+                id="appointmentDate"
+            >
+
+
+
+            <select id="appointmentTime">
+
+                <option>
+                    10:00 AM
+                </option>
+
+                <option>
+                    11:00 AM
+                </option>
+
+                <option>
+                    12:00 PM
+                </option>
+
+                <option>
+                    03:00 PM
+                </option>
+
+                <option>
+                    04:00 PM
+                </option>
+
+                <option>
+                    05:00 PM
+                </option>
+
+            </select>
+
+
+
+            <input
+                type="text"
+                id="appointmentPatientId"
+                placeholder="Patient ID"
+            >
+
+
+
+            <button
+                type="button"
+                onclick="bookDoctorSlot()"
+            >
+                Confirm Appointment
+            </button>
+
+
+
+            <div
+                id="appointmentResult"
+                class="appointment-result"
+            ></div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         HOSPITAL CONTACT
+    ===================================================== -->
+
+    <div
+        class="health-modal"
+        id="hospitalModal"
+    >
+
+        <div class="health-modal-content">
+
+
+            <!-- CLOSE -->
+
+            <button
+                class="close-health"
+                onclick="closeHealthModal('hospitalModal')"
+            >
+                ×
+            </button>
+
+
+
+            <h2>
+                Hospital Emergency Numbers
+            </h2>
+
+
+
+            <div class="hospital-contact">
+
+
+                <!-- CITY HOSPITAL -->
+
+                <div>
+
+                    <strong>
+                        City Hospital
+                    </strong>
+
+                    <p>
+                        Emergency: 108
+                    </p>
+
+                    <button
+                        type="button"
+                        onclick="window.location.href='tel:108'"
+                    >
+                        📞 Call
+                    </button>
+
+                </div>
+
+
+
+                <!-- DISTRICT HOSPITAL -->
+
+                <div>
+
+                    <strong>
+                        District Hospital
+                    </strong>
+
+                    <p>
+                        Emergency: 108
+                    </p>
+
+                    <button
+                        type="button"
+                        onclick="window.location.href='tel:108'"
+                    >
+                        📞 Call
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     SMARTCITY AI AUTH SYSTEM
+===================================================== -->
+
+<div
+    id="authOverlay"
+    class="auth-overlay"
+>
+
+
+    <div class="auth-modal">
+
+
+        <!-- =================================================
+             LOGIN
+        ================================================== -->
+
+        <div id="loginPanel">
+
+
+            <div class="auth-icon">
+                🏙️
+            </div>
+
+
+            <h2>
+                Welcome to <span>SmartCity AI</span>
+            </h2>
+
+
+            <p class="auth-subtitle">
+                Login to continue
+            </p>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Email / Mobile Number
+                </label>
+
+                <input
+                    type="text"
+                    id="loginId"
+                    placeholder="Enter email or mobile number"
+                    autocomplete="username"
+                >
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                >
+
+            </div>
+
+
+
+            <div
+                id="loginMessage"
+                class="auth-message"
+            ></div>
+
+
+
+            <button
+                class="auth-primary-btn"
+                onclick="userLogin()"
+            >
+                LOGIN
+            </button>
+
+
+
+            <div class="auth-switch">
+
+                Don't have an account?
+
+                <button
+                    type="button"
+                    onclick="showCreateAccount()"
+                >
+                    Create Your Account
+                </button>
+
+            </div>
+
+
+
+            <div class="staff-login-link">
+
+                <button
+                    type="button"
+                    onclick="showStaffLogin()"
+                >
+                    🏢 Staff Login
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             CREATE ACCOUNT
+        ================================================== -->
+
+        <div
+            id="createPanel"
+            style="display:none;"
+        >
+
+
+            <div class="auth-icon">
+                👤
+            </div>
+
+
+            <h2>
+                Create Your Account
+            </h2>
+
+
+            <p class="auth-subtitle">
+                Register as a SmartCity user
+            </p>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="createName"
+                    placeholder="Enter your full name"
+                >
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Mobile Number
+                </label>
+
+                <input
+                    type="tel"
+                    id="createMobile"
+                    placeholder="10 digit mobile number"
+                >
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="createEmail"
+                    placeholder="Enter your email"
+                >
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="createPassword"
+                    placeholder="Create password"
+                >
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Confirm Password
+                </label>
+
+                <input
+                    type="password"
+                    id="createConfirmPassword"
+                    placeholder="Confirm password"
+                >
+
+            </div>
+
+
+
+            <div
+                id="createMessage"
+                class="auth-message"
+            ></div>
+
+
+
+            <button
+                class="auth-primary-btn"
+                onclick="createUserAccount()"
+            >
+                CREATE ACCOUNT
+            </button>
+
+
+
+            <div class="auth-switch">
+
+                Already have an account?
+
+                <button
+                    type="button"
+                    onclick="showLogin()"
+                >
+                    Login
+                </button>
+
+            </div>
+
+
+
+            <div class="staff-login-link">
+
+                <button
+                    type="button"
+                    onclick="showStaffLogin()"
+                >
+                    🏢 Staff Login
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             STAFF LOGIN
+        ================================================== -->
+
+        <div
+            id="staffPanel"
+            style="display:none;"
+        >
+
+
+            <div class="auth-icon">
+                🏢
+            </div>
+
+
+            <h2>
+                Staff Login
+            </h2>
+
+
+            <p class="auth-subtitle">
+                Authorized department access
+            </p>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Department
+                </label>
+
+
+                <select id="staffDepartment">
+
+                    <option value="">
+                        Select Department
+                    </option>
+
+                    <option value="traffic">
+                        🚦 Traffic Department
+                    </option>
+
+                    <option value="waste">
+                        🗑️ Waste Management
+                    </option>
+
+                    <option value="water">
+                        💧 Water Department
+                    </option>
+
+                    <option value="emergency">
+                        🚨 Emergency Department
+                    </option>
+
+                    <option value="parking">
+                        🅿️ Parking Department
+                    </option>
+
+                    <option value="healthcare">
+                        🏥 Healthcare Department
+                    </option>
+
+                    <option value="police">
+                        👮 Police Department
+                    </option>
+
+                    <option value="admin">
+                        🛡️ Administration
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Employee ID
+                </label>
+
+                <input
+                    type="text"
+                    id="staffId"
+                    placeholder="Employee ID"
+                >
+
+            </div>
+
+
+
+            <div class="auth-group">
+
+                <label>
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="staffPassword"
+                    placeholder="Password"
+                >
+
+            </div>
+
+
+
+            <div
+                id="staffMessage"
+                class="auth-message"
+            ></div>
+
+
+
+            <button
+                class="auth-primary-btn"
+                onclick="staffLogin()"
+            >
+                STAFF LOGIN
+            </button>
+
+
+
+            <div class="auth-switch">
+
+                Not Staff?
+
+                <button
+                    type="button"
+                    onclick="showLogin()"
+                >
+                    User Login
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     LOGGED-IN USER / STAFF BAR
+===================================================== -->
+
+<div
+    id="authUserBar"
+    class="auth-user-bar"
+>
+
+
+    <div>
+
+        <span class="auth-online"></span>
+
+        <strong id="authUserName">
+            User
+        </strong>
+
+        <small id="authUserRole">
+            Citizen
+        </small>
+
+    </div>
+
+
+    <button
+        type="button"
+        onclick="logoutSmartCity()"
+    >
+        Logout
+    </button>
+
+
+</div>
+
+
+
+</main>
+
+
+
+<!-- =====================================================
+     LEAFLET JAVASCRIPT
+===================================================== -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+
+<!-- =====================================================
+     LEAFLET ROUTING MACHINE
+===================================================== -->
+
+<script
+    src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js">
+</script>
+
+
+
+<!-- =====================================================
+     QR CODE LIBRARY
+===================================================== -->
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+</script>
+
+
+
+<!-- =====================================================
+     YOUR JAVASCRIPT
+===================================================== -->
+
+<script src="script.js"></script>
+
+
+</body>
+
+</html>

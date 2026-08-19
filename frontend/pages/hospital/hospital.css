@@ -1,0 +1,2500 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+
+body {
+
+    background: #f5f8fc;
+
+    color: #172033;
+
+    min-height: 100vh;
+
+}
+
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+
+.hospital-navbar {
+
+    height: 74px;
+
+    background: rgba(255,255,255,.96);
+
+    border-bottom: 1px solid #e5eaf1;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 5%;
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
+}
+
+
+.brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+
+}
+
+
+.brand-icon {
+
+    width: 43px;
+
+    height: 43px;
+
+    border-radius: 12px;
+
+    background: #eff6ff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 23px;
+
+}
+
+
+.brand h2 {
+
+    font-size: 18px;
+
+}
+
+
+.brand h2 span {
+
+    color: #2563eb;
+
+}
+
+
+.brand p {
+
+    color: #64748b;
+
+    font-size: 9px;
+
+    margin-top: 2px;
+
+}
+
+
+.nav-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 20px;
+
+}
+
+
+.system-status {
+
+    color: #16a34a;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+}
+
+
+.system-status span {
+
+    display: inline-block;
+
+    width: 7px;
+
+    height: 7px;
+
+    background: #22c55e;
+
+    border-radius: 50%;
+
+    margin-right: 5px;
+
+}
+
+
+.back-home {
+
+    text-decoration: none;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    padding: 10px 15px;
+
+    border-radius: 9px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+}
+
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.hospital-hero {
+
+    min-height: 390px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff,
+            #ffffff 55%,
+            #ecfeff
+        );
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 65px 8%;
+
+    overflow: hidden;
+
+}
+
+
+.hero-content {
+
+    max-width: 650px;
+
+}
+
+
+.hero-label {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    background: #ffffff;
+
+    border: 1px solid #dbeafe;
+
+    color: #2563eb;
+
+    padding: 8px 12px;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    margin-bottom: 18px;
+
+}
+
+
+.hero-content h1 {
+
+    font-size: clamp(35px, 5vw, 58px);
+
+    line-height: 1.05;
+
+    margin-bottom: 18px;
+
+    letter-spacing: -2px;
+
+}
+
+
+.hero-content h1 span {
+
+    color: #2563eb;
+
+}
+
+
+.hero-content p {
+
+    max-width: 600px;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.8;
+
+}
+
+
+.hero-actions {
+
+    display: flex;
+
+    gap: 12px;
+
+    margin-top: 25px;
+
+}
+
+
+.primary-btn,
+.secondary-btn {
+
+    border: none;
+
+    padding: 12px 18px;
+
+    border-radius: 9px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+}
+
+
+.primary-btn {
+
+    background: #2563eb;
+
+    color: white;
+
+}
+
+
+.secondary-btn {
+
+    background: white;
+
+    color: #dc2626;
+
+    border: 1px solid #fecaca;
+
+}
+
+
+.hero-visual {
+
+    width: 320px;
+
+    height: 300px;
+
+    position: relative;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+}
+
+
+.hospital-circle {
+
+    width: 220px;
+
+    height: 220px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    box-shadow:
+        0 25px 60px
+        rgba(37,99,235,.14);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 95px;
+
+}
+
+
+.floating-card {
+
+    position: absolute;
+
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    padding: 12px 15px;
+
+    box-shadow:
+        0 12px 35px
+        rgba(15,23,42,.10);
+
+}
+
+
+.floating-card strong {
+
+    display: block;
+
+    font-size: 17px;
+
+}
+
+
+.floating-card span {
+
+    display: block;
+
+    color: #64748b;
+
+    font-size: 9px;
+
+    margin-top: 3px;
+
+}
+
+
+.card-one {
+
+    top: 20px;
+
+    right: 0;
+
+}
+
+
+.card-one strong {
+
+    color: #16a34a;
+
+}
+
+
+.card-two {
+
+    bottom: 15px;
+
+    left: 0;
+
+}
+
+
+.card-two strong {
+
+    color: #2563eb;
+
+}
+
+
+/* =====================================================
+   STATS
+===================================================== */
+
+.stats-section {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+    padding: 25px 8%;
+
+    background: white;
+
+}
+
+
+.stat-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    padding: 18px;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 13px;
+
+    background: #ffffff;
+
+}
+
+
+.stat-icon {
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 11px;
+
+    background: #eff6ff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 21px;
+
+}
+
+
+.stat-card span {
+
+    display: block;
+
+    color: #64748b;
+
+    font-size: 10px;
+
+}
+
+
+.stat-card strong {
+
+    display: block;
+
+    font-size: 23px;
+
+    margin-top: 3px;
+
+}
+
+
+/* =====================================================
+   CONTAINER
+===================================================== */
+
+.hospital-container {
+
+    width: 84%;
+
+    max-width: 1400px;
+
+    margin: auto;
+
+}
+
+
+.section-heading {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin: 55px 0 22px;
+
+}
+
+
+.section-heading span {
+
+    color: #2563eb;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 1.5px;
+
+}
+
+
+.section-heading h2 {
+
+    font-size: 26px;
+
+    margin-top: 5px;
+
+}
+
+
+.section-heading p {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    margin-top: 5px;
+
+}
+
+
+/* =====================================================
+   SERVICE GRID
+===================================================== */
+
+.service-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 16px;
+
+}
+
+
+.service-card {
+
+    background: white;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 15px;
+
+    padding: 22px;
+
+    transition: .25s;
+
+}
+
+
+.service-card:hover {
+
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 15px 35px
+        rgba(15,23,42,.09);
+
+    border-color: #bfdbfe;
+
+}
+
+
+.service-icon {
+
+    width: 48px;
+
+    height: 48px;
+
+    border-radius: 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 23px;
+
+    margin-bottom: 17px;
+
+}
+
+
+.blue {
+    background: #eff6ff;
+}
+
+.green {
+    background: #f0fdf4;
+}
+
+.purple {
+    background: #faf5ff;
+}
+
+.red {
+    background: #fef2f2;
+}
+
+.cyan {
+    background: #ecfeff;
+}
+
+.orange {
+    background: #fff7ed;
+}
+
+.teal {
+    background: #f0fdfa;
+}
+
+.pink {
+    background: #fdf2f8;
+}
+
+
+.service-card h3 {
+
+    font-size: 15px;
+
+    margin-bottom: 8px;
+
+}
+
+
+.service-card p {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    min-height: 53px;
+
+}
+
+
+.service-card button {
+
+    border: none;
+
+    background: transparent;
+
+    color: #2563eb;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    padding: 0;
+
+    margin-top: 17px;
+
+}
+
+
+/* =====================================================
+   HOSPITAL LIST
+===================================================== */
+
+.content-section {
+
+    margin-bottom: 20px;
+
+}
+
+
+.hospital-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+
+.hospital-row {
+
+    background: white;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 13px;
+
+    padding: 14px 18px;
+
+    display: grid;
+
+    grid-template-columns:
+        auto 1fr auto auto;
+
+    gap: 15px;
+
+    align-items: center;
+
+}
+
+
+.hospital-logo {
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 11px;
+
+    background: #eff6ff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 22px;
+
+}
+
+
+.hospital-info h3 {
+
+    font-size: 13px;
+
+}
+
+
+.hospital-info p {
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    margin-top: 4px;
+
+}
+
+
+.hospital-status {
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+}
+
+
+.hospital-status span {
+
+    width: 7px;
+
+    height: 7px;
+
+    border-radius: 50%;
+
+    display: inline-block;
+
+    margin-right: 4px;
+
+}
+
+
+.available {
+
+    color: #16a34a;
+
+}
+
+
+.available span {
+
+    background: #22c55e;
+
+}
+
+
+.busy {
+
+    color: #ea580c;
+
+}
+
+
+.busy span {
+
+    background: #f97316;
+
+}
+
+
+.hospital-row button {
+
+    border: none;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-radius: 8px;
+
+    padding: 9px 14px;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+}
+
+
+.outline-btn {
+
+    border: 1px solid #dbeafe;
+
+    color: #2563eb;
+
+    background: white;
+
+    border-radius: 8px;
+
+    padding: 9px 13px;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+}
+
+
+/* =====================================================
+   DOCTORS
+===================================================== */
+
+.doctor-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 16px;
+
+}
+
+
+.doctor-card {
+
+    background: white;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 15px;
+
+    padding: 22px;
+
+}
+
+
+.doctor-avatar {
+
+    width: 65px;
+
+    height: 65px;
+
+    border-radius: 50%;
+
+    background: #eff6ff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 32px;
+
+    margin-bottom: 14px;
+
+}
+
+
+.doctor-card h3 {
+
+    font-size: 14px;
+
+}
+
+
+.doctor-card p {
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    margin-top: 4px;
+
+}
+
+
+.doctor-status {
+
+    color: #16a34a;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    margin: 12px 0;
+
+}
+
+
+.busy-text {
+
+    color: #ea580c;
+
+}
+
+
+.doctor-card button {
+
+    width: 100%;
+
+    border: none;
+
+    background: #2563eb;
+
+    color: white;
+
+    border-radius: 8px;
+
+    padding: 10px;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+}
+
+
+/* =====================================================
+   BEDS
+===================================================== */
+
+.bed-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+}
+
+
+.bed-card {
+
+    background: white;
+
+    border: 1px solid #e5eaf1;
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+}
+
+
+.bed-card span {
+
+    color: #64748b;
+
+    font-size: 10px;
+
+}
+
+
+.bed-card strong {
+
+    display: block;
+
+    font-size: 29px;
+
+    margin: 8px 0 12px;
+
+}
+
+
+.progress {
+
+    height: 6px;
+
+    background: #e2e8f0;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
+}
+
+
+.progress i {
+
+    display: block;
+
+    height: 100%;
+
+    background: #2563eb;
+
+    border-radius: 20px;
+
+}
+
+
+.bed-card small {
+
+    display: block;
+
+    color: #94a3b8;
+
+    font-size: 9px;
+
+    margin-top: 8px;
+
+}
+
+
+/* =====================================================
+   EMERGENCY
+===================================================== */
+
+.emergency-banner {
+
+    margin: 55px 0;
+
+    padding: 28px 32px;
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            110deg,
+            #fff1f2,
+            #ffffff
+        );
+
+    border: 1px solid #fecdd3;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+}
+
+
+.emergency-banner span {
+
+    color: #dc2626;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+}
+
+
+.emergency-banner h2 {
+
+    margin-top: 6px;
+
+    font-size: 21px;
+
+}
+
+
+.emergency-banner p {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    margin-top: 5px;
+
+}
+
+
+.emergency-banner button {
+
+    border: none;
+
+    background: #dc2626;
+
+    color: white;
+
+    padding: 13px 17px;
+
+    border-radius: 9px;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        rgba(15,23,42,.70);
+
+    backdrop-filter: blur(5px);
+
+    z-index: 9999;
+
+    padding: 20px;
+
+}
+
+
+.modal.show {
+
+    display: flex;
+
+}
+
+
+.modal-box {
+
+    width: 100%;
+
+    max-width: 470px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 28px;
+
+    position: relative;
+
+    animation:
+        modalOpen .25s ease;
+
+}
+
+
+@keyframes modalOpen {
+
+    from {
+
+        opacity: 0;
+
+        transform: translateY(15px);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform: translateY(0);
+
+    }
+
+}
+
+
+.close-btn {
+
+    position: absolute;
+
+    top: 15px;
+
+    right: 15px;
+
+    width: 32px;
+
+    height: 32px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #f1f5f9;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+}
+
+
+.modal-box h2 {
+
+    font-size: 21px;
+
+    margin-bottom: 5px;
+
+}
+
+
+.modal-box > p {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.modal-box input,
+.modal-box select {
+
+    width: 100%;
+
+    height: 44px;
+
+    border: 1px solid #dbe1ea;
+
+    border-radius: 9px;
+
+    padding: 0 12px;
+
+    margin-bottom: 11px;
+
+    outline: none;
+
+    font-size: 11px;
+
+}
+
+
+.modal-box input:focus,
+.modal-box select:focus {
+
+    border-color: #2563eb;
+
+}
+
+
+.full {
+
+    width: 100%;
+
+}
+
+
+.patient-result {
+
+    display: none;
+
+    margin-top: 20px;
+
+    padding: 17px;
+
+    border-radius: 12px;
+
+    background: #f0fdf4;
+
+    text-align: center;
+
+}
+
+
+.patient-result strong {
+
+    display: block;
+
+    font-size: 20px;
+
+    color: #166534;
+
+    margin: 8px 0 12px;
+
+}
+
+
+.patient-result p {
+
+    color: #64748b;
+
+    font-size: 10px;
+
+}
+
+
+.patient-qr {
+
+    display: flex;
+
+    justify-content: center;
+
+    margin: 10px 0;
+
+}
+
+
+.appointment-result {
+
+    margin-top: 14px;
+
+    padding: 13px;
+
+    border-radius: 9px;
+
+    background: #eff6ff;
+
+    color: #1e40af;
+
+    font-size: 11px;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:1000px) {
+
+    .service-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+    .stats-section {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+    .bed-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+    .hero-visual {
+
+        display: none;
+
+    }
+
+}
+
+
+@media(max-width:650px) {
+
+    .hospital-navbar {
+
+        padding: 0 15px;
+
+    }
+
+    .system-status {
+
+        display: none;
+
+    }
+
+    .hospital-hero {
+
+        padding: 45px 6%;
+
+    }
+
+    .hero-content h1 {
+
+        font-size: 37px;
+
+    }
+
+    .stats-section {
+
+        padding: 18px;
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .hospital-container {
+
+        width: 90%;
+
+    }
+
+    .service-grid,
+    .doctor-grid,
+    .bed-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .hospital-row {
+
+        grid-template-columns:
+            auto 1fr;
+
+    }
+
+    .hospital-status,
+    .hospital-row button {
+
+        grid-column: 2;
+
+    }
+
+    .emergency-banner {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 20px;
+
+    }
+
+    .nav-right {
+
+        gap: 0;
+
+    }
+
+}
+/* =====================================================
+   STAFF MANAGEMENT
+===================================================== */
+
+.staff-panel {
+
+    margin-top: 55px;
+
+    padding: 28px;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #eff6ff,
+            #ffffff
+        );
+
+    border: 1px solid #bfdbfe;
+
+}
+
+
+.staff-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+
+.staff-header span {
+
+    font-size: 9px;
+
+    color: #2563eb;
+
+    font-weight: 900;
+
+    letter-spacing: 1.5px;
+
+}
+
+
+.staff-header h2 {
+
+    font-size: 25px;
+
+    margin-top: 5px;
+
+}
+
+
+.staff-header p {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    margin-top: 5px;
+
+}
+
+
+.staff-badge {
+
+    background: #dbeafe;
+
+    color: #1d4ed8;
+
+    padding: 11px 15px;
+
+    border-radius: 10px;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+}
+
+
+.staff-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+
+}
+
+
+.staff-card {
+
+    background: white;
+
+    border: 1px solid #dbeafe;
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+    transition: .25s;
+
+}
+
+
+.staff-card:hover {
+
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 15px 35px
+        rgba(37,99,235,.10);
+
+}
+
+
+.staff-card-top {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 15px;
+
+}
+
+
+.staff-card-top span {
+
+    width: 43px;
+
+    height: 43px;
+
+    border-radius: 11px;
+
+    background: #eff6ff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 21px;
+
+}
+
+
+.staff-card-top small {
+
+    color: #94a3b8;
+
+    font-size: 8px;
+
+    font-weight: 900;
+
+}
+
+
+.staff-card h3 {
+
+    font-size: 14px;
+
+}
+
+
+.staff-card p {
+
+    color: #64748b;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+
+    margin: 8px 0 16px;
+
+}
+
+
+.staff-card button {
+
+    border: none;
+
+    background: #2563eb;
+
+    color: white;
+
+    border-radius: 8px;
+
+    padding: 10px 14px;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+}
+
+
+/* =====================================================
+   STAFF EDIT FORM
+===================================================== */
+
+.staff-edit-box {
+
+    max-width: 560px;
+
+}
+
+
+.edit-label {
+
+    display: block;
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    color: #334155;
+
+    margin: 14px 0 6px;
+
+}
+
+
+.edit-input,
+.edit-select {
+
+    width: 100%;
+
+    height: 43px;
+
+    border: 1px solid #dbe1ea;
+
+    border-radius: 8px;
+
+    padding: 0 11px;
+
+    outline: none;
+
+    font-size: 11px;
+
+}
+
+
+.edit-input:focus,
+.edit-select:focus {
+
+    border-color: #2563eb;
+
+}
+
+
+.save-edit-btn {
+
+    width: 100%;
+
+    margin-top: 20px;
+
+    border: none;
+
+    background: #16a34a;
+
+    color: white;
+
+    padding: 12px;
+
+    border-radius: 9px;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+
+}
+
+
+.edit-notice {
+
+    padding: 11px;
+
+    background: #f0fdf4;
+
+    color: #166534;
+
+    border-radius: 8px;
+
+    font-size: 10px;
+
+    margin-top: 12px;
+
+}
+
+
+@media(max-width:850px) {
+
+    .staff-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+}
+
+
+@media(max-width:600px) {
+
+    .staff-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 15px;
+
+    }
+
+    .staff-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}/* =====================================================
+   HOSPITAL MODAL UI UPGRADE
+===================================================== */
+
+.modal-title-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: #eef6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin-bottom: 15px;
+}
+
+
+.modal-subtitle {
+    color: #64748b;
+    margin-bottom: 22px;
+}
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.loading-card {
+    padding: 30px;
+    text-align: center;
+    border-radius: 16px;
+    background: #f8fafc;
+    color: #475569;
+}
+
+
+.loading-spinner {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+
+/* =====================================================
+   AMBULANCE
+===================================================== */
+
+.ambulance-list {
+    display: grid;
+    gap: 16px;
+}
+
+
+.ambulance-card {
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+}
+
+
+.ambulance-card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+
+.ambulance-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #fff1f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+}
+
+
+.ambulance-card-header h3 {
+    margin: 0 0 6px;
+}
+
+
+.ambulance-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+.ambulance-status i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+}
+
+
+.ambulance-status.emergency i {
+    background: #ef4444;
+}
+
+
+.ambulance-status.maintenance i {
+    background: #f59e0b;
+}
+
+
+.ambulance-status.offline i {
+    background: #64748b;
+}
+
+
+.ambulance-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+
+.ambulance-details div {
+    padding: 13px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+
+.ambulance-details span,
+.medicine-info span,
+.patient-profile-grid span,
+.live-info span {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+
+.ambulance-details strong {
+    font-size: 14px;
+}
+
+
+.track-live-btn {
+    width: 100%;
+    border: 0;
+    padding: 12px;
+    border-radius: 10px;
+    background: #0f172a;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+
+.ambulance-actions,
+.emergency-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+
+.ambulance-actions button,
+.emergency-actions button {
+    flex: 1;
+}
+
+
+/* =====================================================
+   LIVE TRACKING
+===================================================== */
+
+.live-tracking-card {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+
+.live-map-placeholder {
+    min-height: 210px;
+    background: linear-gradient(
+        135deg,
+        #dbeafe,
+        #ecfeff
+    );
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.live-map-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+
+.live-map-placeholder strong {
+    font-size: 16px;
+}
+
+
+.live-map-placeholder span {
+    margin-top: 5px;
+    color: #475569;
+}
+
+
+.live-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 18px;
+    gap: 15px;
+}
+
+
+.live-text {
+    color: #16a34a;
+}
+
+
+/* =====================================================
+   MEDICINES
+===================================================== */
+
+.medicine-search {
+    margin-bottom: 20px;
+}
+
+
+.medicine-search input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 16px;
+    border: 1px solid #dbe3ee;
+    border-radius: 12px;
+    outline: none;
+    font-size: 15px;
+}
+
+
+.medicine-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+
+.medicine-card {
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+
+.medicine-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.medicine-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: #fdf2f8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+}
+
+
+.medicine-stock {
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+.in-stock {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+
+.out-stock {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+
+.medicine-card h3 {
+    margin: 15px 0 5px;
+}
+
+
+.medicine-category {
+    color: #64748b;
+    font-size: 13px;
+}
+
+
+.medicine-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin: 15px 0;
+}
+
+
+.medicine-info div {
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+
+.medicine-info strong {
+    font-size: 12px;
+}
+
+
+.medicine-btn {
+    width: 100%;
+    padding: 11px;
+    border: 0;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+.medicine-detail-card {
+    text-align: center;
+    padding: 15px;
+}
+
+
+.medicine-detail-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+
+.medicine-detail-card > span {
+    color: #64748b;
+}
+
+
+.medicine-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+
+.medicine-detail-grid div {
+    padding: 13px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+
+.medicine-detail-grid small {
+    display: block;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+
+.medicine-detail-grid strong {
+    font-size: 13px;
+}
+
+
+.medicine-warning {
+    padding: 14px;
+    border-radius: 12px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+
+/* =====================================================
+   EMERGENCY
+===================================================== */
+
+.emergency-icon-large {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+
+.emergency-status-card {
+    padding: 18px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 15px;
+}
+
+
+.emergency-status-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #22c55e;
+}
+
+
+.emergency-status-card p {
+    color: #64748b;
+    margin-bottom: 0;
+}
+
+
+.emergency-contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+
+.emergency-contact-card {
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    text-align: center;
+}
+
+
+.emergency-contact-card span {
+    display: block;
+    font-size: 25px;
+    margin-bottom: 7px;
+}
+
+
+.emergency-contact-card strong,
+.emergency-contact-card small {
+    display: block;
+}
+
+
+.emergency-contact-card small {
+    color: #64748b;
+    margin-top: 5px;
+}
+
+
+.emergency-call-btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 13px;
+    background: #dc2626;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+
+/* =====================================================
+   PATIENT FILE
+===================================================== */
+
+.patient-search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+
+.patient-search-box input {
+    flex: 1;
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+}
+
+
+.patient-profile-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+
+.patient-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+    background: #f8fafc;
+}
+
+
+.patient-avatar {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+}
+
+
+.patient-profile-header span {
+    font-size: 11px;
+    color: #64748b;
+}
+
+
+.patient-profile-header h3 {
+    margin: 4px 0 0;
+}
+
+
+.patient-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 20px;
+}
+
+
+.patient-profile-grid div {
+    padding: 13px;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+
+.patient-profile-grid strong {
+    font-size: 14px;
+}
+
+
+.patient-record-actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px 20px;
+}
+
+
+.patient-record-actions button {
+    flex: 1;
+}
+
+
+.patient-qr-view {
+    text-align: center;
+}
+
+
+.patient-qr-view .patient-qr {
+    margin: 20px auto;
+}
+
+
+.empty-state {
+    text-align: center;
+    padding: 35px 15px;
+    color: #64748b;
+}
+
+
+.empty-state > div {
+    font-size: 40px;
+}
+
+
+.error-card {
+    padding: 18px;
+    border-radius: 12px;
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 700px) {
+
+    .medicine-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .ambulance-details {
+        grid-template-columns: 1fr;
+    }
+
+
+    .medicine-info {
+        grid-template-columns: 1fr;
+    }
+
+
+    .medicine-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .patient-profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .patient-search-box {
+        flex-direction: column;
+    }
+
+
+    .emergency-contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .ambulance-actions,
+    .emergency-actions,
+    .patient-record-actions {
+        flex-direction: column;
+    }
+
+}

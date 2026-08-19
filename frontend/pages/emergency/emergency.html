@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Emergency Services | SmartCity AI</title>
+
+    <link rel="stylesheet" href="emergency.css">
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+</head>
+
+<body>
+
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            Smart<span>City AI</span>
+        </div>
+
+        <div class="nav-links">
+
+            <a href="../../index.html">
+                Dashboard
+            </a>
+
+            <a href="#emergency">
+                Emergency
+            </a>
+
+            <a href="#services">
+                Services
+            </a>
+
+            <a href="#map">
+                Live Map
+            </a>
+
+        </div>
+
+        <div class="status">
+            <span></span>
+            SYSTEM ONLINE
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         HERO
+    ====================================================== -->
+
+    <section class="hero" id="emergency">
+
+        <div class="hero-content">
+
+            <div class="danger-badge">
+                🚨 EMERGENCY RESPONSE CENTER
+            </div>
+
+            <h1>
+                Emergency
+                <span>Services</span>
+            </h1>
+
+            <p>
+                Get immediate access to police, fire,
+                ambulance and other emergency services.
+            </p>
+
+            <div class="hero-buttons">
+
+                <button
+                    class="danger-btn"
+                    onclick="openEmergencyModal()"
+                >
+                    🚨 Report Emergency
+                </button>
+
+                <button
+                    class="location-btn"
+                    onclick="getCurrentLocation()"
+                >
+                    📍 Share Location
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="hero-status">
+
+            <div class="pulse-ring">
+                🚨
+            </div>
+
+            <h3>
+                Emergency Network
+            </h3>
+
+            <p>
+                Monitoring active incidents
+            </p>
+
+            <strong>
+                <span class="live-dot"></span>
+                LIVE
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         EMERGENCY NUMBERS
+    ====================================================== -->
+
+    <section class="numbers-section">
+
+        <div class="section-heading">
+
+            <span>
+                QUICK ACCESS
+            </span>
+
+            <h2>
+                Emergency Numbers
+            </h2>
+
+            <p>
+                Contact the required emergency service immediately.
+            </p>
+
+        </div>
+
+
+        <div class="numbers-grid">
+
+            <!-- POLICE -->
+
+            <div class="number-card police">
+
+                <div class="number-icon">
+                    👮
+                </div>
+
+                <div>
+                    <h3>Police</h3>
+
+                    <p>
+                        Law & security emergency
+                    </p>
+
+                    <strong>
+                        112
+                    </strong>
+                </div>
+
+                <button onclick="callEmergency('112')">
+                    📞 Call
+                </button>
+
+            </div>
+
+
+            <!-- AMBULANCE -->
+
+            <div class="number-card ambulance">
+
+                <div class="number-icon">
+                    🚑
+                </div>
+
+                <div>
+                    <h3>Ambulance</h3>
+
+                    <p>
+                        Medical emergency
+                    </p>
+
+                    <strong>
+                        108
+                    </strong>
+                </div>
+
+                <button onclick="callEmergency('108')">
+                    📞 Call
+                </button>
+
+            </div>
+
+
+            <!-- FIRE -->
+
+            <div class="number-card fire">
+
+                <div class="number-icon">
+                    🚒
+                </div>
+
+                <div>
+                    <h3>Fire Department</h3>
+
+                    <p>
+                        Fire & rescue emergency
+                    </p>
+
+                    <strong>
+                        101
+                    </strong>
+                </div>
+
+                <button onclick="callEmergency('101')">
+                    📞 Call
+                </button>
+
+            </div>
+
+
+            <!-- DISASTER -->
+
+            <div class="number-card disaster">
+
+                <div class="number-icon">
+                    🆘
+                </div>
+
+                <div>
+                    <h3>Emergency</h3>
+
+                    <p>
+                        General emergency response
+                    </p>
+
+                    <strong>
+                        112
+                    </strong>
+                </div>
+
+                <button onclick="callEmergency('112')">
+                    📞 Call
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SERVICES
+    ====================================================== -->
+
+    <section
+        class="services-section"
+        id="services"
+    >
+
+        <div class="section-heading">
+
+            <span>
+                SMART RESPONSE
+            </span>
+
+            <h2>
+                Emergency Services
+            </h2>
+
+            <p>
+                Choose the service you need.
+            </p>
+
+        </div>
+
+
+        <div class="services-grid">
+
+
+            <!-- MEDICAL -->
+
+            <div class="service-card">
+
+                <div class="service-icon">
+                    🚑
+                </div>
+
+                <h3>
+                    Medical Emergency
+                </h3>
+
+                <p>
+                    Request an ambulance and share
+                    your location with emergency responders.
+                </p>
+
+                <button onclick="requestAmbulance()">
+                    Request Ambulance
+                </button>
+
+            </div>
+
+
+            <!-- POLICE -->
+
+            <div class="service-card">
+
+                <div class="service-icon">
+                    👮
+                </div>
+
+                <h3>
+                    Police Assistance
+                </h3>
+
+                <p>
+                    Report a security incident or request
+                    immediate police assistance.
+                </p>
+
+                <button
+                    onclick="openEmergencyWithType('Police')"
+                >
+                    Request Police
+                </button>
+
+            </div>
+
+
+            <!-- FIRE -->
+
+            <div class="service-card">
+
+                <div class="service-icon">
+                    🚒
+                </div>
+
+                <h3>
+                    Fire & Rescue
+                </h3>
+
+                <p>
+                    Report fire incidents and request
+                    fire and rescue services.
+                </p>
+
+                <button
+                    onclick="openEmergencyWithType('Fire')"
+                >
+                    Report Fire
+                </button>
+
+            </div>
+
+
+            <!-- ACCIDENT -->
+
+            <div class="service-card">
+
+                <div class="service-icon">
+                    🚗
+                </div>
+
+                <h3>
+                    Road Accident
+                </h3>
+
+                <p>
+                    Quickly report an accident and
+                    request emergency support.
+                </p>
+
+                <button
+                    onclick="openEmergencyWithType('Road Accident')"
+                >
+                    Report Accident
+                </button>
+
+            </div>
+
+
+            <!-- DISASTER -->
+
+            <div class="service-card">
+
+                <div class="service-icon">
+                    🌪️
+                </div>
+
+                <h3>
+                    Disaster
+                </h3>
+
+                <p>
+                    Report flooding, structural damage
+                    or other major incidents.
+                </p>
+
+                <button
+                    onclick="openEmergencyWithType('Disaster')"
+                >
+                    Report Disaster
+                </button>
+
+            </div>
+
+
+            <!-- MISSING PERSON -->
+
+            <div class="service-card">
+
+                <div class="service-icon">
+                    🔎
+                </div>
+
+                <h3>
+                    Missing Person
+                </h3>
+
+                <p>
+                    Submit information about a missing
+                    person to emergency authorities.
+                </p>
+
+                <button
+                    onclick="openEmergencyWithType('Missing Person')"
+                >
+                    Report Missing Person
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         LIVE INCIDENT DASHBOARD
+    ====================================================== -->
+
+    <section class="incident-section">
+
+        <div class="section-heading">
+
+            <span>
+                LIVE MONITORING
+            </span>
+
+            <h2>
+                Active Emergency Reports
+            </h2>
+
+            <p>
+                Current emergency incidents in the system.
+            </p>
+
+        </div>
+
+
+        <div class="incident-dashboard">
+
+
+            <div class="incident-stats">
+
+                <div class="stat-card">
+
+                    <span>🚨</span>
+
+                    <strong id="activeCount">
+                        2
+                    </strong>
+
+                    <p>
+                        Active Incidents
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>🚑</span>
+
+                    <strong>
+                        3
+                    </strong>
+
+                    <p>
+                        Ambulances Active
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>👮</span>
+
+                    <strong>
+                        8
+                    </strong>
+
+                    <p>
+                        Response Units
+                    </p>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>⏱️</span>
+
+                    <strong>
+                        06 min
+                    </strong>
+
+                    <p>
+                        Avg Response
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- INCIDENT LIST -->
+
+            <div
+                class="incident-list"
+                id="incidentList"
+            >
+
+                <div class="incident-row">
+
+                    <div class="incident-type fire-type">
+                        🔥
+                    </div>
+
+                    <div class="incident-info">
+
+                        <h3>
+                            Fire Incident
+                        </h3>
+
+                        <p>
+                            Sector 12 · 4 minutes ago
+                        </p>
+
+                    </div>
+
+                    <span class="incident-status active">
+                        ACTIVE
+                    </span>
+
+                </div>
+
+
+                <div class="incident-row">
+
+                    <div class="incident-type medical-type">
+                        🚑
+                    </div>
+
+                    <div class="incident-info">
+
+                        <h3>
+                            Medical Emergency
+                        </h3>
+
+                        <p>
+                            City Hospital Road · 8 minutes ago
+                        </p>
+
+                    </div>
+
+                    <span class="incident-status response">
+                        RESPONDING
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAP
+    ====================================================== -->
+
+    <section
+        class="map-section"
+        id="map"
+    >
+
+        <div class="section-heading">
+
+            <span>
+                LIVE LOCATION
+            </span>
+
+            <h2>
+                Emergency Response Map
+            </h2>
+
+            <p>
+                View emergency incidents and response locations.
+            </p>
+
+        </div>
+
+
+        <div class="map-controls">
+
+            <button onclick="showMapFilter('all')">
+                🗺️ All
+            </button>
+
+            <button onclick="showMapFilter('police')">
+                👮 Police
+            </button>
+
+            <button onclick="showMapFilter('ambulance')">
+                🚑 Ambulance
+            </button>
+
+            <button onclick="showMapFilter('fire')">
+                🚒 Fire
+            </button>
+
+            <button onclick="getCurrentLocation()">
+                📍 My Location
+            </button>
+
+        </div>
+
+
+        <div id="emergencyMap"></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         STAFF RESPONSE PANEL
+    ====================================================== -->
+
+ <section class="staff-section">
+
+    <div class="section-heading">
+        <span>STAFF CONTROL</span>
+
+        <h2>Emergency Response Management</h2>
+
+        <p>
+            Authorized emergency staff can manage
+            active incidents and response teams.
+        </p>
+    </div>
+
+
+    <div class="staff-panel">
+
+        <div class="permission-card">
+
+            <div class="permission-icon">
+                🛡️
+            </div>
+
+            <div>
+                <h3>Staff Access</h3>
+
+                <p id="staffAccessText">
+                    Checking login...
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================
+         INCIDENT CONTROL
+    ================================================= -->
+
+    <div
+        id="incidentControlPanel"
+        class="incident-control-panel"
+    >
+
+        <div class="control-header">
+
+            <div>
+                <span>EMERGENCY STAFF</span>
+
+                <h3>
+                    Incident Control Center
+                </h3>
+            </div>
+
+            <div class="control-status">
+                ● CONTROL ENABLED
+            </div>
+
+        </div>
+
+
+        <!-- SELECT INCIDENT -->
+
+        <div class="control-group">
+
+            <label>
+                Select Incident
+            </label>
+
+            <select id="controlIncident">
+
+                <option value="">
+                    Select an incident
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="control-grid">
+
+
+            <!-- 1 STATUS -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🚦
+                </div>
+
+                <h4>
+                    Incident Status
+                </h4>
+
+                <p>
+                    Change the current incident status.
+                </p>
+
+                <select id="incidentStatus">
+
+                    <option value="ACTIVE">
+                        ACTIVE
+                    </option>
+
+                    <option value="RESPONDING">
+                        RESPONDING
+                    </option>
+
+                    <option value="ON_SCENE">
+                        ON SCENE
+                    </option>
+
+                    <option value="UNDER_CONTROL">
+                        UNDER CONTROL
+                    </option>
+
+                    <option value="RESOLVED">
+                        RESOLVED
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- 2 PRIORITY -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    ⚠️
+                </div>
+
+                <h4>
+                    Emergency Priority
+                </h4>
+
+                <p>
+                    Set the urgency level.
+                </p>
+
+                <select id="incidentPriority">
+
+                    <option value="LOW">
+                        🟢 LOW
+                    </option>
+
+                    <option value="MEDIUM">
+                        🟡 MEDIUM
+                    </option>
+
+                    <option value="HIGH">
+                        🟠 HIGH
+                    </option>
+
+                    <option value="CRITICAL">
+                        🔴 CRITICAL
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- 3 UNIT -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🚑
+                </div>
+
+                <h4>
+                    Assign Response Unit
+                </h4>
+
+                <p>
+                    Assign ambulance, police or fire unit.
+                </p>
+
+                <select id="responseUnit">
+
+                    <option value="none">
+                        No Unit
+                    </option>
+
+                    <option value="ambulance">
+                        🚑 Ambulance
+                    </option>
+
+                    <option value="police">
+                        👮 Police Unit
+                    </option>
+
+                    <option value="fire">
+                        🚒 Fire Unit
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- 4 LOCATION -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    📍
+                </div>
+
+                <h4>
+                    Update Location
+                </h4>
+
+                <p>
+                    Change incident location.
+                </p>
+
+                <input
+                    type="text"
+                    id="incidentLocation"
+                    placeholder="Enter new location"
+                >
+
+                <button
+                    onclick="useIncidentLocation()"
+                >
+                    📍 Use My Location
+                </button>
+
+            </div>
+
+
+            <!-- 5 CLOSE -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    ✅
+                </div>
+
+                <h4>
+                    Resolve Incident
+                </h4>
+
+                <p>
+                    Mark the incident as resolved.
+                </p>
+
+                <button
+                    class="resolve-btn"
+                    onclick="resolveSelectedIncident()"
+                >
+                    ✓ Resolve / Close
+                </button>
+
+            </div>
+
+
+            <!-- 6 TEAM -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    👨‍🚒
+                </div>
+
+                <h4>
+                    Response Team
+                </h4>
+
+                <p>
+                    Update the assigned response team.
+                </p>
+
+                <input
+                    type="text"
+                    id="responseTeam"
+                    placeholder="Team name / ID"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- SAVE -->
+
+        <div class="control-footer">
+
+            <button
+                class="save-control-btn"
+                onclick="saveIncidentControls()"
+            >
+                💾 Save Incident Changes
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <div class="logo">
+            Smart<span>City AI</span>
+        </div>
+
+        <p>
+            Intelligent emergency response system
+        </p>
+
+        <a href="../../index.html">
+            ← Back to Dashboard
+        </a>
+
+    </footer>
+
+
+    <!-- =====================================================
+         EMERGENCY MODAL
+    ====================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="emergencyModal"
+    >
+
+        <div class="modal">
+
+            <button
+                class="close-btn"
+                onclick="closeEmergencyModal()"
+            >
+                ×
+            </button>
+
+            <div class="modal-icon">
+                🚨
+            </div>
+
+            <h2>
+                Report Emergency
+            </h2>
+
+            <p>
+                Provide the emergency details.
+            </p>
+
+
+            <label>
+                Emergency Type
+            </label>
+
+            <select id="emergencyType">
+
+                <option value="Medical">
+                    🚑 Medical
+                </option>
+
+                <option value="Police">
+                    👮 Police
+                </option>
+
+                <option value="Fire">
+                    🚒 Fire
+                </option>
+
+                <option value="Road Accident">
+                    🚗 Road Accident
+                </option>
+
+                <option value="Disaster">
+                    🌪️ Disaster
+                </option>
+
+                <option value="Missing Person">
+                    🔎 Missing Person
+                </option>
+
+                <option value="Other">
+                    ⚠️ Other
+                </option>
+
+            </select>
+
+
+            <label>
+                Location
+            </label>
+
+            <input
+                type="text"
+                id="emergencyLocation"
+                placeholder="Enter location"
+            >
+
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="emergencyDescription"
+                placeholder="Describe the emergency..."
+            ></textarea>
+
+
+            <button
+                class="submit-danger"
+                onclick="submitEmergency()"
+            >
+                🚨 Submit Emergency
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
+
+    <div
+        class="toast"
+        id="toast"
+    >
+        Emergency system updated.
+    </div>
+
+
+    <!-- Leaflet -->
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    ></script>
+
+    <script src="emergency.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCity AI - Live Traffic</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="traffic.css">
+</head>
+<body>
+
+<div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fa-solid fa-city"></i>
+            </div>
+            <div>
+                <h2>Smart<span>City AI</span></h2>
+                <small>Smart Urban System</small>
+            </div>
+        </div>
+
+        <p class="menu-label">MAIN MENU</p>
+        <a href="#" class="menu">
+            <i class="fa-solid fa-house"></i> Dashboard
+        </a>
+        <a href="#" class="menu active">
+            <i class="fa-solid fa-road"></i> Live Traffic <b class="live-dot"></b>
+        </a>
+        <a href="#" class="menu"><i class="fa-solid fa-cloud-sun"></i> Weather</a>
+        <a href="#" class="menu"><i class="fa-solid fa-truck-medical"></i> Emergency</a>
+        <a href="#" class="menu"><i class="fa-solid fa-hospital"></i> Hospitals</a>
+        <a href="#" class="menu"><i class="fa-solid fa-ambulance"></i> Ambulance</a>
+        <a href="#" class="menu"><i class="fa-solid fa-trash"></i> Waste Management</a>
+        <a href="#" class="menu"><i class="fa-solid fa-bus"></i> Public Transport</a>
+
+        <div class="sidebar-bottom">
+            <a href="#" class="menu"><i class="fa-solid fa-gear"></i> Settings</a>
+            <div class="profile">
+                <div class="avatar">O</div>
+                <div>
+                    <strong>Omkar</strong>
+                    <small>Citizen</small>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="heading">
+                <h1>Live Traffic & Navigation</h1>
+                <p>Smart traffic monitoring for Gorakhpur</p>
+            </div>
+            <div class="top-right">
+                <div class="live"><span></span>LIVE</div>
+                <div id="clock">--:--:--</div>
+                <button id="refreshBtn" class="round-btn"><i class="fa-solid fa-rotate"></i></button>
+                <div class="top-avatar">O</div>
+            </div>
+        </header>
+
+        <!-- CONTENT -->
+        <section class="content">
+            <!-- SEARCH -->
+            <div class="search-card">
+                <div class="search-box">
+                    <i class="fa-solid fa-location-dot start-icon"></i>
+                    <div class="input-area">
+                        <label>FROM</label>
+                        <input id="fromInput" type="text" placeholder="Your current location" value="My Current Location">
+                    </div>
+                </div>
+
+                <div class="swap-line">
+                    <span></span>
+                    <button id="locationBtn"><i class="fa-solid fa-location-crosshairs"></i></button>
+                    <span></span>
+                </div>
+
+                <div class="search-box">
+                    <i class="fa-solid fa-location-dot destination-icon"></i>
+                    <div class="input-area">
+                        <label>DESTINATION</label>
+                        <input id="destinationInput" type="text" placeholder="Where do you want to go?">
+                    </div>
+                </div>
+
+                <button id="routeBtn" class="route-btn">
+                    <i class="fa-solid fa-route"></i> Find Route
+                </button>
+            </div>
+
+            <!-- QUICK INFO -->
+            <div class="quick-grid">
+                <div class="quick-card">
+                    <div class="quick-icon blue"><i class="fa-solid fa-gauge-high"></i></div>
+                    <div>
+                        <small>Average Speed</small>
+                        <strong id="avgSpeed">-- km/h</strong>
+                    </div>
+                </div>
+                <div class="quick-card">
+                    <div class="quick-icon orange"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <small>Route ETA</small>
+                        <strong id="eta">-- min</strong>
+                    </div>
+                </div>
+                <div class="quick-card">
+                    <div class="quick-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <small>Traffic Level</small>
+                        <strong id="trafficLevel">Checking...</strong>
+                    </div>
+                </div>
+                <div class="quick-card">
+                    <div class="quick-icon green"><i class="fa-solid fa-cloud-sun"></i></div>
+                    <div>
+                        <small>Gorakhpur Weather</small>
+                        <strong id="weather">Loading...</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAP AREA -->
+            <div class="map-layout">
+                <div class="map-card">
+                    <div class="map-header">
+                        <div>
+                            <h2>Live City Map</h2>
+                            <p>Gorakhpur, Uttar Pradesh</p>
+                        </div>
+                        <div class="map-actions">
+                            <button id="trafficBtn" class="active"><i class="fa-solid fa-car"></i> Traffic</button>
+                            <button id="satelliteBtn"><i class="fa-solid fa-layer-group"></i> Map</button>
+                        </div>
+                    </div>
+
+                    <div id="map"></div>
+
+                    <!-- LEGEND -->
+                    <div class="legend">
+                        <strong>Traffic</strong>
+                        <span><i class="green"></i> Low</span>
+                        <span><i class="yellow"></i> Moderate</span>
+                        <span><i class="orange"></i> Heavy</span>
+                        <span><i class="red"></i> Severe</span>
+                    </div>
+
+                    <!-- MAP LOCATION BUTTON -->
+                    <button id="centerBtn" class="center-map">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </button>
+                </div>
+
+                <!-- SIDE INFO -->
+                <div class="info-column">
+                    <!-- ROUTE INFO -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <div>
+                                <h3>Current Route</h3>
+                                <small>Traffic-aware navigation</small>
+                            </div>
+                            <span id="routeStatus">READY</span>
+                        </div>
+                        <div class="route-summary">
+                            <div>
+                                <small>DISTANCE</small>
+                                <strong id="distance">-- km</strong>
+                            </div>
+                            <div>
+                                <small>TIME</small>
+                                <strong id="routeTime">-- min</strong>
+                            </div>
+                            <div>
+                                <small>DELAY</small>
+                                <strong id="delay">--</strong>
+                            </div>
+                        </div>
+                        <div class="route-message" id="routeMessage">
+                            Enter a destination to calculate your route.
+                        </div>
+                        <button id="navigationBtn" class="navigation-btn" disabled>
+                            <i class="fa-solid fa-location-arrow"></i> Start Navigation
+                        </button>
+                    </div>
+
+                    <!-- WEATHER -->
+                    <div class="info-card weather-card">
+                        <div class="info-title">
+                            <div>
+                                <h3>Weather Impact</h3>
+                                <small>Live Gorakhpur conditions</small>
+                            </div>
+                            <i class="fa-solid fa-cloud-sun weather-symbol"></i>
+                        </div>
+                        <div class="weather-main">
+                            <strong id="temperature">--°C</strong>
+                            <div>
+                                <span id="weatherText">Loading...</span>
+                                <small id="wind">Wind -- km/h</small>
+                            </div>
+                        </div>
+                        <div class="weather-warning" id="weatherWarning">
+                            Checking weather impact...
+                        </div>
+                    </div>
+
+                    <!-- TRAFFIC STATUS -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <div>
+                                <h3>Traffic Condition</h3>
+                                <small>Current traffic analysis</small>
+                            </div>
+                            <span class="pulse"></span>
+                        </div>
+                        <div class="traffic-meter">
+                            <div class="meter-track">
+                                <span id="trafficMeter"></span>
+                            </div>
+                            <div class="meter-labels">
+                                <span>Low</span>
+                                <span>Moderate</span>
+                                <span>Heavy</span>
+                                <span>Severe</span>
+                            </div>
+                        </div>
+                        <div class="traffic-result">
+                            <strong id="trafficResult">Checking...</strong>
+                            <span id="trafficDescription">Analysing current conditions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROUTES -->
+            <div class="section-heading">
+                <div>
+                    <h2>Recommended Routes</h2>
+                    <p>Choose the route that works best for you</p>
+                </div>
+            </div>
+            <div id="routesContainer" class="routes">
+                <div class="empty-route">
+                    <i class="fa-solid fa-route"></i>
+                    <strong>No route selected</strong>
+                    <span>Enter your destination above.</span>
+                </div>
+            </div>
+
+            <!-- ROAD STATUS -->
+            <div class="section-heading">
+                <div>
+                    <h2>Road Traffic Status</h2>
+                    <p>Traffic visualization for major city roads</p>
+                </div>
+                <span class="update-time" id="updateTime">Updated just now</span>
+            </div>
+            <div class="road-grid">
+                <div class="road-card">
+                    <div class="road-top">
+                        <div>
+                            <strong>Gorakhpur - Deoria Road</strong>
+                            <small>NH-727B</small>
+                        </div>
+                        <span class="road-badge green-badge">LOW</span>
+                    </div>
+                    <div class="road-bar"><span style="width:25%"></span></div>
+                    <div class="road-bottom">
+                        <span>Traffic flow normal</span><strong>45 km/h</strong>
+                    </div>
+                </div>
+                <div class="road-card">
+                    <div class="road-top">
+                        <div>
+                            <strong>Gorakhpur - Kushinagar Road</strong>
+                            <small>NH-27</small>
+                        </div>
+                        <span class="road-badge yellow-badge">MODERATE</span>
+                    </div>
+                    <div class="road-bar"><span class="yellow-bar" style="width:55%"></span></div>
+                    <div class="road-bottom">
+                        <span>Normal traffic</span><strong>32 km/h</strong>
+                    </div>
+                </div>
+                <div class="road-card">
+                    <div class="road-top">
+                        <div>
+                            <strong>Railway Station Road</strong>
+                            <small>Station Area</small>
+                        </div>
+                        <span class="road-badge orange-badge">HEAVY</span>
+                    </div>
+                    <div class="road-bar"><span class="orange-bar" style="width:74%"></span></div>
+                    <div class="road-bottom">
+                        <span>High vehicle density</span><strong>19 km/h</strong>
+                    </div>
+                </div>
+                <div class="road-card">
+                    <div class="road-top">
+                        <div>
+                            <strong>Medical College Road</strong>
+                            <small>Medical College</small>
+                        </div>
+                        <span class="road-badge red-badge">SEVERE</span>
+                    </div>
+                    <div class="road-bar"><span class="red-bar" style="width:91%"></span></div>
+                    <div class="road-bottom">
+                        <span>High congestion</span><strong>11 km/h</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- NAVIGATION PANEL -->
+<div id="navigationPanel" class="navigation-panel">
+    <div class="nav-top">
+        <div>
+            <small>SMART NAVIGATION</small>
+            <h2 id="navDestination">Navigation</h2>
+        </div>
+        <button id="closeNav"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="next-turn">
+        <div class="turn-icon"><i class="fa-solid fa-arrow-up"></i></div>
+        <div>
+            <small>NEXT INSTRUCTION</small>
+            <strong id="instruction">Follow the highlighted route</strong>
+        </div>
+    </div>
+    <div class="nav-stats">
+        <div><small>ETA</small><strong id="navEta">--</strong></div>
+        <div><small>DISTANCE</small><strong id="navDistance">--</strong></div>
+        <div><small>ROAD</small><strong id="navRoad">--</strong></div>
+    </div>
+    <button id="stopNav" class="stop-nav">Stop Navigation</button>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="traffic.js"></script>
+</body>
+</html>

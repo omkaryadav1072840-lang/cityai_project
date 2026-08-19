@@ -1,0 +1,857 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #f1f5f9;
+    color: #172033;
+}
+
+/* ================= NAVBAR ================= */
+
+.navbar {
+    height: 70px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 35px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: 800;
+    color: #172033;
+}
+
+.logo span,
+.footer-logo span {
+    color: #0284c7;
+}
+
+.breadcrumb {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.back-btn {
+    border: 0;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 10px 16px;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    background: #bae6fd;
+}
+
+/* ================= CONTAINER ================= */
+
+.container {
+    width: min(1400px, 94%);
+    margin: auto;
+    padding: 25px 0 60px;
+}
+
+/* ================= HERO ================= */
+
+.hero {
+    min-height: 360px;
+    border-radius: 24px;
+    padding: 45px;
+    color: white;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(3, 37, 65, .95),
+            rgba(3, 105, 161, .72),
+            rgba(14, 165, 233, .35)
+        ),
+        url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80");
+
+    background-size: cover;
+    background-position: center;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    overflow: hidden;
+}
+
+.hero-content {
+    max-width: 700px;
+}
+
+.location-tag {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
+    padding: 8px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.hero h1 {
+    font-size: 52px;
+    margin: 20px 0 10px;
+}
+
+.hero p {
+    line-height: 1.7;
+    color: #e0f2fe;
+    max-width: 650px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.primary-btn,
+.secondary-btn {
+    border: 0;
+    padding: 12px 18px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.primary-btn {
+    background: white;
+    color: #0369a1;
+}
+
+.secondary-btn {
+    background: rgba(255,255,255,.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,.4);
+}
+
+.hero-info {
+    display: flex;
+    gap: 10px;
+}
+
+.hero-stat {
+    min-width: 125px;
+    padding: 15px;
+    border-radius: 13px;
+    background: rgba(0,0,0,.28);
+    backdrop-filter: blur(8px);
+}
+
+.hero-stat strong {
+    display: block;
+    font-size: 17px;
+}
+
+.hero-stat span {
+    display: block;
+    color: #cbd5e1;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+/* ================= QUICK CARDS ================= */
+
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.quick-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 15px;
+    padding: 18px;
+    display: flex;
+    gap: 13px;
+    align-items: center;
+}
+
+.quick-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #e0f2fe;
+    display: grid;
+    place-items: center;
+    font-size: 23px;
+}
+
+.quick-card span {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.quick-card strong {
+    display: block;
+    font-size: 17px;
+    margin: 3px 0;
+}
+
+.quick-card small {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+}
+
+/* ================= GENERAL CARD ================= */
+
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.two-column {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 20px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.section-label {
+    display: block;
+    color: #64748b;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.card h2 {
+    font-size: 21px;
+}
+
+.live {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 7px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.available {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.green {
+    color: #16a34a !important;
+}
+
+.orange {
+    color: #ea580c !important;
+}
+
+/* ================= MAP ================= */
+
+#placeMap {
+    width: 100%;
+    height: 410px;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.map-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.map-buttons button {
+    border: 0;
+    background: #f1f5f9;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.map-buttons button:hover {
+    background: #e2e8f0;
+}
+
+/* ================= INFORMATION ================= */
+
+.description {
+    color: #64748b;
+    line-height: 1.7;
+    margin: 15px 0;
+}
+
+.info-list {
+    margin-top: 15px;
+}
+
+.info-list div {
+    display: flex;
+    justify-content: space-between;
+    padding: 13px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.info-list span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.info-list strong {
+    font-size: 13px;
+}
+
+.full-btn {
+    width: 100%;
+    border: 0;
+    background: #0284c7;
+    color: white;
+    padding: 12px;
+    border-radius: 9px;
+    margin-top: 18px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.full-btn:hover {
+    background: #0369a1;
+}
+
+/* ================= SERVICES ================= */
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.service-card {
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(15,23,42,.08);
+}
+
+.service-icon {
+    width: 45px;
+    height: 45px;
+    background: #e0f2fe;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+
+.service-card h3 {
+    font-size: 15px;
+}
+
+.service-card p {
+    color: #64748b;
+    font-size: 12px;
+    margin: 5px 0 10px;
+}
+
+.service-card span {
+    color: #0284c7;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ================= TRAFFIC ================= */
+
+.traffic-status {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    background: #f0fdf4;
+    border-radius: 13px;
+    padding: 17px;
+    margin-top: 18px;
+}
+
+.traffic-light {
+    font-size: 40px;
+}
+
+.traffic-status h3 {
+    font-size: 16px;
+}
+
+.traffic-status p {
+    color: #64748b;
+    font-size: 12px;
+    margin-top: 5px;
+    line-height: 1.5;
+}
+
+.road-list {
+    margin-top: 15px;
+}
+
+.road-list div {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13px;
+}
+
+/* ================= WEATHER ================= */
+
+.weather-main {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin: 20px 0;
+}
+
+.weather-icon {
+    font-size: 60px;
+}
+
+.weather-main strong {
+    font-size: 38px;
+}
+
+.weather-main p {
+    color: #64748b;
+    margin-top: 5px;
+}
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.weather-grid div {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 10px;
+}
+
+.weather-grid span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.weather-grid strong {
+    display: block;
+    margin-top: 5px;
+}
+
+/* ================= PARKING ================= */
+
+.parking-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.parking-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    padding: 17px;
+}
+
+.parking-card h3 {
+    font-size: 14px;
+}
+
+.parking-card p {
+    color: #64748b;
+    font-size: 11px;
+    margin: 6px 0 14px;
+}
+
+.parking-card strong {
+    display: block;
+    margin-bottom: 12px;
+}
+
+.parking-card button {
+    border: 0;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 8px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+/* ================= CROWD ================= */
+
+.crowd-box {
+    margin-top: 18px;
+    padding: 22px;
+    border-radius: 15px;
+    background: #f0fdf4;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.crowd-icon {
+    font-size: 50px;
+}
+
+.crowd-content {
+    flex: 1;
+}
+
+.crowd-content h3 {
+    font-size: 18px;
+}
+
+.crowd-content p {
+    color: #64748b;
+    font-size: 13px;
+    margin: 5px 0 12px;
+}
+
+.crowd-bar {
+    height: 9px;
+    background: #dcfce7;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.crowd-bar div {
+    height: 100%;
+    background: #16a34a;
+    border-radius: 10px;
+}
+
+.crowd-content small {
+    display: block;
+    color: #64748b;
+    margin-top: 6px;
+}
+
+/* ================= EMERGENCY ================= */
+
+.emergency-section {
+    margin-bottom: 20px;
+    padding: 28px;
+    border-radius: 18px;
+    background: #450a0a;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.emergency-section > div:first-child span {
+    color: #fca5a5;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.emergency-section h2 {
+    margin: 7px 0;
+}
+
+.emergency-section p {
+    color: #fecaca;
+    font-size: 13px;
+}
+
+.emergency-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.emergency-buttons button {
+    border: 1px solid #7f1d1d;
+    background: #7f1d1d;
+    color: white;
+    padding: 11px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.emergency-buttons button:hover {
+    background: #991b1b;
+}
+
+/* ================= REVIEWS ================= */
+
+.primary-small {
+    border: 0;
+    background: #0284c7;
+    color: white;
+    padding: 9px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.review-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 13px;
+}
+
+.review {
+    border: 1px solid #e2e8f0;
+    padding: 17px;
+    border-radius: 12px;
+}
+
+.review-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.review-top strong {
+    font-size: 13px;
+}
+
+.review-top span {
+    font-size: 11px;
+}
+
+.review p {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-top: 10px;
+}
+
+/* ================= AI ================= */
+
+.ai-section {
+    border-radius: 18px;
+    padding: 25px;
+    background: linear-gradient(
+        135deg,
+        #082f49,
+        #0369a1
+    );
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.ai-icon {
+    width: 58px;
+    height: 58px;
+    background: rgba(255,255,255,.15);
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+}
+
+.ai-section > div:nth-child(2) {
+    flex: 1;
+}
+
+.ai-section span {
+    color: #bae6fd;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+}
+
+.ai-section h2 {
+    margin: 5px 0;
+}
+
+.ai-section p {
+    color: #dbeafe;
+    font-size: 12px;
+}
+
+.ai-section button {
+    border: 0;
+    background: white;
+    color: #0369a1;
+    padding: 12px 16px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+/* ================= FOOTER ================= */
+
+footer {
+    background: #0f172a;
+    color: white;
+    padding: 30px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-logo {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+footer p {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+footer button {
+    border: 1px solid #334155;
+    background: transparent;
+    color: white;
+    padding: 9px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ================= TOAST ================= */
+
+#toast {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    background: #0f172a;
+    color: white;
+    padding: 13px 18px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+
+    opacity: 0;
+    transform: translateY(80px);
+
+    transition: .3s;
+
+    z-index: 5000;
+}
+
+#toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+
+    .quick-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .service-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .parking-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .hero {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 35px;
+    }
+}
+
+@media (max-width: 750px) {
+
+    .navbar {
+        padding: 0 15px;
+    }
+
+    .breadcrumb {
+        display: none;
+    }
+
+    .container {
+        width: 94%;
+    }
+
+    .hero {
+        padding: 30px 22px;
+        min-height: 420px;
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .hero-info {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .hero-stat {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .quick-grid,
+    .two-column,
+    .service-grid,
+    .parking-grid,
+    .review-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .emergency-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .ai-section {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    footer {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    #placeMap {
+        height: 350px;
+    }
+}

@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ramgarh Tal | SmartCity AI</title>
+
+    <!-- Leaflet Map -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <link rel="stylesheet" href="famous.css">
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            Smart<span>City AI</span>
+        </div>
+
+        <div class="breadcrumb">
+            Places / Gorakhpur / Ramgarh Tal
+        </div>
+
+        <button
+            class="back-btn"
+            onclick="goToMainApp()"
+        >
+            ← Back to SmartCity AI
+        </button>
+
+    </nav>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="container">
+
+
+        <!-- ================= HERO ================= -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <span class="location-tag">
+                    📍 Gorakhpur, Uttar Pradesh
+                </span>
+
+                <h1>
+                    Ramgarh Tal
+                </h1>
+
+                <p>
+                    One of the most popular destinations in Gorakhpur,
+                    known for its beautiful lake, peaceful surroundings
+                    and recreational activities.
+                </p>
+
+
+                <div class="hero-buttons">
+
+                    <button
+                        class="primary-btn"
+                        onclick="getDirections()"
+                    >
+                        🧭 Get Directions
+                    </button>
+
+                    <button
+                        class="secondary-btn"
+                        onclick="planVisit()"
+                    >
+                        ✨ Plan My Visit
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="hero-info">
+
+                <div class="hero-stat">
+
+                    <strong>⭐ 4.5</strong>
+
+                    <span>Popular Rating</span>
+
+                </div>
+
+
+                <div class="hero-stat">
+
+                    <strong>🌤️ 31°C</strong>
+
+                    <span>Current Weather</span>
+
+                </div>
+
+
+                <div class="hero-stat">
+
+                    <strong>🟢 Low</strong>
+
+                    <span>Crowd Level</span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= QUICK STATUS ================= -->
+
+        <section class="quick-grid">
+
+
+            <div class="quick-card">
+
+                <div class="quick-icon">
+                    🚦
+                </div>
+
+                <div>
+
+                    <span>Traffic</span>
+
+                    <strong class="green">
+                        Low
+                    </strong>
+
+                    <small>
+                        Roads are moving smoothly
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-card">
+
+                <div class="quick-icon">
+                    🅿️
+                </div>
+
+                <div>
+
+                    <span>Parking</span>
+
+                    <strong class="green">
+                        Available
+                    </strong>
+
+                    <small>
+                        68 spaces available
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-card">
+
+                <div class="quick-icon">
+                    👥
+                </div>
+
+                <div>
+
+                    <span>Crowd</span>
+
+                    <strong class="green">
+                        Low
+                    </strong>
+
+                    <small>
+                        Good time to visit
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-card">
+
+                <div class="quick-icon">
+                    🌦️
+                </div>
+
+                <div>
+
+                    <span>Weather</span>
+
+                    <strong>
+                        31°C
+                    </strong>
+
+                    <small>
+                        Partly cloudy
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= MAP + OVERVIEW ================= -->
+
+        <section class="two-column">
+
+
+            <!-- MAP -->
+
+            <div class="card map-card">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <span class="section-label">
+                            LIVE LOCATION
+                        </span>
+
+                        <h2>
+                            📍 Explore Ramgarh Tal
+                        </h2>
+
+                    </div>
+
+                    <span class="live">
+                        ● LIVE
+                    </span>
+
+                </div>
+
+
+                <div id="placeMap"></div>
+
+
+                <div class="map-buttons">
+
+                    <button onclick="centerMap()">
+                        🎯 Center Location
+                    </button>
+
+                    <button onclick="getDirections()">
+                        🧭 Navigate
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- OVERVIEW -->
+
+            <div class="card">
+
+                <span class="section-label">
+                    PLACE INFORMATION
+                </span>
+
+                <h2>
+                    About Ramgarh Tal
+                </h2>
+
+                <p class="description">
+
+                    Ramgarh Tal is one of the well-known
+                    attractions of Gorakhpur. The lake area
+                    provides visitors with a peaceful environment
+                    and is an important recreational destination
+                    of the city.
+
+                </p>
+
+
+                <div class="info-list">
+
+                    <div>
+
+                        <span>📍 Location</span>
+
+                        <strong>
+                            Gorakhpur
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>🏙️ District</span>
+
+                        <strong>
+                            Gorakhpur
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>⭐ Rating</span>
+
+                        <strong>
+                            4.5 / 5
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>👥 Crowd</span>
+
+                        <strong class="green">
+                            Low
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="full-btn"
+                    onclick="showPlaceInfo()"
+                >
+                    View More Information
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= SMART CITY SERVICES ================= -->
+
+        <section class="card">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        SMART CITY SERVICES
+                    </span>
+
+                    <h2>
+                        Services Around This Place
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="service-grid">
+
+
+                <div
+                    class="service-card"
+                    onclick="findNearby('hospital')"
+                >
+
+                    <div class="service-icon">
+                        🏥
+                    </div>
+
+                    <h3>
+                        Hospitals
+                    </h3>
+
+                    <p>
+                        Find nearby hospitals
+                    </p>
+
+                    <span>
+                        View →
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="service-card"
+                    onclick="findNearby('police')"
+                >
+
+                    <div class="service-icon">
+                        🚔
+                    </div>
+
+                    <h3>
+                        Police
+                    </h3>
+
+                    <p>
+                        Find nearby police stations
+                    </p>
+
+                    <span>
+                        View →
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="service-card"
+                    onclick="findNearby('restaurant')"
+                >
+
+                    <div class="service-icon">
+                        🍴
+                    </div>
+
+                    <h3>
+                        Restaurants
+                    </h3>
+
+                    <p>
+                        Find nearby food places
+                    </p>
+
+                    <span>
+                        View →
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="service-card"
+                    onclick="findNearby('atm')"
+                >
+
+                    <div class="service-icon">
+                        🏧
+                    </div>
+
+                    <h3>
+                        ATM
+                    </h3>
+
+                    <p>
+                        Find nearby ATMs
+                    </p>
+
+                    <span>
+                        View →
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="service-card"
+                    onclick="findNearby('parking')"
+                >
+
+                    <div class="service-icon">
+                        🅿️
+                    </div>
+
+                    <h3>
+                        Parking
+                    </h3>
+
+                    <p>
+                        Find available parking
+                    </p>
+
+                    <span>
+                        View →
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="service-card"
+                    onclick="findNearby('washroom')"
+                >
+
+                    <div class="service-icon">
+                        🚻
+                    </div>
+
+                    <h3>
+                        Washrooms
+                    </h3>
+
+                    <p>
+                        Find public washrooms
+                    </p>
+
+                    <span>
+                        View →
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= TRAFFIC + WEATHER ================= -->
+
+        <section class="two-column">
+
+
+            <!-- TRAFFIC -->
+
+            <div class="card">
+
+                <span class="section-label">
+                    TRAFFIC MANAGEMENT
+                </span>
+
+                <h2>
+                    🚦 Current Traffic
+                </h2>
+
+
+                <div class="traffic-status">
+
+                    <div class="traffic-light green-light">
+                        🟢
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            Traffic is Low
+                        </h3>
+
+                        <p>
+                            Roads around Ramgarh Tal
+                            are currently moving smoothly.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="road-list">
+
+                    <div>
+
+                        <span>
+                            Ramgarh Tal Road
+                        </span>
+
+                        <strong class="green">
+                            Low
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Medical College Road
+                        </span>
+
+                        <strong class="orange">
+                            Medium
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Golghar Road
+                        </span>
+
+                        <strong class="green">
+                            Low
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="full-btn"
+                    onclick="openTraffic()"
+                >
+                    View Traffic Map
+                </button>
+
+            </div>
+
+
+
+            <!-- WEATHER -->
+
+            <div class="card">
+
+                <span class="section-label">
+                    WEATHER
+                </span>
+
+                <h2>
+                    🌦️ Today's Weather
+                </h2>
+
+
+                <div class="weather-main">
+
+                    <div class="weather-icon">
+                        🌤️
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            31°C
+                        </strong>
+
+                        <p>
+                            Partly Cloudy
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="weather-grid">
+
+                    <div>
+
+                        <span>
+                            💧 Humidity
+                        </span>
+
+                        <strong>
+                            68%
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            💨 Wind
+                        </span>
+
+                        <strong>
+                            12 km/h
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            🌧️ Rain Chance
+                        </span>
+
+                        <strong>
+                            20%
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            👁️ Visibility
+                        </span>
+
+                        <strong>
+                            7 km
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= PARKING ================= -->
+
+        <section class="card">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        PARKING
+                    </span>
+
+                    <h2>
+                        🅿️ Nearby Parking
+                    </h2>
+
+                </div>
+
+                <span class="available">
+                    68 Spaces Available
+                </span>
+
+            </div>
+
+
+            <div class="parking-grid">
+
+
+                <div class="parking-card">
+
+                    <div>
+
+                        <h3>
+                            Ramgarh Tal Parking
+                        </h3>
+
+                        <p>
+                            📍 Near lake entrance
+                        </p>
+
+                    </div>
+
+                    <strong class="green">
+                        32 spots
+                    </strong>
+
+                    <button onclick="navigateParking()">
+                        Navigate
+                    </button>
+
+                </div>
+
+
+                <div class="parking-card">
+
+                    <div>
+
+                        <h3>
+                            Zoo Parking Area
+                        </h3>
+
+                        <p>
+                            📍 Near Gorakhpur Zoo
+                        </p>
+
+                    </div>
+
+                    <strong class="green">
+                        21 spots
+                    </strong>
+
+                    <button onclick="navigateParking()">
+                        Navigate
+                    </button>
+
+                </div>
+
+
+                <div class="parking-card">
+
+                    <div>
+
+                        <h3>
+                            Tourist Parking
+                        </h3>
+
+                        <p>
+                            📍 Main Road
+                        </p>
+
+                    </div>
+
+                    <strong class="orange">
+                        15 spots
+                    </strong>
+
+                    <button onclick="navigateParking()">
+                        Navigate
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= CROWD ================= -->
+
+        <section class="card">
+
+            <span class="section-label">
+                CROWD MONITORING
+            </span>
+
+            <h2>
+                👥 Live Crowd Status
+            </h2>
+
+
+            <div class="crowd-box">
+
+                <div class="crowd-icon">
+                    🟢
+                </div>
+
+                <div class="crowd-content">
+
+                    <h3>
+                        Low Crowd
+                    </h3>
+
+                    <p>
+                        This is currently a good time
+                        to visit Ramgarh Tal.
+                    </p>
+
+                    <div class="crowd-bar">
+
+                        <div
+                            style="width:32%"
+                        ></div>
+
+                    </div>
+
+                    <small>
+                        Estimated crowd: 32%
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= EMERGENCY ================= -->
+
+        <section class="emergency-section">
+
+            <div>
+
+                <span>
+                    🚨 EMERGENCY ASSISTANCE
+                </span>
+
+                <h2>
+                    Need Help?
+                </h2>
+
+                <p>
+                    Quickly find emergency services
+                    around Ramgarh Tal.
+                </p>
+
+            </div>
+
+
+            <div class="emergency-buttons">
+
+                <button onclick="callEmergency('112')">
+                    🚨 Emergency 112
+                </button>
+
+                <button onclick="findNearby('hospital')">
+                    🏥 Hospital
+                </button>
+
+                <button onclick="findNearby('police')">
+                    🚔 Police
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= REVIEWS ================= -->
+
+        <section class="card">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        COMMUNITY
+                    </span>
+
+                    <h2>
+                        ⭐ Visitor Reviews
+                    </h2>
+
+                </div>
+
+                <button
+                    class="primary-small"
+                    onclick="writeReview()"
+                >
+                    + Write Review
+                </button>
+
+            </div>
+
+
+            <div class="review-grid">
+
+
+                <div class="review">
+
+                    <div class="review-top">
+
+                        <strong>
+                            Rahul
+                        </strong>
+
+                        <span>
+                            ⭐⭐⭐⭐⭐
+                        </span>
+
+                    </div>
+
+                    <p>
+                        Nice place to spend evening
+                        with friends and family.
+                    </p>
+
+                </div>
+
+
+                <div class="review">
+
+                    <div class="review-top">
+
+                        <strong>
+                            Aman
+                        </strong>
+
+                        <span>
+                            ⭐⭐⭐⭐
+                        </span>
+
+                    </div>
+
+                    <p>
+                        Good atmosphere and
+                        beautiful surroundings.
+                    </p>
+
+                </div>
+
+
+                <div class="review">
+
+                    <div class="review-top">
+
+                        <strong>
+                            Priya
+                        </strong>
+
+                        <span>
+                            ⭐⭐⭐⭐⭐
+                        </span>
+
+                    </div>
+
+                    <p>
+                        Great place for an evening walk.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= AI ASSISTANT ================= -->
+
+        <section class="ai-section">
+
+            <div class="ai-icon">
+                🤖
+            </div>
+
+            <div>
+
+                <span>
+                    SMARTCITY AI
+                </span>
+
+                <h2>
+                    Ask AI about Ramgarh Tal
+                </h2>
+
+                <p>
+                    Get help with routes, traffic,
+                    parking, weather and nearby services.
+                </p>
+
+            </div>
+
+            <button onclick="openAI()">
+                Ask SmartCity AI →
+            </button>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        <div class="footer-logo">
+            Smart<span>City AI</span>
+        </div>
+
+        <p>
+            Intelligent services for a smarter Gorakhpur.
+        </p>
+
+          <a href="../../index.html">  <button onclick="goToMainApp()">
+                 ← Return to Main App
+            </button>
+            </a>
+
+    </footer>
+
+
+
+    <!-- ================= TOAST ================= -->
+
+    <div id="toast">
+        Action completed
+    </div>
+
+
+
+    <!-- Leaflet -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script src="famose.js".js"></script>
+
+</body>
+
+</html>

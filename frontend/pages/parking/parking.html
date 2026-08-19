@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Parking Management | SmartCity AI</title>
+
+    <link rel="stylesheet" href="parking.css">
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        Smart<span>City AI</span>
+    </div>
+
+    <div class="nav-right">
+
+    <a href="../../index.html">
+    Dashboard
+      </a>
+        <div class="login-user">
+            👤 <span id="navUserName">User</span>
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- ================= HERO ================= -->
+
+<section class="parking-hero">
+
+    <div class="hero-content">
+
+        <span class="hero-label">
+            SMART PARKING SYSTEM
+        </span>
+
+        <h1>
+            Smart Parking
+            <span>Management</span>
+        </h1>
+
+        <p>
+            Find available parking spaces, monitor
+            parking areas and manage parking operations
+            in real time.
+        </p>
+
+        <div class="hero-buttons">
+
+            <button onclick="scrollToParking()">
+                🅿️ Find Parking
+            </button>
+
+            <button
+                class="secondary-btn"
+                onclick="openParkingStaffPanel()"
+            >
+                ⚙️ Staff Control
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="hero-visual">
+
+        <div class="parking-circle">
+
+            <div class="car-icon">
+                🚗
+            </div>
+
+            <span>
+                LIVE
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= STATISTICS ================= -->
+
+<section class="stats-section">
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            🅿️
+        </div>
+
+        <div>
+
+            <span>
+                TOTAL SLOTS
+            </span>
+
+            <h2 id="totalSlots">
+                120
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon available">
+            🟢
+        </div>
+
+        <div>
+
+            <span>
+                AVAILABLE
+            </span>
+
+            <h2 id="availableSlots">
+                72
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon occupied">
+            🔴
+        </div>
+
+        <div>
+
+            <span>
+                OCCUPIED
+            </span>
+
+            <h2 id="occupiedSlots">
+                48
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            📊
+        </div>
+
+        <div>
+
+            <span>
+                OCCUPANCY
+            </span>
+
+            <h2 id="occupancy">
+                40%
+            </h2>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= PARKING AREAS ================= -->
+
+<section
+    class="parking-section"
+    id="parkingSection"
+>
+
+    <div class="section-title">
+
+        <span>
+            PARKING AREAS
+        </span>
+
+        <h2>
+            Available Parking
+        </h2>
+
+        <p>
+            Check parking availability before
+            reaching your destination.
+        </p>
+
+    </div>
+
+
+    <div
+        class="parking-grid"
+        id="parkingGrid"
+    >
+
+        <!-- AREA 1 -->
+
+        <div
+            class="parking-card"
+            data-id="PARK-001"
+        >
+
+            <div class="parking-card-top">
+
+                <div class="parking-place-icon">
+                    🅿️
+                </div>
+
+                <span class="open-status">
+                    OPEN
+                </span>
+
+            </div>
+
+            <h3>
+                City Center Parking
+            </h3>
+
+            <p>
+                📍 Main City Center
+            </p>
+
+            <div class="slot-info">
+
+                <div>
+                    <strong
+                        class="area-available"
+                    >
+                        28
+                    </strong>
+
+                    <small>
+                        Available
+                    </small>
+                </div>
+
+                <div>
+                    <strong>
+                        50
+                    </strong>
+
+                    <small>
+                        Total
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="parking-bar">
+
+                <div
+                    class="parking-progress"
+                    style="width:44%"
+                ></div>
+
+            </div>
+
+            <div class="parking-bottom">
+
+                <span>
+                    ₹20/hour
+                </span>
+
+                <button
+                    onclick="bookParking('PARK-001')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- AREA 2 -->
+
+        <div
+            class="parking-card"
+            data-id="PARK-002"
+        >
+
+            <div class="parking-card-top">
+
+                <div class="parking-place-icon">
+                    🅿️
+                </div>
+
+                <span class="open-status">
+                    OPEN
+                </span>
+
+            </div>
+
+            <h3>
+                Railway Station Parking
+            </h3>
+
+            <p>
+                📍 Railway Station
+            </p>
+
+            <div class="slot-info">
+
+                <div>
+                    <strong
+                        class="area-available"
+                    >
+                        16
+                    </strong>
+
+                    <small>
+                        Available
+                    </small>
+                </div>
+
+                <div>
+                    <strong>
+                        30
+                    </strong>
+
+                    <small>
+                        Total
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="parking-bar">
+
+                <div
+                    class="parking-progress"
+                    style="width:47%"
+                ></div>
+
+            </div>
+
+            <div class="parking-bottom">
+
+                <span>
+                    ₹15/hour
+                </span>
+
+                <button
+                    onclick="bookParking('PARK-002')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- AREA 3 -->
+
+        <div
+            class="parking-card"
+            data-id="PARK-003"
+        >
+
+            <div class="parking-card-top">
+
+                <div class="parking-place-icon">
+                    🅿️
+                </div>
+
+                <span class="open-status">
+                    OPEN
+                </span>
+
+            </div>
+
+            <h3>
+                Hospital Parking
+            </h3>
+
+            <p>
+                📍 City Hospital
+            </p>
+
+            <div class="slot-info">
+
+                <div>
+                    <strong
+                        class="area-available"
+                    >
+                        12
+                    </strong>
+
+                    <small>
+                        Available
+                    </small>
+                </div>
+
+                <div>
+                    <strong>
+                        25
+                    </strong>
+
+                    <small>
+                        Total
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="parking-bar">
+
+                <div
+                    class="parking-progress"
+                    style="width:52%"
+                ></div>
+
+            </div>
+
+            <div class="parking-bottom">
+
+                <span>
+                    ₹10/hour
+                </span>
+
+                <button
+                    onclick="bookParking('PARK-003')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- AREA 4 -->
+
+        <div
+            class="parking-card"
+            data-id="PARK-004"
+        >
+
+            <div class="parking-card-top">
+
+                <div class="parking-place-icon">
+                    🅿️
+                </div>
+
+                <span class="open-status">
+                    OPEN
+                </span>
+
+            </div>
+
+            <h3>
+                Mall Parking
+            </h3>
+
+            <p>
+                📍 Central Mall
+            </p>
+
+            <div class="slot-info">
+
+                <div>
+                    <strong
+                        class="area-available"
+                    >
+                        16
+                    </strong>
+
+                    <small>
+                        Available
+                    </small>
+                </div>
+
+                <div>
+                    <strong>
+                        15
+                    </strong>
+
+                    <small>
+                        Total
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="parking-bar">
+
+                <div
+                    class="parking-progress"
+                    style="width:50%"
+                ></div>
+
+            </div>
+
+            <div class="parking-bottom">
+
+                <span>
+                    ₹25/hour
+                </span>
+
+                <button
+                    onclick="bookParking('PARK-004')"
+                >
+                    Book Slot
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= STAFF CONTROL ================= -->
+
+<section
+    class="staff-section"
+    id="staffSection"
+>
+
+    <div class="section-title">
+
+        <span>
+            PARKING STAFF
+        </span>
+
+        <h2>
+            Parking Control Center
+        </h2>
+
+        <p id="staffAccessText">
+            Checking staff permissions...
+        </p>
+
+    </div>
+
+
+    <div
+        class="staff-control-panel"
+        id="staffControlPanel"
+    >
+
+        <div class="control-header">
+
+            <div>
+
+                <span>
+                    AUTHORIZED ACCESS
+                </span>
+
+                <h3>
+                    Parking Management
+                </h3>
+
+            </div>
+
+            <div class="control-status">
+                ● CONTROL ENABLED
+            </div>
+
+        </div>
+
+
+        <!-- SELECT PARKING -->
+
+        <div class="control-group">
+
+            <label>
+                Select Parking Area
+            </label>
+
+            <select id="parkingAreaSelect">
+
+                <option value="">
+                    Select parking area
+                </option>
+
+                <option value="PARK-001">
+                    City Center Parking
+                </option>
+
+                <option value="PARK-002">
+                    Railway Station Parking
+                </option>
+
+                <option value="PARK-003">
+                    Hospital Parking
+                </option>
+
+                <option value="PARK-004">
+                    Mall Parking
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="control-grid">
+
+
+            <!-- SLOT STATUS -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🅿️
+                </div>
+
+                <h4>
+                    Parking Status
+                </h4>
+
+                <p>
+                    Open or close the parking area.
+                </p>
+
+                <select id="parkingStatus">
+
+                    <option value="OPEN">
+                        🟢 OPEN
+                    </option>
+
+                    <option value="CLOSED">
+                        🔴 CLOSED
+                    </option>
+
+                    <option value="FULL">
+                        🟠 FULL
+                    </option>
+
+                    <option value="MAINTENANCE">
+                        🔧 MAINTENANCE
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- TOTAL SLOTS -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🔢
+                </div>
+
+                <h4>
+                    Total Slots
+                </h4>
+
+                <p>
+                    Update total parking capacity.
+                </p>
+
+                <input
+                    type="number"
+                    id="totalAreaSlots"
+                    min="0"
+                    placeholder="Total slots"
+                >
+
+            </div>
+
+
+            <!-- AVAILABLE -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🟢
+                </div>
+
+                <h4>
+                    Available Slots
+                </h4>
+
+                <p>
+                    Update currently available slots.
+                </p>
+
+                <input
+                    type="number"
+                    id="availableAreaSlots"
+                    min="0"
+                    placeholder="Available slots"
+                >
+
+            </div>
+
+
+            <!-- VEHICLE ENTRY -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🚗
+                </div>
+
+                <h4>
+                    Vehicle Entry
+                </h4>
+
+                <p>
+                    Record a vehicle entering parking.
+                </p>
+
+                <input
+                    type="text"
+                    id="vehicleEntry"
+                    placeholder="Vehicle number"
+                >
+
+                <button
+                    onclick="vehicleEntry()"
+                >
+                    + Vehicle Entry
+                </button>
+
+            </div>
+
+
+            <!-- VEHICLE EXIT -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    🚙
+                </div>
+
+                <h4>
+                    Vehicle Exit
+                </h4>
+
+                <p>
+                    Record a vehicle leaving parking.
+                </p>
+
+                <input
+                    type="text"
+                    id="vehicleExit"
+                    placeholder="Vehicle number"
+                >
+
+                <button
+                    onclick="vehicleExit()"
+                >
+                    − Vehicle Exit
+                </button>
+
+            </div>
+
+
+            <!-- RATE -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    💰
+                </div>
+
+                <h4>
+                    Parking Rate
+                </h4>
+
+                <p>
+                    Change parking charge per hour.
+                </p>
+
+                <input
+                    type="number"
+                    id="parkingRate"
+                    min="0"
+                    placeholder="₹ / hour"
+                >
+
+            </div>
+
+
+            <!-- LOCATION -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    📍
+                </div>
+
+                <h4>
+                    Parking Location
+                </h4>
+
+                <p>
+                    Update parking location.
+                </p>
+
+                <input
+                    type="text"
+                    id="parkingLocation"
+                    placeholder="Parking location"
+                >
+
+            </div>
+
+
+            <!-- TEAM -->
+
+            <div class="control-card">
+
+                <div class="control-icon">
+                    👨‍💼
+                </div>
+
+                <h4>
+                    Staff / Team
+                </h4>
+
+                <p>
+                    Update responsible parking team.
+                </p>
+
+                <input
+                    type="text"
+                    id="parkingTeam"
+                    placeholder="Team name / ID"
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="control-footer">
+
+            <button
+                class="save-control-btn"
+                onclick="saveParkingChanges()"
+            >
+                💾 Save Parking Changes
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= TOAST ================= -->
+
+<div
+    id="toast"
+    class="toast"
+>
+</div>
+
+
+<script src="parking.js"></script>
+
+</body>
+</html>
