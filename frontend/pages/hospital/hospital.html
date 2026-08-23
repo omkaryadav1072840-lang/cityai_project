@@ -9,13 +9,29 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
+<title>Hospital | SmartCity AI</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-    <title>Hospital | SmartCity AI</title>
+<!-- Leaflet Routing Machine CSS only — its JS must load AFTER leaflet.js,
+     so the script tag was moved to just before hospital.js at the
+     bottom of this file. Loading it here (before L exists) was a bug
+     that silently broke all route drawing. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="hospital.css">
 
-    <link
-        rel="stylesheet"
-        href="hospital.css"
-    >
+
+<style>
+.pharmacy-cart-bar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:20px 0;padding:15px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+.pharmacy-cart-bar span{font-weight:700;margin-left:8px}
+.cart-modal-box,.receipt-modal-box{max-width:700px}
+.cart-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.cart-item{display:grid;grid-template-columns:1fr auto auto;gap:15px;align-items:center;padding:15px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}
+.cart-item h3,.cart-item p{margin:4px 0}
+.cart-item button{margin:3px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);cursor:pointer}
+.cart-total{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:20px}
+.medicine-card .medicine-actions,.medicine-detail-card .medicine-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.medicine-card .medicine-actions button,.medicine-detail-card .medicine-actions button{flex:1;min-width:130px}.medicine-card .add-cart-btn,.medicine-detail-card .add-cart-btn{margin-top:0}.medicine-card .add-cart-btn:disabled,.medicine-detail-card .add-cart-btn:disabled{opacity:.5;cursor:not-allowed}
+.receipt-header{display:flex;align-items:center;gap:15px}.receipt-logo{font-size:42px}.receipt-header h2,.receipt-header p{margin:3px 0}.receipt-info p{display:flex;justify-content:space-between;gap:15px}.receipt-item{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.1)}.receipt-total{display:flex;justify-content:space-between;font-size:22px;margin-top:18px}.receipt-thankyou{text-align:center;opacity:.7;margin-top:30px}.receipt-actions{display:flex;gap:12px;margin-top:22px}.receipt-actions button{flex:1}@media(max-width:600px){.pharmacy-cart-bar,.cart-total,.receipt-actions{flex-direction:column;align-items:stretch}.cart-item{grid-template-columns:1fr}.receipt-info p{flex-direction:column;gap:4px}}
+</style>
 
 </head>
 
@@ -331,32 +347,197 @@
 
 
 
-            <!-- DOCTORS -->
+<!-- =================================================
+     FIND DOCTORS
+================================================= -->
 
-            <div class="service-card">
+<div class="service-card">
 
-                <div class="service-icon green">
-                    👨‍⚕️
-                </div>
+    <div class="service-icon green">
+        👨‍⚕️
+    </div>
 
-                <h3>
-                    Find Doctors
-                </h3>
+    <h3>
+        Find Doctors
+    </h3>
+
+    <p>
+        Find doctors by department, specialization,
+        availability and appointment schedule.
+    </p>
+
+    <button
+        type="button"
+        onclick="openDoctorFinder()"
+    >
+        👨‍⚕️ Find Doctors →
+    </button>
+
+</div>
+<!-- =====================================================
+     DOCTOR FINDER MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="doctorFinderModal"
+>
+
+    <div class="modal-box doctor-finder-modal-box">
+
+        <!-- CLOSE -->
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('doctorFinderModal')"
+        >
+            ×
+        </button>
+
+
+        <!-- HEADER -->
+
+        <div class="modal-title-icon">
+            👨‍⚕️
+        </div>
+
+        <h2>
+            Find Doctors
+        </h2>
+
+        <p class="modal-subtitle">
+            Search doctors and check their
+            appointment availability.
+        </p>
+
+
+        <!-- =================================================
+             SEARCH AREA
+        ================================================= -->
+
+        <div class="doctor-search-area">
+
+            <input
+                type="text"
+                id="doctorSearch"
+                placeholder="🔎 Search doctor by name..."
+                autocomplete="off"
+            >
+
+
+            <select
+                id="doctorDepartment"
+            >
+
+                <option value="">
+                    All Departments
+                </option>
+
+                <option value="General Physician">
+                    General Physician
+                </option>
+
+                <option value="Cardiologist">
+                    Cardiology
+                </option>
+
+                <option value="Orthopedic">
+                    Orthopedic
+                </option>
+
+                <option value="Neurologist">
+                    Neurology
+                </option>
+
+                <option value="Dermatologist">
+                    Dermatology
+                </option>
+
+            </select>
+
+
+            <select
+                id="doctorAvailability"
+            >
+
+                <option value="">
+                    All Doctors
+                </option>
+
+                <option value="Available">
+                    Available Now
+                </option>
+
+                <option value="Busy">
+                    Currently Busy
+                </option>
+
+            </select>
+
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="searchDoctors()"
+            >
+                🔍 Search
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             DOCTOR LIST
+        ================================================= -->
+
+        <div
+            id="doctorFinderList"
+            class="doctor-finder-list"
+        >
+
+            <div class="loading-card">
+
+                👨‍⚕️
 
                 <p>
-                    Search doctors by department,
-                    specialization and availability.
+                    Loading doctors...
                 </p>
-
-                <button
-                    type="button"
-                    onclick="showDoctors()"
-                >
-                    View Doctors →
-                </button>
 
             </div>
 
+        </div>
+
+
+        <!-- =================================================
+             DOCTOR DETAILS
+        ================================================= -->
+
+        <div
+            id="doctorDetailsSection"
+            class="doctor-details-section"
+            style="display:none;"
+        >
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="closeDoctorDetails()"
+            >
+                ← Back to Doctors
+            </button>
+
+
+            <div
+                id="doctorDetailsContent"
+                class="doctor-details-content"
+            ></div>
+
+        </div>
+
+    </div>
+
+</div>
 
 
             <!-- APPOINTMENT -->
@@ -1151,117 +1332,53 @@
 <!-- =====================================================
      DOCTOR BOOKING MODAL
 ===================================================== -->
+<!-- =====================================================
+     DOCTOR BOOKING MODAL (RECONFIGURED)
+===================================================== -->
+<div class="modal" id="doctorModal">
+    <div class="modal-box doctor-modal-wide">
+        <button type="button" class="close-btn" onclick="closeModal('doctorModal')">×</button>
 
-<div
-    class="modal"
-    id="doctorModal"
->
+        <div class="modal-title-icon">📅</div>
+        <h2>Book Doctor Appointment</h2>
+        <p class="modal-subtitle">Choose hospital, doctor, and an open time slot.</p>
 
-    <div class="modal-box">
+        <div class="booking-form-grid">
+            <div class="form-group">
+                <label>Select Hospital</label>
+                <select id="bookingHospitalSelect" onchange="onBookingHospitalChange()"></select>
+            </div>
 
-        <button
-            type="button"
-            class="close-btn"
-            onclick="closeModal('doctorModal')"
-        >
-            ×
-        </button>
+            <div class="form-group">
+                <label>Select Doctor</label>
+                <select id="doctorSelect" onchange="fetchDynamicSlots()">
+                    <option value="">Select Hospital First</option>
+                </select>
+            </div>
 
+            <div class="form-group">
+                <label>Select Date</label>
+                <input type="date" id="appointmentDate" onchange="fetchDynamicSlots()">
+            </div>
 
-        <h2>
-            📅 Book Doctor Appointment
-        </h2>
+            <div class="form-group">
+                <label>Patient ID</label>
+                <input type="text" id="appointmentPatientId" placeholder="e.g. PAT-12345678">
+            </div>
+        </div>
 
-        <p>
-            Select doctor, date and time.
-        </p>
+        <div class="slots-section">
+            <label class="section-label">Available Slots</label>
+            <div id="slotGridContainer"></div>
+        </div>
 
-
-        <select id="doctorSelect">
-
-            <option value="">
-                Select Doctor
-            </option>
-
-            <option value="Dr. Rahul Sharma">
-                Dr. Rahul Sharma — General Physician
-            </option>
-
-            <option value="Dr. Priya Singh">
-                Dr. Priya Singh — Cardiologist
-            </option>
-
-            <option value="Dr. Amit Verma">
-                Dr. Amit Verma — Orthopedic
-            </option>
-
-        </select>
-
-
-        <input
-            type="date"
-            id="appointmentDate"
-        >
-
-
-        <select id="appointmentTime">
-
-            <option value="">
-                Select Time
-            </option>
-
-            <option value="10:00 AM">
-                10:00 AM
-            </option>
-
-            <option value="11:00 AM">
-                11:00 AM
-            </option>
-
-            <option value="12:00 PM">
-                12:00 PM
-            </option>
-
-            <option value="03:00 PM">
-                03:00 PM
-            </option>
-
-            <option value="04:00 PM">
-                04:00 PM
-            </option>
-
-            <option value="06:00 PM">
-                06:00 PM
-            </option>
-
-        </select>
-
-
-        <input
-            type="text"
-            id="appointmentPatientId"
-            placeholder="Patient ID"
-        >
-
-
-        <button
-            type="button"
-            class="primary-btn full"
-            onclick="bookDoctorSlot()"
-        >
+        <button type="button" class="primary-btn full-btn" onclick="confirmStrictBooking()">
             CONFIRM APPOINTMENT
         </button>
 
-
-        <div
-            id="appointmentResult"
-            class="appointment-result"
-        ></div>
-
+        <div id="appointmentResult"></div>
     </div>
-
 </div>
-
 
 
 <!-- =====================================================
@@ -1328,9 +1445,7 @@
     class="modal"
     id="ambulanceModal"
 >
-
     <div class="modal-box ambulance-modal-box">
-
         <button
             type="button"
             class="close-btn"
@@ -1348,19 +1463,30 @@
         </h2>
 
         <p class="modal-subtitle">
-            View available ambulance and current status.
+            Request an emergency ambulance, or track an assigned one live on the map.
         </p>
 
+        <!-- Emergency request bar: capture patient location + destination hospital -->
+        <div id="ambulanceRequestBar" class="ambulance-request-bar">
+            <button type="button" class="emergency-request-btn" onclick="startEmergencyRequest()">
+                🚨 Request Emergency Ambulance
+            </button>
+            <div id="emergencyRequestPanel" class="emergency-request-panel" style="display:none;"></div>
+        </div>
+
         <div id="ambulanceResult">
+            <!-- Map Container -->
+            <div id="ambulanceMap" class="ambulance-map"></div>
 
-            <div class="loading-card">
-                ⏳ Loading ambulance information...
-            </div>
+            <!-- Live route / ETA / status panel for the ambulance currently being tracked -->
+            <div id="ambulanceRoutePanel" class="ambulance-route-panel"></div>
 
+            <br>
+            <!-- List Container -->
+            <div id="ambulanceList" class="ambulance-list"></div>
         </div>
 
         <div class="ambulance-actions">
-
             <button
                 type="button"
                 class="primary-btn"
@@ -1376,11 +1502,8 @@
             >
                 🚨 Emergency
             </button>
-
         </div>
-
     </div>
-
 </div>
 
 
@@ -1413,10 +1536,42 @@
         </h2>
 
         <p class="modal-subtitle">
-            Search medicines and check availability.
+            Search medicines, check availability, view details and add medicines to your cart.
         </p>
 
+        <div class="patient-pharmacy-login" id="pharmacyPatientLogin">
 
+    <h3>👤 Patient Login</h3>
+
+    <p>
+        Medicine purchase karne ke liye
+        Patient ID enter karein.
+    </p>
+
+    <div style="display:flex; gap:10px;">
+
+        <input
+            type="text"
+            id="pharmacyPatientId"
+            placeholder="Enter Patient ID"
+            autocomplete="off"
+        >
+
+        <button
+            type="button"
+            onclick="verifyPharmacyPatient()"
+        >
+            🔐 Verify
+        </button>
+
+    </div>
+
+    <div
+        id="pharmacyPatientStatus"
+        style="margin-top:10px;"
+    ></div>
+
+</div>
         <div class="medicine-search">
 
             <input
@@ -1433,8 +1588,26 @@
         <div id="medicineResult">
 
             <div class="loading-card">
-                🔎 Search for a medicine.
+                💊 Opening pharmacy...
             </div>
+
+        </div>
+
+
+        <div class="pharmacy-cart-bar">
+
+            <div>
+                <strong>🛒 Medicine Cart</strong>
+                <span id="cartCount">0</span> items
+            </div>
+
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="openCart()"
+            >
+                🛒 View Cart
+            </button>
 
         </div>
 
@@ -1468,6 +1641,131 @@
 
 </div>
 
+
+
+<!-- =====================================================
+     PHARMACY CART MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="cartModal"
+>
+
+    <div class="modal-box cart-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('cartModal')"
+        >
+            ×
+        </button>
+
+        <div class="modal-title-icon">🛒</div>
+
+        <h2>Medicine Cart</h2>
+
+        <p class="modal-subtitle">
+            Review medicines and generate your pharmacy receipt.
+        </p>
+
+        <label for="cartPatientId">Patient ID</label>
+
+        <input
+            type="text"
+            id="cartPatientId"
+            placeholder="Enter Patient ID"
+        >
+
+        <div id="cartResult">
+
+            <div class="empty-state">
+                🛒
+                <h3>Cart is Empty</h3>
+                <p>Add medicines from the pharmacy.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PHARMACY RECEIPT MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="receiptModal"
+>
+
+    <div class="modal-box receipt-modal-box">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('receiptModal')"
+        >
+            ×
+        </button>
+
+        <div id="receiptContent">
+
+            <div class="receipt-header">
+                <div class="receipt-logo">🏥</div>
+                <div>
+                    <h2>SmartCity AI</h2>
+                    <p>Smart Healthcare Pharmacy</p>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="receipt-info">
+                <p><strong>Receipt No:</strong> <span id="receiptNumber">--</span></p>
+                <p><strong>Date:</strong> <span id="receiptDate">--</span></p>
+                <p><strong>Patient ID:</strong> <span id="receiptPatientId">--</span></p>
+            </div>
+
+            <div id="receiptItems"></div>
+
+            <hr>
+
+            <div class="receipt-total">
+                <span>Total</span>
+                <strong id="receiptTotal">₹0.00</strong>
+            </div>
+
+            <p class="receipt-thankyou">
+                Thank you for using SmartCity AI Healthcare Services.
+            </p>
+
+        </div>
+
+        <div class="receipt-actions">
+            <button
+                type="button"
+                class="primary-btn"
+                onclick="printReceipt()"
+            >
+                🖨️ Print Receipt
+            </button>
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="closeModal('receiptModal')"
+            >
+                Close
+            </button>
+        </div>
+
+    </div>
+
+</div>
 
 
 <!-- =====================================================
@@ -1726,8 +2024,18 @@
                 🔍 Search
             </button>
 
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="loadMyPatientRecord()"
+            >
+                👤 My Record
+            </button>
+
         </div>
 
+        <!-- Tab bar rendered once a patient is loaded -->
+        <div id="patientFileTabs" class="patient-file-tabs" style="display:none;"></div>
 
         <div id="patientFileResult">
 
@@ -2049,7 +2357,16 @@
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
 ></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<!-- Leaflet Routing Machine — loaded AFTER leaflet.js (fixes a bug where
+     it was previously loaded in <head> before L existed). -->
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<!-- =====================================================
+     SOCKET.IO CLIENT (real-time ambulance tracking)
+===================================================== -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
 
 <!-- =====================================================
