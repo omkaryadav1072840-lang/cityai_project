@@ -33,8 +33,8 @@
             <span id="notificationCount">0</span>
         </button>
 
-        <button class="profile-btn">
-            👤 Omkar
+        <button class="profile-btn" id="profileButton">
+            👤 <span id="profileName">User</span>
         </button>
 
     </div>
@@ -45,6 +45,55 @@
 <!-- ================= MAIN ================= -->
 
 <main class="container">
+
+    <!-- ================= ROLE SWITCH ================= -->
+    <div class="role-banner" id="roleBanner">
+        <div>
+            <strong id="roleTitle">Waste Management Dashboard</strong>
+            <span id="roleSubtitle">Choose your waste services and manage city cleanliness.</span>
+        </div>
+        <span class="role-pill" id="rolePill">STAFF</span>
+    </div>
+
+    <!-- ================= CITIZEN DASHBOARD ================= -->
+    <section class="citizen-dashboard" id="citizenDashboard">
+        <div class="citizen-hero">
+            <div>
+                <div class="eyebrow">CITIZEN WASTE SERVICES</div>
+                <h2>Keep Your Area Clean</h2>
+                <p>Report waste, request collection, find nearby bins and request a new dustbin for your area.</p>
+            </div>
+            <div class="citizen-actions">
+                <button class="btn green-btn" onclick="openReportModal()">📍 Report Waste</button>
+                <button class="btn outline-btn" onclick="openPickupModal()">🚛 Request Pickup</button>
+                <button class="btn white-btn" onclick="openCitizenBinRequestModal()">🗑️ Request New Dustbin</button>
+            </div>
+        </div>
+
+        <div class="citizen-stats">
+            <div class="citizen-stat"><span>My Reports</span><strong id="citizenReportCount">0</strong></div>
+            <div class="citizen-stat"><span>Pickup Requests</span><strong id="citizenPickupCount">0</strong></div>
+            <div class="citizen-stat"><span>Dustbin Requests</span><strong id="citizenBinRequestCount">0</strong></div>
+            <div class="citizen-stat"><span>Clean Score</span><strong id="citizenScore">0</strong></div>
+        </div>
+
+        <div class="two-columns citizen-columns">
+            <section class="card">
+                <div class="section-head"><div><h2>🗑️ Nearby Smart Bins</h2><p>Find available bins around the city.</p></div></div>
+                <div id="citizenNearbyBins" class="citizen-list"></div>
+            </section>
+            <section class="card">
+                <div class="section-head"><div><h2>📅 Collection Schedule</h2><p>Upcoming waste collection requests.</p></div></div>
+                <div id="citizenCollectionList" class="citizen-list"></div>
+            </section>
+        </div>
+
+        <section class="card">
+            <div class="section-head"><div><h2>🆕 My Dustbin Requests</h2><p>Track your requests for installing a new dustbin.</p></div><button class="small-btn" onclick="openCitizenBinRequestModal()">+ New Request</button></div>
+            <div id="citizenBinRequestList" class="request-list"></div>
+        </section>
+    </section>
+
 
     <!-- HERO -->
 
@@ -200,7 +249,7 @@
 
     <!-- ================= BIN MANAGEMENT ================= -->
 
-    <section class="card">
+    <section class="card staff-only">
 
         <div class="section-head">
 
@@ -257,7 +306,7 @@
 
     <!-- ================= REPORT + PICKUP ================= -->
 
-    <div class="two-columns">
+    <div class="two-columns staff-only">
 
 
         <!-- REPORTS -->
@@ -310,9 +359,19 @@
     </div>
 
 
+    <!-- ================= CITIZEN DUSTBIN REQUESTS (STAFF) ================= -->
+
+    <section class="card staff-only" id="staffDustbinRequestsSection">
+        <div class="section-head">
+            <div><h2>🆕 Citizen Dustbin Requests</h2><p>Review and manage requests submitted by citizens.</p></div>
+            <button class="small-btn" onclick="loadCitizenBinRequests(true)">↻ Refresh</button>
+        </div>
+        <div id="staffBinRequestList" class="request-list"></div>
+    </section>
+
     <!-- ================= SCORE ================= -->
 
-    <section class="card score-card">
+    <section class="card score-card staff-only">
 
         <div>
 
@@ -583,6 +642,25 @@
 
 </div>
 
+
+<!-- ================= NEW DUSTBIN REQUEST MODAL ================= -->
+<div class="modal" id="citizenBinRequestModal">
+    <div class="modal-content request-modal-content">
+        <button class="modal-close" onclick="closeCitizenBinRequestModal()">×</button>
+        <h2>🗑️ Request New Dustbin</h2>
+        <p class="modal-subtitle">Tell the city team where a new dustbin is needed.</p>
+        <div class="form-grid">
+            <div class="form-group"><label>Reason *</label><input id="binReqReason" placeholder="e.g. No dustbin in this area"></div>
+            <div class="form-group"><label>Waste Type *</label><select id="binReqWasteType"><option>Mixed Waste</option><option>Wet Waste</option><option>Dry Waste</option><option>Plastic Waste</option><option>E-Waste</option><option>Other</option></select></div>
+            <div class="form-group full"><label>Location / Landmark *</label><input id="binReqLocation" placeholder="Area, road, landmark"></div>
+            <div class="form-group"><label>Latitude *</label><input id="binReqLat" type="number" step="any" placeholder="26.7606"></div>
+            <div class="form-group"><label>Longitude *</label><input id="binReqLng" type="number" step="any" placeholder="83.3732"></div>
+            <div class="form-group full"><label>Description</label><textarea id="binReqDescription" rows="4" placeholder="Explain why a dustbin is needed here..."></textarea></div>
+        </div>
+        <div class="request-location-actions"><button class="small-btn" onclick="useCurrentLocationForBinRequest()">📍 Use My Location</button></div>
+        <button class="submit-btn" onclick="submitCitizenBinRequest()">Submit Dustbin Request</button>
+    </div>
+</div>
 
 <!-- LEAFLET -->
 

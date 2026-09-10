@@ -2249,6 +2249,7 @@ app.get("/api/doctors", (req, res) => {
         SELECT
             id,
             doctor_id,
+            hospital_id,  /* YEH LINE ADD KI GAYI HAI */
             name,
             specialization,
             department,
@@ -6633,6 +6634,505 @@ io.on("connection", (socket) => {
     );
 
 });
+// =========================================================
+// WASTE BIN REQUESTS - SAFE ADDITIVE TABLE
+// =========================================================
+
+function ensureWasteBinRequestsTable() {
+
+    const sql = `
+        CREATE TABLE IF NOT EXISTS waste_bin_requests (
+
+            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+            request_code VARCHAR(40)
+                UNIQUE NOT NULL,
+
+            user_id INT NULL,
+
+            citizen_name VARCHAR(150) NULL,
+
+            reason VARCHAR(255) NOT NULL,
+
+            waste_type VARCHAR(100) NOT NULL,
+
+            location VARCHAR(255) NOT NULL,
+
+            latitude DECIMAL(10,7) NOT NULL,
+
+            longitude DECIMAL(10,7) NOT NULL,
+
+            description TEXT NULL,
+
+            status VARCHAR(60)
+                NOT NULL DEFAULT 'Submitted',
+
+            created_at TIMESTAMP
+                NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+            updated_at TIMESTAMP
+                NOT NULL DEFAULT CURRENT_TIMESTAMP
+                ON UPDATE CURRENT_TIMESTAMP,
+
+            INDEX idx_waste_bin_requests_user_id
+                (user_id),
+
+            INDEX idx_waste_bin_requests_status
+                (status),
+
+            INDEX idx_waste_bin_requests_location
+                (location)
+
+        )
+    `;
+
+
+    db.query(
+        sql,
+        (err) => {
+
+            if (err) {
+
+                console.error(
+                    "❌ Failed to ensure waste_bin_requests table:",
+                    err.message
+                );
+
+            }
+
+            else {
+
+                console.log(
+                    "✅ waste_bin_requests table ready"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+ensureWasteBinRequestsTable();
+
+
+// =========================================================
+// CREATE WASTE BIN REQUEST
+// =========================================================
+
+app.post(
+    "/api/waste/bin-requests",
+    (req, res) => {
+
+        const {
+            userId,
+            citizenName,
+            reason,
+            wasteType,
+            location,
+            latitude,
+            longitude,
+            description
+        } = req.body;
+
+
+        if (
+            !reason ||
+            !wasteType ||
+            !location ||
+            latitude === undefined ||
+            longitude === undefined
+        ) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Reason, waste type, location and GPS coordinates are required."
+
+            });
+
+        }
+
+
+        const lat =
+            Number(latitude);
+
+        const lng =
+            Number(longitude);
+
+
+        if (
+            Number.isNaN(lat) ||
+            Number.isNaN(lng) ||
+            lat < -90 ||
+            lat > 90 ||
+            lng < -180 ||
+            lng > 180
+        ) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Invalid latitude or longitude."
+
+            });
+
+        }
+
+
+        const requestCode =
+            "BIN-" +
+            Date.now().toString(36).toUpperCase() +
+            "-" +
+            Math.floor(
+                Math.random() * 10000
+            );
+
+
+        const sql = `
+
+            INSERT INTO waste_bin_requests
+            (
+                request_code,
+                user_id,
+                citizen_name,
+                reason,
+                waste_type,
+                location,
+                latitude,
+                longitude,
+                description,
+                status
+            )
+
+            VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+        `;
+
+
+        db.query(
+
+            sql,
+
+            [
+                requestCode,
+                userId || null,
+                citizenName || "Citizen",
+                reason,
+                wasteType,
+                location,
+                lat,
+                lng,
+                description || null,
+                "Submitted"
+            ],
+
+            (err, result) => {
+
+                if (err) {
+
+                    console.error(
+                        "Waste bin request insert error:",
+                        err
+                    );
+
+
+                    return res.status(500).json({
+
+                        success: false,
+
+                        message:
+                            "Database error while submitting dustbin request."
+
+                    });
+
+                }
+
+
+                res.status(201).json({
+
+                    success: true,
+
+                    message:
+                        "Dustbin request submitted successfully.",
+
+                    request: {
+
+                        id:
+                            result.insertId,
+
+                        requestCode,
+
+                        userId:
+                            userId || null,
+
+                        citizenName:
+                            citizenName || "Citizen",
+
+                        reason,
+
+                        wasteType,
+
+                        location,
+
+                        latitude:
+                            lat,
+
+                        longitude:
+                            lng,
+
+                        description:
+                            description || null,
+
+                        status:
+                            "Submitted"
+
+                    }
+
+                });
+
+            }
+
+        );
+
+    }
+);
+
+
+// =========================================================
+// GET WASTE BIN REQUESTS
+// =========================================================
+
+app.get(
+    "/api/waste/bin-requests",
+    (req, res) => {
+
+        const {
+            userId
+        } = req.query;
+
+
+        let sql = `
+
+            SELECT
+                id,
+                request_code,
+                user_id,
+                citizen_name,
+                reason,
+                waste_type,
+                location,
+                latitude,
+                longitude,
+                description,
+                status,
+                created_at,
+                updated_at
+
+            FROM waste_bin_requests
+
+        `;
+
+
+        const params = [];
+
+
+        if (userId) {
+
+            sql += `
+                WHERE user_id = ?
+            `;
+
+            params.push(
+                userId
+            );
+
+        }
+
+
+        sql += `
+            ORDER BY created_at DESC
+        `;
+
+
+        db.query(
+            sql,
+            params,
+            (err, rows) => {
+
+                if (err) {
+
+                    console.error(
+                        "Waste bin request fetch error:",
+                        err
+                    );
+
+
+                    return res.status(500).json({
+
+                        success: false,
+
+                        message:
+                            "Database error."
+
+                    });
+
+                }
+
+
+                res.json({
+
+                    success: true,
+
+                    requests:
+                        rows
+
+                });
+
+            }
+        );
+
+    }
+);
+
+
+// =========================================================
+// UPDATE WASTE BIN REQUEST STATUS
+// =========================================================
+
+app.put(
+    "/api/waste/bin-requests/:requestCode/status",
+    (req, res) => {
+
+        const {
+            requestCode
+        } = req.params;
+
+
+        const {
+            status
+        } = req.body;
+
+
+        const allowedStatuses = [
+
+            "Submitted",
+
+            "Under Review",
+
+            "Approved",
+
+            "Installation Scheduled",
+
+            "Installed",
+
+            "Rejected"
+
+        ];
+
+
+        if (
+            !allowedStatuses.includes(
+                status
+            )
+        ) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Invalid waste bin request status."
+
+            });
+
+        }
+
+
+        const sql = `
+
+            UPDATE waste_bin_requests
+
+            SET status = ?
+
+            WHERE request_code = ?
+
+        `;
+
+
+        db.query(
+
+            sql,
+
+            [
+                status,
+                requestCode
+            ],
+
+            (err, result) => {
+
+                if (err) {
+
+                    console.error(
+                        "Waste bin request status update error:",
+                        err
+                    );
+
+
+                    return res.status(500).json({
+
+                        success: false,
+
+                        message:
+                            "Database error."
+
+                    });
+
+                }
+
+
+                if (
+                    result.affectedRows === 0
+                ) {
+
+                    return res.status(404).json({
+
+                        success: false,
+
+                        message:
+                            "Dustbin request not found."
+
+                    });
+
+                }
+
+
+                res.json({
+
+                    success: true,
+
+                    message:
+                        "Dustbin request status updated successfully.",
+
+                    requestCode,
+
+                    status
+
+                });
+
+            }
+
+        );
+
+    }
+);
+
 // =========================================================
 // 404 API ROUTE
 // =========================================================

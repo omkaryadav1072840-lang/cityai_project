@@ -483,7 +483,7 @@ function renderHospitals(hospitals) {
 
                     <div class="card-actions">
                         <button class="select-btn" onclick="selectHospitalById('${escapeJS(h.hospital_id)}')">Select Hospital</button>
-                        <button class="details-btn" onclick="openHospitalDetailsById('${escapeJS(h.hospital_id)}')">View Details</button>
+                        <button class="details-btn" onclick="viewHospital('${escapeJS(h.hospital_id)}')">View Details</button>
                     </div>
                 </div>
             `}).join("")}
@@ -726,6 +726,7 @@ async function viewHospital(hospitalIdOrName) {
 
     const hospital = hospitalData.find(h =>
         String(h.id) === String(hospitalIdOrName) ||
+        String(h.hospital_id) === String(hospitalIdOrName) || 
         String(h.hospital_name || "").toLowerCase() === String(hospitalIdOrName).toLowerCase()
     );
 
@@ -1286,86 +1287,72 @@ async function loadDoctorSlots(doctorId) {
 
     const doctor = findDoctorById(doctorId);
     const businessId = doctorBusinessId(doctor) ?? doctorId;
+    const hospitalId = doctor.hospital_id; // Naye API ke liye Hospital ID zaroori hai
 
-    showLoading(result, "Loading appointment slots...");
+    if (!hospitalId) {
+        result.innerHTML = `<div class="empty-state">⚠️ Doctor is not assigned to any hospital yet.</div>`;
+        return;
+    }
+
+    showLoading(result, "Checking dynamic schedule...");
 
     try {
-        const data = await apiRequest(`/api/doctors/${encodeURIComponent(businessId)}/slots`);
-        const slots = (data.slots || []).filter(slot =>
-            String(slot.slot_date || "").substring(0, 10) === date
-        );
-        renderDoctorSlots(slots, doctorId);
+        // Naya Dynamic API call
+        const res = await fetch(`${API_BASE_URL}/api/appointments/availability?hospitalId=${encodeURIComponent(hospitalId)}&doctorId=${encodeURIComponent(businessId)}&date=${encodeURIComponent(date)}`);
+        const data = await res.json();
+
+        if (!data.success) {
+            result.innerHTML = `<div class="empty-state">📅<h3>No Slots Found</h3><p>${escapeHTML(data.message)}</p></div>`;
+            return;
+        }
+
+        renderDoctorSlots(data.slots, businessId, hospitalId);
     } catch (error) {
         console.error("Doctor slots error:", error);
-        showError(result, error.message);
+        showError(result, "Unable to load slots.");
     }
 }
-
-function renderDoctorSlots(slots, doctorId) {
+function renderDoctorSlots(slots, doctorId, hospitalId) {
     const result = document.getElementById("doctorSlotsResult");
     if (!result) return;
 
-    if (!slots.length) {
+    if (!slots || !slots.length) {
         result.innerHTML = `<div class="empty-state">📅<h3>No Slots Found</h3><p>No appointment slots for this date.</p></div>`;
         return;
     }
 
     result.innerHTML = `
-        <div class="slot-legend"><span>🟢 Available</span><span>🔴 Full</span></div>
+        <div class="slot-legend"><span>🟢 Available</span><span>🔴 Booked/Unavailable</span></div>
         <div class="doctor-time-slots">
             ${slots.map(slot => {
-                const max = Number(slot.max_patients || 1);
-                const booked = Number(slot.booked_patients || 0);
-                const remaining = Math.max(0, max - booked);
-                const status = String(slot.status || "").toLowerCase();
-                const isFull = remaining <= 0 || status === "full" || status === "booked";
-                const start = formatSlotTime(slot.start_time);
-                const end = formatSlotTime(slot.end_time);
-
-                if (isFull) {
+                if (slot.status !== "available") {
                     return `
                         <button type="button" class="doctor-time-slot booked" disabled>
-                            <strong>🔴 ${escapeHTML(start)} - ${escapeHTML(end)}</strong>
-                            <small>FULL</small>
+                            <strong>🔴 ${escapeHTML(slot.displayTime)}</strong>
+                            <small>${slot.status.toUpperCase()}</small>
                         </button>
                     `;
                 }
 
                 return `
                     <button type="button" class="doctor-time-slot available"
-                        onclick="selectDoctorSlot('${escapeJS(doctorId)}', '${escapeJS(slot.id)}', '${escapeJS(start)}')">
-                        <strong>🟢 ${escapeHTML(start)} - ${escapeHTML(end)}</strong>
-                        <small>${remaining} seat(s) left</small>
+                        onclick="selectDoctorSlot('${escapeJS(doctorId)}', '${escapeJS(hospitalId)}', '${escapeJS(slot.time)}')">
+                        <strong>🟢 ${escapeHTML(slot.displayTime)}</strong>
+                        <small>Available</small>
                     </button>
                 `;
             }).join("")}
         </div>
     `;
 }
-
-async function selectDoctorSlot(doctorId, slotId, time) {
-    const doctor = findDoctorById(doctorId);
-    if (!doctor) { showNotification("Doctor not found.", "error"); return; }
-
-    const name = doctor.name || doctor.doctor_name || "Doctor";
+async function selectDoctorSlot(doctorId, hospitalId, time24) {
     const date = document.getElementById("doctorSlotDate")?.value;
-
-    openModal("doctorModal");
-    loadDoctorsForBooking();
+    
+    closeModal("doctorFinderModal"); 
+    
+    await openDoctorBookingFlow(doctorId, hospitalId);
 
     setTimeout(async () => {
-        const select = document.getElementById("doctorSelect");
-        if (select) {
-            const exists = Array.from(select.options).some(opt => opt.value === name);
-            if (!exists) {
-                const option = document.createElement("option");
-                option.value = name;
-                option.textContent = `${name} — ${doctor.specialization || "Specialist"}`;
-                select.appendChild(option);
-            }
-            select.value = name;
-        }
-
         const appointmentDate = document.getElementById("appointmentDate");
         const patientId = document.getElementById("appointmentPatientId");
 
@@ -1375,19 +1362,17 @@ async function selectDoctorSlot(doctorId, slotId, time) {
             if (savedId) patientId.value = savedId;
         }
 
-        // Load the doctor's real slots for this date, then pre-select the
-        // exact slot the user already picked in the Doctor Finder.
-        await loadTimeSlotsForBooking();
-        const timeSelect = document.getElementById("appointmentTime");
-        if (timeSelect) {
-            const matched = Array.from(timeSelect.options).some(opt => opt.value === String(slotId));
-            if (matched) {
-                timeSelect.value = String(slotId);
-            } else {
-                showNotification(`That ${time} slot is no longer available — please pick another.`, "warning");
-            }
-        }
-    }, 200);
+        await fetchDynamicSlots();
+
+        setTimeout(() => {
+            const buttons = document.querySelectorAll(".time-slot-btn");
+            buttons.forEach(b => {
+                if (b.getAttribute("onclick")?.includes(`'${time24}'`) && !b.hasAttribute("disabled")) {
+                    selectTimeSlot(b, time24);
+                }
+            });
+        }, 300);
+    }, 300);
 }
 
 /* =========================================================
@@ -2268,7 +2253,7 @@ async function renderRecordTab(tab) {
                     <tbody>
                         ${rows.map(a => `<tr>
                             <td>${escapeHTML(a.doctor || a.doctor_id || "—")}</td>
-                            <td>${escapeHTML(a.appointment_date || "—")}</td>
+                            <td>${escapeHTML(String(a.appointment_date || "").substring(0, 10))}</td>
                             <td>${escapeHTML(a.appointment_time || "—")}</td>
                             <td>${escapeHTML(a.status || "—")}</td>
                         </tr>`).join("")}

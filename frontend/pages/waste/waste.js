@@ -1,2040 +1,1821 @@
 /* =====================================================
-   SMARTCITY AI
-   WASTE MANAGEMENT V2
-   Fully Interactive Frontend
+   CITIZEN WASTE SERVICES - ADDITIVE MODULE
 ===================================================== */
 
+(function () {
 
-/* =====================================================
-   DEFAULT DATA
-===================================================== */
+    const BIN_REQUEST_API =
+        "http://localhost:5000/api/waste/bin-requests";
 
-const defaultBins = [
+    let citizenBinRequests =
+        JSON.parse(
+            localStorage.getItem(
+                "wasteBinRequests"
+            ) || "[]"
+        );
 
-    {
-        id: 1,
-        name: "Bin - Golghar",
-        location: "Golghar",
-        lat: 26.7606,
-        lng: 83.3732,
-        fill: 15
-    },
 
-    {
-        id: 2,
-        name: "Bin - City Market",
-        location: "City Market",
-        lat: 26.7655,
-        lng: 83.3680,
-        fill: 55
-    },
+    /* =====================================================
+       GET CURRENT LOGGED-IN USER
+       Supports index.html login storage
+    ===================================================== */
 
-    {
-        id: 3,
-        name: "Bin - Railway Colony",
-        location: "Railway Colony",
-        lat: 26.7545,
-        lng: 83.3810,
-        fill: 92
-    },
+    function currentUser() {
 
-    {
-        id: 4,
-        name: "Bin - University Road",
-        location: "University Road",
-        lat: 26.7720,
-        lng: 83.3805,
-        fill: 65
-    },
+        try {
 
-    {
-        id: 5,
-        name: "Bin - Medical College",
-        location: "Medical College",
-        lat: 26.7480,
-        lng: 83.3650,
-        fill: 100
-    }
+            const saved =
+                localStorage.getItem(
+                    "smartCityCurrentUser"
+                ) ||
+                localStorage.getItem(
+                    "currentUser"
+                ) ||
+                localStorage.getItem(
+                    "user"
+                );
 
-];
+            if (!saved) {
+                return null;
+            }
 
+            return JSON.parse(saved);
 
-const defaultReports = [
+        } catch (error) {
 
-    {
-        id: 1,
-        type: "Garbage Dump",
-        location: "Golghar",
-        description: "Large garbage pile near road",
-        status: "Completed"
-    },
-
-    {
-        id: 2,
-        type: "Overflowing Bin",
-        location: "Railway Colony",
-        description: "Bin is overflowing",
-        status: "Cleaning"
-    }
-
-];
-
-
-const defaultPickups = [
-
-    {
-        id: 1,
-        type: "General Waste",
-        date: "Tomorrow",
-        time: "8:00 AM - 10:00 AM",
-        location: "Golghar",
-        status: "Scheduled"
-    }
-
-];
-
-
-/* =====================================================
-   LOAD DATA FROM LOCAL STORAGE
-===================================================== */
-
-let bins =
-    JSON.parse(localStorage.getItem("smartBins"))
-    || defaultBins;
-
-let reports =
-    JSON.parse(localStorage.getItem("smartReports"))
-    || defaultReports;
-
-let pickups =
-    JSON.parse(localStorage.getItem("smartPickups"))
-    || defaultPickups;
-
-let score =
-    Number(localStorage.getItem("cleanScore"))
-    || 780;
-
-
-/* =====================================================
-   SAVE DATA
-===================================================== */
-
-function saveData() {
-
-    localStorage.setItem(
-        "smartBins",
-        JSON.stringify(bins)
-    );
-
-    localStorage.setItem(
-        "smartReports",
-        JSON.stringify(reports)
-    );
-
-    localStorage.setItem(
-        "smartPickups",
-        JSON.stringify(pickups)
-    );
-
-    localStorage.setItem(
-        "cleanScore",
-        score
-    );
-
-}
-
-
-/* =====================================================
-   MAP
-===================================================== */
-
-const map =
-    L.map("wasteMap")
-    .setView(
-        [26.7606, 83.3732],
-        13
-    );
-
-
-L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap"
-    }
-).addTo(map);
-
-
-let binMarkers = [];
-
-
-/* =====================================================
-   BIN STATUS
-===================================================== */
-
-function getStatus(fill) {
-
-    fill = Number(fill);
-
-    if (fill >= 80) {
-
-        return "Full";
-
-    }
-
-    if (fill >= 40) {
-
-        return "Half Full";
-
-    }
-
-    return "Empty";
-
-}
-
-
-function getStatusClass(status) {
-
-    if (status === "Full") {
-
-        return "status-full";
-
-    }
-
-    if (status === "Half Full") {
-
-        return "status-half";
-
-    }
-
-    return "status-empty";
-
-}
-
-
-function getStatusColor(status) {
-
-    if (status === "Full") {
-
-        return "#ef4444";
-
-    }
-
-    if (status === "Half Full") {
-
-        return "#eab308";
-
-    }
-
-    return "#22c55e";
-
-}
-
-
-/* =====================================================
-   MAP BIN ICON
-===================================================== */
-
-function createBinIcon(color) {
-
-    return L.divIcon({
-
-        className: "",
-
-        html: `
-            <div style="
-                width:30px;
-                height:30px;
-                background:${color};
-                border:4px solid white;
-                border-radius:50%;
-                box-shadow:0 2px 10px #0005;
-            "></div>
-        `,
-
-        iconSize: [30, 30],
-
-        iconAnchor: [15, 15]
-
-    });
-
-}
-
-
-/* =====================================================
-   RENDER MAP
-===================================================== */
-
-function renderMap(focusBinId = null) {
-
-    // Remove old markers
-    binMarkers.forEach(marker => {
-        map.removeLayer(marker);
-    });
-
-    binMarkers = [];
-
-    let focusBin = null;
-
-    bins.forEach(bin => {
-
-        const status = getStatus(bin.fill);
-        const color = getStatusColor(status);
-
-        // Validate coordinates
-        const lat = Number(bin.lat);
-        const lng = Number(bin.lng);
-
-        if (
-            Number.isNaN(lat) ||
-            Number.isNaN(lng) ||
-            lat < -90 ||
-            lat > 90 ||
-            lng < -180 ||
-            lng > 180
-        ) {
-            console.warn(
-                "Invalid coordinates for bin:",
-                bin
+            console.error(
+                "Current user error:",
+                error
             );
 
-            return;
+            return null;
+        }
+    }
+
+
+    /* =====================================================
+       GET USER ID
+    ===================================================== */
+
+    function userId() {
+
+        const user =
+            currentUser();
+
+        if (!user) {
+            return null;
         }
 
-        const marker = L.marker(
-            [lat, lng],
-            {
-                icon: createBinIcon(color)
-            }
-        ).addTo(map);
+        return (
+            user.userId ??
+            user.id ??
+            user.user_id ??
+            null
+        );
+    }
 
-        marker.bindPopup(`
-            <div style="min-width:220px">
 
-                <h3>🗑️ ${escapeHTML(bin.name)}</h3>
+    /* =====================================================
+       CHECK WASTE STAFF
+    ===================================================== */
 
-                <p style="margin-top:6px">
-                    📍 ${escapeHTML(bin.location)}
-                </p>
+    function isStaffUser() {
 
-                <p>
-                    Fill:
-                    <strong>${bin.fill}%</strong>
-                </p>
+        const user =
+            currentUser();
 
-                <p>
-                    Status:
-                    <strong style="color:${color}">
-                        ${status}
-                    </strong>
-                </p>
-
-                <div style="margin-top:12px">
-
-                    <button
-                        onclick="editBin(${bin.id})"
-                        style="
-                            padding:8px 12px;
-                            border:0;
-                            border-radius:7px;
-                            background:#15803d;
-                            color:white;
-                            cursor:pointer;
-                            margin-right:5px;
-                        ">
-                        ✏️ Edit
-                    </button>
-
-                    <button
-                        onclick="deleteBin(${bin.id})"
-                        style="
-                            padding:8px 12px;
-                            border:0;
-                            border-radius:7px;
-                            background:#fee2e2;
-                            color:#b91c1c;
-                            cursor:pointer;
-                        ">
-                        🗑️ Delete
-                    </button>
-
-                </div>
-
-            </div>
-        `);
-
-        binMarkers.push(marker);
-
-        // Check newly added/edited bin
-        if (focusBinId !== null &&
-            Number(bin.id) === Number(focusBinId)) {
-
-            focusBin = bin;
+        if (!user) {
+            return false;
         }
 
-    });
+
+        const type =
+            String(
+                user.type ??
+                user.role ??
+                user.userType ??
+                ""
+            )
+                .trim()
+                .toLowerCase();
 
 
-    // If a new/edit bin exists, move map to it
-    if (focusBin) {
+        const department =
+            String(
+                user.department ??
+                ""
+            )
+                .trim()
+                .toLowerCase();
 
-        const lat = Number(focusBin.lat);
-        const lng = Number(focusBin.lng);
 
-        setTimeout(() => {
+        const departmentName =
+            String(
+                user.departmentName ??
+                ""
+            )
+                .trim()
+                .toLowerCase();
 
-            map.invalidateSize();
 
-            map.flyTo(
-                [lat, lng],
-                17,
-                {
-                    animate: true,
-                    duration: 1
+        const staffType =
+            type === "staff" ||
+            type === "admin" ||
+            type === "superadmin" ||
+            type === "waste_staff";
+
+
+        const wasteDepartment =
+            department === "waste" ||
+            department === "waste management" ||
+            departmentName === "waste" ||
+            departmentName === "waste management" ||
+            department.includes("waste") ||
+            departmentName.includes("waste");
+
+
+        return (
+            user.isStaff === true ||
+            (
+                staffType &&
+                (
+                    wasteDepartment ||
+                    type === "admin" ||
+                    type === "superadmin" ||
+                    type === "waste_staff"
+                )
+            )
+        );
+    }
+
+
+    /* =====================================================
+       ROLE UI
+    ===================================================== */
+
+    function setRoleUI() {
+
+        const staff =
+            isStaffUser();
+
+
+        document.body.classList.toggle(
+            "citizen-mode",
+            !staff
+        );
+
+
+        document.body.classList.toggle(
+            "staff-mode",
+            staff
+        );
+
+
+        document
+            .querySelectorAll(
+                ".staff-only"
+            )
+            .forEach(
+                element => {
+
+                    element.style.display =
+                        staff
+                            ? ""
+                            : "none";
+
                 }
             );
 
-            // Find marker and open popup
-            const markerIndex =
-                bins.findIndex(
-                    b => Number(b.id) === Number(focusBin.id)
+
+        const citizenDashboard =
+            document.getElementById(
+                "citizenDashboard"
+            );
+
+
+        if (citizenDashboard) {
+
+            citizenDashboard.style.display =
+                staff
+                    ? "none"
+                    : "";
+
+        }
+
+
+        const roleTitle =
+            document.getElementById(
+                "roleTitle"
+            );
+
+
+        const roleSubtitle =
+            document.getElementById(
+                "roleSubtitle"
+            );
+
+
+        const rolePill =
+            document.getElementById(
+                "rolePill"
+            );
+
+
+        const user =
+            currentUser();
+
+
+        const name =
+            user?.name ||
+            user?.fullName ||
+            "Citizen";
+
+
+        const profileName =
+            document.getElementById(
+                "profileName"
+            );
+
+
+        if (profileName) {
+
+            profileName.textContent =
+                name;
+
+        }
+
+
+        if (roleTitle) {
+
+            roleTitle.textContent =
+                staff
+                    ? "Waste Management Staff Dashboard"
+                    : `Welcome, ${name}`;
+
+        }
+
+
+        if (roleSubtitle) {
+
+            roleSubtitle.textContent =
+                staff
+                    ? "Monitor bins, complaints, pickups and citizen requests."
+                    : "Access citizen waste services and track your requests.";
+
+        }
+
+
+        if (rolePill) {
+
+            rolePill.textContent =
+                staff
+                    ? "STAFF"
+                    : "CITIZEN";
+
+
+            rolePill.className =
+                staff
+                    ? "role-pill staff-pill"
+                    : "role-pill citizen-pill";
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CITIZEN DUSTBIN REQUEST MODAL
+    ===================================================== */
+
+    window.openCitizenBinRequestModal =
+        function () {
+
+            if (isStaffUser()) {
+
+                showToast(
+                    "Staff should manage citizen requests from the Staff Dashboard."
                 );
 
-            if (markerIndex !== -1 &&
-                binMarkers[markerIndex]) {
-
-                setTimeout(() => {
-
-                    binMarkers[markerIndex].openPopup();
-
-                }, 1000);
-
+                return;
             }
 
-        }, 200);
+
+            const modal =
+                document.getElementById(
+                    "citizenBinRequestModal"
+                );
+
+
+            if (!modal) {
+
+                alert(
+                    "Citizen dustbin request modal not found in waste.html"
+                );
+
+                return;
+            }
+
+
+            modal.classList.add(
+                "active"
+            );
+
+
+            modal.style.display =
+                "flex";
+        };
+
+
+    window.closeCitizenBinRequestModal =
+        function () {
+
+            const modal =
+                document.getElementById(
+                    "citizenBinRequestModal"
+                );
+
+
+            if (!modal) {
+                return;
+            }
+
+
+            modal.classList.remove(
+                "active"
+            );
+
+
+            modal.style.display =
+                "none";
+        };
+
+
+    /* =====================================================
+       GPS LOCATION
+    ===================================================== */
+
+    window.useCurrentLocationForBinRequest =
+        function () {
+
+            if (
+                !navigator.geolocation
+            ) {
+
+                showToast(
+                    "Geolocation is not supported by your browser."
+                );
+
+                return;
+            }
+
+
+            showToast(
+                "📍 Getting your location..."
+            );
+
+
+            navigator.geolocation.getCurrentPosition(
+
+                function (position) {
+
+                    const lat =
+                        document.getElementById(
+                            "binReqLat"
+                        );
+
+
+                    const lng =
+                        document.getElementById(
+                            "binReqLng"
+                        );
+
+
+                    if (lat) {
+
+                        lat.value =
+                            position.coords.latitude
+                                .toFixed(7);
+
+                    }
+
+
+                    if (lng) {
+
+                        lng.value =
+                            position.coords.longitude
+                                .toFixed(7);
+
+                    }
+
+
+                    showToast(
+                        "✅ Current location added."
+                    );
+
+                },
+
+
+                function (error) {
+
+                    console.error(
+                        "GPS error:",
+                        error
+                    );
+
+
+                    showToast(
+                        "❌ Unable to get location. Please allow GPS permission."
+                    );
+
+                },
+
+
+                {
+                    enableHighAccuracy:
+                        true,
+
+                    timeout:
+                        10000,
+
+                    maximumAge:
+                        0
+                }
+
+            );
+
+        };
+
+
+    /* =====================================================
+       LOCAL STORAGE SAVE
+    ===================================================== */
+
+    function saveLocal(
+        request
+    ) {
+
+        citizenBinRequests.unshift(
+            request
+        );
+
+
+        localStorage.setItem(
+            "wasteBinRequests",
+            JSON.stringify(
+                citizenBinRequests
+            )
+        );
 
     }
 
-}
 
-/* =====================================================
-   DASHBOARD
-===================================================== */
+    /* =====================================================
+       SUBMIT NEW DUSTBIN REQUEST
+    ===================================================== */
 
-function updateDashboard() {
+    window.submitCitizenBinRequest =
+        async function () {
 
-    const empty =
-        bins.filter(
-            bin => getStatus(bin.fill) === "Empty"
-        ).length;
+            if (isStaffUser()) {
 
+                showToast(
+                    "Staff cannot submit citizen dustbin requests."
+                );
 
-    const half =
-        bins.filter(
-            bin => getStatus(bin.fill) === "Half Full"
-        ).length;
-
-
-    const full =
-        bins.filter(
-            bin => getStatus(bin.fill) === "Full"
-        ).length;
-
-
-    document.getElementById("totalBins")
-        .textContent = bins.length;
-
-
-    document.getElementById("emptyBins")
-        .textContent = empty;
-
-
-    document.getElementById("halfBins")
-        .textContent = half;
-
-
-    document.getElementById("fullBins")
-        .textContent = full;
-
-
-    document.getElementById("notificationCount")
-        .textContent = full + reports.filter(
-            r => r.status !== "Completed"
-        ).length;
-
-}
-
-
-/* =====================================================
-   RENDER BIN LIST
-===================================================== */
-
-function renderBins() {
-
-    const list =
-        document.getElementById("binList");
-
-
-    const search =
-        document.getElementById("binSearch")
-        .value
-        .toLowerCase();
-
-
-    const filter =
-        document.getElementById("binFilter")
-        .value;
-
-
-    const filtered =
-        bins.filter(bin => {
-
-            const status =
-                getStatus(bin.fill);
-
-
-            const matchesSearch =
-                bin.name.toLowerCase()
-                    .includes(search)
-                ||
-                bin.location.toLowerCase()
-                    .includes(search);
-
-
-            let matchesFilter = true;
-
-
-            if (filter === "empty") {
-
-                matchesFilter =
-                    status === "Empty";
-
-            }
-
-            if (filter === "half") {
-
-                matchesFilter =
-                    status === "Half Full";
-
-            }
-
-            if (filter === "full") {
-
-                matchesFilter =
-                    status === "Full";
-
+                return;
             }
 
 
-            return matchesSearch &&
-                   matchesFilter;
-
-        });
-
-
-    list.innerHTML = "";
+            const reason =
+                document.getElementById(
+                    "binReqReason"
+                )?.value.trim();
 
 
-    if (filtered.length === 0) {
+            const wasteType =
+                document.getElementById(
+                    "binReqWasteType"
+                )?.value;
 
-        list.innerHTML = `
-            <div class="empty-state">
-                No bins found.
-            </div>
-        `;
 
-        return;
+            const location =
+                document.getElementById(
+                    "binReqLocation"
+                )?.value.trim();
+
+
+            const latitude =
+                parseFloat(
+                    document.getElementById(
+                        "binReqLat"
+                    )?.value
+                );
+
+
+            const longitude =
+                parseFloat(
+                    document.getElementById(
+                        "binReqLng"
+                    )?.value
+                );
+
+
+            const description =
+                document.getElementById(
+                    "binReqDescription"
+                )?.value.trim();
+
+
+            if (
+                !reason ||
+                !wasteType ||
+                !location ||
+                !Number.isFinite(latitude) ||
+                !Number.isFinite(longitude)
+            ) {
+
+                showToast(
+                    "⚠️ Please fill all required fields and valid coordinates."
+                );
+
+                return;
+            }
+
+
+            const user =
+                currentUser();
+
+
+            const request = {
+
+                requestCode:
+                    `DBR-${Date.now()}`,
+
+                userId:
+                    userId(),
+
+                citizenName:
+                    user?.name ||
+                    user?.fullName ||
+                    "Citizen",
+
+                reason:
+                    reason,
+
+                wasteType:
+                    wasteType,
+
+                location:
+                    location,
+
+                latitude:
+                    latitude,
+
+                longitude:
+                    longitude,
+
+                description:
+                    description,
+
+                status:
+                    "Submitted",
+
+                createdAt:
+                    new Date().toISOString()
+
+            };
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        BIN_REQUEST_API,
+                        {
+                            method:
+                                "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify(
+                                    request
+                                )
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    data.success === false
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Request failed."
+                    );
+
+                }
+
+
+                if (data.request) {
+
+                    request.id =
+                        data.request.id ||
+                        data.id ||
+                        request.requestCode;
+
+
+                    request.requestCode =
+                        data.request.requestCode ||
+                        data.request.request_code ||
+                        request.requestCode;
+
+
+                    request.status =
+                        data.request.status ||
+                        "Submitted";
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.warn(
+                    "Dustbin API unavailable:",
+                    error.message
+                );
+
+            }
+
+
+            saveLocal(
+                request
+            );
+
+
+            window.closeCitizenBinRequestModal();
+
+
+            [
+                "binReqReason",
+                "binReqLocation",
+                "binReqLat",
+                "binReqLng",
+                "binReqDescription"
+            ]
+                .forEach(
+                    id => {
+
+                        const element =
+                            document.getElementById(
+                                id
+                            );
+
+
+                        if (element) {
+                            element.value = "";
+                        }
+
+                    }
+                );
+
+
+            await loadCitizenBinRequests(
+                false
+            );
+
+
+            showToast(
+                "✅ Dustbin request submitted successfully."
+            );
+
+        };
+
+
+    /* =====================================================
+       STATUS CLASS
+    ===================================================== */
+
+    function statusClass(
+        status
+    ) {
+
+        return String(
+            status || ""
+        )
+            .toLowerCase()
+            .replace(
+                /[^a-z0-9]+/g,
+                "-"
+            );
 
     }
 
 
-    filtered.forEach(bin => {
+    /* =====================================================
+       REQUEST CARD
+    ===================================================== */
+
+    function requestCard(
+        request,
+        staff
+    ) {
 
         const status =
-            getStatus(bin.fill);
-
-        const statusClass =
-            getStatusClass(status);
-
-        const color =
-            getStatusColor(status);
+            request.status ||
+            "Submitted";
 
 
-        const item =
-            document.createElement("div");
-
-        item.className = "bin-item";
-
-
-        item.innerHTML = `
-
-            <div
-                class="bin-icon"
-                style="
-                    background:${color}22;
-                ">
-
-                🗑️
-
-            </div>
+        const code =
+            request.requestCode ||
+            request.request_code ||
+            "DBR";
 
 
-            <div class="bin-info">
-
-                <h3>
-                    ${escapeHTML(bin.name)}
-                </h3>
-
-                <p>
-                    📍 ${escapeHTML(bin.location)}
-                </p>
+        const citizen =
+            request.citizenName ||
+            request.citizen_name ||
+            "Citizen";
 
 
-                <span class="
-                    status
-                    ${statusClass}">
-
-                    ${status}
-
-                </span>
+        const wasteType =
+            request.wasteType ||
+            request.waste_type ||
+            "-";
 
 
-                <div class="fill-bar">
+        const latitude =
+            Number(
+                request.latitude
+            );
 
-                    <div
-                        class="fill-value"
-                        style="
-                            width:${bin.fill}%;
-                            background:${color};
-                        ">
+
+        const longitude =
+            Number(
+                request.longitude
+            );
+
+
+        const coordinates =
+            Number.isFinite(latitude) &&
+            Number.isFinite(longitude)
+                ? `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+                : "-";
+
+
+        const createdAt =
+            request.createdAt ||
+            request.created_at;
+
+
+        const dateText =
+            createdAt
+                ? new Date(
+                    createdAt
+                  ).toLocaleString(
+                    "en-IN"
+                  )
+                : "";
+
+
+        return `
+
+            <article class="request-card">
+
+                <div class="request-card-head">
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(code)}
+                        </strong>
+
+                        <span>
+                            ${escapeHTML(citizen)}
+                        </span>
+
+                    </div>
+
+
+                    <span class="
+                        request-status
+                        ${statusClass(status)}
+                    ">
+
+                        ${escapeHTML(status)}
+
+                    </span>
+
+                </div>
+
+
+                <div class="request-grid">
+
+                    <div>
+
+                        <small>
+                            Reason
+                        </small>
+
+                        <p>
+                            ${escapeHTML(
+                                request.reason ||
+                                "-"
+                            )}
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            Waste Type
+                        </small>
+
+                        <p>
+                            ${escapeHTML(
+                                wasteType
+                            )}
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            Location
+                        </small>
+
+                        <p>
+                            📍
+                            ${escapeHTML(
+                                request.location ||
+                                "-"
+                            )}
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <small>
+                            Coordinates
+                        </small>
+
+                        <p>
+                            ${escapeHTML(
+                                coordinates
+                            )}
+                        </p>
+
                     </div>
 
                 </div>
 
 
-                <small>
-                    ${bin.fill}% full
-                </small>
+                ${
+                    request.description
+                        ? `
+                            <p class="request-description">
+                                ${escapeHTML(
+                                    request.description
+                                )}
+                            </p>
+                        `
+                        : ""
+                }
 
-            </div>
+
+                <div class="request-card-foot">
+
+                    <small>
+                        ${escapeHTML(
+                            dateText
+                        )}
+                    </small>
 
 
-            <div class="bin-actions">
+                    ${
+                        staff
+                            ? `
+                                <div class="staff-request-buttons">
 
-                <button
-                    class="action-btn"
-                    title="Increase fill"
-                    onclick="changeFill(${bin.id}, 10)">
+                                    <button
+                                        class="small-btn"
+                                        onclick="
+                                            updateCitizenBinRequestStatus(
+                                                '${escapeHTML(code)}',
+                                                'Under Review'
+                                            )
+                                        ">
+                                        Review
+                                    </button>
 
-                    ➕
 
-                </button>
+                                    <button
+                                        class="small-btn"
+                                        onclick="
+                                            updateCitizenBinRequestStatus(
+                                                '${escapeHTML(code)}',
+                                                'Approved'
+                                            )
+                                        ">
+                                        Approve
+                                    </button>
 
-                <button
-                    class="action-btn"
-                    title="Decrease fill"
-                    onclick="changeFill(${bin.id}, -10)">
 
-                    ➖
+                                    <button
+                                        class="small-btn"
+                                        onclick="
+                                            updateCitizenBinRequestStatus(
+                                                '${escapeHTML(code)}',
+                                                'Installation Scheduled'
+                                            )
+                                        ">
+                                        Schedule
+                                    </button>
 
-                </button>
 
-                <button
-                    class="action-btn"
-                    title="Edit"
-                    onclick="editBin(${bin.id})">
+                                    <button
+                                        class="small-btn"
+                                        onclick="
+                                            updateCitizenBinRequestStatus(
+                                                '${escapeHTML(code)}',
+                                                'Installed'
+                                            )
+                                        ">
+                                        Installed
+                                    </button>
 
-                    ✏️
 
-                </button>
+                                    <button
+                                        class="small-btn danger"
+                                        onclick="
+                                            updateCitizenBinRequestStatus(
+                                                '${escapeHTML(code)}',
+                                                'Rejected'
+                                            )
+                                        ">
+                                        Reject
+                                    </button>
 
-                <button
-                    class="action-btn"
-                    title="Delete"
-                    onclick="deleteBin(${bin.id})">
+                                </div>
+                            `
+                            : ""
+                    }
 
-                    🗑️
+                </div>
 
-                </button>
-
-            </div>
+            </article>
 
         `;
 
-
-        list.appendChild(item);
-
-    });
-
-}
-
-
-/* =====================================================
-   CHANGE BIN FILL
-===================================================== */
-
-function changeFill(id, amount) {
-
-    const bin =
-        bins.find(
-            b => b.id === id
-        );
-
-
-    if (!bin) return;
-
-
-    bin.fill =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                Number(bin.fill) + amount
-            )
-        );
-
-
-    saveData();
-
-    refresh();
-
-
-    if (bin.fill >= 80) {
-
-        showToast(
-            `🔴 ${bin.name} is now ${bin.fill}% full`
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   OPEN BIN MODAL
-===================================================== */
-
-function openBinModal() {
-
-    document.getElementById("binModalTitle")
-        .textContent = "Add Smart Bin";
-
-
-    document.getElementById("binId")
-        .value = "";
-
-
-    document.getElementById("binName")
-        .value = "";
-
-
-    document.getElementById("binLocation")
-        .value = "";
-
-
-    document.getElementById("binLat")
-        .value = "26.7606";
-
-
-    document.getElementById("binLng")
-        .value = "83.3732";
-
-
-    document.getElementById("binFill")
-        .value = "0";
-
-
-    updateModalStatus();
-
-
-    document
-        .getElementById("binModal")
-        .classList.add("active");
-
-}
-
-
-/* =====================================================
-   EDIT BIN
-===================================================== */
-
-function editBin(id) {
-
-    const bin =
-        bins.find(
-            b => b.id === id
-        );
-
-
-    if (!bin) return;
-
-
-    document.getElementById("binModalTitle")
-        .textContent = "Edit Smart Bin";
-
-
-    document.getElementById("binId")
-        .value = bin.id;
-
-
-    document.getElementById("binName")
-        .value = bin.name;
-
-
-    document.getElementById("binLocation")
-        .value = bin.location;
-
-
-    document.getElementById("binLat")
-        .value = bin.lat;
-
-
-    document.getElementById("binLng")
-        .value = bin.lng;
-
-
-    document.getElementById("binFill")
-        .value = bin.fill;
-
-
-    updateModalStatus();
-
-
-    document
-        .getElementById("binModal")
-        .classList.add("active");
-
-}
-
-
-/* =====================================================
-   SAVE BIN
-===================================================== */
-
-function saveBin() {
-
-    const id =
-        document.getElementById("binId").value;
-
-
-    const name =
-        document.getElementById("binName")
-        .value.trim();
-
-
-    const location =
-        document.getElementById("binLocation")
-        .value.trim();
-
-
-    const lat =
-        Number(
-            document.getElementById("binLat").value
-        );
-
-
-    const lng =
-        Number(
-            document.getElementById("binLng").value
-        );
-
-
-    const fill =
-        Number(
-            document.getElementById("binFill").value
-        );
-
-
-    // Validation
-
-    if (!name) {
-
-        alert("Please enter bin name.");
-
-        return;
-
     }
 
 
-    if (!location) {
+    /* =====================================================
+       CITIZEN REQUEST LIST
+    ===================================================== */
 
-        alert("Please enter bin location.");
-
-        return;
-
-    }
-
-
-    if (
-        Number.isNaN(lat) ||
-        Number.isNaN(lng)
+    function renderCitizenBinRequests(
+        list
     ) {
 
-        alert(
-            "Please enter valid latitude and longitude."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        lat < -90 ||
-        lat > 90 ||
-        lng < -180 ||
-        lng > 180
-    ) {
-
-        alert(
-            "Invalid latitude or longitude."
-        );
-
-        return;
-
-    }
-
-
-    if (
-        fill < 0 ||
-        fill > 100
-    ) {
-
-        alert(
-            "Fill percentage must be between 0 and 100."
-        );
-
-        return;
-
-    }
-
-
-    let savedBinId;
-
-
-    // ================= EDIT =================
-
-    if (id) {
-
-        const bin =
-            bins.find(
-                b => Number(b.id) === Number(id)
+        const box =
+            document.getElementById(
+                "citizenBinRequestList"
             );
 
 
-        if (!bin) {
-
-            alert("Bin not found.");
-
+        if (!box) {
             return;
+        }
+
+
+        if (!list.length) {
+
+            box.innerHTML = `
+
+                <div class="empty-state">
+
+                    No dustbin requests yet.
+
+                    <br>
+
+                    Request a new smart dustbin
+                    for your area.
+
+                </div>
+
+            `;
+
+        }
+
+        else {
+
+            box.innerHTML =
+                list
+                    .map(
+                        request =>
+                            requestCard(
+                                request,
+                                false
+                            )
+                    )
+                    .join("");
 
         }
 
 
-        bin.name = name;
-        bin.location = location;
-        bin.lat = lat;
-        bin.lng = lng;
-        bin.fill = fill;
+        const count =
+            document.getElementById(
+                "citizenBinRequestCount"
+            );
 
 
-        savedBinId = bin.id;
+        if (count) {
 
+            count.textContent =
+                list.length;
 
-        showToast(
-            "✅ Bin updated successfully"
-        );
+        }
 
     }
 
 
-    // ================= ADD =================
+    /* =====================================================
+       STAFF REQUEST LIST
+    ===================================================== */
 
-    else {
+    function renderStaffBinRequests(
+        list
+    ) {
 
-        const newBin = {
+        const box =
+            document.getElementById(
+                "staffBinRequestList"
+            );
 
-            id: Date.now(),
 
-            name: name,
+        if (!box) {
+            return;
+        }
 
-            location: location,
 
-            lat: lat,
+        if (!list.length) {
 
-            lng: lng,
+            box.innerHTML = `
 
-            fill: fill
+                <div class="empty-state">
+
+                    No citizen dustbin requests found.
+
+                </div>
+
+            `;
+
+        }
+
+        else {
+
+            box.innerHTML =
+                list
+                    .map(
+                        request =>
+                            requestCard(
+                                request,
+                                true
+                            )
+                    )
+                    .join("");
+
+        }
+
+    }
+
+
+    /* =====================================================
+       LOAD REQUESTS
+    ===================================================== */
+
+    window.loadCitizenBinRequests =
+        async function (
+            staff = isStaffUser()
+        ) {
+
+            let list = [];
+
+
+            try {
+
+                const url =
+                    staff
+                        ? BIN_REQUEST_API
+                        : `${BIN_REQUEST_API}?userId=${encodeURIComponent(
+                            userId() || ""
+                        )}`;
+
+
+                const response =
+                    await fetch(
+                        url
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "API request failed."
+                    );
+
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                list =
+                    Array.isArray(
+                        data.requests
+                    )
+                        ? data.requests
+                        : [];
+
+
+                citizenBinRequests =
+                    list;
+
+
+                localStorage.setItem(
+                    "wasteBinRequests",
+                    JSON.stringify(
+                        list
+                    )
+                );
+
+            }
+
+            catch (error) {
+
+                console.warn(
+                    "Using local dustbin requests:",
+                    error.message
+                );
+
+
+                list =
+                    [
+                        ...citizenBinRequests
+                    ];
+
+
+                if (
+                    !staff &&
+                    userId() !== null
+                ) {
+
+                    list =
+                        list.filter(
+                            request =>
+                                String(
+                                    request.userId ??
+                                    request.user_id ??
+                                    ""
+                                ) ===
+                                String(
+                                    userId()
+                                )
+                        );
+
+                }
+
+            }
+
+
+            if (staff) {
+
+                renderStaffBinRequests(
+                    list
+                );
+
+            }
+
+            else {
+
+                renderCitizenBinRequests(
+                    list
+                );
+
+            }
 
         };
 
 
-        bins.push(newBin);
+    /* =====================================================
+       UPDATE STATUS
+    ===================================================== */
 
+    window.updateCitizenBinRequestStatus =
+        async function (
+            code,
+            newStatus
+        ) {
 
-        savedBinId = newBin.id;
+            if (!isStaffUser()) {
 
+                showToast(
+                    "❌ Only Waste Staff can change request status."
+                );
 
-        showToast(
-            "✅ New bin added to map"
-        );
+                return;
+            }
 
-    }
 
+            if (!code || !newStatus) {
 
-    // Save data
+                return;
+            }
 
-    saveData();
 
+            try {
 
-    // Close modal
+                const response =
+                    await fetch(
+                        `${BIN_REQUEST_API}/${encodeURIComponent(
+                            code
+                        )}/status`,
+                        {
+                            method:
+                                "PUT",
 
-    closeModal("binModal");
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
 
+                            body:
+                                JSON.stringify({
+                                    status:
+                                        newStatus
+                                })
+                        }
+                    );
 
-    // Refresh everything
 
-    renderBins();
+                if (!response.ok) {
 
-    updateDashboard();
-
-    updateScore();
-
-
-    // IMPORTANT:
-    // Render map and focus newly added bin
-
-    renderMap(savedBinId);
-
-}
-
-/* =====================================================
-   DELETE BIN
-===================================================== */
-
-function deleteBin(id) {
-
-    const bin =
-        bins.find(
-            b => b.id === id
-        );
-
-
-    if (!bin) return;
-
-
-    const confirmDelete =
-        confirm(
-            `Delete "${bin.name}"?`
-        );
-
-
-    if (!confirmDelete) return;
-
-
-    bins =
-        bins.filter(
-            b => b.id !== id
-        );
-
-
-    saveData();
-
-    refresh();
-
-
-    showToast(
-        "🗑️ Bin deleted"
-    );
-
-}
-
-
-/* =====================================================
-   MODAL STATUS
-===================================================== */
-
-function updateModalStatus() {
-
-    const fill =
-        Number(
-            document.getElementById("binFill")
-                .value
-        );
-
-
-    const status =
-        getStatus(fill);
-
-
-    const element =
-        document.getElementById(
-            "modalBinStatus"
-        );
-
-
-    element.textContent = status;
-
-    element.style.color =
-        getStatusColor(status);
-
-}
-
-
-/* =====================================================
-   REPORT FUNCTIONS
-===================================================== */
-
-function openReportModal(id = null) {
-
-    document.getElementById("reportId")
-        .value = "";
-
-
-    document.getElementById("reportLocation")
-        .value = "";
-
-
-    document.getElementById("reportDescription")
-        .value = "";
-
-
-    document.getElementById("reportModalTitle")
-        .textContent = "Report Waste";
-
-
-    if (id) {
-
-        const report =
-            reports.find(
-                r => r.id === id
-            );
-
-
-        if (!report) return;
-
-
-        document.getElementById("reportId")
-            .value = report.id;
-
-
-        document.getElementById("reportType")
-            .value = report.type;
-
-
-        document.getElementById("reportLocation")
-            .value = report.location;
-
-
-        document.getElementById("reportDescription")
-            .value = report.description;
-
-
-        document.getElementById("reportModalTitle")
-            .textContent = "Edit Waste Report";
-
-    }
-
-
-    document
-        .getElementById("reportModal")
-        .classList.add("active");
-
-}
-
-
-function saveReport() {
-
-    const id =
-        document.getElementById("reportId")
-            .value;
-
-
-    const type =
-        document.getElementById("reportType")
-            .value;
-
-
-    const location =
-        document.getElementById("reportLocation")
-            .value.trim();
-
-
-    const description =
-        document.getElementById("reportDescription")
-            .value.trim();
-
-
-    if (!location) {
-
-        alert(
-            "Please enter location."
-        );
-
-        return;
-
-    }
-
-
-    if (id) {
-
-        const report =
-            reports.find(
-                r => r.id === Number(id)
-            );
-
-
-        report.type = type;
-
-        report.location = location;
-
-        report.description =
-            description;
-
-
-        showToast(
-            "✅ Report updated"
-        );
-
-    } else {
-
-        reports.unshift({
-
-            id: Date.now(),
-
-            type,
-
-            location,
-
-            description,
-
-            status: "Submitted"
-
-        });
-
-
-        score += 10;
-
-
-        showToast(
-            "📍 Report submitted +10 points"
-        );
-
-    }
-
-
-    saveData();
-
-    closeModal("reportModal");
-
-    refresh();
-
-}
-
-
-/* =====================================================
-   CHANGE REPORT STATUS
-===================================================== */
-
-function changeReportStatus(id) {
-
-    const report =
-        reports.find(
-            r => r.id === id
-        );
-
-
-    if (!report) return;
-
-
-    const statuses = [
-
-        "Submitted",
-
-        "Assigned",
-
-        "Cleaning",
-
-        "Completed"
-
-    ];
-
-
-    const current =
-        statuses.indexOf(
-            report.status
-        );
-
-
-    report.status =
-        statuses[
-            (current + 1) %
-            statuses.length
-        ];
-
-
-    if (report.status === "Completed") {
-
-        score += 5;
-
-    }
-
-
-    saveData();
-
-    refresh();
-
-}
-
-
-/* =====================================================
-   DELETE REPORT
-===================================================== */
-
-function deleteReport(id) {
-
-    if (
-        !confirm(
-            "Delete this report?"
-        )
-    ) return;
-
-
-    reports =
-        reports.filter(
-            r => r.id !== id
-        );
-
-
-    saveData();
-
-    refresh();
-
-}
-
-
-/* =====================================================
-   RENDER REPORTS
-===================================================== */
-
-function renderReports() {
-
-    const list =
-        document.getElementById(
-            "reportList"
-        );
-
-
-    list.innerHTML = "";
-
-
-    if (!reports.length) {
-
-        list.innerHTML = `
-            <div class="empty-state">
-                No reports available.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    reports.forEach(report => {
-
-        const item =
-            document.createElement("div");
-
-
-        item.className =
-            "item-row";
-
-
-        item.innerHTML = `
-
-            <div class="item-icon">
-                🗑️
-            </div>
-
-            <div class="item-content">
-
-                <h4>
-                    ${escapeHTML(report.type)}
-                </h4>
-
-                <p>
-                    📍 ${escapeHTML(report.location)}
-                </p>
-
-                <p>
-                    ${escapeHTML(
-                        report.description || ""
-                    )}
-                </p>
-
-                <p>
-                    Status:
-                    <strong>
-                        ${report.status}
-                    </strong>
-                </p>
-
-            </div>
-
-            <div class="item-actions">
-
-                <button
-                    class="action-btn"
-                    title="Change Status"
-                    onclick="
-                        changeReportStatus(${report.id})
-                    ">
-
-                    🔄
-
-                </button>
-
-                <button
-                    class="action-btn"
-                    title="Edit"
-                    onclick="
-                        openReportModal(${report.id})
-                    ">
-
-                    ✏️
-
-                </button>
-
-                <button
-                    class="action-btn"
-                    title="Delete"
-                    onclick="
-                        deleteReport(${report.id})
-                    ">
-
-                    🗑️
-
-                </button>
-
-            </div>
-
-        `;
-
-
-        list.appendChild(item);
-
-    });
-
-}
-
-
-/* =====================================================
-   PICKUP FUNCTIONS
-===================================================== */
-
-function openPickupModal(id = null) {
-
-    document.getElementById("pickupId")
-        .value = "";
-
-
-    document.getElementById("pickupLocation")
-        .value = "";
-
-
-    document.getElementById("pickupModalTitle")
-        .textContent = "Request Pickup";
-
-
-    if (id) {
-
-        const pickup =
-            pickups.find(
-                p => p.id === id
-            );
-
-
-        if (!pickup) return;
-
-
-        document.getElementById("pickupId")
-            .value = pickup.id;
-
-
-        document.getElementById("pickupType")
-            .value = pickup.type;
-
-
-        document.getElementById("pickupDate")
-            .value = pickup.dateValue || "";
-
-
-        document.getElementById("pickupTime")
-            .value = pickup.time;
-
-
-        document.getElementById("pickupLocation")
-            .value = pickup.location;
-
-
-        document.getElementById("pickupModalTitle")
-            .textContent = "Edit Pickup";
-
-    }
-
-
-    document
-        .getElementById("pickupModal")
-        .classList.add("active");
-
-}
-
-
-function savePickup() {
-
-    const id =
-        document.getElementById("pickupId")
-            .value;
-
-
-    const type =
-        document.getElementById("pickupType")
-            .value;
-
-
-    const date =
-        document.getElementById("pickupDate")
-            .value;
-
-
-    const time =
-        document.getElementById("pickupTime")
-            .value;
-
-
-    const location =
-        document.getElementById("pickupLocation")
-            .value.trim();
-
-
-    if (!date || !location) {
-
-        alert(
-            "Please select date and location."
-        );
-
-        return;
-
-    }
-
-
-    if (id) {
-
-        const pickup =
-            pickups.find(
-                p => p.id === Number(id)
-            );
-
-
-        pickup.type = type;
-
-        pickup.date = formatDate(date);
-
-        pickup.dateValue = date;
-
-        pickup.time = time;
-
-        pickup.location = location;
-
-
-        showToast(
-            "✅ Pickup updated"
-        );
-
-    } else {
-
-        pickups.unshift({
-
-            id: Date.now(),
-
-            type,
-
-            date: formatDate(date),
-
-            dateValue: date,
-
-            time,
-
-            location,
-
-            status: "Scheduled"
-
-        });
-
-
-        score += 5;
-
-
-        showToast(
-            "🚛 Pickup scheduled +5 points"
-        );
-
-    }
-
-
-    saveData();
-
-    closeModal("pickupModal");
-
-    refresh();
-
-}
-
-
-/* =====================================================
-   CHANGE PICKUP STATUS
-===================================================== */
-
-function changePickupStatus(id) {
-
-    const pickup =
-        pickups.find(
-            p => p.id === id
-        );
-
-
-    if (!pickup) return;
-
-
-    const statuses = [
-
-        "Scheduled",
-
-        "Assigned",
-
-        "On The Way",
-
-        "Collected",
-
-        "Cancelled"
-
-    ];
-
-
-    const current =
-        statuses.indexOf(
-            pickup.status
-        );
-
-
-    pickup.status =
-        statuses[
-            (current + 1) %
-            statuses.length
-        ];
-
-
-    if (pickup.status === "Collected") {
-
-        score += 10;
-
-    }
-
-
-    saveData();
-
-    refresh();
-
-}
-
-
-/* =====================================================
-   DELETE PICKUP
-===================================================== */
-
-function deletePickup(id) {
-
-    if (
-        !confirm(
-            "Cancel/delete this pickup?"
-        )
-    ) return;
-
-
-    pickups =
-        pickups.filter(
-            p => p.id !== id
-        );
-
-
-    saveData();
-
-    refresh();
-
-}
-
-
-/* =====================================================
-   RENDER PICKUPS
-===================================================== */
-
-function renderPickups() {
-
-    const list =
-        document.getElementById(
-            "pickupList"
-        );
-
-
-    list.innerHTML = "";
-
-
-    if (!pickups.length) {
-
-        list.innerHTML = `
-            <div class="empty-state">
-                No pickup requests.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    pickups.forEach(pickup => {
-
-        const item =
-            document.createElement("div");
-
-
-        item.className =
-            "item-row";
-
-
-        item.innerHTML = `
-
-            <div class="item-icon">
-                🚛
-            </div>
-
-
-            <div class="item-content">
-
-                <h4>
-                    ${escapeHTML(pickup.type)}
-                </h4>
-
-                <p>
-                    📅 ${escapeHTML(pickup.date)}
-                </p>
-
-                <p>
-                    ⏰ ${escapeHTML(pickup.time)}
-                </p>
-
-                <p>
-                    📍 ${escapeHTML(pickup.location)}
-                </p>
-
-                <p>
-                    Status:
-                    <strong>
-                        ${escapeHTML(pickup.status)}
-                    </strong>
-                </p>
-
-            </div>
-
-
-            <div class="item-actions">
-
-                <button
-                    class="action-btn"
-                    title="Change Status"
-                    onclick="
-                        changePickupStatus(${pickup.id})
-                    ">
-
-                    🔄
-
-                </button>
-
-
-                <button
-                    class="action-btn"
-                    title="Edit"
-                    onclick="
-                        openPickupModal(${pickup.id})
-                    ">
-
-                    ✏️
-
-                </button>
-
-
-                <button
-                    class="action-btn"
-                    title="Delete"
-                    onclick="
-                        deletePickup(${pickup.id})
-                    ">
-
-                    🗑️
-
-                </button>
-
-            </div>
-
-        `;
-
-
-        list.appendChild(item);
-
-    });
-
-}
-
-
-/* =====================================================
-   SCORE
-===================================================== */
-
-function updateScore() {
-
-    document.getElementById(
-        "scoreValue"
-    ).textContent = score;
-
-
-    const percentage =
-        Math.min(
-            100,
-            score % 1000 / 10
-        );
-
-
-    document.getElementById(
-        "scoreBar"
-    ).style.width =
-        percentage + "%";
-
-
-    let level = "🥉 Bronze";
-
-
-    if (score >= 500) {
-
-        level = "🥈 Silver";
-
-    }
-
-    if (score >= 750) {
-
-        level = "🥇 Gold";
-
-    }
-
-    if (score >= 1000) {
-
-        level = "💎 Eco Champion";
-
-    }
-
-
-    document.getElementById(
-        "scoreLevel"
-    ).textContent = level;
-
-}
-
-
-/* =====================================================
-   CLOSE MODAL
-===================================================== */
-
-function closeModal(id) {
-
-    document.getElementById(id)
-        .classList.remove("active");
-
-}
-
-
-/* =====================================================
-   CLOSE MODAL OUTSIDE
-===================================================== */
-
-document
-    .querySelectorAll(".modal")
-    .forEach(modal => {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if (
-                    event.target === modal
-                ) {
-
-                    modal.classList.remove(
-                        "active"
+                    throw new Error(
+                        "Status update failed."
                     );
 
                 }
 
             }
-        );
 
-    });
+            catch (error) {
 
+                console.warn(
+                    "Status API unavailable:",
+                    error.message
+                );
 
-/* =====================================================
-   NOTIFICATIONS
-===================================================== */
-
-function showNotifications() {
-
-    const fullBins =
-        bins.filter(
-            b => getStatus(b.fill) === "Full"
-        );
+            }
 
 
-    let message =
-        "🔔 SmartCity AI Notifications\n\n";
+            citizenBinRequests =
+                citizenBinRequests.map(
+                    request => {
+
+                        const requestCode =
+                            request.requestCode ||
+                            request.request_code;
 
 
-    if (fullBins.length) {
+                        if (
+                            String(
+                                requestCode
+                            ) ===
+                            String(
+                                code
+                            )
+                        ) {
 
-        message +=
-            `🔴 ${fullBins.length} bin(s) are full.\n`;
+                            return {
+                                ...request,
+                                status:
+                                    newStatus
+                            };
 
-    }
-
-
-    const pendingReports =
-        reports.filter(
-            r => r.status !== "Completed"
-        ).length;
-
-
-    if (pendingReports) {
-
-        message +=
-            `📋 ${pendingReports} report(s) pending.\n`;
-
-    }
+                        }
 
 
-    if (!fullBins.length && !pendingReports) {
+                        return request;
 
-        message +=
-            "✅ Everything looks good!";
-
-    }
+                    }
+                );
 
 
-    alert(message);
-
-}
-
-
-/* =====================================================
-   TOAST
-===================================================== */
-
-function showToast(message) {
-
-    const old =
-        document.querySelector(".toast");
+            localStorage.setItem(
+                "wasteBinRequests",
+                JSON.stringify(
+                    citizenBinRequests
+                )
+            );
 
 
-    if (old) old.remove();
+            await loadCitizenBinRequests(
+                true
+            );
 
 
-    const toast =
-        document.createElement("div");
+            showToast(
+                `✅ Request ${code} → ${newStatus}`
+            );
+
+        };
 
 
-    toast.className = "toast";
+    /* =====================================================
+       CITIZEN DASHBOARD DATA
+    ===================================================== */
 
+    function updateCitizenDashboard() {
 
-    toast.textContent = message;
-
-
-    document.body.appendChild(toast);
-
-
-    setTimeout(() => {
-
-        toast.remove();
-
-    }, 3000);
-
-}
-
-
-/* =====================================================
-   DATE FORMAT
-===================================================== */
-
-function formatDate(date) {
-
-    const d =
-        new Date(
-            date + "T00:00:00"
-        );
-
-
-    return d.toLocaleDateString(
-        "en-IN",
-        {
-            day: "numeric",
-            month: "short",
-            year: "numeric"
+        if (
+            isStaffUser()
+        ) {
+            return;
         }
-    );
-
-}
 
 
-/* =====================================================
-   HTML ESCAPE
-===================================================== */
-
-function escapeHTML(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
+        const uid =
+            userId();
 
 
-function refresh() {
-
-    renderBins();
-
-    renderReports();
-
-    renderPickups();
-
-    renderMap();
-
-    updateDashboard();
-
-    updateScore();
-
-}
+        const storedReports =
+            JSON.parse(
+                localStorage.getItem(
+                    "smartReports"
+                ) || "[]"
+            );
 
 
-/* =====================================================
-   INITIAL LOAD
-===================================================== */
+        const storedPickups =
+            JSON.parse(
+                localStorage.getItem(
+                    "smartPickups"
+                ) || "[]"
+            );
 
-refresh();
+
+        const myReports =
+            uid === null
+                ? storedReports
+                : storedReports.filter(
+                    report =>
+                        String(
+                            report.userId ??
+                            report.user_id ??
+                            ""
+                        ) ===
+                        String(
+                            uid
+                        )
+                );
+
+
+        const myPickups =
+            uid === null
+                ? storedPickups
+                : storedPickups.filter(
+                    pickup =>
+                        String(
+                            pickup.userId ??
+                            pickup.user_id ??
+                            ""
+                        ) ===
+                        String(
+                            uid
+                        )
+                );
+
+
+        const myRequests =
+            citizenBinRequests.filter(
+                request =>
+                    uid === null ||
+                    String(
+                        request.userId ??
+                        request.user_id ??
+                        ""
+                    ) ===
+                    String(
+                        uid
+                    )
+            );
+
+
+        const reportCount =
+            document.getElementById(
+                "citizenReportCount"
+            );
+
+
+        const pickupCount =
+            document.getElementById(
+                "citizenPickupCount"
+            );
+
+
+        const requestCount =
+            document.getElementById(
+                "citizenBinRequestCount"
+            );
+
+
+        if (reportCount) {
+
+            reportCount.textContent =
+                myReports.length;
+
+        }
+
+
+        if (pickupCount) {
+
+            pickupCount.textContent =
+                myPickups.length;
+
+        }
+
+
+        if (requestCount) {
+
+            requestCount.textContent =
+                myRequests.length;
+
+        }
+
+
+        const scoreElement =
+            document.getElementById(
+                "citizenScore"
+            );
+
+
+        if (scoreElement) {
+
+            scoreElement.textContent =
+                score;
+
+        }
+
+
+        /* ===============================
+           NEARBY BINS
+        =============================== */
+
+        const nearby =
+            document.getElementById(
+                "citizenNearbyBins"
+            );
+
+
+        if (nearby) {
+
+            if (!bins.length) {
+
+                nearby.innerHTML = `
+
+                    <div class="empty-state">
+
+                        No smart bin data available.
+
+                    </div>
+
+                `;
+
+            }
+
+            else {
+
+                nearby.innerHTML =
+                    bins
+                        .slice(
+                            0,
+                            6
+                        )
+                        .map(
+                            bin => {
+
+                                const status =
+                                    getStatus(
+                                        bin.fill
+                                    );
+
+
+                                return `
+
+                                    <div class="mini-item">
+
+                                        <strong>
+
+                                            🗑️
+                                            ${escapeHTML(
+                                                bin.name ||
+                                                "Smart Bin"
+                                            )}
+
+                                        </strong>
+
+                                        <span>
+
+                                            📍
+                                            ${escapeHTML(
+                                                bin.location ||
+                                                "City"
+                                            )}
+
+                                        </span>
+
+                                        <b>
+
+                                            ${escapeHTML(
+                                                status
+                                            )}
+
+                                        </b>
+
+                                    </div>
+
+                                `;
+
+                            }
+                        )
+                        .join("");
+
+            }
+
+        }
+
+
+        /* ===============================
+           COLLECTION SCHEDULE
+        =============================== */
+
+        const collection =
+            document.getElementById(
+                "citizenCollectionList"
+            );
+
+
+        if (collection) {
+
+            if (!myPickups.length) {
+
+                collection.innerHTML = `
+
+                    <div class="empty-state">
+
+                        No collection requests yet.
+
+                    </div>
+
+                `;
+
+            }
+
+            else {
+
+                collection.innerHTML =
+                    myPickups
+                        .slice(
+                            0,
+                            6
+                        )
+                        .map(
+                            pickup => `
+
+                                <div class="mini-item">
+
+                                    <strong>
+
+                                        🚛
+                                        ${escapeHTML(
+                                            pickup.date ||
+                                            "Scheduled"
+                                        )}
+
+                                    </strong>
+
+                                    <span>
+
+                                        📍
+                                        ${escapeHTML(
+                                            pickup.location ||
+                                            "Pickup location"
+                                        )}
+
+                                    </span>
+
+                                    <b>
+
+                                        ${escapeHTML(
+                                            pickup.status ||
+                                            "Requested"
+                                        )}
+
+                                    </b>
+
+                                </div>
+
+                            `
+                        )
+                        .join("");
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       STAFF BIN ACCESS PROTECTION
+    ===================================================== */
+
+    const originalOpenBin =
+        window.openBinModal;
+
+
+    window.openBinModal =
+        function () {
+
+            if (!isStaffUser()) {
+
+                showToast(
+                    "❌ Only Waste Staff can add or manage waste bins."
+                );
+
+                return;
+            }
+
+
+            if (
+                typeof originalOpenBin ===
+                "function"
+            ) {
+
+                return originalOpenBin.apply(
+                    this,
+                    arguments
+                );
+
+            }
+
+        };
+
+
+    /* =====================================================
+       STAFF EDIT PROTECTION
+    ===================================================== */
+
+    const originalEditBin =
+        window.editBin;
+
+
+    window.editBin =
+        function (
+            id
+        ) {
+
+            if (!isStaffUser()) {
+
+                showToast(
+                    "❌ Only Waste Staff can edit waste bins."
+                );
+
+                return;
+            }
+
+
+            if (
+                typeof originalEditBin ===
+                "function"
+            ) {
+
+                return originalEditBin.apply(
+                    this,
+                    arguments
+                );
+
+            }
+
+        };
+
+
+    /* =====================================================
+       STAFF DELETE PROTECTION
+    ===================================================== */
+
+    const originalDeleteBin =
+        window.deleteBin;
+
+
+    window.deleteBin =
+        function (
+            id
+        ) {
+
+            if (!isStaffUser()) {
+
+                showToast(
+                    "❌ Only Waste Staff can delete waste bins."
+                );
+
+                return;
+            }
+
+
+            if (
+                typeof originalDeleteBin ===
+                "function"
+            ) {
+
+                return originalDeleteBin.apply(
+                    this,
+                    arguments
+                );
+
+            }
+
+        };
+
+
+    /* =====================================================
+       INITIALIZE
+    ===================================================== */
+
+    function initWasteRoleSystem() {
+
+        setRoleUI();
+
+        updateCitizenDashboard();
+
+        loadCitizenBinRequests(
+            isStaffUser()
+        );
+
+
+        setInterval(
+            function () {
+
+                if (
+                    isStaffUser()
+                ) {
+
+                    loadCitizenBinRequests(
+                        true
+                    );
+
+                }
+
+            },
+            30000
+        );
+
+    }
+
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initWasteRoleSystem
+        );
+
+    }
+
+    else {
+
+        initWasteRoleSystem();
+
+    }
+
+})();
