@@ -30,7 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeMap();
     setupButtons();
     detectUserLocation();
+    fetchCityStatus();
+    startClock();
+    initTrafficRealtime();
+    setInterval(fetchCityStatus, 60000);
 });
+
 
 function initializeMap() {
     const mapElement = document.getElementById("map");
@@ -249,6 +254,81 @@ function setupButtons() {
             }
         });
     }
+    // Wire refresh button
+    const refreshBtn = document.getElementById("refreshBtn");
+    if (refreshBtn) {
+        refreshBtn.addEventListener("click", () => {
+            fetchCityStatus();
+            showToast("Traffic & city status refreshed.");
+        });
+    }
+}
+
+async function fetchCityStatus() {
+    try {
+        const res = await fetch("http://localhost:5000/api/city-status");
+        if (!res.ok) throw new Error("Status code: " + res.status);
+        const data = await res.json();
+        updateTrafficStatusUI(data);
+    } catch (err) {
+        console.warn("Could not fetch city status from backend:", err);
+    }
+}
+
+function updateTrafficStatusUI(data) {
+    if (!data) return;
+    const traffic = data.traffic || "Moderate";
+    const temp = data.temperature !== undefined ? `${data.temperature}°C` : "31°C";
+    const aqi = data.aqi || 82;
+
+    updateElement("trafficLevel", traffic);
+    updateElement("trafficResult", `${traffic} Traffic`);
+    updateElement("temperature", temp);
+    updateElement("weather", `${temp} (AQI ${aqi})`);
+    updateElement("weatherText", `Gorakhpur • ${temp}`);
+
+    const desc = document.getElementById("trafficDescription");
+    if (desc) {
+        desc.textContent = `Live status: ${traffic} traffic flow. Real-time AQI is ${aqi}.`;
+    }
+
+    const warning = document.getElementById("weatherWarning");
+    if (warning) {
+        warning.textContent = `AQI: ${aqi} (Satisfactory). Active emergency ambulances: ${data.ambulances || 12}.`;
+    }
+
+    const meter = document.getElementById("trafficMeter");
+    if (meter) {
+        let width = "50%";
+        let bg = "#f59e0b";
+        const lower = traffic.toLowerCase();
+        if (lower.includes("low") || lower.includes("clear") || lower.includes("light")) {
+            width = "25%";
+            bg = "#10b981";
+        } else if (lower.includes("mod")) {
+            width = "50%";
+            bg = "#f59e0b";
+        } else if (lower.includes("heavy")) {
+            width = "75%";
+            bg = "#f97316";
+        } else if (lower.includes("severe") || lower.includes("jam")) {
+            width = "95%";
+            bg = "#ef4444";
+        }
+        meter.style.width = width;
+        meter.style.backgroundColor = bg;
+    }
+}
+
+function startClock() {
+    const clockEl = document.getElementById("clock");
+    if (!clockEl) return;
+    function tick() {
+        const now = new Date();
+        clockEl.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+    tick();
+    setInterval(tick, 1000);
 }
 
 function showToast(message) {
@@ -271,3 +351,48 @@ function updateElement(id, value) {
         element.textContent = value;
     }
 }
+
+/* =========================================================
+   REAL-TIME TRAFFIC & CORRIDOR SOCKETS
+========================================================= */
+
+let trafficAmbulanceMarkers = {};
+
+function initTrafficRealtime() {
+    if (typeof SmartCityRealtime === "undefined") return;
+
+    SmartCityRealtime.init();
+    SmartCityRealtime.renderLiveIndicator(".nav-brand");
+
+    SmartCityRealtime.onAmbulanceLocation((amb) => {
+        if (!amb || !amb.latitude || !amb.longitude || !map) return;
+
+        const ambKey = String(amb.id || amb.ambulance_id || amb.vehicle_number);
+        const lat = Number(amb.latitude);
+        const lng = Number(amb.longitude);
+
+        if (trafficAmbulanceMarkers[ambKey]) {
+            trafficAmbulanceMarkers[ambKey].setLatLng([lat, lng]);
+        } else {
+            const ambIcon = L.divIcon({
+                className: "traffic-amb-marker",
+                html: `<div style="background:#ef4444; color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(239,68,68,0.8); border:2px solid #fff; font-size:14px;">🚑</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+            const marker = L.marker([lat, lng], { icon: ambIcon }).addTo(map);
+            marker.bindPopup(`<b>🚑 Emergency Vehicle En Route</b><br>${amb.vehicle_number || ambKey}<br>Priority Transit Corridor Active`);
+            trafficAmbulanceMarkers[ambKey] = marker;
+        }
+    });
+
+    SmartCityRealtime.onEmergencyAlert((alert) => {
+        SmartCityRealtime.playAlertSound("emergency");
+        SmartCityRealtime.showBroadcastBanner(
+            "🚨 EMERGENCY TRAFFIC ADVISORY",
+            `Urgent emergency reported at ${alert.location || 'Gorakhpur'}. Emergency services dispatched. Please yield right of way.`,
+            "danger"
+        );
+    });
+}
+

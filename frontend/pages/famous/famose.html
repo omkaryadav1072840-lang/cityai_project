@@ -30,12 +30,13 @@
             Places / Gorakhpur / Ramgarh Tal
         </div>
 
-        <button
+        <a
+            href="../../index.html"
             class="back-btn"
-            onclick="goToMainApp()"
+            style="text-decoration: none; display: inline-flex; align-items: center;"
         >
             ← Back to SmartCity AI
-        </button>
+        </a>
 
     </nav>
 
@@ -1065,10 +1066,9 @@
             Intelligent services for a smarter Gorakhpur.
         </p>
 
-          <a href="../../index.html">  <button onclick="goToMainApp()">
-                 ← Return to Main App
-            </button>
-            </a>
+        <a href="../../index.html" class="back-btn" style="text-decoration: none; display: inline-block;">
+             ← Return to Main App
+        </a>
 
     </footer>
 
@@ -1087,7 +1087,10 @@
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
-    <script src="famose.js".js"></script>
+    <script src="../../auth.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../../realtime.js"></script>
+    <script src="famose.js"></script>
 
 </body>
 

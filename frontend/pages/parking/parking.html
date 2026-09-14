@@ -531,6 +531,62 @@
 </section>
 
 
+<!-- ================= UNIFIED INTERACTIVE PARKING SLOT GRID (CITIZEN & STAFF) ================= -->
+<section class="interactive-slot-section" id="interactiveSlotSection">
+
+    <div class="section-title">
+        <span>LIVE PHYSICAL BAYS</span>
+        <h2>Interactive Parking Slot Grid</h2>
+        <p>Real-time visual parking bays with citizen self-booking and parking staff operational controls.</p>
+    </div>
+
+    <!-- LOT SELECTOR TABS & ROLE MODE BANNER -->
+    <div class="slot-grid-toolbar">
+        <div class="lot-tabs-container" id="lotTabsContainer">
+            <button class="lot-tab active" onclick="switchLotTab('PARK-001')">🏢 City Centre (PARK-001)</button>
+            <button class="lot-tab" onclick="switchLotTab('PARK-002')">🚆 Railway Station (PARK-002)</button>
+            <button class="lot-tab" onclick="switchLotTab('PARK-003')">🏥 Hospital Parking (PARK-003)</button>
+            <button class="lot-tab" onclick="switchLotTab('PARK-004')">🛍️ Golghar Market (PARK-004)</button>
+            <button class="lot-tab" onclick="switchLotTab('PARK-005')">🎓 DDU Chowk (PARK-005)</button>
+        </div>
+
+        <div class="grid-mode-card" id="gridModeCard">
+            <div class="mode-info">
+                <span class="mode-badge citizen-badge" id="modeBadge">👤 CITIZEN VIEW</span>
+                <p id="modeExplanation">Click any available green bay (🟢) to reserve with your vehicle number.</p>
+            </div>
+            <button type="button" class="mode-toggle-btn" id="btnToggleStaffMode" onclick="toggleStaffViewMode()">
+                🛡️ Switch to Staff Inspection View
+            </button>
+        </div>
+    </div>
+
+    <!-- LIVE GRID STATS & LEGEND -->
+    <div class="slot-legend-bar">
+        <div class="legend-stats">
+            <span class="legend-chip legend-available"><i class="dot"></i> Available: <strong id="gridCountAvail">0</strong></span>
+            <span class="legend-chip legend-booked"><i class="dot"></i> Booked: <strong id="gridCountBooked">0</strong></span>
+            <span class="legend-chip legend-occupied"><i class="dot"></i> Occupied: <strong id="gridCountOccupied">0</strong></span>
+            <span class="legend-chip legend-maint"><i class="dot"></i> Maintenance: <strong id="gridCountMaint">0</strong></span>
+        </div>
+        <div class="legend-meta" id="gridLotMeta">
+            <span id="gridActiveLotRate">Hourly Rate: ₹20/hr</span>
+        </div>
+    </div>
+
+    <!-- INTERACTIVE SLOT BAYS CONTAINER -->
+    <div class="slot-grid-wrapper">
+        <div class="slot-grid" id="interactiveSlotGrid">
+            <div class="grid-loading">
+                <div class="spinner"></div>
+                <p>Loading interactive parking bays...</p>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
 <!-- ================= STAFF CONTROL ================= -->
 
 <section
@@ -866,6 +922,106 @@
 </section>
 
 
+<!-- ================= CITIZEN SLOT BOOKING MODAL ================= -->
+<div class="parking-modal" id="slotBookingModal">
+    <div class="parking-modal-dialog">
+        <div class="parking-modal-header">
+            <div class="header-left">
+                <span class="modal-icon">🅿️</span>
+                <div>
+                    <h3>Reserve Parking Slot</h3>
+                    <p id="modalSlotSubtitle">City Centre Parking</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('slotBookingModal')">✕</button>
+        </div>
+
+        <form id="slotBookingForm" onsubmit="submitSlotBooking(event)">
+            <div class="parking-modal-body">
+                <div class="slot-highlight-card">
+                    <div>
+                        <span class="highlight-label">Selected Bay</span>
+                        <h2 id="modalSlotNumber">A-01</h2>
+                    </div>
+                    <div>
+                        <span class="highlight-label">Vehicle Type</span>
+                        <strong id="modalSlotType">🚗 4-Wheeler Car</strong>
+                    </div>
+                    <div>
+                        <span class="highlight-label">Hourly Rate</span>
+                        <strong id="modalSlotRate">₹20 / hr</strong>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bookingVehicleNum">Vehicle Registration Number <span class="req">*</span></label>
+                    <input type="text" id="bookingVehicleNum" placeholder="e.g. UP 53 AB 1234" required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bookingCustomerName">Customer / Driver Name <span class="req">*</span></label>
+                        <input type="text" id="bookingCustomerName" placeholder="Your Full Name" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingCustomerPhone">Mobile Number</label>
+                        <input type="tel" id="bookingCustomerPhone" placeholder="10-digit mobile" />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bookingDurationHours">Duration (Hours)</label>
+                        <select id="bookingDurationHours" onchange="calculateBookingAmount()">
+                            <option value="1">1 Hour</option>
+                            <option value="2" selected>2 Hours</option>
+                            <option value="3">3 Hours</option>
+                            <option value="4">4 Hours</option>
+                            <option value="6">6 Hours</option>
+                            <option value="8">8 Hours</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Fare</label>
+                        <div class="calculated-amount" id="modalCalculatedAmount">₹40.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="parking-modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeSlotModal('slotBookingModal')">Cancel</button>
+                <button type="submit" class="btn-confirm" id="btnConfirmBooking">🅿️ Confirm & Reserve Slot</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ================= STAFF SLOT DETAILS & CONTROL MODAL ================= -->
+<div class="parking-modal" id="staffSlotModal">
+    <div class="parking-modal-dialog">
+        <div class="parking-modal-header staff-header">
+            <div class="header-left">
+                <span class="modal-icon">🛡️</span>
+                <div>
+                    <h3>Staff Slot Operational Dossier</h3>
+                    <p id="staffModalSubtitle">Slot Details & Customer Vehicle Information</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('staffSlotModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body" id="staffModalBody">
+            <!-- Dynamically populated -->
+        </div>
+
+        <div class="parking-modal-footer" id="staffModalFooter">
+            <!-- Staff action buttons -->
+        </div>
+    </div>
+</div>
+
+
 <!-- ================= TOAST ================= -->
 
 <div
@@ -875,6 +1031,9 @@
 </div>
 
 
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="../../auth.js"></script>
+<script src="../../realtime.js"></script>
 <script src="parking.js"></script>
 
 </body>

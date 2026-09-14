@@ -28,6 +28,8 @@
 
     <div class="nav-actions">
 
+        <a href="../../index.html" class="nav-back-link" style="color: #10b981; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); margin-right: 8px;">← Dashboard</a>
+
         <button class="notification-btn" onclick="showNotifications()">
             🔔
             <span id="notificationCount">0</span>
@@ -668,6 +670,9 @@
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 </script>
 
+<script src="../../auth.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="../../realtime.js"></script>
 <script src="waste.js"></script>
 
 </body>

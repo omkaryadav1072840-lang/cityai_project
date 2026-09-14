@@ -494,7 +494,7 @@
 
                     <span>🚑</span>
 
-                    <strong>
+                    <strong id="ambulanceCount">
                         3
                     </strong>
 
@@ -509,7 +509,7 @@
 
                     <span>👮</span>
 
-                    <strong>
+                    <strong id="responseUnitsCount">
                         8
                     </strong>
 
@@ -518,6 +518,7 @@
                     </p>
 
                 </div>
+
 
 
                 <div class="stat-card">
@@ -1105,6 +1106,9 @@
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="../../auth.js"></script>
+    <script src="../../realtime.js"></script>
     <script src="emergency.js"></script>
 
 </body>

@@ -620,3 +620,7 @@ function showToast(message) {
     );
 
 }
+
+function goToMainApp() {
+    window.location.href = "../../index.html";
+}

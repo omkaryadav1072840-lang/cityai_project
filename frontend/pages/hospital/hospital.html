@@ -76,6 +76,15 @@
         </div>
 
 
+        <button
+            type="button"
+            class="back-home"
+            onclick="openDoctorLoginModal()"
+            style="background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; font-weight: 700; margin-right: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+        >
+            👨‍⚕️ Doctor Login / Portal
+        </button>
+
         <a
             href="../../index.html"
             class="back-home"
@@ -143,6 +152,15 @@
                 onclick="openEmergency()"
             >
                 🚨 Emergency
+            </button>
+
+            <button
+                type="button"
+                class="secondary-btn"
+                style="border-color: #2563eb; color: #1d4ed8; background: #eff6ff; font-weight: 700;"
+                onclick="openDoctorLoginModal()"
+            >
+                👨‍⚕️ Doctor Portal
             </button>
 
         </div>
@@ -318,6 +336,28 @@
 
         <div class="service-grid">
 
+            <!-- DOCTOR LOGIN & CLINICAL OPD PORTAL CARD -->
+            <div class="service-card" style="border: 2px solid #3b82f6; background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);">
+                <div class="service-icon blue" style="background: #2563eb; color: #ffffff;">
+                    👨‍⚕️
+                </div>
+                <div style="display:inline-block; background: #dbeafe; color: #1d4ed8; font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 10px; margin-bottom: 8px;">
+                    CLINICAL OPD PORTAL
+                </div>
+                <h3>
+                    Doctor Login & Console
+                </h3>
+                <p>
+                    Are you a Doctor? Login with your Doctor ID to access your scheduled OPD queue, scan patient QR codes, and review medical history.
+                </p>
+                <button
+                    type="button"
+                    style="background: #2563eb; color: #ffffff; font-weight: 700;"
+                    onclick="openDoctorLoginModal()"
+                >
+                    👨‍⚕️ Doctor Login Portal →
+                </button>
+            </div>
 
             <!-- HOSPITAL -->
 
@@ -2351,6 +2391,105 @@
 
 
 <!-- =====================================================
+     DOCTOR LOGIN MODAL (DIRECT DASHBOARD ACCESS)
+===================================================== -->
+
+<div
+    class="modal"
+    id="doctorLoginModal"
+>
+
+    <div class="modal-box" style="max-width: 520px; padding: 28px;">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeModal('doctorLoginModal')"
+        >
+            ×
+        </button>
+
+        <div class="modal-title-icon" style="background: #eff6ff; color: #2563eb; width: 48px; height: 48px; font-size: 24px; margin-bottom: 12px;">
+            👨‍⚕️
+        </div>
+
+        <h2 style="font-size: 22px; color: #172033; margin-bottom: 6px;">
+            Doctor Portal Login
+        </h2>
+
+        <p class="modal-subtitle" style="margin-bottom: 20px; font-size: 13px; color: #64748b;">
+            Login with your Doctor ID to open the clinical console, view your scheduled patient queue, scan patient QR codes, and review medical history.
+        </p>
+
+        <!-- QUICK SELECT DROPDOWN -->
+        <div style="margin-bottom: 16px; text-align: left;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                Select Doctor from Registry:
+            </label>
+            <select id="quickDoctorSelect" onchange="onSelectDoctorFromDropdown()" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; outline: none; background: #f8fafc; font-weight: 600;">
+                <option value="">-- Choose Doctor Profile --</option>
+            </select>
+        </div>
+
+        <!-- DOCTOR ID INPUT -->
+        <div style="margin-bottom: 16px; text-align: left;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                Or Enter Doctor ID / Registered Mobile:
+            </label>
+            <input 
+                type="text" 
+                id="doctorLoginInput" 
+                placeholder="e.g. DOC003 or DOC001 or DOC-101" 
+                style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 700; outline: none;"
+                onkeydown="if(event.key==='Enter') submitDoctorLogin()"
+            />
+        </div>
+
+        <!-- QUICK DEMO CHIPS -->
+        <div style="margin-bottom: 20px; text-align: left;">
+            <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 6px;">Quick Demo Doctor IDs:</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <button type="button" onclick="fillDoctorLogin('DOC003')" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                    👨‍⚕️ DOC003 (Dr. Amit Kumar)
+                </button>
+                <button type="button" onclick="fillDoctorLogin('DOC001')" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                    👨‍⚕️ DOC001 (Dr. Rahul Sharma)
+                </button>
+                <button type="button" onclick="fillDoctorLogin('DOC002')" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                    👩‍⚕️ DOC002 (Dr. Priya Verma)
+                </button>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button 
+                type="button" 
+                id="btnDoctorLoginSubmit"
+                onclick="submitDoctorLogin()"
+                style="width: 100%; padding: 13px; border-radius: 10px; background: #2563eb; color: #ffffff; font-size: 14px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);"
+            >
+                🚀 Login & Open Doctor Dashboard →
+            </button>
+
+            <button 
+                type="button" 
+                onclick="closeModal('doctorLoginModal')"
+                style="width: 100%; padding: 10px; border-radius: 8px; background: #f1f5f9; color: #475569; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; cursor: pointer;"
+            >
+                Cancel
+            </button>
+        </div>
+
+        <div id="doctorLoginMsg" style="margin-top: 14px; font-size: 12px; font-weight: 700; display: none;"></div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
      QR CODE LIBRARY
 ===================================================== -->
 
@@ -2367,6 +2506,8 @@
      SOCKET.IO CLIENT (real-time ambulance tracking)
 ===================================================== -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="../../auth.js"></script>
+<script src="../../realtime.js"></script>
 
 
 <!-- =====================================================

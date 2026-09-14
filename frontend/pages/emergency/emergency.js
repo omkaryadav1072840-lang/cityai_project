@@ -31,8 +31,15 @@ document.addEventListener(
 
         loadSavedEmergencies();
 
+        fetchLiveEmergencyData();
+
+        initEmergencyRealtime();
+
+        setInterval(fetchLiveEmergencyData, 30000);
+
     }
 );
+
 
 
 /* =====================================================
@@ -524,6 +531,19 @@ function submitEmergency() {
         )
     );
 
+    // Broadcast incident to live backend & socket network
+    fetch("http://localhost:5000/api/emergency/incidents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            type: type,
+            location: location,
+            description: description,
+            latitude: (userMarker && userMarker.getLatLng) ? userMarker.getLatLng().lat : 26.7606,
+            longitude: (userMarker && userMarker.getLatLng) ? userMarker.getLatLng().lng : 83.3732
+        })
+    }).catch(err => console.warn("Emergency broadcast network warning:", err));
+
 
     addEmergencyToUI(
         emergency
@@ -713,6 +733,165 @@ function updateActiveCount() {
 
 
 /* =====================================================
+   FETCH LIVE AMBULANCES & EMERGENCY DEPARTMENTS
+===================================================== */
+
+async function fetchLiveEmergencyData() {
+    // 1. Ambulances
+    try {
+        const res = await fetch("http://localhost:5000/api/ambulances");
+        if (res.ok) {
+            const json = await res.json();
+            const ambulances = json.ambulances || [];
+            const ambCountEl = document.getElementById("ambulanceCount");
+            if (ambCountEl && ambulances.length) {
+                const activeAmbs = ambulances.filter(a => (a.status || "").toLowerCase() !== "offline");
+                ambCountEl.textContent = activeAmbs.length || ambulances.length;
+            }
+
+            // Add live ambulance markers to emergencyMap
+            if (typeof emergencyMap !== "undefined" && emergencyMap) {
+                ambulances.forEach(amb => {
+                    if (amb.latitude && amb.longitude) {
+                        createEmergencyMarker({
+                            lat: Number(amb.latitude),
+                            lng: Number(amb.longitude),
+                            type: "ambulance",
+                            title: `${amb.vehicle_number} (${amb.ambulance_type || 'Ambulance'})`,
+                            description: `Driver: ${amb.driver_name || 'Active'} | Hospital: ${amb.hospital_name || 'Gorakhpur'} | Status: ${amb.status}`
+                        });
+                    }
+                });
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch ambulances:", err);
+    }
+
+    // 2. Emergency Departments
+    try {
+        const res = await fetch("http://localhost:5000/api/emergency-departments");
+        if (res.ok) {
+            const json = await res.json();
+            const depts = json.emergencyDepartments || [];
+            const unitsEl = document.getElementById("responseUnitsCount");
+            if (unitsEl && depts.length) {
+                unitsEl.textContent = depts.length;
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch emergency departments:", err);
+    }
+}
+
+/* =====================================================
+   REAL-TIME LIVE TRACKING & SOS SOCKET HANDLERS
+===================================================== */
+
+let liveAmbulanceMarkers = {};
+
+function initEmergencyRealtime() {
+    if (typeof SmartCityRealtime === "undefined") {
+        console.warn("SmartCityRealtime library not loaded");
+        return;
+    }
+
+    SmartCityRealtime.init();
+    SmartCityRealtime.renderLiveIndicator(".navbar");
+
+    // 1. Real-time Live Ambulance GPS Tracking
+    SmartCityRealtime.onAmbulanceLocation((amb) => {
+        if (!amb || !amb.latitude || !amb.longitude || !emergencyMap) return;
+
+        const ambKey = String(amb.id || amb.ambulance_id || amb.vehicle_number);
+        const lat = Number(amb.latitude);
+        const lng = Number(amb.longitude);
+
+        if (liveAmbulanceMarkers[ambKey]) {
+            // Smoothly glide marker to new GPS coordinate
+            liveAmbulanceMarkers[ambKey].setLatLng([lat, lng]);
+            liveAmbulanceMarkers[ambKey].setPopupContent(`
+                <div style="font-size:12px; line-height:1.4; min-width:180px;">
+                    <h3 style="margin:0 0 4px; color:#dc2626;">🚑 ${amb.vehicle_number || ambKey}</h3>
+                    <b>Status:</b> <span style="color:#16a34a; font-weight:bold;">${amb.status || 'Active'}</span><br>
+                    <b>Location:</b> ${amb.location || 'Gorakhpur transit'}<br>
+                    <b>Speed:</b> ${amb.speedKmh ? amb.speedKmh + ' km/h' : 'En route'}<br>
+                    <b>Hospital:</b> ${amb.hospital_name || 'BRD / AIIMS'}<br>
+                    <small style="color:#059669; font-weight:600;">● Live GPS Telemetry</small>
+                </div>
+            `);
+        } else {
+            // Create dynamic Leaflet marker for this vehicle
+            const ambIcon = L.divIcon({
+                className: "custom-amb-icon",
+                html: `<div style="background:#ef4444; color:#fff; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(239,68,68,0.8); border:2px solid #fff; font-size:16px;">🚑</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+
+            const marker = L.marker([lat, lng], { icon: ambIcon }).addTo(emergencyMap);
+            marker.emergencyType = "ambulance";
+            marker.bindPopup(`
+                <div style="font-size:12px; line-height:1.4; min-width:180px;">
+                    <h3 style="margin:0 0 4px; color:#dc2626;">🚑 ${amb.vehicle_number || ambKey}</h3>
+                    <b>Status:</b> <span style="color:#16a34a; font-weight:bold;">${amb.status || 'Active'}</span><br>
+                    <b>Location:</b> ${amb.location || 'Gorakhpur transit'}<br>
+                    <b>Speed:</b> ${amb.speedKmh ? amb.speedKmh + ' km/h' : 'En route'}<br>
+                    <b>Hospital:</b> ${amb.hospital_name || 'BRD / AIIMS'}<br>
+                    <small style="color:#059669; font-weight:600;">● Live GPS Telemetry</small>
+                </div>
+            `);
+            liveAmbulanceMarkers[ambKey] = marker;
+            emergencyMarkers.push(marker);
+        }
+    });
+
+    // 2. Ambulance Status Updates (e.g. Assigned, Available)
+    SmartCityRealtime.onAmbulanceStatus((amb) => {
+        if (!amb) return;
+        const ambCountEl = document.getElementById("ambulanceCount");
+        if (ambCountEl) {
+            fetch("http://localhost:5000/api/ambulances")
+                .then(r => r.json())
+                .then(d => {
+                    const active = (d.ambulances || []).filter(a => (a.status || "").toLowerCase() !== "offline");
+                    ambCountEl.textContent = active.length;
+                })
+                .catch(() => {});
+        }
+    });
+
+    // 3. High-Priority Emergency SOS Broadcasts
+    SmartCityRealtime.onEmergencyAlert((alert) => {
+        if (!alert) return;
+
+        // Plot onto map with pulsing emergency icon
+        if (alert.latitude && alert.longitude && emergencyMap) {
+            const sosIcon = L.divIcon({
+                className: "custom-sos-icon",
+                html: `<div style="background:#dc2626; color:#fff; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 16px #dc2626; border:2px solid #fff; font-size:18px;">🚨</div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            const marker = L.marker([Number(alert.latitude), Number(alert.longitude)], { icon: sosIcon }).addTo(emergencyMap);
+            marker.emergencyType = "sos";
+            marker.bindPopup(`
+                <div style="font-size:12px; line-height:1.4;">
+                    <h3 style="margin:0 0 4px; color:#dc2626;">🚨 CRITICAL SOS: ${alert.type || 'EMERGENCY'}</h3>
+                    <b>Location:</b> ${alert.location || 'Reported'}<br>
+                    <p style="margin:4px 0;">${alert.description || 'Immediate assistance requested.'}</p>
+                    <small style="color:#ef4444; font-weight:bold;">● BROADCASTED LIVE TO UNITS</small>
+                </div>
+            `).openPopup();
+            emergencyMarkers.push(marker);
+        }
+    });
+}
+
+
+
+/* =====================================================
    STAFF PERMISSION
 ===================================================== */
 
@@ -769,18 +948,18 @@ function checkStaffPermission() {
     */
 
     const userType =
-        String(user.type || "").toLowerCase().trim();
+        String(user.type || user.role || "").toLowerCase().trim();
 
     const department =
         String(user.department || "").toLowerCase().trim();
 
     /*
-    Emergency staff
+    Emergency staff / Admin
     */
 
     if (
-        userType === "staff" &&
-        department === "emergency"
+        userType === "admin" ||
+        (userType === "staff" && (department === "emergency" || !department))
     ) {
 
         accessText.innerHTML = `
@@ -793,6 +972,7 @@ function checkStaffPermission() {
                 You can manage emergency incidents.
             </small>
         `;
+
 
         updateBtn.disabled = false;
         dispatchBtn.disabled = false;

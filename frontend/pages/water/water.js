@@ -162,8 +162,121 @@ document.addEventListener(
 
         updateQualityUI();
 
+        fetchWaterDataFromAPI();
+
+        initWaterRealtime();
+
+        setInterval(fetchWaterDataFromAPI, 30000);
+
     }
 );
+
+/* =====================================================
+   REAL-TIME WATER SOCKET HANDLER
+===================================================== */
+
+function initWaterRealtime() {
+    if (typeof SmartCityRealtime === "undefined") {
+        console.warn("SmartCityRealtime library not loaded");
+        return;
+    }
+
+    SmartCityRealtime.init();
+    SmartCityRealtime.renderLiveIndicator(".navbar");
+
+    SmartCityRealtime.onWaterUpdate((waterData) => {
+        if (!waterData) return;
+
+        if (waterData.type === "tank" && waterData.tank) {
+            const updatedTank = waterData.tank;
+            const idx = tanks.findIndex(t => t.id === updatedTank.id || t.tank_id === updatedTank.tank_id);
+            if (idx >= 0) {
+                tanks[idx].level = Number(updatedTank.current_level_percent !== undefined ? updatedTank.current_level_percent : tanks[idx].level);
+                tanks[idx].status = updatedTank.status || tanks[idx].status;
+                tanks[idx].pump = (tanks[idx].status || "").toLowerCase() === "operational" ? "on" : "maintenance";
+                localStorage.setItem("waterTanks", JSON.stringify(tanks));
+                renderTanks();
+                updateDashboard();
+                SmartCityRealtime.playAlertSound("chime");
+            }
+        } else {
+            fetchWaterDataFromAPI();
+        }
+    });
+}
+
+
+/* =====================================================
+   FETCH LIVE WATER DATA FROM API
+===================================================== */
+
+async function fetchWaterDataFromAPI() {
+    // 1. Fetch live tanks
+    try {
+        const res = await fetch("http://localhost:5000/api/water/tanks");
+        if (res.ok) {
+            const json = await res.json();
+            if (json.tanks && json.tanks.length) {
+                const tankGeo = {
+                    "TANK-001": { lat: 26.7606, lng: 83.3732 },
+                    "TANK-002": { lat: 26.7559, lng: 83.3705 },
+                    "TANK-003": { lat: 26.7615, lng: 83.3662 },
+                    "TANK-004": { lat: 26.7884, lng: 83.3986 },
+                    "TANK-005": { lat: 26.7252, lng: 83.4322 }
+                };
+
+                tanks = json.tanks.map((t, idx) => {
+                    const geo = tankGeo[t.tank_id] || { lat: 26.7606 + idx * 0.005, lng: 83.3732 + idx * 0.005 };
+                    return {
+                        id: t.id,
+                        tank_id: t.tank_id,
+                        name: t.name,
+                        location: t.zone || "Gorakhpur",
+                        lat: geo.lat,
+                        lng: geo.lng,
+                        capacity: Number(t.capacity_liters || 50000),
+                        level: Number(t.current_level_percent || 50),
+                        pump: (t.status || "Operational").toLowerCase() === "operational" ? "on" : "maintenance",
+                        status: t.status || "Operational",
+                        nextSupply: t.next_supply_time || "06:00 AM"
+                    };
+                });
+                localStorage.setItem("waterTanks", JSON.stringify(tanks));
+                renderTanks();
+                updateDashboard();
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch water tanks from API:", err);
+    }
+
+    // 2. Fetch live reports
+    try {
+        const res = await fetch("http://localhost:5000/api/water/reports");
+        if (res.ok) {
+            const json = await res.json();
+            if (json.reports && json.reports.length) {
+                reports = json.reports.map(r => ({
+                    id: r.id,
+                    report_id: r.report_id,
+                    type: (r.issue_type || "other").toLowerCase().replace(/\s+/g, "-"),
+                    location: r.location,
+                    description: r.description || "",
+                    status: r.status || "Pending",
+                    user: r.citizen_name || "Citizen",
+                    date: new Date(r.created_at).toLocaleString()
+                }));
+                localStorage.setItem("waterReports", JSON.stringify(reports));
+                renderUserReports();
+                renderWorkerComplaints();
+                updateDashboard();
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch water reports from API:", err);
+    }
+}
+
 
 
 /* =====================================================
@@ -1055,88 +1168,87 @@ document.getElementById(
     "reportForm"
 ).addEventListener(
     "submit",
-    function (e) {
+    async function (e) {
 
         e.preventDefault();
-
 
         const type =
             document.getElementById(
                 "problemType"
             ).value;
 
-
         const location =
             document.getElementById(
                 "reportLocation"
             ).value.trim();
-
 
         const description =
             document.getElementById(
                 "reportDescription"
             ).value.trim();
 
-
         if (!location || !description) {
-
             alert(
                 "Please complete all required fields."
             );
-
             return;
-
         }
 
+        const userObj = window.SmartCityAuth ? window.SmartCityAuth.getUser() : null;
+        const citizenName = (userObj && (userObj.name || userObj.username)) || "Citizen";
+        const mobile = (userObj && (userObj.phone || userObj.mobile)) || "9876543210";
+
+        const issueMap = {
+            "leakage": "Pipe Leak",
+            "no-water": "No Supply",
+            "low-pressure": "Low Pressure",
+            "dirty": "Contamination",
+            "billing": "Billing Issue"
+        };
+        const issueType = issueMap[type] || "Other";
 
         const newReport = {
-
             id: Date.now(),
-
             type: type,
-
             location: location,
-
             description: description,
-
             status: "Pending",
-
-            user: "Omkar",
-
-            date:
-                new Date()
-                    .toLocaleString()
-
+            user: citizenName,
+            date: new Date().toLocaleString()
         };
 
-
-        reports.unshift(
-            newReport
-        );
-
-
+        reports.unshift(newReport);
         saveAllData();
-
-
         renderUserReports();
-
         renderWorkerComplaints();
-
         updateDashboard();
 
-
-        closeModal(
-            "reportModal"
-        );
-
-
+        closeModal("reportModal");
         this.reset();
+        showToast("✅ Report submitted successfully");
 
+        // Send to live backend API
+        try {
+            const token = window.SmartCityAuth ? window.SmartCityAuth.getToken() : null;
+            const headers = { "Content-Type": "application/json" };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        showToast(
-            "✅ Report submitted successfully"
-        );
-
+            await fetch("http://localhost:5000/api/water/reports", {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    userId: userObj ? (userObj.id || userObj.userId) : null,
+                    citizenName,
+                    mobile,
+                    issueType,
+                    location,
+                    description
+                })
+            });
+            fetchWaterDataFromAPI();
+        } catch (apiErr) {
+            console.warn("Water report API error:", apiErr);
+        }
     }
 );
 
@@ -1152,15 +1264,15 @@ function renderUserReports() {
             "userReports"
         );
 
-
     if (!container) return;
 
+    const userObj = window.SmartCityAuth ? window.SmartCityAuth.getUser() : null;
+    const currentName = (userObj && (userObj.name || userObj.username)) || "";
 
-    const userReports =
-        reports.filter(
-            r => r.user === "Omkar"
-        );
-
+    let userReports = currentName ? reports.filter(r => r.user === currentName) : [];
+    if (userReports.length === 0 && reports.length > 0) {
+        userReports = reports.slice(0, 10);
+    }
 
     if (userReports.length === 0) {
 
@@ -1173,6 +1285,7 @@ function renderUserReports() {
         return;
 
     }
+
 
 
     container.innerHTML = "";
@@ -1751,43 +1864,60 @@ document.getElementById(
     "tankerForm"
 ).addEventListener(
     "submit",
-    function (e) {
+    async function (e) {
 
         e.preventDefault();
-
 
         const location =
             document.getElementById(
                 "tankerLocation"
             ).value;
 
-
         const quantity =
             document.getElementById(
                 "waterQuantity"
             ).value;
-
 
         const priority =
             document.getElementById(
                 "tankerPriority"
             ).value;
 
-
         closeModal(
             "tankerModal"
         );
 
-
         this.reset();
 
-
         showToast(
-            `🚛 Tanker requested: ${quantity} L`
+            `🚛 Tanker requested: ${quantity} L (${priority})`
         );
+
+        // Send to backend API
+        try {
+            const userObj = window.SmartCityAuth ? window.SmartCityAuth.getUser() : null;
+            const citizenName = (userObj && (userObj.name || userObj.username)) || "Citizen";
+            const mobile = (userObj && (userObj.phone || userObj.mobile)) || "9876543210";
+
+            await fetch("http://localhost:5000/api/water/tanker-bookings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: userObj ? (userObj.id || userObj.userId) : null,
+                    citizenName,
+                    mobile,
+                    deliveryAddress: location,
+                    capacity: `${quantity} Litres`,
+                    bookingDate: new Date().toISOString().split("T")[0]
+                })
+            });
+        } catch (tErr) {
+            console.warn("Could not save tanker booking to API:", tErr);
+        }
 
     }
 );
+
 
 
 /* =====================================================

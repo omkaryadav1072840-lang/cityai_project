@@ -24,18 +24,18 @@
         </div>
 
         <p class="menu-label">MAIN MENU</p>
-        <a href="#" class="menu">
+        <a href="../../index.html" class="menu">
             <i class="fa-solid fa-house"></i> Dashboard
         </a>
-        <a href="#" class="menu active">
+        <a href="traffic.html" class="menu active">
             <i class="fa-solid fa-road"></i> Live Traffic <b class="live-dot"></b>
         </a>
-        <a href="#" class="menu"><i class="fa-solid fa-cloud-sun"></i> Weather</a>
-        <a href="#" class="menu"><i class="fa-solid fa-truck-medical"></i> Emergency</a>
-        <a href="#" class="menu"><i class="fa-solid fa-hospital"></i> Hospitals</a>
-        <a href="#" class="menu"><i class="fa-solid fa-ambulance"></i> Ambulance</a>
-        <a href="#" class="menu"><i class="fa-solid fa-trash"></i> Waste Management</a>
-        <a href="#" class="menu"><i class="fa-solid fa-bus"></i> Public Transport</a>
+        <a href="../../index.html#weather" class="menu"><i class="fa-solid fa-cloud-sun"></i> Weather</a>
+        <a href="../emergency/emergency.html" class="menu"><i class="fa-solid fa-truck-medical"></i> Emergency</a>
+        <a href="../hospital/hospital.html" class="menu"><i class="fa-solid fa-hospital"></i> Hospitals</a>
+        <a href="../emergency/emergency.html" class="menu"><i class="fa-solid fa-ambulance"></i> Ambulance</a>
+        <a href="../waste/waste.html" class="menu"><i class="fa-solid fa-trash"></i> Waste Management</a>
+        <a href="../parking/parking.html" class="menu"><i class="fa-solid fa-square-parking"></i> Smart Parking</a>
 
         <div class="sidebar-bottom">
             <a href="#" class="menu"><i class="fa-solid fa-gear"></i> Settings</a>
@@ -350,6 +350,9 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="../../auth.js"></script>
+<script src="../../realtime.js"></script>
 <script src="traffic.js"></script>
 </body>
 </html>

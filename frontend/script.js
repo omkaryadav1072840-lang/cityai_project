@@ -232,6 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadCityStatus();
 
+    initDashboardRealtime();
+
     setTimeout(() => {
 
         checkExistingLogin();
@@ -2336,51 +2338,233 @@ function escapeJS(value) {
    AI BUTTON
 ========================================================= */
 
+/* =========================================================
+   SMART CITY AI ASSISTANT CHAT CONTROLLER
+========================================================= */
+
+let aiConversationHistory = [];
+let isAIBusy = false;
+
 function initializeAIButton() {
+    const sendButton = document.getElementById("sendButton");
+    const userInput = document.getElementById("userInput");
+    const clearBtn = document.getElementById("clearChatBtn");
 
-    const sendButton =
-        document.getElementById(
-            "sendButton"
-        );
+    if (sendButton && userInput) {
+        sendButton.addEventListener("click", sendAIMessage);
 
+        userInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendAIMessage();
+            }
+        });
+    }
 
-    if (!sendButton) return;
+    if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+            const container = document.getElementById("aiChatMessages");
+            if (container) {
+                container.innerHTML = `
+                    <div class="ai-msg ai-msg-bot">
+                        <div class="ai-msg-bubble">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">Conversation cleared 🧹</div>
+                            <p style="margin: 0; color: #475569; font-size: 13px;">
+                                Ready for your next query! How can Smart City AI assist you?
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+            aiConversationHistory = [];
+        });
+    }
 
-
-    sendButton.addEventListener(
-        "click",
-        () => {
-
-            const input =
-                document.getElementById(
-                    "userInput"
-                );
-
-
-            if (!input) return;
-
-
-            const text =
-                input.value.trim();
-
-
-            if (!text) return;
-
-
-            alert(
-
-                "Smart City AI received:\n\n" +
-                text
-
-            );
-
-
-            input.value = "";
-
-        }
-    );
-
+    // Check AI Engine Status
+    fetch("http://localhost:5000/api/ai/status")
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById("aiModelBadge");
+            if (badge && data.success) {
+                if (data.geminiKeyConfigured) {
+                    badge.textContent = "● GEMINI AI";
+                    badge.style.background = "rgba(16, 185, 129, 0.15)";
+                    badge.style.color = "#10b981";
+                    badge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+                } else {
+                    badge.textContent = "● CITY AI";
+                    badge.style.background = "rgba(37, 99, 235, 0.1)";
+                    badge.style.color = "#2563eb";
+                }
+            }
+        })
+        .catch(() => {});
 }
+
+async function sendAIMessage() {
+    const input = document.getElementById("userInput");
+    if (!input || isAIBusy) return;
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    input.value = "";
+    isAIBusy = true;
+
+    // 1. Render User Message Bubble
+    appendChatMessage("user", message);
+    aiConversationHistory.push({ sender: "user", text: message });
+
+    // 2. Render Typing Indicator
+    const typingId = showAITypingIndicator();
+
+    try {
+        const res = await fetch("http://localhost:5000/api/ai/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                message: message,
+                history: aiConversationHistory
+            })
+        });
+
+        removeAITypingIndicator(typingId);
+
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const data = await res.json();
+
+        // 3. Render AI Response Bubble
+        appendChatMessage("bot", data.reply, data.actions);
+        aiConversationHistory.push({ sender: "bot", text: data.reply });
+
+        // Play soft chime on response
+        if (typeof SmartCityRealtime !== "undefined" && SmartCityRealtime.playAlertSound) {
+            SmartCityRealtime.playAlertSound(data.intent === "EMERGENCY" ? "emergency" : "chime");
+        }
+    } catch (err) {
+        removeAITypingIndicator(typingId);
+        appendChatMessage("bot", "⚠️ Sorry, I could not connect to the Smart City AI Engine. Please ensure the backend server is running.");
+    } finally {
+        isAIBusy = false;
+        if (input) input.focus();
+    }
+}
+
+function handleQuickPrompt(promptText) {
+    const input = document.getElementById("userInput");
+    if (input) {
+        input.value = promptText;
+        sendAIMessage();
+    }
+}
+
+function showAITypingIndicator() {
+    const container = document.getElementById("aiChatMessages");
+    if (!container) return null;
+
+    const id = "typing-" + Date.now();
+    const typingEl = document.createElement("div");
+    typingEl.id = id;
+    typingEl.className = "ai-msg ai-msg-bot";
+    typingEl.innerHTML = `
+        <div class="ai-msg-bubble">
+            <div class="ai-typing-indicator">
+                <span class="ai-typing-dot"></span>
+                <span class="ai-typing-dot"></span>
+                <span class="ai-typing-dot"></span>
+            </div>
+        </div>
+    `;
+    container.appendChild(typingEl);
+    container.scrollTop = container.scrollHeight;
+    return id;
+}
+
+function removeAITypingIndicator(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+function appendChatMessage(sender, text, actions = []) {
+    const container = document.getElementById("aiChatMessages");
+    if (!container) return;
+
+    const msgEl = document.createElement("div");
+    msgEl.className = `ai-msg ai-msg-${sender}`;
+
+    const formattedText = formatAIMarkdown(text);
+
+    let actionsHtml = "";
+    if (Array.isArray(actions) && actions.length > 0) {
+        actionsHtml = `<div class="ai-actions-row">` +
+            actions.map(act => {
+                if (act.action === "trigger_sos") {
+                    return `<button class="ai-action-btn danger" onclick="triggerQuickSOSFromChat()">🚨 Emergency SOS Dispatch</button>`;
+                } else if (act.action === "call") {
+                    return `<a class="ai-action-btn primary" href="tel:${act.value || '108'}">📞 Call ${act.value || '108'}</a>`;
+                } else if (act.url) {
+                    return `<a class="ai-action-btn ${act.type || 'primary'}" href="${act.url}">${act.label || 'View Details'}</a>`;
+                }
+                return "";
+            }).join("") +
+        `</div>`;
+    }
+
+    msgEl.innerHTML = `
+        <div class="ai-msg-bubble">
+            <div>${formattedText}</div>
+            ${actionsHtml}
+        </div>
+    `;
+
+    container.appendChild(msgEl);
+    container.scrollTop = container.scrollHeight;
+}
+
+function formatAIMarkdown(text) {
+    if (!text) return "";
+    let clean = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // Bold **text**
+    clean = clean.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // Bullet points • or -
+    clean = clean.replace(/^[•\-\*]\s+(.*)$/gm, "<li style='margin-left:14px;'>$1</li>");
+
+    // Line breaks
+    clean = clean.replace(/\n\n/g, "<div style='height:8px;'></div>");
+    clean = clean.replace(/\n/g, "<br>");
+
+    return clean;
+}
+
+function triggerQuickSOSFromChat() {
+    if (!confirm("🚨 Are you sure you want to trigger a CRITICAL EMERGENCY SOS signal to Gorakhpur dispatchers?")) return;
+
+    fetch("http://localhost:5000/api/emergency/sos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            latitude: (userLocation && userLocation.lat) ? userLocation.lat : 26.7606,
+            longitude: (userLocation && userLocation.lng) ? userLocation.lng : 83.3732,
+            address: "Reported via Smart City AI Assistant",
+            type: "CRITICAL SOS (AI Assistant)"
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        alert("🚨 Critical SOS broadcasted successfully! Emergency dispatch and nearby response units have been alerted.");
+        appendChatMessage("bot", "🚨 **Emergency SOS Dispatched.**\n\nIncident code: `" + (data.sos ? data.sos.incidentCode : 'EMG') + "`\nResponse units have received your signal. Keep your line open.", [
+            { label: "Track on Emergency Map", action: "navigate", url: "/pages/emergency/emergency.html", type: "danger" }
+        ]);
+    })
+    .catch(err => alert("Error dispatching SOS: " + err.message));
+}
+
 
 
 /* =========================================================
@@ -4161,6 +4345,10 @@ async function userLogin() {
 
         };
 
+        // Save JWT token for authorized API calls
+        if (data.token && typeof SmartCityAuth !== "undefined") {
+            SmartCityAuth.setSession(data.token, currentAuthUser);
+        }
 
         saveCurrentLogin();
 
@@ -4282,6 +4470,11 @@ async function staffLogin() {
             editable:
                data.user.editable || []
           };
+
+        // Save JWT token for authorized API calls
+        if (data.token && typeof SmartCityAuth !== "undefined") {
+            SmartCityAuth.setSession(data.token, currentAuthUser);
+        }
 
         saveCurrentLogin();
 
@@ -4651,6 +4844,10 @@ function logoutSmartCity() {
 
     currentAuthUser = null;
 
+    // Clear JWT token
+    if (typeof SmartCityAuth !== "undefined") {
+        SmartCityAuth.logout();
+    }
 
     localStorage.removeItem(
         "smartCityCurrentUser"
@@ -4814,6 +5011,61 @@ async function loadCityStatus() {
     } catch (error) {
         console.error("❌ City Status Error:", error);
     }
+}
+
+/* =========================================================
+   REAL-TIME DASHBOARD SOCKETS
+========================================================= */
+
+let dashboardAmbulanceMarkers = {};
+
+function initDashboardRealtime() {
+    if (typeof SmartCityRealtime === "undefined") return;
+
+    SmartCityRealtime.init();
+    SmartCityRealtime.renderLiveIndicator(".nav-left");
+
+    // Real-time moving ambulance markers on cityMap
+    SmartCityRealtime.onAmbulanceLocation((amb) => {
+        if (!amb || !amb.latitude || !amb.longitude || !map) return;
+
+        const ambKey = String(amb.id || amb.ambulance_id || amb.vehicle_number);
+        const lat = Number(amb.latitude);
+        const lng = Number(amb.longitude);
+
+        if (dashboardAmbulanceMarkers[ambKey]) {
+            dashboardAmbulanceMarkers[ambKey].setLatLng([lat, lng]);
+        } else {
+            const ambIcon = L.divIcon({
+                className: "dashboard-amb-icon",
+                html: `<div style="background:#ef4444; color:#fff; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(239,68,68,0.8); border:2px solid #fff; font-size:15px;">🚑</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const marker = L.marker([lat, lng], { icon: ambIcon }).addTo(map);
+            marker.bindPopup(`
+                <div style="font-size:12px; line-height:1.4;">
+                    <strong style="color:#dc2626;">🚑 Live Ambulance Telemetry</strong><br>
+                    <b>Vehicle:</b> ${amb.vehicle_number || ambKey}<br>
+                    <b>Status:</b> ${amb.status || 'Active'}<br>
+                    <b>Driver:</b> ${amb.driver_name || 'Active'}<br>
+                    <b>Hospital:</b> ${amb.hospital_name || 'Gorakhpur'}
+                </div>
+            `);
+            dashboardAmbulanceMarkers[ambKey] = marker;
+        }
+    });
+
+    // Real-time Emergency SOS broadcast alerts
+    SmartCityRealtime.onEmergencyAlert((alert) => {
+        SmartCityRealtime.playAlertSound("emergency");
+        SmartCityRealtime.showBroadcastBanner(
+            `🚨 CRITICAL SOS: ${alert.type || 'EMERGENCY'}`,
+            `Location: ${alert.location || 'Reported area'}. Response units dispatched.`,
+            "danger"
+        );
+    });
 }
 
 loadCityStatus();

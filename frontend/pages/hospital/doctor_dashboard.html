@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Portal & Clinical Console | SmartCity AI</title>
+    <link rel="stylesheet" href="doctor_dashboard.css">
+    <!-- QR Code Scanner Library (Camera & File decode) -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<header class="hospital-navbar doc-navbar">
+    <div class="doc-nav-left">
+        <div class="brand" style="display: flex; align-items: center; gap: 11px;">
+            <div class="brand-icon" style="width: 43px; height: 43px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 23px;">
+                👨‍⚕️
+            </div>
+            <div>
+                <h2 style="font-size: 18px; font-weight: 800; color: #172033;">
+                    Smart<span style="color: #2563eb;">City AI</span>
+                </h2>
+                <p style="color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Doctor Portal & Clinical OPD
+                </p>
+            </div>
+        </div>
+
+        <div class="doc-select-box">
+            <label for="doctorSelect">Doctor Profile:</label>
+            <select id="doctorSelect" onchange="switchActiveDoctor()">
+                <option value="">Loading doctors...</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="doc-nav-right">
+        <div class="doc-profile-chip" id="docProfileChip">
+            <span class="doc-avatar">👨‍⚕️</span>
+            <div>
+                <strong id="docDisplayName">Dr. Doctor</strong>
+                <small id="docDeptInfo">Specialist • Hospital</small>
+            </div>
+        </div>
+        <a href="hospital.html" class="back-home" style="display:inline-flex; align-items:center; gap:6px;">← Hospital Portal</a>
+        <a href="../../index.html" class="back-home" style="background:#2563eb; color:#ffffff;">← Main Dashboard</a>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTAINER ================= -->
+<main class="doc-container">
+
+    <!-- HERO / STATS BAR -->
+    <section class="doc-stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div>
+                <span class="stat-label">Today's Appointments</span>
+                <h2 id="statTotalAppts">0</h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-amber">⏳</div>
+            <div>
+                <span class="stat-label">Waiting in OPD</span>
+                <h2 id="statWaitingAppts">0</h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue">🩺</div>
+            <div>
+                <span class="stat-label">In Consultation</span>
+                <h2 id="statInConsultation">0</h2>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-green">✅</div>
+            <div>
+                <span class="stat-label">Completed Consultations</span>
+                <h2 id="statCompletedAppts">0</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- WORKSPACE 2-COLUMN GRID -->
+    <div class="doc-workspace">
+
+        <!-- LEFT: APPOINTMENTS QUEUE -->
+        <section class="queue-section">
+            <div class="section-header">
+                <div>
+                    <h2>📋 Scheduled Patient Queue</h2>
+                    <p>Live synchronized OPD appointments with scheduled times</p>
+                </div>
+                <div class="queue-filters">
+                    <button class="filter-chip active" onclick="filterQueue('all')">All</button>
+                    <button class="filter-chip" onclick="filterQueue('Confirmed')">Waiting</button>
+                    <button class="filter-chip" onclick="filterQueue('In Consultation')">In Progress</button>
+                    <button class="filter-chip" onclick="filterQueue('Completed')">Done</button>
+                </div>
+            </div>
+
+            <div class="queue-list" id="queueList">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading patient appointment schedule...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: QR SCANNER & INSTANT LOOKUP -->
+        <aside class="scanner-section">
+            <div class="card-box scanner-card">
+                <div class="card-header">
+                    <h3>📷 Scan Patient QR Code</h3>
+                    <span class="live-dot-pill">LIVE SCANNER</span>
+                </div>
+                <p class="scanner-desc">
+                    Scan the patient's QR code on their smartphone or OPD slip to instantly retrieve their complete medical history.
+                </p>
+
+                <!-- CAMERA SCANNER VIEWPORT -->
+                <div id="qrReaderContainer">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                </div>
+
+                <div class="scanner-actions">
+                    <button class="btn btn-primary" id="btnStartCamera" onclick="startCameraScanner()">
+                        📹 Start Camera Scan
+                    </button>
+                    <button class="btn btn-secondary" id="btnStopCamera" onclick="stopCameraScanner()" style="display:none;">
+                        ⏹️ Stop Camera
+                    </button>
+                </div>
+
+                <div class="divider"><span>OR MANUAL SEARCH</span></div>
+
+                <!-- MANUAL ID LOOKUP -->
+                <div class="manual-lookup">
+                    <label for="manualPatientId">Patient ID / Card Code:</label>
+                    <div class="input-group">
+                        <input type="text" id="manualPatientId" placeholder="e.g. PAT-5931984821" />
+                        <button class="btn btn-primary" onclick="lookupPatientFromInput()">
+                            🔍 Open Dossier
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+</main>
+
+<!-- ================= PATIENT DOSSIER & CONSULTATION MODAL ================= -->
+<div class="modal" id="dossierModal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <div class="modal-title-group">
+                <h2>🩺 Patient Medical Dossier & History</h2>
+                <p>Complete historical diagnostic records, past prescriptions, and clinical consultation pad</p>
+            </div>
+            <button class="modal-close" onclick="closeDossierModal()">✕</button>
+        </div>
+
+        <div class="modal-body" id="dossierBody">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="docToast" class="doc-toast"></div>
+
+<!-- SOCKET.IO & APPLICATION JS -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="../../auth.js"></script>
+<script src="../../realtime.js"></script>
+<script src="doctor_dashboard.js"></script>
+
+</body>
+</html>

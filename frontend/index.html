@@ -279,60 +279,64 @@
          AI CARD
     ================================================== -->
 
-    <div class="ai-card">
-
+    <div class="ai-card" id="smartCityAICard">
 
         <div class="ai-head">
-
             <div class="ai-avatar">
                 🤖
             </div>
 
-
             <div>
-
                 <h1>
-                    Smart
-                    <span>City AI</span>
+                    Smart <span>City AI</span>
                 </h1>
-
                 <p>
-                    Your intelligent city assistant
+                    Live Municipal & Emergency Assistant
                 </p>
-
             </div>
 
+            <div class="ai-header-controls" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                <span id="aiModelBadge" style="font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.2);">
+                    ● ONLINE
+                </span>
+                <button id="clearChatBtn" title="Clear Conversation" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 4px;">
+                    🗑️
+                </button>
+            </div>
         </div>
 
+        <div class="ai-display" id="aiChatDisplay">
+            <!-- Scrollable chat container -->
+            <div id="aiChatMessages" class="ai-chat-messages">
+                <div class="ai-msg ai-msg-bot">
+                    <div class="ai-msg-bubble">
+                        <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">Welcome to Gorakhpur Smart City AI 🏙️</div>
+                        <p style="margin: 0; color: #475569; font-size: 13px; line-height: 1.5;">
+                            Ask me anything about real-time parking slots, emergency ambulance dispatch, hospital beds at AIIMS/BRD, water supply timings, or city navigation!
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-
-        <div class="ai-display">
-
-            <h2>
-                Welcome to Smart City AI
-            </h2>
-
-            <p>
-                Find city services, locations,
-                traffic and routes.
-            </p>
-
+            <!-- Quick Suggestions / Prompt Chips -->
+            <div id="aiPromptChips" class="ai-prompt-chips">
+                <button class="ai-chip" onclick="handleQuickPrompt('Where can I find vacant parking near Golghar?')">🅿️ Parking at Golghar</button>
+                <button class="ai-chip" onclick="handleQuickPrompt('Emergency ambulance numbers and trauma centers')">🚨 Emergency 108</button>
+                <button class="ai-chip" onclick="handleQuickPrompt('Check ICU and emergency bed availability in Gorakhpur')">🏥 Hospital Beds</button>
+                <button class="ai-chip" onclick="handleQuickPrompt('What are city water supply timings?')">💧 Water Timings</button>
+            </div>
         </div>
-
-
 
         <div class="ai-input">
-
             <input
                 type="text"
                 id="userInput"
-                placeholder="Ask Smart City AI..."
+                placeholder="Ask Smart City AI (e.g. nearest parking, emergency help)..."
+                autocomplete="off"
             >
-
             <button id="sendButton">
-                Send
+                Send ➔
             </button>
-
         </div>
 
     </div>
@@ -2129,6 +2133,10 @@
      YOUR JAVASCRIPT
 ===================================================== -->
 
+<!-- Auth helper & Real-Time Client must load BEFORE script.js -->
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="auth.js"></script>
+<script src="realtime.js"></script>
 <script src="script.js"></script>
 
 

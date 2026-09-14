@@ -3119,6 +3119,135 @@ if (document.readyState === "loading") {
 }
 
 /* =========================================================
+   DOCTOR LOGIN & DIRECT DASHBOARD REDIRECT
+========================================================= */
+
+let doctorLoginListLoaded = false;
+
+async function openDoctorLoginModal() {
+    openModal("doctorLoginModal");
+    const msg = document.getElementById("doctorLoginMsg");
+    if (msg) {
+        msg.style.display = "none";
+        msg.textContent = "";
+    }
+    if (!doctorLoginListLoaded) {
+        await populateDoctorLoginDropdown();
+    }
+}
+
+async function populateDoctorLoginDropdown() {
+    const select = document.getElementById("quickDoctorSelect");
+    if (!select) return;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/doctors`);
+        if (!res.ok) throw new Error("Failed to load doctors");
+        const data = await res.json();
+        const list = data.doctors || (Array.isArray(data) ? data : []);
+
+        select.innerHTML = '<option value="">-- Choose Doctor Profile --</option>';
+        list.forEach(doc => {
+            const opt = document.createElement("option");
+            const docId = doc.doctor_id || doc.doctorId || doc.id;
+            opt.value = docId;
+            opt.textContent = `${doc.name} (${doc.specialization} • ID: ${docId})`;
+            select.appendChild(opt);
+        });
+        doctorLoginListLoaded = true;
+    } catch (err) {
+        console.warn("Could not populate doctor login select:", err);
+    }
+}
+
+function onSelectDoctorFromDropdown() {
+    const select = document.getElementById("quickDoctorSelect");
+    const input = document.getElementById("doctorLoginInput");
+    if (select && input && select.value) {
+        input.value = select.value;
+    }
+}
+
+function fillDoctorLogin(docId) {
+    const input = document.getElementById("doctorLoginInput");
+    const select = document.getElementById("quickDoctorSelect");
+    if (input) input.value = docId;
+    if (select) select.value = docId;
+}
+
+async function submitDoctorLogin() {
+    const input = document.getElementById("doctorLoginInput");
+    const msg = document.getElementById("doctorLoginMsg");
+    const btn = document.getElementById("btnDoctorLoginSubmit");
+
+    const doctorId = input ? input.value.trim() : "";
+
+    if (!doctorId) {
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#dc2626";
+            msg.textContent = "⚠️ Please enter or select a Doctor ID.";
+        }
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Authenticating Doctor...";
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/doctor/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ doctorId })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || "Doctor ID not found in registry.");
+        }
+
+        // Store active doctor ID and session for the Doctor Dashboard
+        const finalDocId = data.doctor?.doctorId || doctorId;
+        localStorage.setItem("smartcity_active_doctor", finalDocId);
+
+        if (data.token) {
+            localStorage.setItem("smartcity_auth_token", data.token);
+            if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.setSession) {
+                SmartCityAuth.setSession(data.token, data.doctor);
+            }
+        }
+
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#15803d";
+            msg.textContent = `✅ Welcome ${data.doctor?.name || "Doctor"}! Redirecting to Doctor Dashboard...`;
+        }
+
+        showNotification(`Welcome Dr. ${data.doctor?.name || ""}! Opening Clinical Console...`, "success");
+
+        // Redirect DIRECTLY to Doctor Dashboard
+        setTimeout(() => {
+            window.location.href = "doctor_dashboard.html";
+        }, 500);
+
+    } catch (err) {
+        console.error("Doctor login failed:", err);
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#dc2626";
+            msg.textContent = `❌ ${err.message}`;
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "🚀 Login & Open Doctor Dashboard →";
+        }
+    }
+}
+
+/* =========================================================
    WINDOW EXPORTS — every name here IS defined above, once.
 ========================================================= */
 
@@ -3155,6 +3284,9 @@ Object.assign(window, {
     openPaymentModal, showPaymentFields, processPayment, printReceipt,
 
     openEditPanel,
+
+    openDoctorLoginModal, populateDoctorLoginDropdown, onSelectDoctorFromDropdown,
+    fillDoctorLogin, submitDoctorLogin,
 
     globalSearch,
     showNotification, showLoading, showError, showSuccess
