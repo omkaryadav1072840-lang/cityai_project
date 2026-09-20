@@ -18,7 +18,9 @@
      server.js, so that button now just shows availability.
 ========================================================= */
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+    ? window.API_BASE_URL
+    : (typeof window !== "undefined" && (window.location.port === "5000" || window.location.protocol === "file:") ? "http://localhost:5000" : "");
 
 /* ---------------------------------------------------------
    GLOBAL STATE
@@ -156,8 +158,12 @@ function showSuccess(element, message) {
 }
 
 /* =========================================================
-   PATIENT ID
+   PATIENT ID & DIGITAL IDENTITY MANAGEMENT
 ========================================================= */
+
+let html5QrScannerInstance = null;
+let currentActiveAbhaPatientId = null;
+let staffPatientSearchTimeout = null;
 
 function getPatientId() {
     return localStorage.getItem("patientId");
@@ -174,32 +180,71 @@ function showCurrentPatient() {
 }
 
 function generatePatientID() {
-    return "PAT-" + Date.now().toString().slice(-8) + Math.floor(10 + Math.random() * 90);
+    return "P-" + new Date().getFullYear() + "-" + Math.floor(100000 + Math.random() * 900000);
 }
 
 function calculateAge(dob) {
     if (!dob) return null;
     const birth = new Date(dob);
+    if (isNaN(birth.getTime())) return null;
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age >= 0 ? age : null;
+    return age >= 0 ? age : 0;
+}
+
+function handleDobAutoAge(dobValue) {
+    const ageInput = document.getElementById("patientAge");
+    if (!ageInput) return;
+    const age = calculateAge(dobValue);
+    ageInput.value = age !== null ? age : "";
 }
 
 function openPatientRegistration() {
+    const form = document.getElementById("patientForm");
+    if (form) form.reset();
+    const ageInput = document.getElementById("patientAge");
+    if (ageInput) ageInput.value = "";
+    const result = document.getElementById("patientResult");
+    if (result) {
+        result.classList.remove("show");
+        result.innerHTML = "";
+    }
     openModal("patientModal");
 }
 
-function showPatientQR(patientId, containerId = "patientQRCode") {
+function showPatientQR(patientOrPayload, containerId = "patientQRCode") {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = "";
     if (typeof QRCode === "undefined") {
-        container.innerHTML = "<p>QR library not loaded.</p>";
+        container.innerHTML = "<p style='color:#ef4444; font-size:12px;'>QR library loading...</p>";
         return;
     }
-    new QRCode(container, { text: patientId, width: 150, height: 150 });
+
+    let qrString = "";
+    if (typeof patientOrPayload === "object" && patientOrPayload !== null) {
+        const pId = patientOrPayload.patient_id || patientOrPayload.patientId || "";
+        const token = patientOrPayload.qr_token || patientOrPayload.qrToken || ("SCPAT-" + pId);
+        qrString = JSON.stringify({
+            type: "SMARTCITY_PATIENT_ID",
+            patientId: pId,
+            qrToken: token,
+            verifyUrl: `/api/patients/verify-qr?token=${token}`
+        });
+    } else {
+        qrString = String(patientOrPayload);
+    }
+
+    new QRCode(container, {
+        text: qrString,
+        width: 140,
+        height: 140,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+    });
 }
 
 function setupPatientForm() {
@@ -212,53 +257,87 @@ function setupPatientForm() {
 
         const name = document.getElementById("patientName")?.value.trim();
         const dob = document.getElementById("patientDOB")?.value;
+        const age = document.getElementById("patientAge")?.value;
         const gender = document.getElementById("patientGender")?.value;
+        const bloodGroup = document.getElementById("patientBloodGroup")?.value || null;
         const mobile = document.getElementById("patientPhone")?.value.trim();
+        const emergencyContact = document.getElementById("patientEmergencyContact")?.value.trim() || null;
+        const hospitalId = document.getElementById("patientHospitalSelect")?.value || "HOSP-001";
+        const abhaAddress = document.getElementById("patientAbhaAddress")?.value.trim() || null;
+        const address = document.getElementById("patientAddress")?.value.trim() || null;
+        const emergencyInfo = document.getElementById("patientEmergencyInfo")?.value.trim() || null;
         const result = document.getElementById("patientResult");
 
         if (!name || !dob || !gender || !mobile) {
-            showError(result, "Please fill all patient details.");
+            showError(result, "Please fill all mandatory fields (Name, DOB, Gender, Mobile).");
             return;
         }
 
-        const age = calculateAge(dob);
-        const patientId = generatePatientID();
-        showLoading(result, "Creating patient record...");
+        const cleanMobile = mobile.replace(/\D/g, "");
+        if (cleanMobile.length < 10) {
+            showError(result, "Please enter a valid 10-digit mobile number.");
+            return;
+        }
+
+        showLoading(result, "Registering patient & generating secure QR identity...");
 
         try {
             const data = await apiRequest("/api/patients", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ patientId, name, age, gender, mobile, bloodGroup: null, address: null })
+                body: JSON.stringify({
+                    name,
+                    dob,
+                    age: Number(age) || calculateAge(dob),
+                    gender,
+                    bloodGroup,
+                    mobile: cleanMobile,
+                    emergencyContact,
+                    hospitalId,
+                    abhaAddress,
+                    address,
+                    emergencyInfo
+                })
             });
 
             const patient = data.patient || {};
-            const finalId = patient.patientId || patient.patient_id || patientId;
+            const finalId = patient.patientId || patient.patient_id;
             localStorage.setItem("patientId", finalId);
-
-            const generated = document.getElementById("generatedPatientId");
-            if (generated) generated.textContent = finalId;
-            showPatientQR(finalId);
 
             result.classList.add("show");
             result.innerHTML = `
-                <h3>✅ Patient ID Created</h3>
-                <strong id="generatedPatientId">${escapeHTML(finalId)}</strong>
-                <div id="patientQRCode" class="patient-qr"></div>
-                <p>Name: ${escapeHTML(name)} • Mobile: ${escapeHTML(mobile)}</p>
-                <p>Show this QR code at the hospital or doctor's computer.</p>
-                <button type="button" class="secondary-btn" onclick="closeModal('patientModal'); openPatientFile(); document.getElementById('patientFileSearch').value='${escapeJS(finalId)}'; searchPatientFile();">
-                    📋 View Patient Profile
-                </button>
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:12px; padding:16px; margin-top:14px; text-align:center;">
+                    <div style="font-size:32px;">✅</div>
+                    <h3 style="color:#166534; margin:4px 0;">Patient ID Successfully Created</h3>
+                    <div style="font-size:20px; font-weight:800; font-family:monospace; color:#1e40af; background:#dbeafe; padding:6px 14px; border-radius:8px; display:inline-block; margin:8px 0; letter-spacing:1px;">
+                        ${escapeHTML(finalId)}
+                    </div>
+                    <div id="patientRegisteredQRCode" style="display:flex; justify-content:center; margin:12px 0;"></div>
+                    <p style="margin:4px 0; font-size:12px; color:#475569;">
+                        <strong>${escapeHTML(name)}</strong> • Age: ${escapeHTML(String(patient.age ?? "--"))} • Blood: ${escapeHTML(patient.bloodGroup || "N/A")}
+                    </p>
+                    <p style="margin:4px 0; font-size:11px; color:#64748b;">
+                        Hospital: <strong>${escapeHTML(patient.hospitalId || "AIIMS Gorakhpur")}</strong> • ABHA: <span class="${patient.abhaStatus === 'Linked' ? 'abha-badge-linked' : 'abha-badge-not-linked'}">${escapeHTML(patient.abhaStatus || 'Not Linked')}</span>
+                    </p>
+                    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
+                        <button type="button" class="primary-btn" onclick="closeModal('patientModal'); openPatientFile('${escapeJS(finalId)}');">
+                            📋 View Patient Dossier
+                        </button>
+                        <button type="button" class="secondary-btn" onclick="openPatientPrintCard(${escapeHTML(JSON.stringify(patient))});">
+                            🖨️ Print Patient Card
+                        </button>
+                    </div>
+                </div>
             `;
-            showPatientQR(finalId);
+
+            showPatientQR(patient, "patientRegisteredQRCode");
 
             form.reset();
             showCurrentPatient();
-            showNotification("Patient ID created successfully.", "success");
+            showNotification(`Patient ID ${finalId} created successfully!`, "success");
         } catch (error) {
             console.error("Patient registration error:", error);
-            showError(result, error.message);
+            showError(result, error.message || "Failed to register patient.");
         }
     });
 }
@@ -362,24 +441,25 @@ function createHospitalDataModal() {
     modal.id = "hospitalDataModal";
     modal.className = "modal";
     modal.innerHTML = `
-        <div class="modal-box hospital-modal-lg">
+        <div class="modal-box hospital-modal-lg" style="max-width: 960px;">
             <button class="close-btn" onclick="closeModal('hospitalDataModal')">×</button>
             <div class="modal-title-icon">🏥</div>
-            <h2>Find Hospitals</h2>
-            <p class="modal-subtitle">Search, filter, and choose healthcare institutions.</p>
+            <h2>Hospitals</h2>
+            <p class="modal-subtitle">Browse hospitals, specialized departments, diagnostics catalog, bed availability, and hospital management dashboards.</p>
             
             <div class="hospital-filter-bar">
-                <input type="text" id="hospitalSearch" placeholder="Search by name, address, or type..." oninput="filterAndSortHospitals()">
+                <input type="text" id="hospitalSearch" placeholder="Search by hospital name, address, or type..." oninput="filterAndSortHospitals()">
                 <select id="hospitalTypeFilter" onchange="filterAndSortHospitals()">
-                    <option value="">All Types</option>
+                    <option value="">All Ownership Types</option>
                     <option value="Government">Government</option>
+                    <option value="Autonomous">Autonomous Institute</option>
                     <option value="Private">Private</option>
                 </select>
                 <select id="hospitalSort" onchange="filterAndSortHospitals()">
                     <option value="name">Sort by Name</option>
                     <option value="beds">Most Available Beds</option>
                     <option value="icu">Most ICU Beds</option>
-                    <option value="distance">Nearest</option>
+                    <option value="distance">Nearest to Me</option>
                 </select>
             </div>
 
@@ -429,6 +509,8 @@ function renderHospitals(hospitals) {
         return;
     }
 
+    const user = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
+
     result.innerHTML = `
         <div class="hospital-cards-grid">
             ${hospitals.map(h => {
@@ -436,59 +518,81 @@ function renderHospitals(hospitals) {
                     ? calculateDistance(HealthcareState.userLocation.lat, HealthcareState.userLocation.lng, h.latitude, h.longitude) 
                     : null;
                 const emgPercent = h.emergency_beds > 0 ? Math.min(100, Math.round((h.emergency_beds / (h.total_beds || 1)) * 100 * 5)) : 50;
+                const isAffiliated = user && (user.hospitalId === h.hospital_id || user.role === "admin");
+                const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(h.latitude || 26.7606)},${encodeURIComponent(h.longitude || 83.3732)}`;
 
                 return `
-                <div class="pro-hospital-card">
-                    <div class="card-header">
-                        <div class="hospital-identity">
-                            <div class="hospital-avatar">🏥</div>
+                <div class="pro-hospital-card" style="border: 1px solid #cbd5e1; border-radius: 14px; padding: 18px; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 16px;">
+                    <div class="card-header" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                        <div class="hospital-identity" style="display: flex; align-items: center; gap: 12px;">
+                            <div class="hospital-avatar" style="width: 48px; height: 48px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid #bfdbfe;">🏥</div>
                             <div>
-                                <h3 class="hospital-name">${escapeHTML(h.hospital_name)}</h3>
-                                <span class="hospital-type-badge">${escapeHTML(h.hospital_type || 'General Hospital')}</span>
+                                <h3 class="hospital-name" style="font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${escapeHTML(h.hospital_name)}</h3>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <span class="hospital-type-badge" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 700;">${escapeHTML(h.hospital_type || 'General Hospital')}</span>
+                                    <span style="font-size: 11px; color: #64748b; font-weight: 600;">Gorakhpur, UP</span>
+                                </div>
                             </div>
                         </div>
-                        <span class="status-pill active">ACTIVE</span>
+                        <span class="status-pill active" style="background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 12px;">🚨 24x7 ACTIVE</span>
                     </div>
 
-                    <p class="hospital-address">📍 ${escapeHTML(h.address || 'Address not listed')}</p>
-                    ${distance ? `<p class="distance-tag">🚗 ${distance} km away</p>` : ''}
+                    <p class="hospital-address" style="font-size: 13px; color: #475569; margin-bottom: 8px;">
+                        📍 ${escapeHTML(h.address || 'Gorakhpur, UP')}
+                    </p>
 
-                    <div class="hospital-contacts">
-                        <span>📞 ${escapeHTML(h.phone || 'N/A')}</span>
-                        <span class="emergency-tag">🚨 Emergency: ${escapeHTML(h.emergency_number || '112')}</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                        <span style="background: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">🚨 24x7 Emergency</span>
+                        <span style="background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">💊 In-Hospital Pharmacy</span>
+                        <span style="background: #ede9fe; color: #5b21b6; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">🔬 Diagnostic Lab & Imaging</span>
+                        <span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">🚑 Emergency Ambulances</span>
                     </div>
 
-                    <div class="card-stats-grid">
+                    <div class="hospital-contacts" style="display: flex; gap: 14px; font-size: 12px; color: #334155; margin-bottom: 12px; flex-wrap: wrap;">
+                        <span>📞 Phone: <strong>${escapeHTML(h.phone || '0551-2207777')}</strong></span>
+                        <span class="emergency-tag" style="color: #dc2626; font-weight: 700;">🚨 Emergency: <strong>${escapeHTML(h.emergency_number || '102')}</strong></span>
+                        <span>🕒 Hours: <strong>24 Hours (OPD: 09:00 AM - 04:00 PM)</strong></span>
+                        ${distance ? `<span class="distance-tag" style="color: #2563eb; font-weight: 700;">🚗 ${distance} km from you</span>` : ''}
+                    </div>
+
+                    <div class="card-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 14px; text-align: center;">
                         <div class="stat-unit">
-                            <span class="label">Total Beds</span>
-                            <span class="val">${Number(h.total_beds || 0)}</span>
+                            <span class="label" style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Beds</span>
+                            <span class="val" style="font-size: 15px; font-weight: 800; color: #0f172a;">${Number(h.total_beds || 0)}</span>
                         </div>
                         <div class="stat-unit">
-                            <span class="label">ICU Beds</span>
-                            <span class="val">${Number(h.icu_beds || 0)}</span>
+                            <span class="label" style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">ICU Beds</span>
+                            <span class="val" style="font-size: 15px; font-weight: 800; color: #2563eb;">${Number(h.icu_beds || 0)}</span>
                         </div>
                         <div class="stat-unit">
-                            <span class="label">Emergency</span>
-                            <span class="val">${Number(h.emergency_beds || 0)}</span>
+                            <span class="label" style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Emergency</span>
+                            <span class="val" style="font-size: 15px; font-weight: 800; color: #dc2626;">${Number(h.emergency_beds || 0)}</span>
+                        </div>
+                        <div class="stat-unit">
+                            <span class="label" style="display: block; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase;">Doctors</span>
+                            <span class="val" style="font-size: 15px; font-weight: 800; color: #16a34a;">${Number(h.doctors_count || 12)}</span>
                         </div>
                     </div>
 
-                    <div class="capacity-bar-wrap">
-                        <div class="capacity-label">
-                            <span>Emergency Capacity</span>
-                            <strong>${emgPercent}% Available</strong>
-                        </div>
-                        <div class="progress-track"><div class="progress-fill" style="width: ${emgPercent}%;"></div></div>
-                    </div>
-
-                    <div class="card-actions">
-                        <button class="select-btn" onclick="selectHospitalById('${escapeJS(h.hospital_id)}')">Select Hospital</button>
-                        <button class="details-btn" onclick="viewHospital('${escapeJS(h.hospital_id)}')">View Details</button>
+                    <div class="card-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="details-btn" style="flex: 1; padding: 9px 14px; background: #2563eb; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="viewHospital('${escapeJS(h.hospital_id)}')">
+                            🏥 View Hospital
+                        </button>
+                        <button class="select-btn" style="padding: 9px 14px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="openHospitalDashboardDirect('${escapeJS(h.hospital_id)}')">
+                            📊 Hospital Dashboard →
+                        </button>
+                        <a href="${navUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; background: #ffffff; color: #0284c7; border: 1px solid #bae6fd; border-radius: 8px; font-weight: 700; text-decoration: none; cursor: pointer;">
+                            🗺️ Navigate
+                        </a>
                     </div>
                 </div>
             `}).join("")}
         </div>
     `;
+}
+
+function openHospitalDashboardDirect(hospitalId) {
+    window.location.href = `hospital_dashboard.html?hospital_id=${encodeURIComponent(hospitalId)}`;
 }
 
 function selectHospitalById(hospitalId) {
@@ -686,22 +790,6 @@ function renderConfirmationCard(app) {
         </div>
     `;
 }
-function createHospitalDataModal() {
-    if (document.getElementById("hospitalDataModal")) return;
-    const modal = document.createElement("div");
-    modal.id = "hospitalDataModal";
-    modal.className = "modal";
-    modal.innerHTML = `
-        <div class="modal-box">
-            <button class="close-btn" onclick="closeModal('hospitalDataModal')">×</button>
-            <div class="modal-title-icon">🏥</div>
-            <h2>Find Hospitals</h2>
-            <p class="modal-subtitle">Nearby hospitals and their live capacity.</p>
-            <div id="hospitalDataResult">Loading...</div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
 
 function selectHospital(hospitalId) {
     selectedHospital = hospitalData.find(h => String(h.id) === String(hospitalId)) || null;
@@ -735,12 +823,19 @@ async function viewHospital(hospitalIdOrName) {
         return;
     }
 
+    // Role-based routing: If logged-in user belongs to this hospital, automatically open its Hospital Dashboard
+    const user = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
+    if (user && (user.hospitalId === hospital.hospital_id || user.role === "admin")) {
+        window.location.href = `hospital_dashboard.html?hospital_id=${encodeURIComponent(hospital.hospital_id)}`;
+        return;
+    }
+
     openHospitalDetails(hospital);
 }
 
 /* =========================================================
    HOSPITAL DETAILS (Phase 2: professional tabbed modal
-   replacing the old showNotification() alert)
+   with Doctors, Departments, Diagnostics & Tests, Beds, Contact)
 ========================================================= */
 
 function createHospitalDetailsModal() {
@@ -749,7 +844,7 @@ function createHospitalDetailsModal() {
     modal.id = "hospitalDetailsModal";
     modal.className = "modal";
     modal.innerHTML = `
-        <div class="modal-box hospital-details-box">
+        <div class="modal-box hospital-details-box" style="max-width: 880px;">
             <button class="close-btn" onclick="closeModal('hospitalDetailsModal')">×</button>
             <div id="hospitalDetailsHeader"></div>
             <div class="hospital-details-tabs" id="hospitalDetailsTabs"></div>
@@ -759,8 +854,8 @@ function createHospitalDetailsModal() {
     document.body.appendChild(modal);
 }
 
-const HOSPITAL_DETAILS_TABS = ["Overview", "Doctors", "Treatments", "Beds", "Contact"];
-let hospitalDetailsState = { hospital: null, doctors: [], treatments: [], beds: [], activeTab: "Overview" };
+const HOSPITAL_DETAILS_TABS = ["Overview", "Doctors", "Treatments", "Diagnostics & Tests", "Beds", "Contact"];
+let hospitalDetailsState = { hospital: null, doctors: [], treatments: [], beds: [], tests: [], activeTab: "Overview", activeTestCategory: "ALL" };
 
 async function openHospitalDetails(hospital) {
     createHospitalDetailsModal();
@@ -768,21 +863,30 @@ async function openHospitalDetails(hospital) {
 
     const header = document.getElementById("hospitalDetailsHeader");
     const body = document.getElementById("hospitalDetailsBody");
-    header.innerHTML = `<h2>🏥 ${escapeHTML(hospital.hospital_name || "Hospital")}</h2>`;
-    showLoading(body, "Loading hospital details...");
+    header.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h2>🏥 ${escapeHTML(hospital.hospital_name || "Hospital")}</h2>
+            <button type="button" class="primary-btn" style="padding: 6px 14px; font-size: 12px;" onclick="window.location.href='hospital_dashboard.html?hospital_id=${encodeURIComponent(hospital.hospital_id)}'">
+                📊 Access Hospital Dashboard →
+            </button>
+        </div>
+    `;
+    showLoading(body, "Loading hospital details, doctors, and diagnostic services...");
 
-    hospitalDetailsState = { hospital, doctors: [], treatments: [], beds: [], activeTab: "Overview" };
+    hospitalDetailsState = { hospital, doctors: [], treatments: [], beds: [], tests: [], activeTab: "Overview", activeTestCategory: "ALL" };
 
     try {
-        const [doctorsRes, treatmentsRes, bedsRes] = await Promise.allSettled([
+        const [doctorsRes, treatmentsRes, bedsRes, testsRes] = await Promise.allSettled([
             apiRequest(`/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/doctors`),
             apiRequest(`/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/treatments`),
-            apiRequest(`/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/beds`)
+            apiRequest(`/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/beds`),
+            apiRequest(`/api/diagnostics/tests?hospital_id=${encodeURIComponent(hospital.hospital_id)}`)
         ]);
 
         hospitalDetailsState.doctors = doctorsRes.status === "fulfilled" ? (doctorsRes.value.doctors || []) : [];
         hospitalDetailsState.treatments = treatmentsRes.status === "fulfilled" ? (treatmentsRes.value.treatments || []) : [];
         hospitalDetailsState.beds = bedsRes.status === "fulfilled" ? (bedsRes.value.beds || []) : [];
+        hospitalDetailsState.tests = testsRes.status === "fulfilled" ? (testsRes.value.tests || []) : [];
 
         renderHospitalDetailsTabs();
         switchHospitalDetailsTab("Overview");
@@ -812,15 +916,21 @@ function switchHospitalDetailsTab(tab) {
     if (tab === "Overview") {
         body.innerHTML = `
             <div class="hd-overview-grid">
-                <div><span>Address</span><strong>${escapeHTML(h.address || "N/A")}</strong></div>
-                <div><span>Phone</span><strong>${escapeHTML(h.phone || "N/A")}</strong></div>
-                <div><span>Emergency</span><strong>${escapeHTML(h.emergency_number || "N/A")}</strong></div>
-                <div><span>Email</span><strong>${escapeHTML(h.email || "N/A")}</strong></div>
-                <div><span>Type</span><strong>${escapeHTML(h.hospital_type || "N/A")}</strong></div>
+                <div><span>Address</span><strong>${escapeHTML(h.address || "Gorakhpur, UP")}</strong></div>
+                <div><span>Phone</span><strong>${escapeHTML(h.phone || "0551-2207777")}</strong></div>
+                <div><span>Emergency</span><strong style="color:#dc2626;">🚨 ${escapeHTML(h.emergency_number || "102 / 108")}</strong></div>
+                <div><span>Email</span><strong>${escapeHTML(h.email || "contact@hospital.gorakhpur.in")}</strong></div>
+                <div><span>Ownership</span><strong>${escapeHTML(h.hospital_type || "General Hospital")}</strong></div>
                 <div><span>Total Beds</span><strong>${Number(h.total_beds || 0)}</strong></div>
                 <div><span>ICU Beds</span><strong>${Number(h.icu_beds || 0)}</strong></div>
-                <div><span>Doctors</span><strong>${Number(h.doctors_count || hospitalDetailsState.doctors.length || 0)}</strong></div>
-                <div><span>Status</span><strong>${escapeHTML(h.status || "Active")}</strong></div>
+                <div><span>Available Tests</span><strong>${Number(hospitalDetailsState.tests.length || 15)} Tests</strong></div>
+                <div><span>Status</span><strong style="color:#16a34a;">24x7 Operational</strong></div>
+            </div>
+            <div style="margin-top: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; font-size: 13px; color: #166534; display: flex; align-items: center; justify-content: space-between;">
+                <span>Are you an authorized doctor, nurse, or staff member of this hospital?</span>
+                <button type="button" style="background:#16a34a; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:700; cursor:pointer;" onclick="window.location.href='hospital_dashboard.html?hospital_id=${encodeURIComponent(h.hospital_id)}'">
+                    Enter Staff Dashboard →
+                </button>
             </div>
         `;
         return;
@@ -839,7 +949,7 @@ function switchHospitalDetailsTab(tab) {
                         </div>
                         <div class="hd-doctor-actions">
                             <span>₹${Number(d.consultation_fee || 0)}</span>
-                            <button type="button" onclick="openDoctorFromHospital('${escapeJS(d.doctor_id)}')">View Doctor</button>
+                            <button type="button" onclick="openDoctorFromHospital('${escapeJS(d.doctor_id)}')">Book Appointment</button>
                         </div>
                     </div>
                 `).join("")}
@@ -863,6 +973,11 @@ function switchHospitalDetailsTab(tab) {
         return;
     }
 
+    if (tab === "Diagnostics & Tests") {
+        renderDiagnosticsTabInHospitalDetails(body);
+        return;
+    }
+
     if (tab === "Beds") {
         body.innerHTML = renderBedCategoryCards(hospitalDetailsState.beds);
         return;
@@ -871,15 +986,399 @@ function switchHospitalDetailsTab(tab) {
     if (tab === "Contact") {
         body.innerHTML = `
             <div class="hd-contact">
-                <p>📞 ${escapeHTML(h.phone || "N/A")}</p>
-                <p>🚨 ${escapeHTML(h.emergency_number || "N/A")}</p>
-                <p>✉️ ${escapeHTML(h.email || "N/A")}</p>
-                <p>🌐 ${h.website ? `<a href="${escapeHTML(h.website)}" target="_blank" rel="noopener">${escapeHTML(h.website)}</a>` : "N/A"}</p>
-                ${(h.latitude && h.longitude) ? `<a class="primary-btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}">Get Directions</a>` : ""}
+                <p>📞 <strong>Phone:</strong> ${escapeHTML(h.phone || "0551-2207777")}</p>
+                <p>🚨 <strong>Emergency:</strong> ${escapeHTML(h.emergency_number || "102 / 108")}</p>
+                <p>✉️ <strong>Email:</strong> ${escapeHTML(h.email || "N/A")}</p>
+                <p>🌐 <strong>Website:</strong> ${h.website ? `<a href="${escapeHTML(h.website)}" target="_blank" rel="noopener">${escapeHTML(h.website)}</a>` : "N/A"}</p>
+                ${(h.latitude && h.longitude) ? `<a class="primary-btn" style="margin-top:10px; display:inline-block;" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}">🗺️ Get Google Maps Directions</a>` : ""}
             </div>
         `;
         return;
     }
+}
+
+// RENDER DIAGNOSTICS TAB IN HOSPITAL DETAILS MODAL
+function renderDiagnosticsTabInHospitalDetails(body) {
+    const tests = hospitalDetailsState.tests || [];
+    const activeCat = hospitalDetailsState.activeTestCategory || "ALL";
+
+    const filtered = activeCat === "ALL" 
+        ? tests 
+        : tests.filter(t => t.category_code === activeCat);
+
+    body.innerHTML = `
+        <div style="margin-bottom: 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                <h3 style="font-size:16px; font-weight:800; color:#0f172a;">🧪 Available Hospital Diagnostics & Tests</h3>
+                <span style="font-size:12px; color:#64748b;">${filtered.length} tests available</span>
+            </div>
+            
+            <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px;">
+                <button type="button" class="hd-cat-pill ${activeCat === 'ALL' ? 'active' : ''}" onclick="setDetailsTestCategory('ALL')">All Tests</button>
+                <button type="button" class="hd-cat-pill ${activeCat === 'PATHOLOGY' ? 'active' : ''}" onclick="setDetailsTestCategory('PATHOLOGY')">🩸 Pathology</button>
+                <button type="button" class="hd-cat-pill ${activeCat === 'RADIOLOGY' ? 'active' : ''}" onclick="setDetailsTestCategory('RADIOLOGY')">🩻 Radiology</button>
+                <button type="button" class="hd-cat-pill ${activeCat === 'CARDIOLOGY' ? 'active' : ''}" onclick="setDetailsTestCategory('CARDIOLOGY')">❤️ Cardiology</button>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px; max-height:420px; overflow-y:auto; padding-right:4px;">
+            ${!filtered.length ? '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#64748b;">No diagnostic tests in this category.</div>' : 
+              filtered.map(t => `
+                <div style="border:1px solid #e2e8f0; border-radius:10px; padding:12px; background:#ffffff; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                            <div style="font-size:13px; font-weight:800; color:#0f172a; line-height:1.3;">
+                                ${t.icon || "🧪"} ${escapeHTML(t.name)}
+                            </div>
+                            <strong style="color:#047857; font-size:14px; white-space:nowrap; margin-left:6px;">₹${Number(t.price)}</strong>
+                        </div>
+                        <p style="font-size:11px; color:#64748b; margin-bottom:8px; line-height:1.4;">${escapeHTML(t.short_description || t.purpose || "Clinical investigation.")}</p>
+                        <div style="font-size:10px; color:#475569; background:#f8fafc; padding:6px; border-radius:6px; margin-bottom:10px; display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                            <div>Sample: <strong>${escapeHTML(t.sample_required || "Blood")}</strong></div>
+                            <div>Report: <strong>${escapeHTML(t.estimated_report_time || "4-6h")}</strong></div>
+                            <div>Fasting: <strong>${t.fasting_required ? "Yes" : "No"}</strong></div>
+                            <div>Wait: <strong>${escapeHTML(t.estimated_wait_time || "20m")}</strong></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-top:auto;">
+                        <button type="button" style="flex:1; padding:7px; font-size:11px; font-weight:700; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;" onclick="openCitizenTestBookingModal('${t.test_id}', '${escapeJS(hospitalDetailsState.hospital.hospital_id)}')">
+                            ⚡ Book Online
+                        </button>
+                        ${t.home_collection ? `
+                            <button type="button" style="padding:7px 10px; font-size:11px; font-weight:700; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; border-radius:6px; cursor:pointer;" onclick="openCitizenHomeSampleModal('${t.test_id}', '${escapeJS(hospitalDetailsState.hospital.hospital_id)}')">
+                                🏠 Home
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join("")}
+        </div>
+    `;
+}
+
+function setDetailsTestCategory(catCode) {
+    hospitalDetailsState.activeTestCategory = catCode;
+    const body = document.getElementById("hospitalDetailsBody");
+    if (body) renderDiagnosticsTabInHospitalDetails(body);
+}
+
+// CITIZEN ONLINE TEST BOOKING MODAL
+let citizenTestCatalog = [];
+
+function createCitizenTestBookingModal() {
+    if (document.getElementById("citizenTestBookingModal")) return;
+    const modal = document.createElement("div");
+    modal.id = "citizenTestBookingModal";
+    modal.className = "modal";
+    modal.innerHTML = `
+        <div class="modal-box" style="max-width: 520px;">
+            <button class="close-btn" onclick="closeModal('citizenTestBookingModal')">×</button>
+            <div class="modal-title-icon">🧪</div>
+            <h2 id="ctbModalTitle">Book Diagnostic Test Online</h2>
+            <p class="modal-subtitle" id="ctbModalSubtitle">Instant token generation & slot confirmation</p>
+
+            <form id="citizenTestBookingForm" onsubmit="handleCitizenTestBookingSubmit(event)">
+                <input type="hidden" id="ctbTestId">
+                <input type="hidden" id="ctbHospitalId">
+                <input type="hidden" id="ctbIsHome" value="0">
+
+                <div class="form-group" id="ctbHospitalSelectGroup">
+                    <label>Select Hospital *</label>
+                    <select id="ctbHospitalSelect" class="form-control" onchange="onCtbHospitalChange(this.value)">
+                        <option value="HOSP-002">BRD Medical College (Medical Road)</option>
+                        <option value="HOSP-001">AIIMS Gorakhpur (Kushmi Forest)</option>
+                        <option value="HOSP-003">Gorakhpur District Hospital (Sadar)</option>
+                        <option value="HOSP-004">Fatima Hospital (Padri Bazar)</option>
+                        <option value="HOSP-GKP-010">Guru Shri Gorakshnath Hospital</option>
+                        <option value="HOSP-GKP-011">City Hospital & Trauma Centre</option>
+                        <option value="HOSP-GKP-012">Heritage Hospital</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="ctbTestDropdownGroup">
+                    <label>Choose Diagnostic Test *</label>
+                    <select id="ctbTestDropdown" class="form-control" onchange="onCtbTestDropdownChange(this.value)">
+                        <option value="">Loading diagnostic tests catalog...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="ctbTestDisplayGroup" style="display:none;">
+                    <label>Selected Test & Fee</label>
+                    <input type="text" id="ctbTestNameDisplay" readonly style="background:#f8fafc; font-weight:700;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Preferred Date *</label>
+                        <input type="date" id="ctbDateInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time Slot</label>
+                        <select id="ctbSlotSelect">
+                            <option value="08:00 AM - 10:00 AM">08:00 AM - 10:00 AM</option>
+                            <option value="10:00 AM - 12:00 PM">10:00 AM - 12:00 PM</option>
+                            <option value="12:00 PM - 02:00 PM">12:00 PM - 02:00 PM</option>
+                            <option value="02:00 PM - 04:00 PM">02:00 PM - 04:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Patient Full Name *</label>
+                    <input type="text" id="ctbPatientName" required placeholder="Patient Full Name">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>Mobile Number *</label>
+                        <input type="tel" id="ctbPatientMobile" required placeholder="10-digit mobile">
+                    </div>
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="ctbPatientAge" placeholder="Age" min="1" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="ctbPatientGender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="ctbAddressGroup" style="display:none;">
+                    <label>Home Address in Gorakhpur *</label>
+                    <input type="text" id="ctbHomeAddress" placeholder="Flat, Building, Area, Gorakhpur">
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="ctbPaymentMethod">
+                        <option value="UPI">UPI / Instant QR Payment</option>
+                        <option value="Cash">Pay at Hospital Lab Counter</option>
+                        <option value="Card">Debit / Credit Card</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                    <button type="button" class="secondary-btn" onclick="closeModal('citizenTestBookingModal')">Cancel</button>
+                    <button type="submit" class="primary-btn" id="ctbSubmitBtn">Confirm & Generate Token</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function onCtbHospitalChange(hospId) {
+    document.getElementById("ctbHospitalId").value = hospId;
+    loadCitizenTestsForHospital(hospId);
+}
+
+function onCtbTestDropdownChange(testId) {
+    document.getElementById("ctbTestId").value = testId;
+    const test = citizenTestCatalog.find(t => t.test_id === testId);
+    if (test) {
+        document.getElementById("ctbTestNameDisplay").value = `${test.name} — ₹${test.price}`;
+    }
+}
+
+async function loadCitizenTestsForHospital(hospId) {
+    const dropdown = document.getElementById("ctbTestDropdown");
+    if (!dropdown) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/diagnostics/tests?hospital_id=${encodeURIComponent(hospId || 'HOSP-002')}`);
+        const data = await res.json();
+        citizenTestCatalog = data.tests || [];
+        if (citizenTestCatalog.length === 0) {
+            dropdown.innerHTML = '<option value="">No tests currently listed for this hospital</option>';
+            return;
+        }
+
+        dropdown.innerHTML = citizenTestCatalog.map(t => 
+            `<option value="${t.test_id}">${escapeHTML(t.name)} — ₹${t.price} (${t.department || 'Diagnostics'})</option>`
+        ).join('');
+
+        const selectedTestId = dropdown.value;
+        document.getElementById("ctbTestId").value = selectedTestId;
+        const test = citizenTestCatalog.find(t => t.test_id === selectedTestId);
+        if (test) {
+            document.getElementById("ctbTestNameDisplay").value = `${test.name} — ₹${test.price}`;
+        }
+    } catch (err) {
+        console.warn("Could not load diagnostic catalog:", err);
+    }
+}
+
+async function openCitizenTestBookingModal(testId, hospId) {
+    createCitizenTestBookingModal();
+    const targetHospId = hospId || "HOSP-002";
+    document.getElementById("ctbHospitalId").value = targetHospId;
+    const hospSelect = document.getElementById("ctbHospitalSelect");
+    if (hospSelect) hospSelect.value = targetHospId;
+
+    document.getElementById("ctbIsHome").value = "0";
+    document.getElementById("ctbModalTitle").textContent = "Book Diagnostic Test Online";
+    document.getElementById("ctbModalSubtitle").textContent = "Instant token generation & slot confirmation";
+    document.getElementById("ctbAddressGroup").style.display = "none";
+    document.getElementById("ctbDateInput").value = new Date().toISOString().split("T")[0];
+
+    // Autofill patient details if user logged in or saved in localStorage
+    const savedPatientId = localStorage.getItem("patientId");
+    const user = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
+    if (user) {
+        document.getElementById("ctbPatientName").value = user.name || "";
+        document.getElementById("ctbPatientMobile").value = user.mobile || "";
+    }
+
+    if (testId) {
+        document.getElementById("ctbTestId").value = testId;
+        document.getElementById("ctbHospitalSelectGroup").style.display = "none";
+        document.getElementById("ctbTestDropdownGroup").style.display = "none";
+        document.getElementById("ctbTestDisplayGroup").style.display = "block";
+        const test = (hospitalDetailsState.tests || []).find(t => t.test_id === testId) || citizenTestCatalog.find(t => t.test_id === testId);
+        if (test) {
+            document.getElementById("ctbTestNameDisplay").value = `${test.name} — ₹${test.price}`;
+        }
+    } else {
+        document.getElementById("ctbHospitalSelectGroup").style.display = "block";
+        document.getElementById("ctbTestDropdownGroup").style.display = "block";
+        document.getElementById("ctbTestDisplayGroup").style.display = "none";
+        await loadCitizenTestsForHospital(targetHospId);
+    }
+
+    openModal("citizenTestBookingModal");
+}
+
+function openCitizenHomeSampleModal(testId, hospId) {
+    openCitizenTestBookingModal(testId, hospId);
+    document.getElementById("ctbIsHome").value = "1";
+    document.getElementById("ctbModalTitle").textContent = "Book Home Sample Collection";
+    document.getElementById("ctbModalSubtitle").textContent = "A certified phlebotomist will visit your address";
+    document.getElementById("ctbAddressGroup").style.display = "block";
+    document.getElementById("ctbHomeAddress").required = true;
+}
+
+async function handleCitizenTestBookingSubmit(e) {
+    e.preventDefault();
+    const testId = document.getElementById("ctbTestId").value;
+    const hospId = document.getElementById("ctbHospitalId").value || "HOSP-002";
+    const isHome = document.getElementById("ctbIsHome").value === "1";
+    const bookingDate = document.getElementById("ctbDateInput").value;
+    const slot = document.getElementById("ctbSlotSelect").value;
+    const patientName = document.getElementById("ctbPatientName").value;
+    const patientMobile = document.getElementById("ctbPatientMobile").value;
+    const patientAge = document.getElementById("ctbPatientAge").value;
+    const patientGender = document.getElementById("ctbPatientGender").value;
+    const homeAddress = document.getElementById("ctbHomeAddress")?.value;
+    const paymentMethod = document.getElementById("ctbPaymentMethod").value;
+    const savedPatientId = localStorage.getItem("patientId") || null;
+
+    if (!testId) {
+        showNotification("Please select a diagnostic test.", "error");
+        return;
+    }
+
+    const submitBtn = document.getElementById("ctbSubmitBtn");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Confirming Booking...";
+
+    try {
+        const res = await apiRequest("/api/diagnostics/bookings", "POST", {
+            hospital_id: hospId,
+            test_id: testId,
+            patient_id: savedPatientId,
+            patient_name: patientName,
+            patient_mobile: patientMobile,
+            patient_age: patientAge,
+            patient_gender: patientGender,
+            booking_date: bookingDate,
+            time_slot: slot,
+            collection_type: isHome ? "Home Sample Collection" : "Hospital Lab",
+            home_address: isHome ? homeAddress : null,
+            payment_method: paymentMethod,
+            payment_status: paymentMethod === "UPI" ? "Paid" : "Pending",
+            booking_type: "ONLINE"
+        });
+
+        closeModal("citizenTestBookingModal");
+        
+        // Render rich Confirmation Slip Modal
+        showTestBookingConfirmationSlip(res.booking);
+        showNotification(`🎉 Test Booking Confirmed! Token: ${res.booking.token_number}`, "success");
+    } catch (err) {
+        showNotification("Booking error: " + err.message, "error");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Confirm & Generate Token";
+    }
+}
+
+function showTestBookingConfirmationSlip(booking) {
+    let modal = document.getElementById("testBookingConfirmModal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "testBookingConfirmModal";
+        modal.className = "modal";
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="modal-box" style="max-width: 480px; text-align: center; border-radius: 16px;">
+            <button class="close-btn" onclick="closeModal('testBookingConfirmModal')">×</button>
+            <div style="font-size: 40px; margin-bottom: 8px;">✅</div>
+            <h2 style="color: #166534; font-size: 20px; font-weight: 800; margin: 0 0 4px 0;">Diagnostic Test Confirmed</h2>
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 16px 0;">Token & Booking Slip Generated for Hospital Visit</p>
+
+            <div style="background: #eff6ff; border: 2px dashed #93c5fd; border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+                <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px;">Live Queue Token</div>
+                <div style="font-size: 32px; font-weight: 900; color: #1d4ed8; font-family: monospace; margin: 4px 0;">
+                    ${escapeHTML(booking.token_number || 'A-025')}
+                </div>
+                <small style="color: #475569; font-size: 12px;">Booking ID: <strong>${escapeHTML(booking.booking_id || '')}</strong></small>
+            </div>
+
+            <div id="testSlipQrContainer" style="display: flex; justify-content: center; margin-bottom: 16px;"></div>
+
+            <div style="text-align: left; background: #f8fafc; border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #334155; margin-bottom: 16px; line-height: 1.6;">
+                <div>🧪 <strong>Test:</strong> ${escapeHTML(booking.test_name || 'Diagnostic Investigation')}</div>
+                <div>🏥 <strong>Hospital:</strong> ${escapeHTML(booking.hospital_id || 'Hospital Diagnostic Wing')}</div>
+                <div>👤 <strong>Patient:</strong> ${escapeHTML(booking.patient_name || 'Patient')} ${booking.patient_id ? `(ID: ${booking.patient_id})` : ''}</div>
+                <div>🕒 <strong>Date & Slot:</strong> ${escapeHTML(String(booking.booking_date).split('T')[0])} • ${escapeHTML(booking.time_slot || 'Morning')}</div>
+                <div>💳 <strong>Amount / Status:</strong> ₹${Number(booking.amount || 0)} (${escapeHTML(booking.payment_status || 'Paid')})</div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="secondary-btn" style="flex: 1;" onclick="window.print()">🖨️ Print Slip</button>
+                <button type="button" class="primary-btn" style="flex: 1;" onclick="closeModal('testBookingConfirmModal')">Done</button>
+            </div>
+        </div>
+    `;
+
+    openModal("testBookingConfirmModal");
+
+    // Generate QR Code on the slip
+    setTimeout(() => {
+        const qrContainer = document.getElementById("testSlipQrContainer");
+        if (qrContainer && typeof QRCode !== "undefined") {
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+                text: JSON.stringify({
+                    type: "SMARTCITY_DIAGNOSTIC_BOOKING",
+                    bookingId: booking.booking_id,
+                    token: booking.token_number,
+                    patientId: booking.patient_id,
+                    testId: booking.test_id
+                }),
+                width: 140,
+                height: 140,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+    }, 100);
 }
 
 function openDoctorFromHospital(doctorId) {
@@ -1034,8 +1533,8 @@ async function bookDoctorSlot() {
     const doctor = document.getElementById("doctorSelect")?.value.trim();
     const appointmentDate = document.getElementById("appointmentDate")?.value;
     const timeSelect = document.getElementById("appointmentTime");
-    const slotId = timeSelect?.value;
-    const slotLabel = timeSelect?.selectedOptions?.[0]?.textContent?.trim();
+    const slotId = timeSelect?.value || (typeof HealthcareState !== "undefined" ? HealthcareState.selectedTime : null);
+    const slotLabel = timeSelect?.selectedOptions?.[0]?.textContent?.trim() || slotId;
     const patientId = document.getElementById("appointmentPatientId")?.value.trim();
     const result = document.getElementById("appointmentResult");
     if (!result) return;
@@ -2147,8 +2646,13 @@ function renderBeds(beds) {
 let currentRecordPatient = null;
 let currentRecordTab = "profile";
 
-function openPatientFile() {
+function openPatientFile(patientId = null) {
     openModal("patientFileModal");
+    if (patientId) {
+        const input = document.getElementById("patientFileSearch");
+        if (input) input.value = patientId;
+        searchPatientFile();
+    }
 }
 
 function loadMyPatientRecord() {
@@ -2207,6 +2711,405 @@ function printPatientRecord() {
     window.print();
 }
 
+/* =========================================================
+   PRINT PATIENT CARD (OFFICIAL HEALTH ID BADGE)
+========================================================= */
+
+function openPatientPrintCard(patient = null) {
+    const target = patient || currentRecordPatient;
+    if (!target) {
+        showNotification("No active patient profile loaded.", "warning");
+        return;
+    }
+
+    const pId = target.patient_id || target.patientId || "--";
+    const name = target.name || "--";
+    const age = target.age !== null && target.age !== undefined ? `${target.age} yrs` : "--";
+    const gender = target.gender || "--";
+    const blood = target.blood_group || target.bloodGroup || "N/A";
+    const mobile = target.mobile || "--";
+    const emg = target.emergency_contact || target.emergencyContact || "--";
+    const hosp = target.hospital_name || target.hospitalId || target.hospital_id || "AIIMS Gorakhpur";
+    const abha = target.abha_address || (target.abha_status === "Linked" ? "Linked (ABDM)" : "Not Linked");
+
+    const idEl = document.getElementById("printCardPatientId");
+    if (idEl) idEl.textContent = pId;
+    const nameEl = document.getElementById("printCardName");
+    if (nameEl) nameEl.textContent = name;
+    const agEl = document.getElementById("printCardAgeGender");
+    if (agEl) agEl.textContent = `${age} / ${gender}`;
+    const bgEl = document.getElementById("printCardBloodGroup");
+    if (bgEl) bgEl.textContent = blood;
+    const mobEl = document.getElementById("printCardMobile");
+    if (mobEl) mobEl.textContent = mobile;
+    const emgEl = document.getElementById("printCardEmergency");
+    if (emgEl) emgEl.textContent = emg;
+    const hospEl = document.getElementById("printCardHospital");
+    if (hospEl) hospEl.textContent = hosp;
+    const abhaEl = document.getElementById("printCardAbha");
+    if (abhaEl) abhaEl.textContent = abha;
+
+    showPatientQR(target, "printCardQRCode");
+    openModal("patientPrintCardModal");
+}
+
+function executePrintPatientCard() {
+    window.print();
+}
+
+/* =========================================================
+   ABHA DEMO & CONSENT LINKING
+========================================================= */
+
+function openAbhaModal(patientId = null) {
+    currentActiveAbhaPatientId = patientId || (currentRecordPatient ? currentRecordPatient.patient_id : null);
+    if (!currentActiveAbhaPatientId) {
+        showNotification("Please select or search a patient first.", "warning");
+        return;
+    }
+    const input = document.getElementById("inputAbhaAddress");
+    if (input) input.value = "";
+    const msg = document.getElementById("abhaLinkMsg");
+    if (msg) msg.style.display = "none";
+    openModal("abhaModal");
+}
+
+async function confirmAbhaLink() {
+    const patientId = currentActiveAbhaPatientId;
+    const abhaAddress = document.getElementById("inputAbhaAddress")?.value.trim();
+    const consent = document.getElementById("chkAbhaConsent")?.checked;
+    const msg = document.getElementById("abhaLinkMsg");
+
+    if (!patientId) {
+        showNotification("Patient ID missing.", "error");
+        return;
+    }
+    if (!abhaAddress) {
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#dc2626";
+            msg.textContent = "Please enter your ABHA address (e.g. name@abdm).";
+        }
+        return;
+    }
+    if (!consent) {
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#dc2626";
+            msg.textContent = "Consent is required under ABDM guidelines.";
+        }
+        return;
+    }
+
+    try {
+        const res = await apiRequest(`/api/patients/${encodeURIComponent(patientId)}/link-abha`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ abhaAddress, consentGiven: true })
+        });
+
+        if (currentRecordPatient && currentRecordPatient.patient_id === patientId) {
+            currentRecordPatient.abha_status = "Linked";
+            currentRecordPatient.abha_address = res.abhaAddress || abhaAddress;
+            renderRecordTab("profile");
+        }
+
+        closeModal("abhaModal");
+        showNotification(res.message || "ABHA linked successfully!", "success");
+    } catch (err) {
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#dc2626";
+            msg.textContent = err.message || "Failed to link ABHA.";
+        }
+    }
+}
+
+async function unlinkAbha(patientId) {
+    if (!confirm("Are you sure you want to unlink ABHA records for this patient?")) return;
+    try {
+        const res = await apiRequest(`/api/patients/${encodeURIComponent(patientId)}/unlink-abha`, {
+            method: "POST"
+        });
+
+        if (currentRecordPatient && currentRecordPatient.patient_id === patientId) {
+            currentRecordPatient.abha_status = "Not Linked";
+            currentRecordPatient.abha_address = null;
+            renderRecordTab("profile");
+        }
+
+        showNotification(res.message || "ABHA unlinked successfully.", "info");
+    } catch (err) {
+        showNotification(err.message || "Failed to unlink ABHA.", "error");
+    }
+}
+
+/* =========================================================
+   QR SCANNER & ROLE-AWARE VERIFICATION
+========================================================= */
+
+function openQrScanModal() {
+    const input = document.getElementById("manualQrInput");
+    if (input) input.value = "";
+    const res = document.getElementById("qrVerificationResult");
+    if (res) {
+        res.style.display = "none";
+        res.innerHTML = "";
+    }
+    openModal("qrScanModal");
+}
+
+function closeQrScanModal() {
+    stopPatientCameraScanner();
+    closeModal("qrScanModal");
+}
+
+function startPatientCameraScanner() {
+    if (typeof Html5Qrcode === "undefined") {
+        showNotification("Camera QR scanner library loading. Please try pasting the token.", "warning");
+        return;
+    }
+
+    const container = document.getElementById("patient-qr-reader");
+    if (!container) return;
+
+    const btnStart = document.getElementById("btnStartPatientCamera");
+    const btnStop = document.getElementById("btnStopPatientCamera");
+
+    try {
+        if (!html5QrScannerInstance) {
+            html5QrScannerInstance = new Html5Qrcode("patient-qr-reader");
+        }
+
+        html5QrScannerInstance.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 220, height: 220 } },
+            (decodedText) => {
+                console.log("[PATIENT QR SCANNED]", decodedText);
+                stopPatientCameraScanner();
+                handleScannedQrResult(decodedText);
+            },
+            () => {}
+        ).then(() => {
+            if (btnStart) btnStart.style.display = "none";
+            if (btnStop) btnStop.style.display = "inline-flex";
+        }).catch(err => {
+            console.error("Camera scanner error:", err);
+            showNotification("Camera access denied or unavailable. Use manual QR verification below.", "warning");
+        });
+    } catch (err) {
+        console.error("Failed to start camera:", err);
+    }
+}
+
+function stopPatientCameraScanner() {
+    const btnStart = document.getElementById("btnStartPatientCamera");
+    const btnStop = document.getElementById("btnStopPatientCamera");
+
+    if (html5QrScannerInstance) {
+        html5QrScannerInstance.stop().then(() => {
+            html5QrScannerInstance.clear();
+        }).catch(err => console.warn(err));
+    }
+    if (btnStart) btnStart.style.display = "inline-flex";
+    if (btnStop) btnStop.style.display = "none";
+}
+
+function verifyQrFromInput() {
+    const val = document.getElementById("manualQrInput")?.value.trim();
+    if (!val) {
+        showNotification("Please enter or paste a QR Token / Patient ID.", "warning");
+        return;
+    }
+    handleScannedQrResult(val);
+}
+
+async function handleScannedQrResult(qrData) {
+    const resBox = document.getElementById("qrVerificationResult");
+    if (!resBox) return;
+
+    resBox.style.display = "block";
+    showLoading(resBox, "Verifying digital token with hospital central registry...");
+
+    try {
+        const data = await apiRequest("/api/patients/verify-qr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ qrData })
+        });
+
+        if (data.authorized) {
+            const p = data.patient;
+            resBox.innerHTML = `
+                <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:16px; text-align:center;">
+                    <span style="font-size:26px;">🔓</span>
+                    <h3 style="color:#166534; margin:4px 0;">Verified Clinical Access</h3>
+                    <div style="font-family:monospace; font-size:16px; font-weight:800; color:#1e40af; background:#dbeafe; padding:4px 10px; border-radius:6px; display:inline-block; margin:6px 0;">
+                        ${escapeHTML(p.patient_id)}
+                    </div>
+                    <p style="margin:4px 0; font-size:13px; color:#1e293b;"><strong>${escapeHTML(p.name)}</strong> • ${escapeHTML(p.gender || "--")} • Blood: ${escapeHTML(p.blood_group || "N/A")}</p>
+                    <p style="margin:2px 0; font-size:11px; color:#64748b;">Hospital: ${escapeHTML(p.hospital_name || p.hospital_id || "AIIMS Gorakhpur")}</p>
+                    <div style="margin-top:14px; display:flex; gap:8px; justify-content:center;">
+                        <button type="button" class="primary-btn" onclick="closeQrScanModal(); openPatientFile('${escapeJS(p.patient_id)}');">
+                            📋 Open Complete Medical Dossier →
+                        </button>
+                    </div>
+                </div>
+            `;
+            showNotification(`QR Authenticated: ${p.name} (${p.patient_id})`, "success");
+        } else {
+            const v = data.verification || {};
+            resBox.innerHTML = `
+                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:16px; text-align:center;">
+                    <span style="font-size:26px;">🛡️</span>
+                    <h3 style="color:#0f172a; margin:4px 0;">Authenticated SmartCity Patient ID</h3>
+                    <div style="font-family:monospace; font-size:16px; font-weight:800; color:#0284c7; background:#e0f2fe; padding:4px 10px; border-radius:6px; display:inline-block; margin:6px 0;">
+                        ${escapeHTML(v.patientId)}
+                    </div>
+                    <p style="margin:4px 0; font-size:13px; color:#334155;">Holder: <strong>${escapeHTML(v.maskedName)}</strong></p>
+                    <p style="margin:2px 0; font-size:11px; color:#64748b;">Affiliation: ${escapeHTML(v.hospital)} • Status: <span class="status-pill-active">${escapeHTML(v.status || "Active")}</span></p>
+                    <div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:6px; padding:8px; margin-top:10px; font-size:11px; color:#92400e;">
+                        ℹ️ ${escapeHTML(v.message)}
+                    </div>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error("QR Verification error:", err);
+        showError(resBox, err.message || "Invalid or unverified QR Code.");
+    }
+}
+
+/* =========================================================
+   STAFF PATIENT MANAGEMENT DIRECTORY
+========================================================= */
+
+function openStaffPatientManager() {
+    openModal("staffPatientManagerModal");
+    fetchStaffPatientsList();
+}
+
+function debounceStaffPatientSearch() {
+    clearTimeout(staffPatientSearchTimeout);
+    staffPatientSearchTimeout = setTimeout(() => {
+        fetchStaffPatientsList();
+    }, 300);
+}
+
+function resetStaffPatientFilters() {
+    const s = document.getElementById("staffFilterSearch");
+    if (s) s.value = "";
+    const h = document.getElementById("staffFilterHospital");
+    if (h) h.value = "";
+    const g = document.getElementById("staffFilterGender");
+    if (g) g.value = "";
+    const st = document.getElementById("staffFilterStatus");
+    if (st) st.value = "";
+    fetchStaffPatientsList();
+}
+
+async function fetchStaffPatientsList() {
+    const wrapper = document.getElementById("staffPatientsTableWrapper");
+    const countText = document.getElementById("staffPatientsCountText");
+    if (!wrapper) return;
+
+    showLoading(wrapper, "Loading patients registry...");
+
+    const search = document.getElementById("staffFilterSearch")?.value.trim() || "";
+    const hospital = document.getElementById("staffFilterHospital")?.value || "";
+    const gender = document.getElementById("staffFilterGender")?.value || "";
+    const status = document.getElementById("staffFilterStatus")?.value || "";
+
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (hospital) params.set("hospital", hospital);
+    if (gender) params.set("gender", gender);
+    if (status) params.set("status", status);
+
+    try {
+        const data = await apiRequest(`/api/patients?${params.toString()}`);
+        const list = data.patients || [];
+
+        if (countText) {
+            countText.textContent = `Showing ${list.length} registered patient(s)`;
+        }
+
+        if (!list.length) {
+            wrapper.innerHTML = `
+                <div style="padding: 30px; text-align: center; color: #64748b;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
+                    <h4>No matching patients found</h4>
+                    <p style="font-size: 12px; margin: 4px 0 0;">Try adjusting search terms or register a new patient.</p>
+                </div>
+            `;
+            return;
+        }
+
+        wrapper.innerHTML = `
+            <table class="staff-patient-table">
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Name</th>
+                        <th>Age / Gender</th>
+                        <th>Mobile</th>
+                        <th>Hospital</th>
+                        <th>ABHA</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${list.map(p => `
+                        <tr>
+                            <td><strong style="font-family:monospace; color:#2563eb;">${escapeHTML(p.patient_id)}</strong></td>
+                            <td><strong>${escapeHTML(p.name)}</strong></td>
+                            <td>${escapeHTML(String(p.age ?? "--"))} / ${escapeHTML(p.gender || "--")}</td>
+                            <td>${escapeHTML(p.mobile || "--")}</td>
+                            <td>${escapeHTML(p.hospital_name || p.hospital_id || "AIIMS Gorakhpur")}</td>
+                            <td><span class="${p.abha_status === 'Linked' ? 'abha-badge-linked' : 'abha-badge-not-linked'}">${escapeHTML(p.abha_status || 'Not Linked')}</span></td>
+                            <td><span class="${p.status === 'Active' ? 'status-pill-active' : 'status-pill-inactive'}">${escapeHTML(p.status || 'Active')}</span></td>
+                            <td>
+                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                    <button type="button" class="primary-btn" onclick="closeModal('staffPatientManagerModal'); openPatientFile('${escapeJS(p.patient_id)}');" style="padding:4px 8px; font-size:11px;">
+                                        📋 Dossier
+                                    </button>
+                                    <button type="button" class="secondary-btn" onclick="openPatientPrintCard(${escapeHTML(JSON.stringify(p))});" style="padding:4px 8px; font-size:11px;">
+                                        🖨️ Card
+                                    </button>
+                                    <button type="button" class="secondary-btn" onclick="toggleStaffPatientStatus('${escapeJS(p.patient_id)}', '${escapeJS(p.status || 'Active')}')" style="padding:4px 8px; font-size:11px; border-color:#cbd5e1;">
+                                        ${p.status === 'Inactive' ? 'Activate' : 'Disable'}
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        console.error("Fetch staff patients error:", err);
+        showError(wrapper, err.message || "Failed to load patients directory.");
+    }
+}
+
+async function toggleStaffPatientStatus(patientId, currentStatus) {
+    const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
+    if (!confirm(`Change status of ${patientId} to ${nextStatus}?`)) return;
+
+    try {
+        await apiRequest(`/api/patients/${encodeURIComponent(patientId)}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: nextStatus })
+        });
+        showNotification(`Patient ${patientId} status updated to ${nextStatus}.`, "success");
+        fetchStaffPatientsList();
+    } catch (err) {
+        showNotification(err.message || "Failed to change patient status.", "error");
+    }
+}
+
 async function renderRecordTab(tab) {
     const result = document.getElementById("patientFileResult");
     if (!result || !currentRecordPatient) return;
@@ -2220,25 +3123,96 @@ async function renderRecordTab(tab) {
     `;
 
     if (tab === "profile") {
+        const isAbhaLinked = patient.abha_status === "Linked";
         result.innerHTML = `
             ${actionsBar}
             <div class="patient-profile-card">
                 <div class="patient-profile-header">
                     <div class="patient-avatar">👤</div>
-                    <div><span>Patient ID: ${escapeHTML(patient.patient_id)}</span><h3>${escapeHTML(patient.name || "Patient")}</h3></div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span style="background:#1e293b; color:#38bdf8; font-family:monospace; font-weight:800; padding:2px 8px; border-radius:6px;">${escapeHTML(patient.patient_id)}</span>
+                            <span class="${patient.status === 'Active' ? 'status-pill-active' : 'status-pill-inactive'}">${escapeHTML(patient.status || 'Active')}</span>
+                        </div>
+                        <h3 style="margin-top:4px;">${escapeHTML(patient.name || "Patient")}</h3>
+                    </div>
                 </div>
+
                 <div class="patient-profile-grid">
-                    <div><span>Age</span><strong>${escapeHTML(String(patient.age ?? "N/A"))}</strong></div>
+                    <div><span>Age</span><strong>${escapeHTML(String(patient.age ?? "N/A"))} yrs</strong></div>
                     <div><span>Gender</span><strong>${escapeHTML(patient.gender || "N/A")}</strong></div>
-                    <div><span>Mobile</span><strong>${escapeHTML(patient.mobile || "N/A")}</strong></div>
                     <div><span>Blood Group</span><strong>${escapeHTML(patient.blood_group || "N/A")}</strong></div>
-                    <div><span>Address</span><strong>${escapeHTML(patient.address || "N/A")}</strong></div>
-                    <div><span>Registered</span><strong>${patient.created_at ? new Date(patient.created_at).toLocaleDateString() : "N/A"}</strong></div>
+                    <div><span>Mobile Number</span><strong>${escapeHTML(patient.mobile || "N/A")}</strong></div>
+                    <div><span>Emergency Contact</span><strong>${escapeHTML(patient.emergency_contact || "N/A")}</strong></div>
+                    <div><span>Registered Hospital</span><strong>${escapeHTML(patient.hospital_name || patient.hospital_id || "AIIMS Gorakhpur")}</strong></div>
+                    <div><span>Registration Date</span><strong>${patient.created_at ? new Date(patient.created_at).toLocaleDateString() : "N/A"}</strong></div>
+                    <div><span>Residential Address</span><strong>${escapeHTML(patient.address || "N/A")}</strong></div>
                 </div>
-                <div id="patientRecordQR" class="patient-qr"></div>
+
+                <!-- ABHA INTEGRATION SECTION -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin: 16px 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <span style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">ABDM / ABHA ACCOUNT STATUS</span>
+                            <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                                <span class="${isAbhaLinked ? 'abha-badge-linked' : 'abha-badge-not-linked'}">
+                                    ${isAbhaLinked ? '✅ Linked' : '⚠️ Not Linked'}
+                                </span>
+                                ${patient.abha_address ? `<strong style="font-size:13px; color:#1e293b;">${escapeHTML(patient.abha_address)}</strong>` : ''}
+                            </div>
+                        </div>
+                        <div>
+                            ${isAbhaLinked ? `
+                                <button type="button" class="secondary-btn" onclick="unlinkAbha('${escapeJS(patient.patient_id)}')" style="font-size:11px; padding:6px 12px; border-color:#fca5a5; color:#b91c1c;">
+                                    Revoke / Unlink
+                                </button>
+                            ` : `
+                                <button type="button" class="primary-btn" onclick="openAbhaModal('${escapeJS(patient.patient_id)}')" style="font-size:11px; padding:6px 14px;">
+                                    🇮🇳 Link Existing ABHA →
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+
+                ${patient.emergency_info ? `
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:12px; margin-bottom:16px;">
+                        <span style="font-size:10px; font-weight:800; color:#991b1b; text-transform:uppercase;">🚨 EMERGENCY MEDICAL INFORMATION</span>
+                        <p style="margin:4px 0 0; font-size:12px; color:#7f1d1d;">${escapeHTML(patient.emergency_info)}</p>
+                    </div>
+                ` : ''}
+
+                <!-- ACTIONS BUTTONS BAR -->
+                <div class="patient-actions-bar" style="display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; padding-top:14px; border-top:1px solid #e2e8f0;">
+                    <button type="button" class="primary-btn" onclick="switchRecordTab('records')" style="font-size:11px; padding:7px 12px;">
+                        📝 View Medical Records
+                    </button>
+                    <button type="button" class="secondary-btn" onclick="switchRecordTab('appointments')" style="font-size:11px; padding:7px 12px;">
+                        📅 View Appointments
+                    </button>
+                    <button type="button" class="secondary-btn" onclick="switchRecordTab('prescriptions')" style="font-size:11px; padding:7px 12px;">
+                        💊 View Prescriptions
+                    </button>
+                    <button type="button" class="secondary-btn" onclick="switchRecordTab('reports')" style="font-size:11px; padding:7px 12px;">
+                        📁 View Reports
+                    </button>
+                    <button type="button" class="secondary-btn" onclick="showPatientQR(currentRecordPatient, 'patientRecordQR')" style="font-size:11px; padding:7px 12px;">
+                        🔄 Generate / Refresh QR
+                    </button>
+                    <button type="button" class="primary-btn" onclick="openPatientPrintCard()" style="font-size:11px; padding:7px 14px; background:#0284c7;">
+                        🖨️ Print Patient Card
+                    </button>
+                </div>
+
+                <!-- QR CODE BOX -->
+                <div style="text-align:center; padding:16px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0; margin-top:10px;">
+                    <div id="patientRecordQR" class="patient-qr" style="display:flex; justify-content:center; margin-bottom:8px;"></div>
+                    <span style="font-size:11px; font-weight:700; color:#334155;">Secure Anti-Tamper Clinical QR Token</span>
+                    <p style="font-size:10px; color:#64748b; margin:2px 0 0;">Scan via Hospital Reception, Doctor Terminal, or Emergency Desk</p>
+                </div>
             </div>
         `;
-        showPatientQR(patient.patient_id, "patientRecordQR");
+        showPatientQR(patient, "patientRecordQR");
         return;
     }
 
@@ -3254,10 +4228,18 @@ async function submitDoctorLogin() {
 Object.assign(window, {
     apiRequest, escapeHTML, escapeJS, openModal, closeModal, closeAllModals,
 
-    openPatientRegistration, generatePatientID, calculateAge, showPatientQR,
+    openPatientRegistration, generatePatientID, calculateAge, handleDobAutoAge, showPatientQR,
     getPatientId, isPatientLoggedIn, showCurrentPatient, logoutPatient,
+    openPatientPrintCard, executePrintPatientCard,
+    openAbhaModal, confirmAbhaLink, unlinkAbha,
+    openQrScanModal, closeQrScanModal, startPatientCameraScanner, stopPatientCameraScanner, verifyQrFromInput, handleScannedQrResult,
+    openStaffPatientManager, debounceStaffPatientSearch, resetStaffPatientFilters, fetchStaffPatientsList, toggleStaffPatientStatus,
 
     showHospitals, renderHospitals, selectHospital, viewHospital, searchHospitals,
+    onBookingHospitalChange, fetchDynamicSlots, confirmStrictBooking, filterAndSortHospitals,
+    openHospitalDashboardDirect, selectTimeSlot, switchHospitalDetailsTab, openDoctorFromHospital,
+    setDetailsTestCategory, openCitizenTestBookingModal, openCitizenHomeSampleModal,
+    handleCitizenTestBookingSubmit, cancelAppointment, openHospitalDetails, createHospitalDetailsModal,
 
     openDoctorBooking, bookSpecificDoctor, bookDoctorSlot, printAppointment,
     openDoctorFinder, loadDoctorFinder, searchDoctors, resetDoctorFilters,

@@ -410,93 +410,159 @@ router.post("/api/appointments", (req, res) => {
 router.put("/api/appointments/:id/cancel", (req, res) => {
     const appointmentId = req.params.id;
 
-    db.beginTransaction((txErr) => {
-        if (txErr) {
-            console.error("Transaction start error:", txErr);
-            return res.status(500).json({ message: "Database error." });
+    db.getConnection((connErr, conn) => {
+        if (connErr) {
+            console.error("Connection acquire error:", connErr);
+            return res.status(500).json({ message: "Database connection error." });
         }
 
-        const findSql = `
-            SELECT id, slot_id, status
-            FROM appointments
-            WHERE id = ?
-            FOR UPDATE
-        `;
-
-        db.query(findSql, [appointmentId], (findErr, rows) => {
-            if (findErr) {
-                console.error("Appointment lookup error:", findErr);
-                return db.rollback(() => {
-                    res.status(500).json({ message: "Database error." });
-                });
+        conn.beginTransaction((txErr) => {
+            if (txErr) {
+                conn.release();
+                console.error("Transaction start error:", txErr);
+                return res.status(500).json({ message: "Database error." });
             }
 
-            if (!rows.length) {
-                return db.rollback(() => {
-                    res.status(404).json({ message: "Appointment not found." });
-                });
-            }
-
-            const appointment = rows[0];
-
-            if (["Cancelled", "Completed"].includes(appointment.status)) {
-                return db.rollback(() => {
-                    res.status(400).json({
-                        message: `Appointment is already ${appointment.status}.`
-                    });
-                });
-            }
-
-            const cancelSql = `
-                UPDATE appointments SET status = 'Cancelled' WHERE id = ?
+            const findSql = `
+                SELECT id, slot_id, status
+                FROM appointments
+                WHERE id = ?
+                FOR UPDATE
             `;
 
-            db.query(cancelSql, [appointmentId], (cancelErr) => {
-                if (cancelErr) {
-                    console.error("Appointment cancel error:", cancelErr);
-                    return db.rollback(() => {
-                        res.status(500).json({ message: "Cancellation failed." });
+            conn.query(findSql, [appointmentId], (findErr, rows) => {
+                if (findErr) {
+                    console.error("Appointment lookup error:", findErr);
+                    return conn.rollback(() => {
+                        conn.release();
+                        res.status(500).json({ message: "Database error." });
                     });
                 }
 
-                if (!appointment.slot_id) {
-                    return db.commit((commitErr) => {
-                        if (commitErr) {
-                            return db.rollback(() => {
-                                res.status(500).json({ message: "Cancellation failed." });
-                            });
-                        }
-                        res.json({ message: "Appointment cancelled successfully." });
+                if (!rows.length) {
+                    return conn.rollback(() => {
+                        conn.release();
+                        res.status(404).json({ message: "Appointment not found." });
                     });
                 }
 
-                const freeSlotSql = `
-                    UPDATE doctor_slots
-                    SET booked_patients = GREATEST(booked_patients - 1, 0),
-                        status = 'Available'
-                    WHERE id = ?
+                const appointment = rows[0];
+
+                if (["Cancelled", "Completed"].includes(appointment.status)) {
+                    return conn.rollback(() => {
+                        conn.release();
+                        res.status(400).json({
+                            message: `Appointment is already ${appointment.status}.`
+                        });
+                    });
+                }
+
+                const cancelSql = `
+                    UPDATE appointments SET status = 'Cancelled' WHERE id = ?
                 `;
 
-                db.query(freeSlotSql, [appointment.slot_id], (slotErr) => {
-                    if (slotErr) {
-                        console.error("Slot release error:", slotErr);
-                        return db.rollback(() => {
+                conn.query(cancelSql, [appointmentId], (cancelErr) => {
+                    if (cancelErr) {
+                        console.error("Appointment cancel error:", cancelErr);
+                        return conn.rollback(() => {
+                            conn.release();
                             res.status(500).json({ message: "Cancellation failed." });
                         });
                     }
 
-                    db.commit((commitErr) => {
-                        if (commitErr) {
-                            console.error("Commit error:", commitErr);
-                            return db.rollback(() => {
+                    if (!appointment.slot_id) {
+                        return conn.commit((commitErr) => {
+                            if (commitErr) {
+                                return conn.rollback(() => {
+                                    conn.release();
+                                    res.status(500).json({ message: "Cancellation failed." });
+                                });
+                            }
+                            conn.release();
+                            res.json({ message: "Appointment cancelled successfully." });
+                        });
+                    }
+
+                    const freeSlotSql = `
+                        UPDATE doctor_slots
+                        SET booked_patients = GREATEST(booked_patients - 1, 0),
+                            status = 'Available'
+                        WHERE id = ?
+                    `;
+
+                    conn.query(freeSlotSql, [appointment.slot_id], (slotErr) => {
+                        if (slotErr) {
+                            console.error("Slot release error:", slotErr);
+                            return conn.rollback(() => {
+                                conn.release();
                                 res.status(500).json({ message: "Cancellation failed." });
                             });
                         }
-                        res.json({ message: "Appointment cancelled successfully." });
+
+                        conn.commit((commitErr) => {
+                            if (commitErr) {
+                                console.error("Commit error:", commitErr);
+                                return conn.rollback(() => {
+                                    conn.release();
+                                    res.status(500).json({ message: "Cancellation failed." });
+                                });
+                            }
+                            conn.release();
+                            res.json({ message: "Appointment cancelled successfully." });
+                        });
                     });
                 });
             });
         });
+    });
+});
+
+// =========================================================
+// GET ALL APPOINTMENTS (General / Admin / Staff query)
+// =========================================================
+
+router.get("/api/appointments", (req, res) => {
+    const { hospital_id, doctor_id, date, status } = req.query;
+    let sql = `
+        SELECT 
+            a.*,
+            p.name AS patient_name,
+            p.mobile AS patient_mobile,
+            d.name AS doctor_name,
+            h.hospital_name
+        FROM appointments a
+        LEFT JOIN patients p ON a.patient_id = p.patient_id
+        LEFT JOIN doctors d ON a.doctor_id = d.doctor_id
+        LEFT JOIN hospitals h ON a.hospital_id = h.hospital_id
+        WHERE 1=1
+    `;
+    const params = [];
+
+    if (hospital_id) {
+        sql += ` AND a.hospital_id = ?`;
+        params.push(hospital_id);
+    }
+    if (doctor_id) {
+        sql += ` AND a.doctor_id = ?`;
+        params.push(doctor_id);
+    }
+    if (date) {
+        sql += ` AND a.appointment_date = ?`;
+        params.push(date);
+    }
+    if (status) {
+        sql += ` AND a.status = ?`;
+        params.push(status);
+    }
+
+    sql += ` ORDER BY a.appointment_date DESC, a.appointment_time DESC LIMIT 200`;
+
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error("All appointments fetch error:", err);
+            return res.status(500).json({ success: false, message: "Database error." });
+        }
+        res.json({ success: true, count: results.length, appointments: results });
     });
 });
 

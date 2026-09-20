@@ -5,8 +5,9 @@ const router = express.Router();
 // TEST BACKEND
 // =========================================================
 
-router.get("/", (req, res) => {
+router.get(["/", "/api", "/api/status"], (req, res) => {
     res.json({
+        status: "healthy",
         message: "SmartCity AI Backend is running"
     });
 });

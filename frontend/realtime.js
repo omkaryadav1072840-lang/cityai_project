@@ -6,7 +6,11 @@
 (function (window) {
     "use strict";
 
-    const SERVER_URL = "http://localhost:5000";
+    const SERVER_URL = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+        ? window.API_BASE_URL
+        : (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
+            ? (window.location.port === "5000" || window.location.protocol === "file:" ? (window.location.port === "5000" ? window.location.origin : "http://localhost:5000") : "")
+            : "http://localhost:5000";
     let socket = null;
     let audioCtx = null;
     const listeners = {};
@@ -59,6 +63,41 @@
                         `🚨 EMERGENCY SOS ALERT: ${alertData.type || 'CRITICAL'}`,
                         `Location: ${alertData.location || 'Gorakhpur'} — ${alertData.description || 'Response units notified.'}`,
                         "danger"
+                    );
+                });
+
+                // Global Notification & Service Request Listeners
+                socket.on("notification:new", (notif) => {
+                    if (window.SmartCityAuth && window.SmartCityAuth.refreshNotificationCount) {
+                        window.SmartCityAuth.refreshNotificationCount();
+                    }
+                    SmartCityRealtime.showBroadcastBanner(
+                        notif.title || "New City Notification",
+                        notif.message || "You have a new update in your civic portal.",
+                        "info"
+                    );
+                });
+
+                socket.on("request:status_updated", (reqData) => {
+                    if (window.SmartCityAuth && window.SmartCityAuth.refreshNotificationCount) {
+                        window.SmartCityAuth.refreshNotificationCount();
+                    }
+                    SmartCityRealtime.showBroadcastBanner(
+                        `Request Update: ${reqData.requestCode}`,
+                        `Status updated to '${reqData.status}'`,
+                        reqData.status === "Resolved" ? "success" : "info"
+                    );
+                });
+
+                socket.on("request:escalated", (esc) => {
+                    if (window.SmartCityAuth && window.SmartCityAuth.refreshNotificationCount) {
+                        window.SmartCityAuth.refreshNotificationCount();
+                    }
+                    SmartCityRealtime.playAlertSound("emergency");
+                    SmartCityRealtime.showBroadcastBanner(
+                        `🚨 SLA ESCALATION: ${esc.requestCode}`,
+                        `${(esc.department || '').toUpperCase()} - ${esc.category} exceeded SLA deadline. Escalated to supervisor.`,
+                        "warning"
                     );
                 });
 
@@ -777,9 +816,11 @@
                 messages.scrollTop = messages.scrollHeight;
 
                 try {
-                    const endpoint = window.location.origin.includes("5000")
-                        ? "/api/ai/chat"
-                        : "http://localhost:5000/api/ai/chat";
+                    const endpoint = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+                        ? `${window.API_BASE_URL}/api/ai/chat`
+                        : (window.location.port === "5000" || window.location.pathname.startsWith("/")
+                            ? "/api/ai/chat"
+                            : "http://localhost:5000/api/ai/chat");
 
                     const fetchFn = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.fetch)
                         ? SmartCityAuth.fetch

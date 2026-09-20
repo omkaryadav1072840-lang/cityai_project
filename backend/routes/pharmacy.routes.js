@@ -671,11 +671,12 @@ function reduceMedicineStock(items, callback) {
 
         const sql = `
             UPDATE pharmacy
-            SET quantity = GREATEST(quantity - ?, 0)
+            SET quantity = GREATEST(quantity - ?, 0),
+                availability = CASE WHEN GREATEST(quantity - ?, 0) = 0 THEN 'Out of Stock' ELSE availability END
             WHERE id = ?
         `;
 
-        db.query(sql, [quantity, medicineId], (error) => {
+        db.query(sql, [quantity, quantity, medicineId], (error) => {
             if (error) {
                 console.error("Stock update error:", error);
                 if (!failed) {
@@ -801,6 +802,11 @@ router.post("/api/pharmacy/payment", (req, res) => {
                         completed++;
                         if (completed === items.length && !failed) {
                             reduceMedicineStock(items, () => {
+                                // Clear patient cart upon successful order
+                                db.query("DELETE FROM pharmacy_cart WHERE patient_id = ?", [patientId], (cartErr) => {
+                                    if (cartErr) console.warn("Cart cleanup warning after payment:", cartErr);
+                                });
+
                                 res.status(201).json({
                                     success: true,
                                     message:

@@ -1,0 +1,15 @@
+{
+  "name": "smartcity-ai",
+  "version": "2.0.0",
+  "description": "SmartCity AI - Multi-Department Intelligent Smart City Management Platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "test": "node scratch/test_master_backend_routes.js",
+    "init-db": "node backend/database/init_db.js"
+  },
+  "keywords": ["smartcity", "iot", "ai", "gorakhpur"],
+  "author": "SmartCity AI Team",
+  "license": "ISC"
+}

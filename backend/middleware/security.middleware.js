@@ -66,7 +66,9 @@ function createRateLimiter(options = {}) {
             return next();
         }
 
-        const ip = req.headers["x-forwarded-for"]?.split(",")[0].trim() || req.socket.remoteAddress || "127.0.0.1";
+        const ip = (req.app && req.app.get("trust proxy") && req.ip)
+            ? req.ip
+            : (req.ip || req.socket.remoteAddress || "127.0.0.1");
         const now = Date.now();
 
         const timestamps = ipHits.get(ip) || [];

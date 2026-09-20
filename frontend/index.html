@@ -87,6 +87,14 @@
             Healthcare
         </a>
 
+        <a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #38bdf8; font-weight: 600;">
+            📋 Grievances & SLA
+        </a>
+
+        <a href="javascript:void(0)" onclick="openCommandCenterModal()" style="color: #a78bfa; font-weight: 600;">
+            🏛️ Command Center
+        </a>
+
     </div>
 
 </nav>
@@ -256,7 +264,7 @@
         <!-- FAMOUS PLACES -->
 
         <a
-            href="pages/famous/famose.html"
+            href="pages/famous/famous.html"
             class="feature"
             onclick="showFeature('places', this)"
         >
@@ -331,9 +339,15 @@
             <input
                 type="text"
                 id="userInput"
-                placeholder="Ask Smart City AI (e.g. nearest parking, emergency help)..."
+                placeholder="Ask Smart City AI (or speak in Hindi/English)..."
                 autocomplete="off"
             >
+            <button id="aiVoiceBtn" class="ai-voice-btn" type="button" title="Voice Input (Hindi / English)">
+                🎤
+            </button>
+            <button id="aiSpeakerBtn" class="ai-speaker-btn" type="button" title="Toggle Voice Response">
+                🔊
+            </button>
             <button id="sendButton">
                 Send ➔
             </button>
@@ -761,6 +775,27 @@
             onclick="showFeature('places', this)"
         >
             ⭐ Famous Places
+        </button>
+
+        <button
+            class="map-filter"
+            onclick="showFeature('lights', this)"
+        >
+            💡 Street Lights
+        </button>
+
+        <button
+            class="map-filter"
+            onclick="showFeature('aqi', this)"
+        >
+            🌱 AQI Sensors
+        </button>
+
+        <button
+            class="map-filter"
+            onclick="showFeature('emergency', this)"
+        >
+            🚨 Emergency SOS
         </button>
 
     </div>
@@ -2093,7 +2128,187 @@
 
 </div>
 
+<!-- =====================================================
+     CITIZEN GRIEVANCE & LIVE SLA TRACKING PORTAL MODAL
+====================================================== -->
+<div id="scGrievanceModal" class="sc-modal-overlay">
+    <div class="sc-modal-box">
+        <div class="sc-modal-header">
+            <h2 class="sc-modal-title">
+                <span>📋</span> Citizen Grievance Redressal & SLA Tracking
+            </h2>
+            <button class="sc-modal-close" onclick="closeGrievanceModal()" aria-label="Close modal">✕</button>
+        </div>
+        <div class="sc-modal-body">
+            <div class="sc-tabs">
+                <button class="sc-tab-btn active" id="tabBtnLodge" onclick="switchGrievanceTab('lodge')">
+                    ✍️ Lodge Complaint
+                </button>
+                <button class="sc-tab-btn" id="tabBtnTrack" onclick="switchGrievanceTab('track')">
+                    ⏱️ Track Grievances & Live SLA
+                </button>
+            </div>
 
+            <!-- TAB 1: LODGE COMPLAINT -->
+            <div id="tabContentLodge">
+                <form id="scGrievanceForm" onsubmit="handleGrievanceSubmit(event)">
+                    <div class="sc-form-grid">
+                        <div class="sc-form-group">
+                            <label for="grievanceDept">Department *</label>
+                            <select id="grievanceDept" required onchange="handleDeptChange()">
+                                <option value="waste">🗑️ Waste Management</option>
+                                <option value="traffic">🚦 Traffic & Signals</option>
+                                <option value="water">💧 Water Supply & Drainage</option>
+                                <option value="street_lights">💡 Street Lighting & IoT</option>
+                                <option value="healthcare">🏥 Healthcare & Hospitals</option>
+                                <option value="emergency">🚨 Emergency & Safety</option>
+                            </select>
+                        </div>
+                        <div class="sc-form-group">
+                            <label for="grievanceCategory">Issue Category *</label>
+                            <select id="grievanceCategory" required>
+                                <option value="Garbage Overflow">Garbage Bin Overflow</option>
+                                <option value="Illegal Dumping">Illegal Roadside Dumping</option>
+                                <option value="Missed Collection">Missed Daily Collection</option>
+                                <option value="Hazardous Waste">Hazardous Waste Spillage</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sc-form-grid">
+                        <div class="sc-form-group">
+                            <label for="grievancePriority">Priority / Urgency *</label>
+                            <select id="grievancePriority" required>
+                                <option value="LOW">🟢 LOW (SLA: 48 Hours)</option>
+                                <option value="MEDIUM" selected>🟡 MEDIUM (SLA: 24 Hours)</option>
+                                <option value="HIGH">🟠 HIGH (SLA: 6 Hours)</option>
+                                <option value="CRITICAL">🔴 CRITICAL (SLA: 2 Hours)</option>
+                            </select>
+                        </div>
+                        <div class="sc-form-group">
+                            <label for="grievanceLocation">Location / Landmark *</label>
+                            <div style="display:flex; gap:6px;">
+                                <input type="text" id="grievanceLocation" placeholder="e.g. Golghar Clock Tower Road" required style="flex:1;">
+                                <button type="button" onclick="fillCurrentLocationForGrievance()" style="padding:0 10px; background:#1e293b; border:1px solid #334155; color:#38bdf8; border-radius:8px; cursor:pointer;" title="Fill Current GPS Location">📍</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sc-form-grid">
+                        <div class="sc-form-group">
+                            <label for="grievanceName">Citizen Name *</label>
+                            <input type="text" id="grievanceName" placeholder="Your Full Name" required>
+                        </div>
+                        <div class="sc-form-group">
+                            <label for="grievancePhone">Mobile Number (for SMS & Tracking) *</label>
+                            <input type="tel" id="grievancePhone" placeholder="10-digit mobile number" required pattern="[0-9]{10}">
+                        </div>
+                    </div>
+
+                    <div class="sc-form-group" style="margin-bottom:16px;">
+                        <label for="grievanceDesc">Issue Description *</label>
+                        <textarea id="grievanceDesc" rows="3" placeholder="Provide accurate details to assist municipal field response teams..." required></textarea>
+                    </div>
+
+                    <button type="submit" id="grievanceSubmitBtn" class="sc-submit-btn">
+                        🚀 Submit Grievance with Instant SLA
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 2: TRACK GRIEVANCE & LIVE SLA TICKER -->
+            <div id="tabContentTrack" style="display:none;">
+                <div style="display:flex; gap:10px; margin-bottom:16px;">
+                    <input type="text" id="grievanceSearchInput" placeholder="Search by Tracking ID (e.g. REQ-...) or Mobile..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:10px 14px; color:#fff;">
+                    <button type="button" onclick="loadMyGrievances()" style="background:#2563eb; color:#fff; border:none; border-radius:8px; padding:0 18px; font-weight:700; cursor:pointer;">
+                        🔍 Track
+                    </button>
+                </div>
+
+                <div id="grievanceListContainer" style="max-height: 480px; overflow-y: auto;">
+                    <div style="text-align:center; padding:30px; color:#94a3b8;">
+                        Click "Track" to view your active grievances and live SLA timers.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     EXECUTIVE CITY COMMAND CENTER MODAL
+====================================================== -->
+<div id="scCommandCenterModal" class="sc-modal-overlay">
+    <div class="sc-modal-box" style="max-width: 960px;">
+        <div class="sc-modal-header">
+            <h2 class="sc-modal-title">
+                <span>🏛️</span> Integrated Smart City Command & Control Center (ICCC)
+            </h2>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button onclick="fetchCommandCenterData()" style="background:#1e293b; border:1px solid #334155; color:#38bdf8; border-radius:6px; padding:6px 12px; font-size:12px; cursor:pointer; font-weight:600;">
+                    🔄 Refresh Live
+                </button>
+                <button class="sc-modal-close" onclick="closeCommandCenterModal()" aria-label="Close modal">✕</button>
+            </div>
+        </div>
+        <div class="sc-modal-body">
+            <!-- Real-time KPI Metric Cards -->
+            <div class="sc-command-grid">
+                <div class="sc-metric-card">
+                    <div class="sc-metric-label">Active Requests</div>
+                    <div class="sc-metric-val" id="ccMetricActiveReqs">--</div>
+                    <div style="font-size:11px; color:#60a5fa; margin-top:2px;">Across 6 Depts</div>
+                </div>
+                <div class="sc-metric-card warning">
+                    <div class="sc-metric-label">Critical Incidents</div>
+                    <div class="sc-metric-val" id="ccMetricCritical">--</div>
+                    <div style="font-size:11px; color:#fbbf24; margin-top:2px;">SLA 2-Hour Window</div>
+                </div>
+                <div class="sc-metric-card danger">
+                    <div class="sc-metric-label">SLA Breached</div>
+                    <div class="sc-metric-val" id="ccMetricBreached">--</div>
+                    <div style="font-size:11px; color:#f87171; margin-top:2px;">Auto-Escalated</div>
+                </div>
+                <div class="sc-metric-card success">
+                    <div class="sc-metric-label">Street Lights Uptime</div>
+                    <div class="sc-metric-val" id="ccMetricLights">--%</div>
+                    <div style="font-size:11px; color:#34d399; margin-top:2px;">Smart Feeder Grid</div>
+                </div>
+                <div class="sc-metric-card">
+                    <div class="sc-metric-label">City AQI Index</div>
+                    <div class="sc-metric-val" id="ccMetricAQI">--</div>
+                    <div style="font-size:11px; color:#a78bfa; margin-top:2px;" id="ccMetricAQIStatus">Monitoring</div>
+                </div>
+                <div class="sc-metric-card success">
+                    <div class="sc-metric-label">ICU Bed Availability</div>
+                    <div class="sc-metric-val" id="ccMetricICUBeds">--</div>
+                    <div style="font-size:11px; color:#34d399; margin-top:2px;">AIIMS + BRD Medical</div>
+                </div>
+            </div>
+
+            <!-- Two-Column Feed: Anomaly Radar & Live Escalation Queue -->
+            <div class="sc-two-col">
+                <div class="sc-panel-box">
+                    <div class="sc-panel-title">
+                        <span>⚡</span> Live AI Anomaly & Disruption Stream
+                    </div>
+                    <div id="ccAnomalyList">
+                        <div style="color:#94a3b8; font-size:12px; text-align:center; padding:20px;">Fetching AI anomaly analysis...</div>
+                    </div>
+                </div>
+
+                <div class="sc-panel-box">
+                    <div class="sc-panel-title">
+                        <span>⏱️</span> Priority SLA Radar & Auto-Escalation
+                    </div>
+                    <div id="ccEscalationList">
+                        <div style="color:#94a3b8; font-size:12px; text-align:center; padding:20px;">Tracking municipal SLA deadlines...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </main>
 

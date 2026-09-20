@@ -531,11 +531,11 @@ router.get("/api/ambulances/nearby/search", (req, res) => {
             id, ambulance_id, vehicle_number, driver_name, driver_mobile,
             ambulance_type, hospital_name, location, status,
             latitude, longitude,
-            (6371 * ACOS(
+            (6371 * ACOS(LEAST(1.0, GREATEST(-1.0,
                 COS(RADIANS(?)) * COS(RADIANS(latitude)) *
                 COS(RADIANS(longitude) - RADIANS(?)) +
                 SIN(RADIANS(?)) * SIN(RADIANS(latitude))
-            )) AS distance_km
+            )))) AS distance_km
         FROM ambulances
         WHERE status = 'Available'
           AND latitude IS NOT NULL

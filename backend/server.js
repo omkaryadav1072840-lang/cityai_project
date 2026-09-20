@@ -20,6 +20,7 @@ const patientRoutes = require("./routes/patient.routes");
 const appointmentRoutes = require("./routes/appointment.routes");
 const doctorRoutes = require("./routes/doctor.routes");
 const hospitalRoutes = require("./routes/hospital.routes");
+const diagnosticsRoutes = require("./routes/diagnostics.routes");
 const ambulanceRoutes = require("./routes/ambulance.routes");
 const emergencyRoutes = require("./routes/emergency.routes");
 const pharmacyRoutes = require("./routes/pharmacy.routes");
@@ -28,6 +29,18 @@ const parkingRoutes = require("./routes/parking.routes");
 const waterRoutes = require("./routes/water.routes");
 const policeRoutes = require("./routes/police.routes");
 const aiRoutes = require("./routes/ai.routes");
+const famousPlacesRoutes = require("./routes/famous_places.routes");
+const trafficRoutes = require("./routes/traffic.routes");
+const requestsRoutes = require("./routes/requests.routes");
+const notificationsRoutes = require("./routes/notifications.routes");
+const streetLightsRoutes = require("./routes/street_lights.routes");
+const environmentRoutes = require("./routes/environment.routes");
+const adminRoutes = require("./routes/admin.routes");
+const searchRoutes = require("./routes/search.routes");
+const mapRoutes = require("./routes/map.routes");
+const trafficEngine = require("./services/traffic_engine");
+const slaEngine = require("./services/sla_engine");
+
 
 // Middlewares
 const {
@@ -79,6 +92,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Serve static frontend files (dashboard, subpages, CSS, JS, media)
 app.use(express.static(path.join(__dirname, "..", "frontend")));
+app.use("/frontend", express.static(path.join(__dirname, "..", "frontend")));
 
 // Modular Socket.io real-time handler
 const { initSockets } = require("./sockets/index");
@@ -181,6 +195,7 @@ app.use(patientRoutes);
 app.use(appointmentRoutes);
 app.use(doctorRoutes);
 app.use(hospitalRoutes);
+app.use(diagnosticsRoutes);
 app.use(ambulanceRoutes);
 app.use(emergencyRoutes);
 app.use(pharmacyRoutes);
@@ -189,6 +204,16 @@ app.use(parkingRoutes);
 app.use(waterRoutes);
 app.use(policeRoutes);
 app.use(aiRoutes);
+app.use(famousPlacesRoutes);
+app.use(trafficRoutes);
+app.use(requestsRoutes);
+app.use(notificationsRoutes);
+app.use(streetLightsRoutes);
+app.use(environmentRoutes);
+app.use(adminRoutes);
+app.use(searchRoutes);
+app.use(mapRoutes);
+
 
 // =========================================================
 // ERROR HANDLERS
@@ -207,6 +232,9 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`🚀 SmartCity AI Backend running at http://localhost:${PORT}`);
     console.log(`📡 Socket.IO real-time server running`);
+    trafficEngine.setSocketIO(io);
+    trafficEngine.start();
+    slaEngine.start(io, 60000);
     if (process.env.SIMULATE_AMBULANCES !== "false") {
         ambulanceSimulator.startSimulation().catch(err => {
             console.warn("Ambulance simulation init warning:", err.message);
@@ -224,6 +252,16 @@ function gracefulShutdown(signal) {
     // Stop acceptance of new requests
     server.close(async () => {
         console.log("🔒 [Shutdown] HTTP & WebSocket servers closed.");
+
+        // Stop SLA engine
+        try {
+            slaEngine.stop();
+        } catch (e) {}
+
+        // Stop traffic engine
+        try {
+            trafficEngine.stop();
+        } catch (e) {}
 
         // Stop simulator
         try {

@@ -48,7 +48,61 @@ async function initDatabase() {
             console.log(' Seed data inserted successfully.');
         }
 
-        // 4. Verify tables
+        // 4. Apply traffic schema if present
+        const trafficPath = path.join(__dirname, 'traffic_schema.sql');
+        if (fs.existsSync(trafficPath)) {
+            console.log(' Applying traffic_schema.sql...');
+            const trafficSql = fs.readFileSync(trafficPath, 'utf8');
+            await connection.query(trafficSql);
+            console.log(' Traffic schema applied successfully.');
+        }
+
+        // 5. Apply famous places & tourism migrations
+        const famousPath = path.join(__dirname, 'famous_places_migration.sql');
+        if (fs.existsSync(famousPath)) {
+            console.log(' Applying famous_places_migration.sql...');
+            const famousSql = fs.readFileSync(famousPath, 'utf8');
+            await connection.query(famousSql);
+            console.log(' Famous places schema applied successfully.');
+        }
+
+        const tourismPath = path.join(__dirname, 'tourism_services_migration.sql');
+        if (fs.existsSync(tourismPath)) {
+            console.log(' Applying tourism_services_migration.sql...');
+            const tourismSql = fs.readFileSync(tourismPath, 'utf8');
+            await connection.query(tourismSql);
+            console.log(' Tourism services migration applied successfully.');
+        }
+
+        // 6. Ensure parking_slots table exists
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS parking_slots (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                lot_id VARCHAR(50) NOT NULL,
+                slot_number VARCHAR(20) NOT NULL,
+                slot_type VARCHAR(20) DEFAULT 'car',
+                floor VARCHAR(50) DEFAULT 'Ground Floor',
+                UNIQUE KEY unique_lot_slot (lot_id, slot_number)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        // 7. Apply Master Expansion Migration (additive tables, columns, sensors, lights)
+        const runMasterExpansionMigration = require('./master_expansion_migration');
+        console.log(' Applying Master Expansion Migrations...');
+        await runMasterExpansionMigration();
+
+        // 8. Apply Patient ID & QR Enhancement Migration
+        const runPatientEnhancementMigration = require('./patient_enhancement_migration');
+        console.log(' Applying Patient Enhancement Migration...');
+        await runPatientEnhancementMigration();
+
+        // 9. Apply Hospital Management & Diagnostic Migration
+        const runHospitalUpgradeMigration = require('./hospital_management_migration');
+        console.log(' Applying Hospital Management & Diagnostic Migration...');
+        await runHospitalUpgradeMigration();
+
+
+        // 7. Verify tables
         const [tables] = await connection.query('SHOW TABLES;');
         console.log(`\n Verified Database Tables (${tables.length}):`);
         tables.forEach(t => {

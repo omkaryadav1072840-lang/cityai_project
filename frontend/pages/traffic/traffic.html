@@ -3,356 +3,1493 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCity AI - Live Traffic</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <title>Traffic Management | SmartCity AI</title>
+    
+    <!-- OpenLayers CSS (v9+) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.1.0/ol.css">
+    <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Traffic Module Stylesheet (Consistent with Parking/Police/Emergency) -->
     <link rel="stylesheet" href="traffic.css">
 </head>
 <body>
 
-<div class="app">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">
-                <i class="fa-solid fa-city"></i>
-            </div>
-            <div>
-                <h2>Smart<span>City AI</span></h2>
-                <small>Smart Urban System</small>
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar">
+    <div class="nav-left-group">
+        <a href="../../index.html" class="logo">
+            Smart<span>City AI</span>
+        </a>
+    </div>
+
+    <div class="nav-right">
+        <a href="../../index.html" class="nav-dashboard-link">🏠 Dashboard</a>
+
+        <!-- Sign In Button (shown when not logged in) -->
+        <a href="javascript:void(0)" onclick="SmartCityAuth && SmartCityAuth.showLoginModal()" class="btn-secondary btn-sm" id="navLoginBtn" style="display: none;">
+            🔑 Sign In
+        </a>
+
+        <!-- User Profile Badge & Dropdown -->
+        <div class="user-profile-menu-container" id="userProfileMenuContainer">
+            <button type="button" class="user-badge-btn" id="userBadgeBtn" onclick="toggleUserDropdown(event)">
+                <span class="user-avatar-circle" id="userAvatarCircle">OY</span>
+                <div class="user-badge-info">
+                    <span class="user-badge-name" id="navUserName">Omkar Yadav</span>
+                    <span class="user-badge-status" id="navUserStatus">🟢 Active Citizen</span>
+                </div>
+                <span class="dropdown-caret">▾</span>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                <div class="dropdown-header-info">
+                    <strong id="ddUserFullName">Omkar Yadav</strong>
+                    <span id="ddUserContact">Citizen • Gorakhpur</span>
+                </div>
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; margin: 4px 8px;">SWITCH DEMO ROLE:</div>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('citizen')">
+                    <span>🚗</span> Citizen View (Public)
+                </a>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('officer')">
+                    <span>👮</span> Insp. R.K. Verma (Traffic Staff)
+                </a>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('admin')">
+                    <span>🛡️</span> ICCC Director (Admin)
+                </a>
+                <div style="border-top: 1px solid #f1f5f9; margin: 6px 0;"></div>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="handleUserLogout()" style="color: #ef4444;">
+                    <span>🚪</span> Logout
+                </a>
             </div>
         </div>
+    </div>
+</nav>
 
-        <p class="menu-label">MAIN MENU</p>
-        <a href="../../index.html" class="menu">
-            <i class="fa-solid fa-house"></i> Dashboard
-        </a>
-        <a href="traffic.html" class="menu active">
-            <i class="fa-solid fa-road"></i> Live Traffic <b class="live-dot"></b>
-        </a>
-        <a href="../../index.html#weather" class="menu"><i class="fa-solid fa-cloud-sun"></i> Weather</a>
-        <a href="../emergency/emergency.html" class="menu"><i class="fa-solid fa-truck-medical"></i> Emergency</a>
-        <a href="../hospital/hospital.html" class="menu"><i class="fa-solid fa-hospital"></i> Hospitals</a>
-        <a href="../emergency/emergency.html" class="menu"><i class="fa-solid fa-ambulance"></i> Ambulance</a>
-        <a href="../waste/waste.html" class="menu"><i class="fa-solid fa-trash"></i> Waste Management</a>
-        <a href="../parking/parking.html" class="menu"><i class="fa-solid fa-square-parking"></i> Smart Parking</a>
+<!-- ================= HERO SECTION ================= -->
+<section class="traffic-hero">
+    <div class="hero-content">
+        <span class="hero-label">SMART URBAN MOBILITY SYSTEM</span>
+        <h1>Smart Traffic <span>Management</span></h1>
+        <p>
+            Monitor real-time Gorakhpur road conditions, navigate through congestion-free alternative routes, find available parking, and control traffic lights and optical sensors.
+        </p>
+        <div class="hero-buttons">
+            <button class="btn-primary" onclick="switchLayer('citizen')">
+                🚗 Citizen Navigation & Parking
+            </button>
+            <button class="btn-secondary" onclick="switchLayer('control')">
+                👮 Traffic Staff Controls
+            </button>
+            <button class="btn-secondary" onclick="switchLayer('admin')">
+                🛡️ System Admin
+            </button>
+        </div>
+    </div>
+</section>
 
-        <div class="sidebar-bottom">
-            <a href="#" class="menu"><i class="fa-solid fa-gear"></i> Settings</a>
-            <div class="profile">
-                <div class="avatar">O</div>
+<!-- ================= DATA TRANSPARENCY NOTICE ================= -->
+<div class="transparency-bar">
+    <div>
+        <strong>SYSTEM STATUS:</strong> Live Gorakhpur Traffic Network Active.
+        <span class="tag-simulated">SIMULATION & AI EMULATION MODE ACTIVE</span>
+    </div>
+    <div>
+        Live Time (IST): <strong id="clock">--:--:--</strong> • Target: <strong>Gorakhpur, UP</strong>
+    </div>
+</div>
+
+<!-- ================= LIVE AMBULANCE AUTO GREEN WAVE BANNER ================= -->
+<div id="ambulance-green-wave-banner" style="display: none; background: #fee2e2; border-bottom: 2px solid #ef4444; padding: 10px 24px; color: #991b1b; font-size: 13px; align-items: center; justify-content: space-between; z-index: 100;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 20px;">🚨</span>
+        <div>
+            <strong style="font-size: 13px; color: #b91c1c;">AMBULANCE AUTO GREEN WAVE TRIGGERED:</strong>
+            <span id="amb-banner-text">Emergency vehicle approaching. Signal approach preempted to GREEN.</span>
+        </div>
+    </div>
+    <span class="tag-live" style="background: #dc2626; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">PRIORITY OVERRIDE ACTIVE</span>
+</div>
+
+<!-- ================= 3-LAYER NAVIGATION TABS ================= -->
+<div class="layer-tabs-container">
+    <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchLayer('citizen')">
+        <i class="fa-solid fa-car"></i> 1. Citizen / Public Layer
+    </button>
+    <button id="tab-btn-control" class="layer-tab-btn" onclick="switchLayer('control')">
+        <i class="fa-solid fa-traffic-light"></i> 2. Traffic Employee / Staff Layer
+    </button>
+    <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchLayer('admin')">
+        <i class="fa-solid fa-shield-halved"></i> 3. System Admin Layer
+    </button>
+</div>
+
+<!-- Coordinate Pick Banner (Active when staff clicks "Pick from Map") -->
+<div id="map-coord-pick-banner" class="map-coord-pick-banner">
+    <span><i class="fa-solid fa-crosshairs"></i> <strong>MAP SELECTION MODE:</strong> Click anywhere on the map to set the latitude and longitude coordinates.</span>
+    <button class="btn-secondary btn-sm" onclick="cancelCoordinatePick()">Cancel Selection</button>
+</div>
+
+<!-- ================= MAIN CONTENT WRAPPER ================= -->
+<div class="content-wrapper">
+
+    <!-- KPI Summary Grid -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <h3>City Traffic Index</h3>
+                <div class="value" id="kpi-index">58%</div>
+                <small style="color: #16a34a; font-weight: 700;">Moderate Flow</small>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-gauge-high"></i></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <h3>Average Transit Speed</h3>
+                <div class="value" id="kpi-speed">24.2 <small style="font-size: 14px;">km/h</small></div>
+                <small style="color: #64748b;">Urban Gorakhpur Arterials</small>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-route"></i></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <h3>Monitored Junctions</h3>
+                <div class="value" id="kpi-junctions">8</div>
+                <small style="color: #2563eb; font-weight: 700;">All Operational</small>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-traffic-light"></i></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <h3>Vacant Smart Parking</h3>
+                <div class="value" id="kpi-parking" style="color: #2563eb;">--</div>
+                <small style="color: #64748b;">Connected Parking Module</small>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-square-parking"></i></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <h3>Eco Sustainability</h3>
+                <div class="value" style="color: #10b981;">1,420 <small style="font-size: 14px;">L Saved</small></div>
+                <small style="color: #059669; font-weight: 700;">-3.12 Tons CO₂ Reduced</small>
+            </div>
+            <div class="kpi-icon" style="color: #10b981; background: #ecfdf5;"><i class="fa-solid fa-leaf"></i></div>
+        </div>
+    </div>
+
+    <!-- ================= VARIABLE MESSAGE SIGNS (VMS) ROADSIDE BILLBOARD ================= -->
+    <div class="vms-billboard-container" id="vms-billboard-section">
+        <div class="vms-billboard-header">
+            <div class="vms-location-badge">
+                <i class="fa-solid fa-tower-broadcast" style="color: #ffb703;"></i>
+                <span id="vms-board-name">MOHADDIPUR OVERHEAD GANTRY VMS</span>
+                <span class="tag-live" id="vms-status-badge" style="background: #16a34a; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">LIVE BROADCAST</span>
+            </div>
+            <div class="vms-controls">
+                <button class="vms-btn" onclick="prevVMSBoard()" title="Previous Board"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                <span id="vms-counter-label" style="font-size: 11px; color: #94a3b8; font-weight: 700;">1 / 3</span>
+                <button class="vms-btn" onclick="nextVMSBoard()" title="Next Board">Next <i class="fa-solid fa-chevron-right"></i></button>
+                <button class="vms-btn" onclick="openVMSEditModal()" style="color: #38bdf8; border-color: #0284c7;" title="Authorized Staff Message Broadcast"><i class="fa-solid fa-pen-to-square"></i> Staff Broadcast</button>
+            </div>
+        </div>
+        <div class="vms-matrix-display" id="vms-matrix-display">
+            <div class="vms-led-line primary" id="vms-line-1"><i class="fa-solid fa-triangle-exclamation"></i> MOHADDIPUR FLYOVER: SLOW TRAFFIC</div>
+            <div class="vms-led-line secondary" id="vms-line-2">USE RAMGARH TAAL SMART BYPASS</div>
+            <div class="vms-led-line tertiary" id="vms-line-3">AIIMS: 14 MINS VIA RING ROAD • SPEED LIMIT 40 KM/H</div>
+        </div>
+        <div class="vms-billboard-footer">
+            <div><i class="fa-solid fa-location-dot"></i> <span id="vms-board-location">Mohaddipur Intersection Overhead Gantry</span></div>
+            <div>Specs: <span id="vms-board-specs">192x64 Amber LED Matrix • High Contrast</span> • Updated: <span id="vms-board-updated">Just Now</span></div>
+        </div>
+    </div>
+
+    <!-- ================= CRITICAL AMBULANCE CORRIDOR REAL-TIME ALERT BANNER ================= -->
+    <div id="critical-transit-banner" style="display: none; background: #fef2f2; border: 2px solid #ef4444; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="background: #ef4444; color: #fff; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; animation: pulse 1.5s infinite;">
+                    <i class="fa-solid fa-siren"></i>
+                </div>
                 <div>
-                    <strong>Omkar</strong>
-                    <small>Citizen</small>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <strong style="color: #991b1b; font-size: 15px; letter-spacing: 0.5px;" id="crit-banner-title">🚨 CRITICAL EMERGENCY TRANSIT CORRIDOR ACTIVE</strong>
+                        <span class="badge badge-offline" style="background: #dc2626; color: #fff; font-size: 10px; padding: 2px 7px;">GREEN WAVE PREEMPTION</span>
+                    </div>
+                    <p style="margin: 3px 0 0; font-size: 12px; color: #7f1d1d;" id="crit-banner-desc">
+                        Ambulance <strong id="crit-banner-amb-no">UP-53-AZ-1001</strong> bound for <strong id="crit-banner-hospital">BRD Medical College</strong>. All <span id="crit-banner-jnc-count">4</span> junctions along route set to FORCE GREEN.
+                    </p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary btn-sm" onclick="focusCriticalAmbulanceOnMap()" style="border-color: #fca5a5; color: #991b1b;">
+                    <i class="fa-solid fa-crosshairs"></i> Track on Map
+                </button>
+                <button class="btn-primary btn-sm" id="btn-crit-banner-clear" onclick="clearActiveCriticalTransit()" style="background: #16a34a; border-color: #16a34a;">
+                    <i class="fa-solid fa-check"></i> Clear Transit & Restore Signals
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= OPENLAYERS MAP CARD ================= -->
+    <div class="map-container-card">
+        <div class="card-header">
+            <h2><i class="fa-solid fa-map-location-dot" style="color: #2563eb;"></i> Gorakhpur Live Traffic Map</h2>
+            <div class="map-toolbar">
+                <button class="map-tool-btn" onclick="trafficMap.resetView()" title="Center on Gorakhpur">
+                    <i class="fa-solid fa-crosshairs"></i> Center Map
+                </button>
+                <button id="btn-toggle-heatmap" class="map-tool-btn active" onclick="toggleHeatmapLayer()">
+                    <i class="fa-solid fa-fire"></i> Congestion Heatmap
+                </button>
+                <button id="btn-toggle-ambulances" class="map-tool-btn active" onclick="toggleAmbulancesLayer()" title="Toggle Live Moving Ambulances">
+                    <i class="fa-solid fa-truck-medical" style="color: #dc2626;"></i> Live Ambulances (<span id="map-amb-badge">--</span>)
+                </button>
+                <button id="btn-toggle-signals" class="map-tool-btn active" onclick="toggleSignalsLayer()">
+                    <i class="fa-solid fa-traffic-light"></i> Traffic Lights
+                </button>
+                <button id="btn-toggle-vms" class="map-tool-btn active" onclick="toggleVMSLayer()">
+                    <i class="fa-solid fa-chalkboard"></i> VMS Boards
+                </button>
+                <button id="btn-toggle-parking" class="map-tool-btn active" onclick="toggleParkingLayer()">
+                    <i class="fa-solid fa-square-parking"></i> Parking
+                </button>
+                <button id="btn-toggle-incidents" class="map-tool-btn active" onclick="toggleIncidentsLayer()">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Incidents
+                </button>
+                <button id="btn-toggle-waterlogging" class="map-tool-btn active" onclick="toggleWaterloggingLayer()">
+                    <i class="fa-solid fa-cloud-showers-heavy"></i> Monsoon / Flood Risk
+                </button>
+            </div>
+        </div>
+        <div id="traffic-ol-map"></div>
+
+        <!-- ================= CONGESTION HEATMAP DYNAMIC CONTROLS & THERMAL SPECTRUM ================= -->
+        <div id="heatmap-controls-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 9px 16px; font-size: 12px;">
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <span style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-fire-flame-curved" style="color: #ea580c;"></i> Congestion Heatmap:
+                </span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #64748b;">Radius:</span>
+                    <input type="range" id="hm-radius-slider" min="15" max="50" value="26" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapRadiusChange(this.value)">
+                    <span id="hm-radius-val" style="font-weight: 700; color: #0f172a; width: 28px;">26px</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #64748b;">Blur:</span>
+                    <input type="range" id="hm-blur-slider" min="15" max="50" value="28" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapBlurChange(this.value)">
+                    <span id="hm-blur-val" style="font-weight: 700; color: #0f172a; width: 28px;">28px</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="color: #64748b;">Opacity:</span>
+                    <input type="range" id="hm-opacity-slider" min="30" max="100" value="85" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapOpacityChange(this.value)">
+                    <span id="hm-opacity-val" style="font-weight: 700; color: #0f172a; width: 32px;">85%</span>
+                </div>
+            </div>
+            <!-- Heatmap Thermal Spectrum Legend -->
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 11px;">
+                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e;"></span> Clear (&lt;40%)</span>
+                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#facc15;"></span> Moderate (40-65%)</span>
+                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ea580c;"></span> Heavy (65-80%)</span>
+                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#dc2626;"></span> Severe (&gt;80%)</span>
+            </div>
+        </div>
+
+        <!-- Map Popup Element -->
+        <div id="map-popup" class="ol-popup">
+            <a href="javascript:void(0)" id="popup-closer" class="ol-popup-closer" onclick="trafficMap.closePopup()">&times;</a>
+            <div id="popup-content"></div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         LAYER 1: CITIZEN / USER LAYER
+    ========================================================= -->
+    <div id="layer-citizen-content">
+        <div class="two-column-grid">
+            <!-- 1. Alternative Route Navigation -->
+            <div class="content-card">
+                <h3><i class="fa-solid fa-signs-post" style="color: #2563eb;"></i> Smart Route & Congestion Avoidance</h3>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
+                    Select your route to compare the standard direct path against AI recommended congestion bypasses.
+                </p>
+
+                <div class="form-group">
+                    <label>ORIGIN</label>
+                    <select id="route-from-select" class="form-control">
+                        <option value="Gorakhpur Junction Railway Station">Gorakhpur Junction Railway Station</option>
+                        <option value="Golghar Central Crossing">Golghar Central Crossing</option>
+                        <option value="Gorakhnath Temple">Gorakhnath Temple</option>
+                        <option value="Asuran Chowk">Asuran Chowk</option>
+                        <option value="Nausarh RTO Crossing">Nausarh RTO Crossing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>DESTINATION</label>
+                    <select id="route-to-select" class="form-control">
+                        <option value="AIIMS Gorakhpur">AIIMS Gorakhpur (Kushmi)</option>
+                        <option value="BRD Medical College">BRD Medical College</option>
+                        <option value="Ramgarh Taal Lake View">Ramgarh Taal Lake View Road</option>
+                        <option value="Civil Lines Commercial Zone">Civil Lines Commercial Zone</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" onclick="calculateAlternativeRoutes()" style="width: 100%;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Calculate Congestion-Free Route
+                </button>
+
+                <div id="route-results-container" style="display: none; margin-top: 14px; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <!-- 2. Connected Parking Management -->
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="margin-bottom: 0;"><i class="fa-solid fa-square-parking" style="color: #0284c7;"></i> Nearby Available Parking</h3>
+                    <a href="../parking/parking.html" class="btn-secondary btn-sm" style="font-size: 11px;">
+                        Open Parking Module →
+                    </a>
+                </div>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
+                    Real-time available parking slots pulled directly from the SmartCity Parking database.
+                </p>
+
+                <div id="citizen-parking-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto;">
+                    <!-- Injected dynamically from shared parking_lots table -->
                 </div>
             </div>
         </div>
-    </aside>
 
-    <!-- MAIN -->
-    <main class="main">
-        <!-- TOPBAR -->
-        <header class="topbar">
-            <div class="heading">
-                <h1>Live Traffic & Navigation</h1>
-                <p>Smart traffic monitoring for Gorakhpur</p>
-            </div>
-            <div class="top-right">
-                <div class="live"><span></span>LIVE</div>
-                <div id="clock">--:--:--</div>
-                <button id="refreshBtn" class="round-btn"><i class="fa-solid fa-rotate"></i></button>
-                <div class="top-avatar">O</div>
-            </div>
-        </header>
-
-        <!-- CONTENT -->
-        <section class="content">
-            <!-- SEARCH -->
-            <div class="search-card">
-                <div class="search-box">
-                    <i class="fa-solid fa-location-dot start-icon"></i>
-                    <div class="input-area">
-                        <label>FROM</label>
-                        <input id="fromInput" type="text" placeholder="Your current location" value="My Current Location">
-                    </div>
-                </div>
-
-                <div class="swap-line">
-                    <span></span>
-                    <button id="locationBtn"><i class="fa-solid fa-location-crosshairs"></i></button>
-                    <span></span>
-                </div>
-
-                <div class="search-box">
-                    <i class="fa-solid fa-location-dot destination-icon"></i>
-                    <div class="input-area">
-                        <label>DESTINATION</label>
-                        <input id="destinationInput" type="text" placeholder="Where do you want to go?">
-                    </div>
-                </div>
-
-                <button id="routeBtn" class="route-btn">
-                    <i class="fa-solid fa-route"></i> Find Route
+        <!-- 3. Report Traffic Problem & Traffic Bulletins -->
+        <div class="two-column-grid" style="margin-top: 24px;">
+            <div class="content-card" style="border-left: 4px solid #ef4444;">
+                <h3><i class="fa-solid fa-bullhorn" style="color: #ef4444;"></i> Report Traffic Issue or Hazard</h3>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+                    Encountered an accident, broken signal, deep pothole, or gridlock in Gorakhpur? Submit a report directly to the Traffic Control Command Center.
+                </p>
+                <button class="btn-danger" onclick="openReportIncidentModal()">
+                    🚨 Submit Traffic Incident Report
                 </button>
             </div>
 
-            <!-- QUICK INFO -->
-            <div class="quick-grid">
-                <div class="quick-card">
-                    <div class="quick-icon blue"><i class="fa-solid fa-gauge-high"></i></div>
-                    <div>
-                        <small>Average Speed</small>
-                        <strong id="avgSpeed">-- km/h</strong>
+            <div class="content-card" style="border-left: 4px solid #f59e0b;">
+                <h3><i class="fa-solid fa-bell" style="color: #f59e0b;"></i> Public Traffic Advisories & Alerts</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background: #fef3c7; border: 1px solid #fde68a; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #92400e;">
+                        <strong>📢 Mohaddipur Junction Heavy Vehicle Curfew:</strong> Commercial multi-axle trucks restricted between 08:00 AM and 08:30 PM.
+                    </div>
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #1e40af;">
+                        <strong>🚑 Emergency Green Corridor Protocol:</strong> Active route synchronization between AIIMS and Sadar Hospital during high-priority ambulance transit.
                     </div>
                 </div>
-                <div class="quick-card">
-                    <div class="quick-icon orange"><i class="fa-solid fa-clock"></i></div>
-                    <div>
-                        <small>Route ETA</small>
-                        <strong id="eta">-- min</strong>
+            </div>
+        </div>
+
+        <!-- ================= CITIZEN VEHICLE E-CHALLAN & ONLINE FINE SETTLEMENT ================= -->
+        <div class="content-card" style="margin-top: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 3px;"><i class="fa-solid fa-receipt" style="color: #2563eb;"></i> Citizen Vehicle e-Challan & Instant Settlement</h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        Search pending traffic violations and e-challans issued by Gorakhpur Traffic Police and settle via simulated UPI / Card gateway.
+                    </p>
+                </div>
+                <span class="tag-verified"><i class="fa-solid fa-shield-check"></i> Parivahan / Traffic Police Gateway</span>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+                <input type="text" id="citizen-plate-input" class="form-control" placeholder="Enter Registration No. (e.g. UP-53-AZ-1001 or UP53)" style="flex: 1; min-width: 240px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;" onkeydown="if(event.key==='Enter') searchCitizenChallans()">
+                <button class="btn-primary" onclick="searchCitizenChallans()">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search Challans
+                </button>
+                <button class="btn-secondary" onclick="fillSamplePlate('UP-53-AZ-1001')">
+                    Demo: UP-53-AZ-1001
+                </button>
+                <button class="btn-secondary" onclick="fillSamplePlate('UP-53-BK-2044')">
+                    Demo: UP-53-BK-2044
+                </button>
+            </div>
+
+            <!-- Challans Result List Container -->
+            <div id="citizen-challans-container" style="display: none;"></div>
+        </div>
+
+        <!-- ================= DAILY COMMUTE CORRIDOR ALERT SUBSCRIPTION ================= -->
+        <div class="content-card" style="margin-top: 22px; border-left: 4px solid #10b981;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 3px;"><i class="fa-solid fa-clock" style="color: #10b981;"></i> Citizen Daily Commute Route Alert Subscription</h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        Subscribe your daily office / college commute corridor to receive real-time morning and evening traffic congestion & diversion advisories.
+                    </p>
+                </div>
+                <span class="tag-verified"><i class="fa-solid fa-check"></i> Instant WhatsApp / App Push</span>
+            </div>
+
+            <div class="two-column-grid">
+                <div>
+                    <div class="form-group">
+                        <label>YOUR NAME</label>
+                        <input type="text" id="commute-name-input" class="form-control" placeholder="e.g. Rahul Sharma" value="Omkar Yadav">
+                    </div>
+                    <div class="form-group">
+                        <label>MOBILE NUMBER OR EMAIL</label>
+                        <input type="text" id="commute-contact-input" class="form-control" placeholder="e.g. 9876543210 or omkar@example.com" value="+91 98765 43210">
                     </div>
                 </div>
-                <div class="quick-card">
-                    <div class="quick-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div>
-                        <small>Traffic Level</small>
-                        <strong id="trafficLevel">Checking...</strong>
+
+                <div>
+                    <div class="form-group">
+                        <label>COMMUTE CORRIDOR</label>
+                        <select id="commute-corridor-select" class="form-control">
+                            <option value="Gorakhpur Junction to AIIMS (via Mohaddipur)">Gorakhpur Junction to AIIMS (via Mohaddipur)</option>
+                            <option value="Asuran Chowk to BRD Medical College">Asuran Chowk to BRD Medical College</option>
+                            <option value="Golghar to Ramgarh Taal Lake View">Golghar to Ramgarh Taal Lake View</option>
+                            <option value="Gorakhnath Mandir to Shastri Chowk">Gorakhnath Mandir to Shastri Chowk</option>
+                            <option value="Nausarh RTO to Civil Lines Commercial Zone">Nausarh RTO to Civil Lines Commercial Zone</option>
+                        </select>
                     </div>
-                </div>
-                <div class="quick-card">
-                    <div class="quick-icon green"><i class="fa-solid fa-cloud-sun"></i></div>
-                    <div>
-                        <small>Gorakhpur Weather</small>
-                        <strong id="weather">Loading...</strong>
+                    <div class="form-group">
+                        <label>PREFERRED ADVISORY TIME</label>
+                        <select id="commute-time-select" class="form-control">
+                            <option value="08:15 AM (Morning Peak Departure)">08:15 AM (Morning Peak Departure)</option>
+                            <option value="09:00 AM (Standard Office Hour)">09:00 AM (Standard Office Hour)</option>
+                            <option value="05:30 PM (Evening Return Peak)">05:30 PM (Evening Return Peak)</option>
+                            <option value="06:30 PM (Evening Commercial Peak)">06:30 PM (Evening Commercial Peak)</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <!-- MAP AREA -->
-            <div class="map-layout">
-                <div class="map-card">
-                    <div class="map-header">
-                        <div>
-                            <h2>Live City Map</h2>
-                            <p>Gorakhpur, Uttar Pradesh</p>
-                        </div>
-                        <div class="map-actions">
-                            <button id="trafficBtn" class="active"><i class="fa-solid fa-car"></i> Traffic</button>
-                            <button id="satelliteBtn"><i class="fa-solid fa-layer-group"></i> Map</button>
+            <button class="btn-primary" onclick="subscribeCommuteAlert()" style="width: 100%; background: #059669; border-color: #059669;">
+                <i class="fa-solid fa-paper-plane"></i> Subscribe to Live Commute Broadcast
+            </button>
+
+            <div id="commute-preview-box" style="display: none; margin-top: 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 14px; font-size: 13px; color: #065f46;">
+                <!-- Dynamically filled after subscription -->
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         LAYER 2: TRAFFIC EMPLOYEE / STAFF LAYER
+    ========================================================= -->
+    <div id="layer-control-content" style="display: none;">
+        <!-- Staff Sub-Toolbar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; flex-wrap: wrap; gap: 10px;">
+            <div style="font-weight: 800; font-size: 15px; color: #0f172a;">
+                👮 Traffic Control & Enforcement Operations
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-secondary btn-sm" onclick="exportMunicipalReport()" style="font-weight: 700; color: #1e293b;">
+                    <i class="fa-solid fa-file-arrow-down" style="color: #2563eb;"></i> Export Municipal Report (CSV)
+                </button>
+                <button class="btn-primary btn-sm" onclick="openAddJunctionModal()">
+                    <i class="fa-solid fa-plus"></i> Add Junction
+                </button>
+                <button class="btn-primary btn-sm" onclick="openAddSignalModal()">
+                    <i class="fa-solid fa-traffic-light"></i> Add Traffic Light
+                </button>
+                <button class="btn-primary btn-sm" onclick="openAddCameraModal()">
+                    <i class="fa-solid fa-video"></i> Add CCTV Camera
+                </button>
+            </div>
+        </div>
+
+        <!-- Selected Junction Signal Configurator & Manual Override -->
+        <div class="content-card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 2px;"><i class="fa-solid fa-sliders" style="color: #2563eb;"></i> Junction Signal & Phase Controller</h3>
+                    <p style="font-size: 13px; color: #64748b;">Select any Gorakhpur junction to inspect real-time signal heads, adjust cycle timings, or apply manual overrides.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">SELECT JUNCTION:</label>
+                    <select id="control-junction-select" class="form-control" style="width: 260px;" onchange="selectControlJunction(this.value)">
+                        <!-- Injected dynamically -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Live Junction Telemetry Gauges Bar -->
+            <div id="ctrl-telemetry-bar" style="display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: #475569; font-weight: 700;">LIVE JUNCTION STATE:</span>
+                    <span id="ctrl-status-badge" class="badge badge-online">Operational</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 18px; font-size: 12px;">
+                    <div>Congestion: <strong id="ctrl-congestion-val" style="color: #ea580c; font-size: 14px;">45%</strong></div>
+                    <div>Avg Speed: <strong id="ctrl-speed-val" style="color: #2563eb; font-size: 14px;">28.5 km/h</strong></div>
+                </div>
+            </div>
+
+            <!-- 4-Approach Signal Heads Display -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center;">
+                    <strong style="font-size: 12px; color: #475569;">NORTH APPROACH</strong>
+                    <div style="margin: 8px 0;">
+                        <div class="signal-head-display">
+                            <div id="sig-north-red" class="signal-circle red"></div>
+                            <div id="sig-north-yel" class="signal-circle yellow"></div>
+                            <div id="sig-north-grn" class="signal-circle green active"></div>
                         </div>
                     </div>
+                    <div id="sig-north-timer" style="font-size: 20px; font-weight: 900; color: #16a34a;">28s</div>
+                </div>
 
-                    <div id="map"></div>
-
-                    <!-- LEGEND -->
-                    <div class="legend">
-                        <strong>Traffic</strong>
-                        <span><i class="green"></i> Low</span>
-                        <span><i class="yellow"></i> Moderate</span>
-                        <span><i class="orange"></i> Heavy</span>
-                        <span><i class="red"></i> Severe</span>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center;">
+                    <strong style="font-size: 12px; color: #475569;">SOUTH APPROACH</strong>
+                    <div style="margin: 8px 0;">
+                        <div class="signal-head-display">
+                            <div id="sig-south-red" class="signal-circle red"></div>
+                            <div id="sig-south-yel" class="signal-circle yellow"></div>
+                            <div id="sig-south-grn" class="signal-circle green active"></div>
+                        </div>
                     </div>
+                    <div id="sig-south-timer" style="font-size: 20px; font-weight: 900; color: #16a34a;">28s</div>
+                </div>
 
-                    <!-- MAP LOCATION BUTTON -->
-                    <button id="centerBtn" class="center-map">
-                        <i class="fa-solid fa-crosshairs"></i>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center;">
+                    <strong style="font-size: 12px; color: #475569;">EAST APPROACH</strong>
+                    <div style="margin: 8px 0;">
+                        <div class="signal-head-display">
+                            <div id="sig-east-red" class="signal-circle red active"></div>
+                            <div id="sig-east-yel" class="signal-circle yellow"></div>
+                            <div id="sig-east-grn" class="signal-circle green"></div>
+                        </div>
+                    </div>
+                    <div id="sig-east-timer" style="font-size: 20px; font-weight: 900; color: #dc2626;">45s</div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center;">
+                    <strong style="font-size: 12px; color: #475569;">WEST APPROACH</strong>
+                    <div style="margin: 8px 0;">
+                        <div class="signal-head-display">
+                            <div id="sig-west-red" class="signal-circle red active"></div>
+                            <div id="sig-west-yel" class="signal-circle yellow"></div>
+                            <div id="sig-west-grn" class="signal-circle green"></div>
+                        </div>
+                    </div>
+                    <div id="sig-west-timer" style="font-size: 20px; font-weight: 900; color: #dc2626;">45s</div>
+                </div>
+            </div>
+
+            <!-- Sliders & Override Buttons -->
+            <div class="two-column-grid" style="align-items: center;">
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+                        <span>North-South Green Time:</span>
+                        <span id="label-ns-green" style="color: #2563eb;">45s</span>
+                    </div>
+                    <input type="range" id="slider-ns-green" min="20" max="90" value="45" oninput="updateTimingSliders()" style="width: 100%; margin-bottom: 12px;">
+
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+                        <span>East-West Green Time:</span>
+                        <span id="label-ew-green" style="color: #2563eb;">40s</span>
+                    </div>
+                    <input type="range" id="slider-ew-green" min="20" max="90" value="40" oninput="updateTimingSliders()" style="width: 100%; margin-bottom: 14px;">
+
+                    <button class="btn-primary btn-sm" onclick="saveSignalTimingConfig()">
+                        <i class="fa-solid fa-check"></i> Save Signal Timing
                     </button>
                 </div>
 
-                <!-- SIDE INFO -->
-                <div class="info-column">
-                    <!-- ROUTE INFO -->
-                    <div class="info-card">
-                        <div class="info-title">
-                            <div>
-                                <h3>Current Route</h3>
-                                <small>Traffic-aware navigation</small>
-                            </div>
-                            <span id="routeStatus">READY</span>
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 10px;">
+                        MANUAL OVERRIDE CONTROLS:
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <button class="btn-secondary btn-sm" onclick="applyManualOverride('FORCE_GREEN', 'North')">
+                            🟢 Force Green (N/S)
+                        </button>
+                        <button class="btn-secondary btn-sm" onclick="applyManualOverride('FORCE_GREEN', 'East')">
+                            🟢 Force Green (E/W)
+                        </button>
+                        <button class="btn-secondary btn-sm" onclick="applyManualOverride('FLASH_AMBER')">
+                            🟡 Flash Amber
+                        </button>
+                        <button class="btn-secondary btn-sm" onclick="applyManualOverride('RESTORE_AUTO')" style="color: #16a34a; font-weight: 700;">
+                            🔄 Restore Auto
+                        </button>
+            <!-- ================= WEBSTER'S OPTIMUM SIGNAL TIMING ENGINE ================= -->
+            <div class="webster-card" style="margin-top: 18px; border: 1px solid #bfdbfe; background: #eff6ff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4 style="margin: 0; color: #1e3a8a; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-calculator" style="color: #2563eb;"></i>
+                            Webster's Optimum Signal Timing Engine (IRC:93 Standard)
+                        </h4>
+                        <small style="color: #475569;">Dynamically calculates optimal cycle length $C_0$ and phase green splits from live camera PCU counts.</small>
+                    </div>
+                    <button class="btn-primary btn-sm" onclick="computeWebsterTimingForActiveJunction()" style="background: #2563eb;">
+                        <i class="fa-solid fa-microchip"></i> Compute Webster Timings
+                    </button>
+                </div>
+
+                <div class="webster-formula-display" id="webster-formula-text">
+                    C₀ = (1.5L + 5) / (1 - Y) &nbsp;&nbsp;|&nbsp;&nbsp; gᵢ = (yᵢ / Y) × (C₀ - L)
+                </div>
+
+                <div class="webster-metrics-grid" id="webster-metrics-container">
+                    <div class="webster-metric-item">
+                        <small>Lost Time (L)</small>
+                        <strong id="webster-lost-time">8s (2×4s)</strong>
+                    </div>
+                    <div class="webster-metric-item">
+                        <small>Flow Ratio (Y)</small>
+                        <strong id="webster-flow-ratio">0.685</strong>
+                    </div>
+                    <div class="webster-metric-item">
+                        <small>Optimal Cycle (C₀)</small>
+                        <strong id="webster-opt-cycle" style="color: #2563eb;">54s</strong>
+                    </div>
+                    <div class="webster-metric-item">
+                        <small>N-S Green (g₁)</small>
+                        <strong id="webster-ns-green" style="color: #16a34a;">28s</strong>
+                    </div>
+                    <div class="webster-metric-item">
+                        <small>E-W Green (g₂)</small>
+                        <strong id="webster-ew-green" style="color: #16a34a;">26s</strong>
+                    </div>
+                    <div class="webster-metric-item">
+                        <small>Est. Delay Reduction</small>
+                        <strong id="webster-delay-reduction" style="color: #059669;">-19.4%</strong>
+                    </div>
+                </div>
+
+                <div id="webster-derivation-steps" style="font-size: 11px; font-family: monospace; background: #ffffff; border: 1px solid #dbeafe; padding: 10px 14px; border-radius: 6px; color: #1e40af; line-height: 1.6;">
+                    Click "Compute Webster Timings" to analyze live CCTV sensor flow and derive the optimal cycle for this junction.
+                </div>
+
+                <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+                    <button class="btn-secondary btn-sm" id="btn-apply-webster" onclick="applyWebsterTimingsToSliders()" style="display: none; font-weight: 700; color: #16a34a; border-color: #86efac;">
+                        <i class="fa-solid fa-circle-check"></i> Apply Optimal Timings to Sliders & Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= DYNAMIC CCTV CAMERA WALL ================= -->
+        <div class="content-card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 2px;"><i class="fa-solid fa-video" style="color: #2563eb;"></i> Dynamic Junction CCTV Cameras</h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        All cameras are fetched directly from the database and grouped by junction. Displays live optical/sensor stream or offline state.
+                    </p>
+                </div>
+                <button class="btn-primary btn-sm" onclick="openAddCameraModal()">
+                    <i class="fa-solid fa-plus"></i> Add New Camera
+                </button>
+            </div>
+
+            <!-- Dynamic Camera Groups Container -->
+            <div id="dynamic-cctv-wall-container">
+                <div style="text-align: center; padding: 30px; color: #64748b;">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Loading CCTV camera infrastructure from database...
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= AI VIOLATIONS & CHALLAN REFERRAL ================= -->
+        <div class="content-card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 2px;"><i class="fa-solid fa-receipt" style="color: #ef4444;"></i> AI Traffic Violations & Challan Referral System</h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        AI detects potential violations (Red Light, Wrong Way, No Helmet, Over Speeding). Authorized staff review evidence and refer cases for official e-Challan generation.
+                    </p>
+                </div>
+                <button class="btn-secondary btn-sm" onclick="loadViolationsData()">
+                    <i class="fa-solid fa-rotate"></i> Refresh Violations
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="custom-table" id="violations-table">
+                    <thead>
+                        <tr>
+                            <th>Violation ID</th>
+                            <th>Junction / Camera</th>
+                            <th>Violation Type</th>
+                            <th>Vehicle Number</th>
+                            <th>Confidence</th>
+                            <th>Fine Amount</th>
+                            <th>Status</th>
+                            <th>ANPR Evidence</th>
+                            <th>Action / Review</th>
+                        </tr>
+                    </thead>
+                    <tbody id="violations-tbody">
+                        <tr><td colspan="9" style="text-align:center;">Loading violations...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= LIVE MOVING AMBULANCE FLEET & CRITICAL TRANSIT PREEMPTION ================= -->
+        <div class="content-card" style="margin-bottom: 24px; border-left: 4px solid #dc2626;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 2px; color: #991b1b;">
+                        <i class="fa-solid fa-truck-medical" style="color: #dc2626;"></i> Live Moving Ambulances & Critical Transit Corridor Preemption
+                    </h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        Real-time GPS telemetry from active Gorakhpur ambulances. When marked in <strong>Critical Condition</strong>, transit route is instantly loaded on the map and all traffic signals along the route turn GREEN in advance (Green Wave).
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span class="badge badge-online" id="fleet-live-status-badge"><i class="fa-solid fa-satellite-dish"></i> GPS Telemetry Live</span>
+                    <button class="btn-secondary btn-sm" onclick="loadLiveAmbulancesFleet()"><i class="fa-solid fa-rotate"></i> Refresh Fleet</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="custom-table" id="live-ambulances-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle No / ID</th>
+                            <th>Driver & Mobile</th>
+                            <th>Assigned Hospital</th>
+                            <th>Current GPS Telemetry</th>
+                            <th>Speed</th>
+                            <th>Status</th>
+                            <th>Critical Route Preemption</th>
+                        </tr>
+                    </thead>
+                    <tbody id="live-ambulances-tbody">
+                        <tr><td colspan="7" style="text-align: center; padding: 18px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Connecting to live ambulance telemetry...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Emergency Priority Green Corridor & Movement Rules -->
+        <div class="two-column-grid">
+            <div class="content-card" style="border-left: 4px solid #2563eb;">
+                <h3><i class="fa-solid fa-truck-medical" style="color: #2563eb;"></i> Emergency Priority Green Corridor</h3>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;">
+                    Preempts consecutive traffic lights to continuous green for critical emergency services.
+                </p>
+
+                <div class="form-group">
+                    <label>SELECT EMERGENCY CORRIDOR</label>
+                    <select id="emergency-corridor-select" class="form-control">
+                        <option value="CORR-01">AIIMS to District Sadar Hospital (Golghar Corridor)</option>
+                        <option value="CORR-02">BRD Medical College to Cantt Trauma Bypass</option>
+                        <option value="CORR-03">Gorakhnath Pilgrimage Fire & Safety Rapid Corridor</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                    <button id="btn-dispatch-corridor" class="btn-danger" onclick="dispatchEmergencyCorridor()" style="flex: 1;">
+                        <i class="fa-solid fa-bolt"></i> Dispatch Green Corridor
+                    </button>
+                    <button id="btn-cancel-corridor" class="btn-secondary" onclick="deactivateEmergencyCorridor()" style="display: none;">
+                        Deactivate
+                    </button>
+                </div>
+
+                <!-- Interactive Ambulance Live Approaching Radar & Siren Launcher -->
+                <div class="amb-simulation-hud">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="amb-radar-ping-ring"></span>
+                            <strong style="font-size: 12px; color: #991b1b;">AMBULANCE LIVE RADAR SIMULATOR</strong>
                         </div>
-                        <div class="route-summary">
-                            <div>
-                                <small>DISTANCE</small>
-                                <strong id="distance">-- km</strong>
-                            </div>
-                            <div>
-                                <small>TIME</small>
-                                <strong id="routeTime">-- min</strong>
-                            </div>
-                            <div>
-                                <small>DELAY</small>
-                                <strong id="delay">--</strong>
-                            </div>
+                        <span id="amb-sim-badge" class="badge badge-offline">IDLE</span>
+                    </div>
+                    <p style="font-size: 12px; color: #7f1d1d; margin-bottom: 10px;">
+                        Simulates emergency transit approaching Golghar with Web Audio siren warble, map radar rings, and automatic Green Wave preemption at 500m.
+                    </p>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <div>
+                            <small style="color: #64748b; font-size: 11px;">Approaching Distance:</small>
+                            <div class="amb-dist-counter" id="amb-sim-distance">-- m</div>
                         </div>
-                        <div class="route-message" id="routeMessage">
-                            Enter a destination to calculate your route.
+                        <div style="text-align: right;">
+                            <small style="color: #64748b; font-size: 11px;">Signal Override:</small>
+                            <div id="amb-sim-signal-status" style="font-weight: 800; font-size: 13px; color: #64748b;">Normal AI</div>
                         </div>
-                        <button id="navigationBtn" class="navigation-btn" disabled>
-                            <i class="fa-solid fa-location-arrow"></i> Start Navigation
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-start-amb-sim" class="btn-primary btn-sm" onclick="startAmbulanceSimulation()" style="flex: 1; background: #dc2626; border-color: #dc2626;">
+                            <i class="fa-solid fa-siren"></i> Start Approaching Simulation
+                        </button>
+                        <button id="btn-stop-amb-sim" class="btn-secondary btn-sm" onclick="stopAmbulanceSimulation()" style="display: none; color: #dc2626;">
+                            Stop Simulation
                         </button>
                     </div>
-
-                    <!-- WEATHER -->
-                    <div class="info-card weather-card">
-                        <div class="info-title">
-                            <div>
-                                <h3>Weather Impact</h3>
-                                <small>Live Gorakhpur conditions</small>
-                            </div>
-                            <i class="fa-solid fa-cloud-sun weather-symbol"></i>
-                        </div>
-                        <div class="weather-main">
-                            <strong id="temperature">--°C</strong>
-                            <div>
-                                <span id="weatherText">Loading...</span>
-                                <small id="wind">Wind -- km/h</small>
-                            </div>
-                        </div>
-                        <div class="weather-warning" id="weatherWarning">
-                            Checking weather impact...
-                        </div>
-                    </div>
-
-                    <!-- TRAFFIC STATUS -->
-                    <div class="info-card">
-                        <div class="info-title">
-                            <div>
-                                <h3>Traffic Condition</h3>
-                                <small>Current traffic analysis</small>
-                            </div>
-                            <span class="pulse"></span>
-                        </div>
-                        <div class="traffic-meter">
-                            <div class="meter-track">
-                                <span id="trafficMeter"></span>
-                            </div>
-                            <div class="meter-labels">
-                                <span>Low</span>
-                                <span>Moderate</span>
-                                <span>Heavy</span>
-                                <span>Severe</span>
-                            </div>
-                        </div>
-                        <div class="traffic-result">
-                            <strong id="trafficResult">Checking...</strong>
-                            <span id="trafficDescription">Analysing current conditions</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- ROUTES -->
-            <div class="section-heading">
-                <div>
-                    <h2>Recommended Routes</h2>
-                    <p>Choose the route that works best for you</p>
+            <div class="content-card">
+                <h3><i class="fa-solid fa-signs-post" style="color: #d97706;"></i> Traffic Movement Rules</h3>
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Enforce or suspend peak-hour traffic rules.</p>
+                <div id="movement-rules-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Injected via JS -->
                 </div>
             </div>
-            <div id="routesContainer" class="routes">
-                <div class="empty-route">
-                    <i class="fa-solid fa-route"></i>
-                    <strong>No route selected</strong>
-                    <span>Enter your destination above.</span>
-                </div>
-            </div>
-
-            <!-- ROAD STATUS -->
-            <div class="section-heading">
-                <div>
-                    <h2>Road Traffic Status</h2>
-                    <p>Traffic visualization for major city roads</p>
-                </div>
-                <span class="update-time" id="updateTime">Updated just now</span>
-            </div>
-            <div class="road-grid">
-                <div class="road-card">
-                    <div class="road-top">
-                        <div>
-                            <strong>Gorakhpur - Deoria Road</strong>
-                            <small>NH-727B</small>
-                        </div>
-                        <span class="road-badge green-badge">LOW</span>
-                    </div>
-                    <div class="road-bar"><span style="width:25%"></span></div>
-                    <div class="road-bottom">
-                        <span>Traffic flow normal</span><strong>45 km/h</strong>
-                    </div>
-                </div>
-                <div class="road-card">
-                    <div class="road-top">
-                        <div>
-                            <strong>Gorakhpur - Kushinagar Road</strong>
-                            <small>NH-27</small>
-                        </div>
-                        <span class="road-badge yellow-badge">MODERATE</span>
-                    </div>
-                    <div class="road-bar"><span class="yellow-bar" style="width:55%"></span></div>
-                    <div class="road-bottom">
-                        <span>Normal traffic</span><strong>32 km/h</strong>
-                    </div>
-                </div>
-                <div class="road-card">
-                    <div class="road-top">
-                        <div>
-                            <strong>Railway Station Road</strong>
-                            <small>Station Area</small>
-                        </div>
-                        <span class="road-badge orange-badge">HEAVY</span>
-                    </div>
-                    <div class="road-bar"><span class="orange-bar" style="width:74%"></span></div>
-                    <div class="road-bottom">
-                        <span>High vehicle density</span><strong>19 km/h</strong>
-                    </div>
-                </div>
-                <div class="road-card">
-                    <div class="road-top">
-                        <div>
-                            <strong>Medical College Road</strong>
-                            <small>Medical College</small>
-                        </div>
-                        <span class="road-badge red-badge">SEVERE</span>
-                    </div>
-                    <div class="road-bar"><span class="red-bar" style="width:91%"></span></div>
-                    <div class="road-bottom">
-                        <span>High congestion</span><strong>11 km/h</strong>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-</div>
-
-<!-- NAVIGATION PANEL -->
-<div id="navigationPanel" class="navigation-panel">
-    <div class="nav-top">
-        <div>
-            <small>SMART NAVIGATION</small>
-            <h2 id="navDestination">Navigation</h2>
-        </div>
-        <button id="closeNav"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="next-turn">
-        <div class="turn-icon"><i class="fa-solid fa-arrow-up"></i></div>
-        <div>
-            <small>NEXT INSTRUCTION</small>
-            <strong id="instruction">Follow the highlighted route</strong>
         </div>
     </div>
-    <div class="nav-stats">
-        <div><small>ETA</small><strong id="navEta">--</strong></div>
-        <div><small>DISTANCE</small><strong id="navDistance">--</strong></div>
-        <div><small>ROAD</small><strong id="navRoad">--</strong></div>
+
+    <!-- =========================================================
+         LAYER 3: ADMIN LAYER
+    ========================================================= -->
+    <div id="layer-admin-content" style="display: none;">
+        <!-- Infrastructure Inventory Table -->
+        <div class="content-card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <h3><i class="fa-solid fa-traffic-light" style="color: #2563eb;"></i> Registered Traffic Junctions</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-secondary btn-sm" onclick="exportMunicipalReport()" style="font-weight: 700; color: #1e293b;">
+                        <i class="fa-solid fa-file-arrow-down" style="color: #2563eb;"></i> Export Municipal Report (CSV)
+                    </button>
+                    <button class="btn-primary btn-sm" onclick="openAddJunctionModal()">+ Add Junction</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table" id="admin-junctions-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Zone</th>
+                            <th>Coordinates (Lat, Lng)</th>
+                            <th>Mode</th>
+                            <th>Assigned Officer</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-junctions-tbody">
+                        <tr><td colspan="7" style="text-align: center;">Loading junctions...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Traffic Signals Inventory Table -->
+        <div class="content-card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3><i class="fa-solid fa-traffic-light" style="color: #16a34a;"></i> Registered Traffic Light Units</h3>
+                <button class="btn-primary btn-sm" onclick="openAddSignalModal()">+ Add Traffic Light</button>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table" id="admin-signals-table">
+                    <thead>
+                        <tr>
+                            <th>Signal ID</th>
+                            <th>Junction</th>
+                            <th>Approach</th>
+                            <th>Coordinates</th>
+                            <th>Type</th>
+                            <th>Timings (G/Y/R)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-signals-tbody">
+                        <tr><td colspan="8" style="text-align: center;">Loading signals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Staff & RBAC -->
+        <div class="two-column-grid" style="margin-bottom: 24px;">
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <h3><i class="fa-solid fa-users" style="color: #2563eb;"></i> Traffic Staff & RBAC</h3>
+                    <button class="btn-primary btn-sm" onclick="openAddStaffModal()">+ Add Staff</button>
+                </div>
+                <div id="admin-staff-table-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- AI Model Settings -->
+            <div class="content-card">
+                <h3><i class="fa-solid fa-sliders" style="color: #0284c7;"></i> AI Model Hyperparameters</h3>
+                <div id="admin-ai-settings-container" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Injected via JS -->
+                </div>
+                <button class="btn-primary btn-sm" onclick="saveAdminAISettings()" style="margin-top: 14px;">
+                    <i class="fa-solid fa-save"></i> Save AI Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Real-Time Audit Logs -->
+        <div class="content-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3><i class="fa-solid fa-clock-rotate-left" style="color: #d97706;"></i> System Activity & Audit Trail</h3>
+                <button class="btn-secondary btn-sm" onclick="loadAuditLogs()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table" id="admin-audit-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                            <th>Target</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-audit-tbody">
+                        <tr><td colspan="6" style="text-align: center;">Loading audit logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <button id="stopNav" class="stop-nav">Stop Navigation</button>
+
 </div>
 
-<!-- TOAST -->
-<div id="toast" class="toast"></div>
+<!-- ================= MODALS ================= -->
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<!-- 1. Report Incident Modal -->
+<div id="modal-incident" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>🚨 Report Traffic Incident / Hazard</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-incident')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>INCIDENT CATEGORY</label>
+                <select id="inc-category" class="form-control">
+                    <option value="Accident">Vehicle Collision / Accident</option>
+                    <option value="Severe Congestion">Severe Traffic Jam</option>
+                    <option value="Road Damage / Pothole">Road Damage / Pothole</option>
+                    <option value="Traffic Signal Failure">Signal Head Malfunction</option>
+                    <option value="Waterlogging">Waterlogging Obstruction</option>
+                    <option value="Vehicle Breakdown">Vehicle Breakdown</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>LOCATION / LANDMARK IN GORAKHPUR</label>
+                <input type="text" id="inc-location" class="form-control" placeholder="e.g. Near Golghar City Mall Crossing">
+            </div>
+            <div class="form-group">
+                <label>SEVERITY LEVEL</label>
+                <select id="inc-severity" class="form-control">
+                    <option value="Moderate">Moderate (Slow Traffic)</option>
+                    <option value="High">High (Single Lane Blocked)</option>
+                    <option value="Critical">Critical (Total Blockade / Emergency)</option>
+                    <option value="Low">Low (Minor Delay)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>DESCRIPTION & DETAILS</label>
+                <textarea id="inc-description" class="form-control" rows="3" placeholder="Describe vehicle types, lane obstructed, etc."></textarea>
+            </div>
+            <div class="form-group">
+                <label>REPORTER NAME</label>
+                <input type="text" id="inc-name" class="form-control" value="Omkar Yadav">
+            </div>
+            <div class="form-group">
+                <label>CONTACT PHONE</label>
+                <input type="text" id="inc-phone" class="form-control" value="6306880179">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-incident')">Cancel</button>
+            <button class="btn-danger" onclick="submitTrafficIncident()">Submit Report</button>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Add/Edit CCTV Camera Modal -->
+<div id="modal-camera" class="modal-overlay">
+    <div class="modal-box" style="max-width: 620px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+            <h3 id="modal-cam-title">📹 Add CCTV Optical Unit</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-camera')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="cam-edit-id">
+            <div class="form-group">
+                <label>ASSIGNED JUNCTION</label>
+                <select id="cam-junction-select" class="form-control">
+                    <!-- Injected dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>CAMERA NAME / DESCRIPTION</label>
+                <input type="text" id="cam-name-input" class="form-control" placeholder="e.g. Golghar North - Sadar Road Cam">
+            </div>
+            <div class="form-group">
+                <label>CAMERA DIRECTION / COVERAGE AREA</label>
+                <select id="cam-dir-select" class="form-control">
+                    <option value="North">North Approach</option>
+                    <option value="South">South Approach</option>
+                    <option value="East">East Approach</option>
+                    <option value="West">West Approach</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label>CAMERA SOURCE TYPE</label>
+                    <select id="cam-source-select" class="form-control" onchange="handleCameraSourceChange()">
+                        <option value="phone_ip">Phone IP Camera</option>
+                        <option value="cctv_ip">IP CCTV Camera</option>
+                        <option value="hls">HLS Stream (.m3u8)</option>
+                        <option value="webrtc">WebRTC Stream</option>
+                        <option value="mp4">MP4 Video</option>
+                        <option value="mjpeg">MJPEG Stream</option>
+                        <option value="web_page">Camera Web Page</option>
+                        <option value="demo">Demo Camera (AI Simulated)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>PLAYBACK TYPE</label>
+                    <select id="cam-playback-select" class="form-control" onchange="handlePlaybackTypeChange()">
+                        <option value="auto">Auto Detect</option>
+                        <option value="mjpeg">MJPEG (Direct Stream / &lt;img&gt;)</option>
+                        <option value="web_page">Camera Web Page (&lt;iframe&gt;)</option>
+                        <option value="hls">HLS (.m3u8 / Hls.js)</option>
+                        <option value="mp4">MP4 Video (&lt;video&gt;)</option>
+                        <option value="webrtc">WebRTC</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>STREAM URL / CAMERA ADDRESS</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="cam-stream-input" class="form-control" placeholder="http://192.168.1.4:8080 or https://.../stream.m3u8">
+                    <button type="button" class="btn-secondary" id="btn-modal-test-conn" onclick="testCameraConnectionInModal()" style="white-space: nowrap; font-weight: 700;">
+                        <i class="fa-solid fa-satellite-dish"></i> Test Connection
+                    </button>
+                </div>
+                <small id="cam-url-help-text" style="color: #64748b; font-size: 11px; display: block; margin-top: 4px;">
+                    Use a browser-compatible stream URL. A camera web page URL (e.g. <code>http://192.168.1.4:8080</code>) may require iframe playback or direct stream path <code>/video</code> for MJPEG.
+                </small>
+            </div>
+
+            <!-- Network & Security Advisory Alert -->
+            <div id="cam-network-warning" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 11px; color: #92400e;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Local Network Notice:</strong>
+                Local camera URLs work only when the viewing device can access the same network (e.g. same Wi-Fi). An online deployed website cannot directly access your phone's private IP without a proper streaming/network setup.
+            </div>
+
+            <!-- Modal Stream Preview Area -->
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="margin: 0;">CAMERA PREVIEW</label>
+                    <span id="modal-preview-status-badge" class="badge" style="background: #f1f5f9; color: #64748b; font-size: 10px;">Idle / Not Tested</span>
+                </div>
+                <div id="modal-cam-preview-container" style="width: 100%; height: 210px; background: #0f172a; border-radius: 8px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid #1e293b;">
+                    <div id="modal-preview-placeholder" style="text-align: center; color: #64748b; font-size: 12px; padding: 16px;">
+                        <i class="fa-solid fa-video" style="font-size: 28px; margin-bottom: 8px; display: block; color: #475569;"></i>
+                        <span>Enter Stream URL & click <strong>Test Connection</strong> to preview live video feed</span>
+                    </div>
+                </div>
+                <div id="modal-preview-diagnosis" style="font-size: 11px; color: #475569; margin-top: 6px; display: none;"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label>CAMERA STATUS</label>
+                    <select id="cam-status-select" class="form-control">
+                        <option value="Configured">Configured — Not Verified</option>
+                        <option value="Online">Online (Operational)</option>
+                        <option value="Offline">Offline / Unavailable</option>
+                        <option value="Maintenance">Under Maintenance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>RESOLUTION SPECIFICATION</label>
+                    <select id="cam-res-select" class="form-control">
+                        <option value="1080p FHD">1080p FHD Optical + Radar</option>
+                        <option value="4K UltraHD">4K UltraHD Multi-Spectrum Vision</option>
+                        <option value="720p HD">720p HD Standard</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-camera')">Cancel</button>
+            <button class="btn-primary" id="btn-save-camera" onclick="submitCameraForm()">Save Camera</button>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Add/Edit Junction Modal -->
+<div id="modal-junction" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-jnc-title">🚦 Manage Traffic Junction</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-junction')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>JUNCTION ID (e.g. JNC-09)</label>
+                <input type="text" id="jnc-id-input" class="form-control" placeholder="JNC-09">
+            </div>
+            <div class="form-group">
+                <label>JUNCTION NAME</label>
+                <input type="text" id="jnc-name-input" class="form-control" placeholder="e.g. Padri Bazar T-Point">
+            </div>
+            <div class="form-group">
+                <label>URBAN ZONE</label>
+                <input type="text" id="jnc-zone-input" class="form-control" placeholder="e.g. North Healthcare Sector">
+            </div>
+            <div class="form-group">
+                <label>LANDMARK DETAILS</label>
+                <input type="text" id="jnc-landmark-input" class="form-control" placeholder="e.g. Near Fatima Hospital Gate">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>LATITUDE</label>
+                    <input type="number" step="0.0001" id="jnc-lat-input" class="form-control" placeholder="26.7820">
+                </div>
+                <div class="form-group">
+                    <label>LONGITUDE</label>
+                    <input type="number" step="0.0001" id="jnc-lng-input" class="form-control" placeholder="83.3850">
+                </div>
+            </div>
+            <button type="button" class="btn-secondary btn-sm" onclick="pickCoordsFor('jnc')" style="margin-bottom: 12px;">
+                📍 Pick Coordinates on Map
+            </button>
+            <div class="form-group">
+                <label>ASSIGNED OFFICER</label>
+                <input type="text" id="jnc-officer-input" class="form-control" placeholder="e.g. Insp. R.K. Verma">
+            </div>
+            <div class="form-group">
+                <label>CYCLE LENGTH (SECONDS)</label>
+                <input type="number" id="jnc-cycle-input" class="form-control" value="120">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-junction')">Cancel</button>
+            <button class="btn-primary" onclick="submitJunctionForm()">Save Junction</button>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Add/Edit Traffic Light Modal -->
+<div id="modal-signal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-sig-title">🚦 Manage Traffic Light</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-signal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="sig-edit-id">
+            <div class="form-group">
+                <label>PARENT JUNCTION</label>
+                <select id="sig-junction-select" class="form-control">
+                    <!-- Injected dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>APPROACH DIRECTION</label>
+                <select id="sig-approach-select" class="form-control">
+                    <option value="North">North Approach</option>
+                    <option value="South">South Approach</option>
+                    <option value="East">East Approach</option>
+                    <option value="West">West Approach</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>STREET / APPROACH NAME</label>
+                <input type="text" id="sig-street-input" class="form-control" placeholder="e.g. Medical College Inward Lane">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>LATITUDE</label>
+                    <input type="number" step="0.0001" id="sig-lat-input" class="form-control" placeholder="26.7823">
+                </div>
+                <div class="form-group">
+                    <label>LONGITUDE</label>
+                    <input type="number" step="0.0001" id="sig-lng-input" class="form-control" placeholder="83.3852">
+                </div>
+            </div>
+            <button type="button" class="btn-secondary btn-sm" onclick="pickCoordsFor('sig')" style="margin-bottom: 12px;">
+                📍 Pick Coordinates on Map
+            </button>
+            <div class="form-group">
+                <label>SIGNAL TYPE</label>
+                <select id="sig-type-select" class="form-control">
+                    <option value="Standard 3-Phase">Standard 3-Phase Vehicle Light</option>
+                    <option value="Pedestrian Pelican">Pedestrian Pelican Crossing</option>
+                    <option value="Flashing Amber Beacon">Flashing Amber Caution Beacon</option>
+                    <option value="Free Slip Lane">Free Slip Lane Indicator</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>STATUS</label>
+                <select id="sig-status-select" class="form-control">
+                    <option value="Active">Active (Operational)</option>
+                    <option value="Maintenance">Under Maintenance</option>
+                    <option value="Offline">Offline</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div class="form-group">
+                    <label>GREEN (s)</label>
+                    <input type="number" id="sig-green-input" class="form-control" value="45">
+                </div>
+                <div class="form-group">
+                    <label>YELLOW (s)</label>
+                    <input type="number" id="sig-yellow-input" class="form-control" value="4">
+                </div>
+                <div class="form-group">
+                    <label>RED (s)</label>
+                    <input type="number" id="sig-red-input" class="form-control" value="70">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-signal')">Cancel</button>
+            <button class="btn-primary" onclick="submitSignalForm()">Save Traffic Light</button>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Add Staff Modal -->
+<div id="modal-staff" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>👮 Register Traffic Personnel</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-staff')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>OFFICER FULL NAME</label>
+                <input type="text" id="staff-name-input" class="form-control" placeholder="e.g. Insp. Vijay Singh">
+            </div>
+            <div class="form-group">
+                <label>BADGE / STAFF ID</label>
+                <input type="text" id="staff-id-input" class="form-control" placeholder="e.g. TR-SINGH">
+            </div>
+            <div class="form-group">
+                <label>PASSWORD</label>
+                <input type="password" id="staff-pass-input" class="form-control" value="police123">
+            </div>
+            <div class="form-group">
+                <label>DEPARTMENT ROLE</label>
+                <select id="staff-dept-select" class="form-control">
+                    <option value="traffic">Traffic Police Department (Officer)</option>
+                    <option value="admin">Command Center Administrator (ICCC)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-staff')">Cancel</button>
+            <button class="btn-primary" onclick="submitStaffForm()">Register Officer</button>
+        </div>
+    </div>
+</div>
+
+<!-- 6. Pay Traffic e-Challan Modal -->
+<div id="modal-pay-challan" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-qrcode" style="color: #2563eb;"></i> Settle Traffic e-Challan</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-pay-challan')">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <div id="pay-challan-summary" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: left; margin-bottom: 16px;">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Simulated UPI QR Code Box -->
+            <div style="display: inline-block; background: #ffffff; padding: 12px; border-radius: 12px; border: 2px dashed #cbd5e1; margin-bottom: 12px;">
+                <div style="width: 140px; height: 140px; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px;">
+                    <i class="fa-solid fa-qrcode" style="font-size: 72px; color: #1e293b;"></i>
+                    <small style="font-size: 9px; color: #64748b; margin-top: 4px; font-weight: 800;">SCAN WITH ANY UPI APP</small>
+                </div>
+            </div>
+
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 14px;">
+                Direct settlement with Gorakhpur Traffic Police & Transport Dept.
+            </p>
+
+            <div class="form-group" style="text-align: left;">
+                <label>SELECT PAYMENT METHOD</label>
+                <select id="pay-channel-select" class="form-control">
+                    <option value="UPI (Google Pay / PhonePe / BHIM)">UPI (Google Pay / PhonePe / Paytm / BHIM)</option>
+                    <option value="Debit Card / RuPay">Debit Card (RuPay / Visa / MasterCard)</option>
+                    <option value="NetBanking">NetBanking (SBI / PNB / HDFC / Canara)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between;">
+            <button class="btn-secondary" onclick="closeModal('modal-pay-challan')">Cancel</button>
+            <button class="btn-primary" id="btn-submit-pay-challan" onclick="processChallanPayment()">
+                <i class="fa-solid fa-lock"></i> Authorize & Settle Fine Now
+            </button>
+        </div>
+    </div>
+<!-- 7. ANPR Optical Evidence Inspection Modal -->
+<div id="modal-anpr-evidence" class="modal-overlay">
+    <div class="modal-box" style="max-width: 680px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-camera-viewfinder" style="color: #2563eb;"></i> ANPR Optical Evidence & Radar Telemetry</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-anpr-evidence')">&times;</button>
+        </div>
+        <div class="modal-body" id="anpr-evidence-modal-body">
+            <!-- Dynamically populated via JS inspectANPREvidence() -->
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Loading optical sensor frames and telemetry data...
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: space-between;">
+            <button class="btn-secondary" onclick="closeModal('modal-anpr-evidence')">Close Inspection</button>
+            <button class="btn-primary" onclick="printVirtualCourtNotice()">
+                <i class="fa-solid fa-print"></i> Print Legal Court Notice
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 8. VMS Roadside Broadcast Editor Modal -->
+<div id="modal-vms-edit" class="modal-overlay">
+    <div class="modal-box" style="max-width: 520px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-tower-broadcast" style="color: #ffb703;"></i> Roadside VMS Broadcast Console</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-vms-edit')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>TARGET ROADSIDE VMS BOARD</label>
+                <select id="vms-select-board" class="form-control">
+                    <option value="VMS-01">VMS-01: Mohaddipur Flyover Overhead Gantry</option>
+                    <option value="VMS-02">VMS-02: Golghar Central Crossing Pedestrian Plaza</option>
+                    <option value="VMS-03">VMS-03: Dharamshala Bazar Railway Link Gantry</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>LINE 1 (MAIN HAZARD / ROAD STATUS)</label>
+                <input type="text" id="vms-edit-line1" class="form-control" placeholder="e.g. MOHADDIPUR FLYOVER: SLOW TRAFFIC" maxlength="42">
+            </div>
+            <div class="form-group">
+                <label>LINE 2 (RECOMMENDED BYPASS / ACTION)</label>
+                <input type="text" id="vms-edit-line2" class="form-control" placeholder="e.g. USE RAMGARH TAAL SMART BYPASS" maxlength="42">
+            </div>
+            <div class="form-group">
+                <label>LINE 3 (TRAVEL TIME / SPEED LIMIT)</label>
+                <input type="text" id="vms-edit-line3" class="form-control" placeholder="e.g. AIIMS: 14 MINS • SPEED LIMIT 40 KM/H" maxlength="42">
+            </div>
+            <div class="form-group">
+                <label>BROADCAST CATEGORY & LED COLOR</label>
+                <select id="vms-edit-status" class="form-control">
+                    <option value="ONLINE|#ffb703">Standard Amber LED (Routine Traffic Advisory)</option>
+                    <option value="EMERGENCY_ALERT|#ef4444">High Alert Red Flashing (Diversion / Flood / Hazard)</option>
+                    <option value="PARKING_AND_SAFETY|#38bdf8">Cyan Matrix (Smart Parking & Public Safety)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-vms-edit')">Cancel</button>
+            <button class="btn-primary" onclick="submitVMSMessage()" style="background: #d97706; border-color: #d97706;">
+                <i class="fa-solid fa-paper-plane"></i> Broadcast to Roadside Display
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL: MODIFY TRAFFIC LIGHT LOCATION ================= -->
+<div id="modal-modify-signal-location" class="modal-overlay">
+    <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-location-dot" style="color: #2563eb;"></i> Modify Traffic Light Location</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-modify-signal-location')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="mod-sig-id">
+
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <strong id="mod-sig-label-id" style="font-size: 13px; color: #1e3a8a;">SIG-JNC-01-NORTH</strong>
+                    <span id="mod-sig-approach-badge" class="badge badge-online">North Approach</span>
+                </div>
+                <div id="mod-sig-street-label" style="font-size: 12px; color: #475569;">Golghar Central Crossing (North Approach Light)</div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px; text-align: center;">
+                <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
+                    Click below to switch the interactive OpenLayers map into <strong>Crosshair Coordinate Picker</strong> mode. Then simply click the exact street position on the map to relocate this signal head.
+                </p>
+                <button type="button" class="btn-primary btn-sm" onclick="pickCoordsForSignalRelocation()" style="background: #2563eb;">
+                    <i class="fa-solid fa-crosshairs"></i> 🎯 Pick Location From Map
+                </button>
+            </div>
+
+            <div class="two-column-grid" style="gap: 12px;">
+                <div class="form-group">
+                    <label>LATITUDE (NORTHING)</label>
+                    <input type="number" step="0.0000001" id="mod-sig-lat-input" class="form-control" placeholder="e.g. 26.7591000">
+                </div>
+                <div class="form-group">
+                    <label>LONGITUDE (EASTING)</label>
+                    <input type="number" step="0.0000001" id="mod-sig-lng-input" class="form-control" placeholder="e.g. 83.3731000">
+                </div>
+            </div>
+
+            <div style="font-size: 11px; color: #64748b; margin-top: 6px;">
+                <i class="fa-solid fa-circle-info" style="color: #2563eb;"></i> Location updates sync live across all connected control screens and the OpenLayers interactive map via WebSocket broadcast.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-modify-signal-location')">Cancel</button>
+            <button class="btn-primary" onclick="submitSignalLocationModification()">
+                <i class="fa-solid fa-check"></i> Save New Location
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL: CAMERA TRAFFIC DATA & CONGESTION DERIVATION ================= -->
+<div id="modal-camera-traffic-summary" class="modal-overlay">
+    <div class="modal-content" style="max-width: 620px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-camera" style="color: #2563eb;"></i> CCTV Camera Traffic Data & Congestion Summary</h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-camera-traffic-summary')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="cam-summary-header" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong id="cam-summary-jnc-name" style="font-size: 15px; color: #1e3a8a;">Golghar Central Crossing</strong>
+                        <div id="cam-summary-jnc-zone" style="font-size: 12px; color: #64748b;">Urban Core • 4 Cameras Reporting</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span id="cam-summary-cong-badge" class="badge badge-online" style="font-size: 13px; font-weight: 800;">45% Moderate</span>
+                        <div id="cam-summary-spd-label" style="font-size: 11px; color: #475569; margin-top: 2px;">Avg Speed: 28.5 km/h</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size: 12px; color: #475569; margin-bottom: 10px;">
+                <i class="fa-solid fa-circle-info" style="color: #2563eb;"></i> <strong>Live Camera Accounting:</strong> Traffic density collected across all directional CCTV optical sensors drives the real-time congestion scores and OpenLayers heatmap.
+            </div>
+
+            <div id="cam-summary-table-container">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; color: #64748b;">
+                <strong>IRC Capacity Model Formula:</strong> <code>Congestion % = [0.55 × (Vehicles / Max Capacity) + 0.45 × ((45 km/h - Avg Speed) / 45)] × 100</code>.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary" onclick="closeModal('modal-camera-traffic-summary')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ol@v9.1.0/dist/ol.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script src="../../auth.js"></script>
-<script src="../../realtime.js"></script>
+<script src="openlayers_map.js"></script>
+<script src="traffic_ai_vision.js"></script>
 <script src="traffic.js"></script>
+
 </body>
 </html>

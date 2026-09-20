@@ -1,0 +1,17 @@
+{
+  "unmatchedCalls": [],
+  "methodMismatches": [
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "url": "/api/traffic/junctions/JNC-01/override",
+      "cleanUrl": "/api/traffic/junctions/JNC-01/override",
+      "callMethod": "PUT"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "url": "/api/traffic/junctions/JNC-01/override",
+      "cleanUrl": "/api/traffic/junctions/JNC-01/override",
+      "callMethod": "PUT"
+    }
+  ]
+}

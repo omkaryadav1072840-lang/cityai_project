@@ -1,0 +1,69 @@
+{
+  "emergency": {
+    "htmlCount": 1,
+    "jsCount": 1,
+    "cssCount": 1,
+    "issues": [
+      "emergency.js: Duplicate function declaration: isEmergencyStaff()",
+      "emergency.js: Duplicate function declaration: updateActiveCount()",
+      "emergency.js: Duplicate function declaration: checkStaffPermission()"
+    ]
+  },
+  "famous": {
+    "htmlCount": 2,
+    "jsCount": 2,
+    "cssCount": 1,
+    "issues": []
+  },
+  "parking": {
+    "htmlCount": 1,
+    "jsCount": 1,
+    "cssCount": 1,
+    "issues": [
+      "parking.html: Broken link href=\"../login/login.html\"",
+      "parking.html: Broken link href=\"javascript:void(0)\"",
+      "parking.html: Broken link href=\"javascript:void(0)\"",
+      "parking.html: Broken link href=\"javascript:void(0)\"",
+      "parking.html: Broken link href=\"javascript:void(0)\""
+    ]
+  },
+  "police": {
+    "htmlCount": 1,
+    "jsCount": 1,
+    "cssCount": 1,
+    "issues": []
+  },
+  "traffic": {
+    "htmlCount": 1,
+    "jsCount": 3,
+    "cssCount": 1,
+    "issues": [
+      "traffic.html: Broken link href=\"../login/login.html\"",
+      "traffic.html: Broken link href=\"javascript:void(0)\"",
+      "traffic.html: Broken link href=\"javascript:void(0)\"",
+      "traffic.html: Broken link href=\"javascript:void(0)\"",
+      "traffic.html: Broken link href=\"javascript:void(0)\"",
+      "traffic.html: Broken link href=\"javascript:void(0)\"",
+      "traffic.js: Duplicate function declaration: showEmergencyCorridorBanner()",
+      "traffic.js: Duplicate function declaration: hideEmergencyCorridorBanner()"
+    ]
+  },
+  "waste": {
+    "htmlCount": 1,
+    "jsCount": 1,
+    "cssCount": 1,
+    "issues": []
+  },
+  "water": {
+    "htmlCount": 1,
+    "jsCount": 1,
+    "cssCount": 1,
+    "issues": []
+  },
+  "hospital": {
+    "htmlCount": 3,
+    "jsCount": 3,
+    "cssCount": 3,
+    "issues": []
+  }
+}

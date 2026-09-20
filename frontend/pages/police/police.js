@@ -17,7 +17,11 @@
  const CRIME_API_URL =
      "https://your-backend-domain/api/gorakhpur-crime";
 
-const CRIME_API_URL = "http://localhost:5000/api/police/stats";
+const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+    ? window.API_BASE_URL
+    : (typeof window !== "undefined" && (window.location.port === "5000" || window.location.protocol === "file:") ? "http://localhost:5000" : "");
+
+const CRIME_API_URL = `${API_BASE}/api/police/stats`;
 
 
 /* =====================================================
@@ -225,10 +229,42 @@ document.addEventListener(
 
         initializeIncidents();
 
+        loadPoliceIncidentsFromBackend();
+
+        fetchPoliceStations();
+
         refreshCrimeData();
 
     }
 );
+
+async function loadPoliceIncidentsFromBackend() {
+    try {
+        const res = await fetch(`${API_BASE}/api/police/complaints`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.complaints) && data.complaints.length > 0) {
+                const list = data.complaints.map(c => ({
+                    id: c.complaint_id || ("POL-" + c.id),
+                    type: c.category || c.subject || "Incident",
+                    category: (c.category || "OTHER").toUpperCase(),
+                    location: c.location || c.subject || "Gorakhpur",
+                    status: (c.status || "Under Review").toUpperCase().replace(/\s+/g, '_'),
+                    priority: "HIGH",
+                    unit: "PATROL-01",
+                    team: c.citizen_name ? `Citizen: ${c.citizen_name}` : "Police Response Team",
+                    note: c.description || ""
+                }));
+                localStorage.setItem("smartCityPoliceIncidents", JSON.stringify(list));
+                renderIncidents();
+                populateIncidentSelect();
+                updatePoliceStats();
+            }
+        }
+    } catch (e) {
+        console.warn("Could not fetch police complaints from backend:", e);
+    }
+}
 
 
 /* =====================================================
@@ -1221,7 +1257,7 @@ async function refreshCrimeData() {
 
 async function fetchPoliceStations() {
     try {
-        const res = await fetch("http://localhost:5000/api/police/stations");
+        const res = await fetch(`${API_BASE}/api/police/stations`);
         if (res.ok) {
             const json = await res.json();
             const stations = json.stations || [];

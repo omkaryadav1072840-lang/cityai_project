@@ -76,14 +76,13 @@
         </div>
 
 
-        <button
-            type="button"
+        <a
+            href="doctor_dashboard.html"
             class="back-home"
-            onclick="openDoctorLoginModal()"
-            style="background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; font-weight: 700; margin-right: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+            style="background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
         >
-            👨‍⚕️ Doctor Login / Portal
-        </button>
+            👨‍⚕️ Doctor Portal & OPD
+        </a>
 
         <a
             href="../../index.html"
@@ -336,51 +335,26 @@
 
         <div class="service-grid">
 
-            <!-- DOCTOR LOGIN & CLINICAL OPD PORTAL CARD -->
-            <div class="service-card" style="border: 2px solid #3b82f6; background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);">
-                <div class="service-icon blue" style="background: #2563eb; color: #ffffff;">
-                    👨‍⚕️
-                </div>
-                <div style="display:inline-block; background: #dbeafe; color: #1d4ed8; font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 10px; margin-bottom: 8px;">
-                    CLINICAL OPD PORTAL
-                </div>
-                <h3>
-                    Doctor Login & Console
-                </h3>
-                <p>
-                    Are you a Doctor? Login with your Doctor ID to access your scheduled OPD queue, scan patient QR codes, and review medical history.
-                </p>
-                <button
-                    type="button"
-                    style="background: #2563eb; color: #ffffff; font-weight: 700;"
-                    onclick="openDoctorLoginModal()"
-                >
-                    👨‍⚕️ Doctor Login Portal →
-                </button>
-            </div>
-
-            <!-- HOSPITAL -->
-
-            <div class="service-card">
+            <!-- HOSPITALS (Main Discovery & Hospital Dashboard Portal) -->
+            <div class="service-card" id="hospitalsServiceCard">
 
                 <div class="service-icon blue">
                     🏥
                 </div>
 
                 <h3>
-                    Find Hospitals
+                    Hospitals
                 </h3>
 
                 <p>
-                    Find nearby hospitals, emergency
-                    departments and healthcare facilities.
+                    Browse hospitals, specialized departments, diagnostics catalog, bed availability, and hospital management dashboards.
                 </p>
 
                 <button
                     type="button"
                     onclick="showHospitals()"
                 >
-                    Find Hospitals →
+                    Hospitals →
                 </button>
 
             </div>
@@ -714,6 +688,63 @@
                     onclick="openPatientFile()"
                 >
                     Open Patient File →
+                </button>
+
+            </div>
+
+
+
+            <!-- DIAGNOSTICS & LAB TESTS -->
+
+            <div class="service-card">
+
+                <div class="service-icon purple">
+                    🔬
+                </div>
+
+                <h3>
+                    Diagnostics & Lab Tests
+                </h3>
+
+                <p>
+                    Book Blood Tests, CBC, MRI, CT Scan,
+                    X-Ray, Ultrasound & Home Sample Collection.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openCitizenTestBookingModal()"
+                >
+                    Book Lab Test →
+                </button>
+
+            </div>
+
+
+
+            <!-- DOCTOR CLINICAL PORTAL -->
+
+            <div class="service-card" style="border: 2px solid #bfdbfe; background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);">
+
+                <div class="service-icon blue">
+                    👨‍⚕️
+                </div>
+
+                <h3>
+                    Doctor Clinical Portal
+                </h3>
+
+                <p>
+                    OPD workstation: live queue, patient
+                    QR code scanner, lab reports & prescription pad.
+                </p>
+
+                <button
+                    type="button"
+                    style="background: #1d4ed8; color: #ffffff;"
+                    onclick="window.location.href='doctor_dashboard.html'"
+                >
+                    Open Doctor Portal →
                 </button>
 
             </div>
@@ -1256,7 +1287,7 @@
     id="patientModal"
 >
 
-    <div class="modal-box">
+    <div class="modal-box patient-reg-modal-box">
 
         <button
             type="button"
@@ -1266,103 +1297,161 @@
             ×
         </button>
 
-
-        <h2>
-            🪪 Create Patient ID
-        </h2>
-
-        <p>
-            Create a unique digital patient identity.
+        <div class="modal-title-icon">🪪</div>
+        <h2>Create Patient ID</h2>
+        <p class="modal-subtitle">
+            Generate a unique digital patient identity & secure QR code for medical records.
         </p>
 
+        <form id="patientForm" class="patient-reg-form">
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="patientName">Full Name <span class="required-star">*</span></label>
+                    <input
+                        id="patientName"
+                        type="text"
+                        placeholder="e.g. Rajesh Kumar Verma"
+                        required
+                    >
+                </div>
 
-        <form id="patientForm">
+                <div class="form-group">
+                    <label for="patientDOB">Date of Birth <span class="required-star">*</span></label>
+                    <input
+                        id="patientDOB"
+                        type="date"
+                        required
+                        onchange="handleDobAutoAge(this.value)"
+                    >
+                </div>
+            </div>
 
-            <input
-                id="patientName"
-                type="text"
-                placeholder="Patient Full Name"
-                required
-            >
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label for="patientAge">Age (Years)</label>
+                    <input
+                        id="patientAge"
+                        type="number"
+                        placeholder="Auto-calculated"
+                        readonly
+                        style="background: #f1f5f9; cursor: not-allowed; font-weight: 700; color: #1e293b;"
+                    >
+                </div>
 
+                <div class="form-group">
+                    <label for="patientGender">Gender <span class="required-star">*</span></label>
+                    <select id="patientGender" required>
+                        <option value="">Select</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
 
-            <input
-                id="patientDOB"
-                type="date"
-                required
-            >
+                <div class="form-group">
+                    <label for="patientBloodGroup">Blood Group</label>
+                    <select id="patientBloodGroup">
+                        <option value="">Select (Optional)</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+            </div>
 
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="patientPhone">Mobile Number (10 Digits) <span class="required-star">*</span></label>
+                    <input
+                        id="patientPhone"
+                        type="tel"
+                        placeholder="e.g. 9876543210"
+                        maxlength="10"
+                        required
+                    >
+                </div>
 
-            <select
-                id="patientGender"
-                required
-            >
+                <div class="form-group">
+                    <label for="patientEmergencyContact">Emergency Contact Number</label>
+                    <input
+                        id="patientEmergencyContact"
+                        type="tel"
+                        placeholder="Family / Guardian Contact"
+                        maxlength="10"
+                    >
+                </div>
+            </div>
 
-                <option value="">
-                    Select Gender
-                </option>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="patientHospitalSelect">Registered Hospital</label>
+                    <select id="patientHospitalSelect">
+                        <option value="HOSP-001">AIIMS Gorakhpur</option>
+                        <option value="HOSP-002">BRD Medical College</option>
+                        <option value="HOSP-003">District Hospital Gorakhpur</option>
+                        <option value="HOSP-004">Gorakhnath Hospital</option>
+                        <option value="HOSP-005">Fatima Hospital</option>
+                    </select>
+                </div>
 
-                <option value="Male">
-                    Male
-                </option>
+                <div class="form-group">
+                    <label for="patientAbhaAddress">ABHA Address / Number (Optional)</label>
+                    <input
+                        id="patientAbhaAddress"
+                        type="text"
+                        placeholder="e.g. yourname@abdm"
+                    >
+                </div>
+            </div>
 
-                <option value="Female">
-                    Female
-                </option>
+            <div class="form-group">
+                <label for="patientAddress">Residential Address</label>
+                <input
+                    id="patientAddress"
+                    type="text"
+                    placeholder="Ward, Locality, City (e.g. Civil Lines, Gorakhpur)"
+                >
+            </div>
 
-                <option value="Other">
-                    Other
-                </option>
-
-            </select>
-
-
-            <input
-                id="patientPhone"
-                type="tel"
-                placeholder="Phone Number"
-                required
-            >
-
+            <div class="form-group">
+                <label for="patientEmergencyInfo">Medical Emergency Information (Allergies / Chronic Conditions)</label>
+                <textarea
+                    id="patientEmergencyInfo"
+                    rows="2"
+                    placeholder="e.g. Penicillin allergy, diabetic, asthma, hypertension notes..."
+                    style="resize: vertical; font-family: inherit; font-size: 13px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; width: 100%; box-sizing: border-box;"
+                ></textarea>
+            </div>
 
             <button
                 type="submit"
                 class="primary-btn full"
+                id="btnSubmitPatient"
+                style="padding: 13px; font-weight: 800; letter-spacing: 0.5px; margin-top: 10px;"
             >
-                CREATE PATIENT ID
+                CREATE PATIENT ID →
             </button>
-
         </form>
-
 
         <div
             id="patientResult"
             class="patient-result"
         >
-
-            <h3>
-                Patient ID Created
-            </h3>
-
-
-            <strong id="generatedPatientId">
-                --
-            </strong>
-
-
+            <h3>Patient ID Created</h3>
+            <strong id="generatedPatientId">--</strong>
             <div
                 id="patientQRCode"
                 class="patient-qr"
             ></div>
-
-
             <p>
-                Show this QR code at the
-                hospital or doctor's computer.
+                Show this QR code at the hospital or doctor's computer.
             </p>
-
         </div>
-
     </div>
 
 </div>
@@ -2053,7 +2142,7 @@
             <input
                 type="text"
                 id="patientFileSearch"
-                placeholder="Enter Patient ID"
+                placeholder="Enter Patient ID (e.g. P-2026-000001)"
             >
 
             <button
@@ -2070,6 +2159,15 @@
                 onclick="loadMyPatientRecord()"
             >
                 👤 My Record
+            </button>
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="openQrScanModal()"
+                style="border-color: #0284c7; color: #0284c7; font-weight: 700;"
+            >
+                📷 Scan QR
             </button>
 
         </div>
@@ -2090,7 +2188,7 @@
                 </h3>
 
                 <p>
-                    Enter a Patient ID to view the record.
+                    Enter a Patient ID or scan QR to view the complete medical record.
                 </p>
 
             </div>
@@ -2099,6 +2197,290 @@
 
     </div>
 
+</div>
+
+
+
+<!-- =====================================================
+     PRINT PATIENT CARD MODAL (GOVERNMENT / CLINICAL HEALTH ID)
+===================================================== -->
+
+<div class="modal" id="patientPrintCardModal">
+    <div class="modal-box patient-id-card-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('patientPrintCardModal')">×</button>
+
+        <div class="modal-title-icon">🪪</div>
+        <h2>SmartCity Digital Patient ID Card</h2>
+        <p class="modal-subtitle">Official Healthcare Identity & Clinical Access Card</p>
+
+        <!-- The actual printable badge container -->
+        <div id="printablePatientCardWrapper" class="printable-card-wrapper">
+            <div class="patient-smart-card">
+                <!-- Card Header -->
+                <div class="smart-card-header">
+                    <div class="header-emblem">
+                        <span class="emblem-icon">🏥</span>
+                        <div>
+                            <h4>SmartCity AI Healthcare Network</h4>
+                            <p>Department of Medical Health & Family Welfare • Gorakhpur</p>
+                        </div>
+                    </div>
+                    <div class="smart-card-chip">
+                        <span class="chip-dot"></span>
+                        DIGITAL HEALTH ID
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="smart-card-body">
+                    <!-- Left: Patient Photo & Demographics -->
+                    <div class="smart-card-left">
+                        <div class="card-avatar-box">
+                            <div class="card-avatar">👤</div>
+                            <div class="card-id-pill" id="printCardPatientId">P-2026-000000</div>
+                        </div>
+
+                        <div class="card-details-grid">
+                            <div class="card-field">
+                                <span class="lbl">FULL NAME</span>
+                                <strong class="val" id="printCardName">--</strong>
+                            </div>
+                            <div class="card-field">
+                                <span class="lbl">AGE / GENDER</span>
+                                <strong class="val" id="printCardAgeGender">--</strong>
+                            </div>
+                            <div class="card-field">
+                                <span class="lbl">BLOOD GROUP</span>
+                                <strong class="val" id="printCardBloodGroup">--</strong>
+                            </div>
+                            <div class="card-field">
+                                <span class="lbl">MOBILE</span>
+                                <strong class="val" id="printCardMobile">--</strong>
+                            </div>
+                            <div class="card-field">
+                                <span class="lbl">EMERGENCY CONTACT</span>
+                                <strong class="val" id="printCardEmergency">--</strong>
+                            </div>
+                            <div class="card-field">
+                                <span class="lbl">REGISTERED HOSPITAL</span>
+                                <strong class="val" id="printCardHospital">--</strong>
+                            </div>
+                            <div class="card-field span-2">
+                                <span class="lbl">ABHA STATUS & ADDRESS</span>
+                                <strong class="val" id="printCardAbha">Not Linked</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Large Scannable QR -->
+                    <div class="smart-card-right">
+                        <div class="qr-frame">
+                            <div id="printCardQRCode" class="print-qr-target"></div>
+                            <span class="qr-caption">SCAN TO VERIFY DOSSIER</span>
+                        </div>
+                        <div class="card-sec-seal">
+                            <span>🔐 VERIFIED SECURE ID</span>
+                            <small>Anti-Tamper Digital Token</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="smart-card-footer">
+                    <span>Emergency Ambulance: 108 • National Helpline: 112 • Valid across all SmartCity AI Network Hospitals</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="print-modal-actions no-print">
+            <button type="button" class="primary-btn" onclick="executePrintPatientCard()" style="display:inline-flex; align-items:center; gap:6px;">
+                🖨️ Print Patient Card
+            </button>
+            <button type="button" class="secondary-btn" onclick="closeModal('patientPrintCardModal')">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- =====================================================
+     ABHA CONSENT & DEMO LINKING MODAL
+===================================================== -->
+
+<div class="modal" id="abhaModal">
+    <div class="modal-box abha-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('abhaModal')">×</button>
+
+        <div class="modal-title-icon" style="background:#e0f2fe; color:#0369a1;">🇮🇳</div>
+        <h2>Ayushman Bharat Digital Mission (ABDM)</h2>
+        <p class="modal-subtitle">Consent-Based Health Data Linking Architecture</p>
+
+        <div class="abdm-notice-banner">
+            <strong>🔒 Consent-Driven & Privacy Compliant:</strong>
+            <p>
+                Linking your ABHA (Ayushman Bharat Health Account) enables interoperable health records across India.
+                In accordance with official ABDM standards, no Aadhaar number is stored, and records are accessed only with active patient consent.
+            </p>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+            <label for="inputAbhaAddress">ABHA Address (e.g. name@abdm)</label>
+            <input
+                type="text"
+                id="inputAbhaAddress"
+                placeholder="e.g. rajesh.verma@abdm"
+                style="padding:11px; font-size:14px; border:1px solid #cbd5e1; border-radius:8px; width:100%; box-sizing:border-box;"
+            >
+        </div>
+
+        <div class="consent-checkbox-wrap" style="margin: 14px 0; display:flex; align-items:flex-start; gap:10px;">
+            <input type="checkbox" id="chkAbhaConsent" style="margin-top:3px; cursor:pointer;" checked>
+            <label for="chkAbhaConsent" style="font-size:12px; color:#475569; cursor:pointer;">
+                I hereby grant consent to link my SmartCity Patient ID with the above ABDM Health Account to fetch and share verified digital prescriptions and lab records.
+            </label>
+        </div>
+
+        <div id="abhaLinkMsg" style="margin: 10px 0; font-size:12px; font-weight:700; display:none;"></div>
+
+        <div class="modal-actions" style="display:flex; gap:10px; margin-top:16px;">
+            <button type="button" class="primary-btn" id="btnSubmitAbhaLink" onclick="confirmAbhaLink()" style="flex:1;">
+                ✅ Verify & Link ABHA
+            </button>
+            <button type="button" class="secondary-btn" onclick="closeModal('abhaModal')" style="flex:1;">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- =====================================================
+     QR CODE SCANNER & VERIFICATION MODAL
+===================================================== -->
+
+<div class="modal" id="qrScanModal">
+    <div class="modal-box qr-scan-modal-box">
+        <button type="button" class="close-btn" onclick="closeQrScanModal()">×</button>
+
+        <div class="modal-title-icon" style="background:#e0f2fe; color:#0284c7;">📷</div>
+        <h2>Scan / Verify Patient QR Code</h2>
+        <p class="modal-subtitle">Scan via webcam or paste QR token to instantly inspect patient identity</p>
+
+        <!-- Camera Scanner Viewport -->
+        <div id="patientQrReaderContainer" style="margin: 16px 0; text-align:center;">
+            <div id="patient-qr-reader" style="width: 100%; border-radius: 12px; overflow: hidden; background: #0f172a;"></div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px;">
+            <button type="button" class="primary-btn" id="btnStartPatientCamera" onclick="startPatientCameraScanner()">
+                📹 Start Camera Scan
+            </button>
+            <button type="button" class="secondary-btn" id="btnStopPatientCamera" onclick="stopPatientCameraScanner()" style="display:none;">
+                ⏹️ Stop Camera
+            </button>
+        </div>
+
+        <div class="divider" style="display:flex; align-items:center; text-align:center; color:#94a3b8; font-size:11px; margin: 15px 0;">
+            <span style="flex:1; height:1px; background:#e2e8f0;"></span>
+            <span style="padding:0 10px; font-weight:700;">OR PASTE QR TOKEN / CODE</span>
+            <span style="flex:1; height:1px; background:#e2e8f0;"></span>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+            <input
+                type="text"
+                id="manualQrInput"
+                placeholder="e.g. SCPAT-xxxxxxxx or P-2026-000001"
+                style="flex:1; padding:10px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:8px;"
+            >
+            <button type="button" class="primary-btn" onclick="verifyQrFromInput()">
+                🔍 Verify
+            </button>
+        </div>
+
+        <!-- Verification Result Box -->
+        <div id="qrVerificationResult" style="margin-top:16px; display:none;"></div>
+    </div>
+</div>
+
+
+
+<!-- =====================================================
+     STAFF PATIENT MANAGEMENT DIRECTORY MODAL
+===================================================== -->
+
+<div class="modal" id="staffPatientManagerModal">
+    <div class="modal-box staff-patient-modal-box" style="max-width: 950px; width: 95%;">
+        <button type="button" class="close-btn" onclick="closeModal('staffPatientManagerModal')">×</button>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; border-bottom:1px solid #e2e8f0; padding-bottom:14px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="modal-title-icon" style="margin-bottom:0;">🪪</div>
+                <div>
+                    <h2 style="margin:0; font-size:20px;">Hospital Patient Management</h2>
+                    <p style="margin:0; font-size:12px; color:#64748b;">Directory of registered patients, QR verification, and clinical dossier access</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="primary-btn" onclick="openPatientRegistration(); closeModal('staffPatientManagerModal');" style="font-size:12px; padding:8px 14px;">
+                    ➕ Register New Patient
+                </button>
+                <button type="button" class="secondary-btn" onclick="openQrScanModal()" style="font-size:12px; padding:8px 14px; border-color:#0284c7; color:#0284c7;">
+                    📷 Scan QR Code
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="staff-patient-filters" style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:10px; margin-bottom:16px;">
+            <input
+                type="text"
+                id="staffFilterSearch"
+                placeholder="Search by ID, Name, Mobile, ABHA..."
+                oninput="debounceStaffPatientSearch()"
+                style="padding:9px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:8px;"
+            >
+            <select id="staffFilterHospital" onchange="fetchStaffPatientsList()" style="padding:9px; font-size:13px; border:1px solid #cbd5e1; border-radius:8px;">
+                <option value="">All Hospitals</option>
+                <option value="HOSP-001">AIIMS Gorakhpur</option>
+                <option value="HOSP-002">BRD Medical College</option>
+                <option value="HOSP-003">District Hospital</option>
+                <option value="HOSP-004">Gorakhnath Hospital</option>
+            </select>
+            <select id="staffFilterGender" onchange="fetchStaffPatientsList()" style="padding:9px; font-size:13px; border:1px solid #cbd5e1; border-radius:8px;">
+                <option value="">All Genders</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            <select id="staffFilterStatus" onchange="fetchStaffPatientsList()" style="padding:9px; font-size:13px; border:1px solid #cbd5e1; border-radius:8px;">
+                <option value="">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+            <button type="button" class="secondary-btn" onclick="resetStaffPatientFilters()" style="padding:9px 14px; font-size:13px;">
+                Reset
+            </button>
+        </div>
+
+        <!-- Table Container -->
+        <div id="staffPatientsTableWrapper" style="max-height: 420px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="padding: 24px; text-align: center; color: #64748b;">
+                <div class="spinner" style="margin: 0 auto 10px;"></div>
+                Loading patient directory...
+            </div>
+        </div>
+
+        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #64748b;">
+            <span id="staffPatientsCountText">Showing patients...</span>
+            <button type="button" class="secondary-btn" onclick="fetchStaffPatientsList()" style="font-size: 11px; padding: 5px 10px;">
+                🔄 Refresh Directory
+            </button>
+        </div>
+    </div>
 </div>
 
 
@@ -2140,6 +2522,41 @@
 
 
     <div class="staff-grid">
+
+
+        <!-- PATIENT MANAGEMENT -->
+
+        <div class="staff-card">
+
+            <div class="staff-card-top">
+
+                <span>
+                    🪪
+                </span>
+
+                <small>
+                    PATIENT SYSTEM
+                </small>
+
+            </div>
+
+            <h3>
+                Patient Management
+            </h3>
+
+            <p>
+                Search directory, verify patient QR codes,
+                inspect dossiers and manage patient accounts.
+            </p>
+
+            <button
+                type="button"
+                onclick="openStaffPatientManager()"
+            >
+                ⚙️ Manage Patients →
+            </button>
+
+        </div>
 
 
         <!-- HOSPITAL -->
@@ -2496,6 +2913,8 @@
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
 ></script>
+<!-- QR Code Scanner Library (Camera & File decode) -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- Leaflet Routing Machine — loaded AFTER leaflet.js (fixes a bug where

@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management Dashboard | SmartCity AI</title>
+    <link rel="stylesheet" href="hospital_dashboard.css">
+    <!-- QRCode JS library for QR rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<header class="hd-navbar">
+    <div class="hd-nav-brand">
+        <div class="hd-brand-logo" id="navHospLogo">🏥</div>
+        <div class="hd-nav-meta">
+            <h1 id="navHospName">AIIMS Gorakhpur</h1>
+            <p id="navHospSubtitle">Hospital Management Dashboard • SmartCity AI</p>
+        </div>
+    </div>
+
+    <div class="hd-nav-actions">
+        <div class="hd-user-badge">
+            <div class="hd-user-avatar" id="userAvatar">A</div>
+            <div>
+                <strong id="userDisplayName" style="font-size: 13px; display: block;">Dr. Alok Verma</strong>
+                <span class="hd-role-pill" id="userRoleBadge">Hospital Admin</span>
+            </div>
+        </div>
+
+        <a href="doctor_dashboard.html" class="hd-btn-nav" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
+            👨‍⚕️ Doctor Portal & OPD
+        </a>
+        <a href="hospital.html" class="hd-btn-nav">
+            🏥 Public Hospital Portal
+        </a>
+        <a href="../../index.html" class="hd-btn-nav primary">
+            🏛️ Main Dashboard
+        </a>
+    </div>
+</header>
+
+<!-- ================= DEMO ROLE & HOSPITAL SWITCHER BAR ================= -->
+<section class="hd-demo-bar">
+    <div class="hd-demo-group">
+        <label>Select Hospital:</label>
+        <select id="demoHospitalSelect" onchange="onSwitchHospital(this.value)">
+            <option value="HOSP-001">AIIMS Gorakhpur (HOSP-001)</option>
+            <option value="HOSP-002">BRD Medical College (HOSP-002)</option>
+            <option value="HOSP-003">District Hospital (Sadar) (HOSP-003)</option>
+            <option value="HOSP-004">Fatima Hospital (HOSP-004)</option>
+            <option value="HOSP-GKP-003">Park Hospital (HOSP-GKP-003)</option>
+            <option value="HOSP-GKP-005">District Women Hospital (HOSP-GKP-005)</option>
+            <option value="HOSP-GKP-010">Guru Shri Gorakshnath Hospital (HOSP-GKP-010)</option>
+            <option value="HOSP-GKP-011">City Hospital & Trauma Centre (HOSP-GKP-011)</option>
+            <option value="HOSP-GKP-012">Heritage Hospital (HOSP-GKP-012)</option>
+            <option value="HOSP-GKP-013">Rana Hospital & Laparoscopy (HOSP-GKP-013)</option>
+            <option value="HOSP-GKP-014">Shahi Global Hospital (HOSP-GKP-014)</option>
+            <option value="HOSP-GKP-015">Lifeline Hospital & Heart Centre (HOSP-GKP-015)</option>
+            <option value="HOSP-GKP-016">Pulse Hospital & Critical Care (HOSP-GKP-016)</option>
+            <option value="HOSP-GKP-017">Anandeshwar Hospital (HOSP-GKP-017)</option>
+        </select>
+    </div>
+
+    <div class="hd-demo-group">
+        <label>Switch Role (RBAC Simulation):</label>
+        <select id="demoRoleSelect" onchange="onSwitchRole(this.value)">
+            <option value="hospital_admin">🏥 Hospital Admin (Full Hospital Control)</option>
+            <option value="doctor">👨‍⚕️ Doctor (Clinical Desk, Consultations & Test Orders)</option>
+            <option value="receptionist">👩‍💼 Receptionist / Attendant (OPD Queue, Offline Tests, Billing)</option>
+            <option value="lab_technician">🔬 Lab Technician (Pathology, Samples, Queue, Reports)</option>
+            <option value="radiologist">🩻 Radiology Technician (X-Ray, CT, MRI, Reports)</option>
+            <option value="nurse">👩‍⚕️ Nurse / Ward Staff (Beds, Admissions, Vitals)</option>
+            <option value="pharmacy">💊 Pharmacy Staff (Stock, Prescriptions, Dispensing)</option>
+            <option value="billing">💳 Billing Staff (Invoices, Receipts, Revenue)</option>
+            <option value="ambulance">🚑 Ambulance Staff (Emergency cases, Fleet)</option>
+        </select>
+    </div>
+
+    <div style="font-size: 11px; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#4ade80;"></span>
+        Live DB RBAC Active
+    </div>
+</section>
+
+<!-- ================= MAIN CONTAINER ================= -->
+<main class="hd-container">
+
+    <!-- HOSPITAL HEADER BANNER -->
+    <section class="hd-hospital-banner" id="hospitalBanner">
+        <div class="hd-banner-left">
+            <div class="hd-banner-avatar" id="bannerAvatar">🏥</div>
+            <div class="hd-banner-title">
+                <h2 id="bannerHospName">AIIMS Gorakhpur</h2>
+                <p>
+                    <span id="bannerHospAddress">📍 Kushmi Forest, Gorakhpur, UP 273008</span>
+                    <span id="bannerHospPhone">📞 0551-2207777</span>
+                    <span id="bannerHospType" class="hd-badge blue">Autonomous Institute</span>
+                </p>
+            </div>
+        </div>
+        <div class="hd-banner-badges">
+            <span class="hd-badge red">🚨 24x7 Emergency Available</span>
+            <span class="hd-badge green">💊 Pharmacy In-House</span>
+            <span class="hd-badge purple">🔬 NABL Accredited Diagnostics</span>
+            <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="refreshDashboardData()">🔄 Refresh Stats</button>
+        </div>
+    </section>
+
+    <!-- TOP STATISTICS GRID (Live from Backend DB) -->
+    <section class="hd-stats-grid" id="statsGrid">
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon blue">👥</div>
+            <div class="hd-stat-info">
+                <span>Total Patients</span>
+                <strong id="statTotalPatients">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon cyan">📅</div>
+            <div class="hd-stat-info">
+                <span>Today's Appointments</span>
+                <strong id="statTodayAppts">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon amber">⏳</div>
+            <div class="hd-stat-info">
+                <span>Waiting Patients</span>
+                <strong id="statWaitingPatients">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon green">👨‍⚕️</div>
+            <div class="hd-stat-info">
+                <span>Doctors Available</span>
+                <strong id="statDoctorsAvail">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon purple">🛏️</div>
+            <div class="hd-stat-info">
+                <span>Beds Available</span>
+                <strong id="statBedsAvail">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon red">🚨</div>
+            <div class="hd-stat-info">
+                <span>Emergency Cases</span>
+                <strong id="statEmergencyCases">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon amber">🧪</div>
+            <div class="hd-stat-info">
+                <span>Pending Lab Tests</span>
+                <strong id="statPendingTests">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon blue">📑</div>
+            <div class="hd-stat-info">
+                <span>Pending Reports</span>
+                <strong id="statPendingReports">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon cyan">🚑</div>
+            <div class="hd-stat-info">
+                <span>Ambulances Available</span>
+                <strong id="statAmbulancesAvail">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon green">💊</div>
+            <div class="hd-stat-info">
+                <span>Pharmacy Orders</span>
+                <strong id="statPharmacyOrders">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card" id="cardTodayRevenue">
+            <div class="hd-stat-icon green">💰</div>
+            <div class="hd-stat-info">
+                <span>Today's Revenue</span>
+                <strong id="statTodayRevenue">₹0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon purple">📥</div>
+            <div class="hd-stat-info">
+                <span>Pending Admissions</span>
+                <strong id="statPendingAdmissions">0</strong>
+            </div>
+        </div>
+        <div class="hd-stat-card">
+            <div class="hd-stat-icon amber">📤</div>
+            <div class="hd-stat-info">
+                <span>Pending Discharges</span>
+                <strong id="statPendingDischarges">0</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODULE NAVIGATION TABS (Dynamic based on RBAC) -->
+    <nav class="hd-tabs-nav" id="moduleTabsNav">
+        <!-- Generated by JavaScript based on active role -->
+    </nav>
+
+    <!-- ================= MODULE PANELS ================= -->
+
+    <!-- PANEL 1: APPOINTMENTS & PATIENT QUEUE -->
+    <section class="hd-panel" id="panel-appointments">
+        <div class="hd-section-header">
+            <div>
+                <h3>📋 Appointments & Live Patient Queue</h3>
+                <p>Monitor OPD tokens, manage patient consultations, and handle walk-in registrations.</p>
+            </div>
+            <div class="hd-actions-row">
+                <button class="hd-btn hd-btn-primary" onclick="openRegisterWalkInModal()">➕ Register Walk-in Patient</button>
+                <select id="filterApptStatus" class="hd-select" style="width: auto;" onchange="loadAppointments()">
+                    <option value="">All Statuses</option>
+                    <option value="Waiting">Waiting in OPD</option>
+                    <option value="In Consultation">In Consultation</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Confirmed">Confirmed</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="hd-table-wrap">
+            <table class="hd-table" id="appointmentsTable">
+                <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Patient Name & ID</th>
+                        <th>Age / Gender</th>
+                        <th>Doctor</th>
+                        <th>Department</th>
+                        <th>Time Slot</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="appointmentsTableBody">
+                    <tr><td colspan="8" style="text-align: center; padding: 24px;">Loading appointments...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- PANEL 2: DIAGNOSTICS & TESTS (THE DIAGNOSTIC CENTER) -->
+    <section class="hd-panel" id="panel-diagnostics">
+        <div class="hd-section-header">
+            <div>
+                <h3>🧪 Diagnostics & Laboratory Center</h3>
+                <p>Manage diagnostic test catalogs, live sample processing, queues, reports, and offline bookings.</p>
+            </div>
+            <div class="hd-actions-row">
+                <button class="hd-btn hd-btn-success" onclick="openOfflineBookingModal()">📋 Offline Test Booking (Reception)</button>
+                <button class="hd-btn hd-btn-primary" onclick="openAddNewTestModal()">➕ Add Diagnostic Test</button>
+                <button class="hd-btn hd-btn-outline" onclick="openAddNewCategoryModal()">📁 Add Category</button>
+            </div>
+        </div>
+
+        <!-- DIAGNOSTIC SUBTABS -->
+        <div class="hd-cat-filter-bar" id="diagnosticSubTabs">
+            <button class="hd-cat-pill active" onclick="switchDiagSubTab('catalog', this)">🔬 Diagnostic Tests Catalog</button>
+            <button class="hd-cat-pill" onclick="switchDiagSubTab('queue', this)">⚡ Live Test Queue & Tokens</button>
+            <button class="hd-cat-pill" onclick="switchDiagSubTab('samples', this)">🩸 Sample Collection Desk</button>
+            <button class="hd-cat-pill" onclick="switchDiagSubTab('reports', this)">📑 Reports & Verification</button>
+            <button class="hd-cat-pill" onclick="switchDiagSubTab('home', this)">🏠 Home Sample Requests</button>
+        </div>
+
+        <!-- SUB-PANEL: TEST CATALOG -->
+        <div id="diagSub-catalog">
+            <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+                <input type="text" id="diagSearchInput" class="hd-input" placeholder="Search tests by name, code, purpose..." style="max-width: 320px;" oninput="filterDiagnosticTests()">
+                <div class="hd-cat-filter-bar" id="categoryFilterPills" style="margin-bottom: 0;">
+                    <button class="hd-cat-pill active" onclick="filterByCategory('ALL', this)">All Tests</button>
+                    <button class="hd-cat-pill" onclick="filterByCategory('PATHOLOGY', this)">🩸 Pathology</button>
+                    <button class="hd-cat-pill" onclick="filterByCategory('RADIOLOGY', this)">🩻 Radiology</button>
+                    <button class="hd-cat-pill" onclick="filterByCategory('CARDIOLOGY', this)">❤️ Cardiology</button>
+                    <button class="hd-cat-pill" onclick="filterByCategory('OTHER', this)">🔬 Other</button>
+                </div>
+            </div>
+
+            <div class="hd-test-grid" id="diagTestGrid">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+
+        <!-- SUB-PANEL: LIVE QUEUE -->
+        <div id="diagSub-queue" style="display: none;">
+            <div id="liveQueueContainer">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+
+        <!-- SUB-PANEL: SAMPLE COLLECTION DESK -->
+        <div id="diagSub-samples" style="display: none;">
+            <div class="hd-card">
+                <h4 style="margin-bottom: 12px;">🩸 Collected Specimen Log & Lab Transmission</h4>
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Sample ID</th>
+                                <th>Booking Ref</th>
+                                <th>Token</th>
+                                <th>Patient Name</th>
+                                <th>Sample Type</th>
+                                <th>Collected By</th>
+                                <th>Collection Time</th>
+                                <th>Storage Condition</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="samplesTableBody">
+                            <!-- Injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUB-PANEL: REPORTS & VERIFICATION -->
+        <div id="diagSub-reports" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <h4>📑 Published Diagnostic Reports & QR Verification Registry</h4>
+                    <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openPublishReportModal()">➕ Publish New Report</button>
+                </div>
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Patient Name & ID</th>
+                                <th>Test Name</th>
+                                <th>Verified By</th>
+                                <th>Report Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsTableBody">
+                            <!-- Injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUB-PANEL: HOME SAMPLE COLLECTIONS -->
+        <div id="diagSub-home" style="display: none;">
+            <div class="hd-card">
+                <h4>🏠 Home Phlebotomy & Sample Collection Route Dispatch</h4>
+                <div class="hd-table-wrap" style="margin-top: 12px;">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Patient Details</th>
+                                <th>Test</th>
+                                <th>Address in Gorakhpur</th>
+                                <th>Assigned Staff</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="homeCollectionsTableBody">
+                            <!-- Injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANEL 3: DOCTOR CLINICAL DESK -->
+    <section class="hd-panel" id="panel-clinical">
+        <div class="hd-section-header">
+            <div>
+                <h3>👨‍⚕️ Clinical Consultation & Doctor OPD Desk</h3>
+                <p>Consult with scheduled patients, examine medical history, order diagnostic tests directly, and write prescriptions.</p>
+            </div>
+            <div class="hd-actions-row">
+                <span class="hd-badge green" id="doctorConsultingBadge">Active Doctor: Dr. Anand Verma</span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 20px;">
+            <!-- Left: OPD Queue -->
+            <div class="hd-card" style="padding: 16px;">
+                <h4 style="font-size: 14px; margin-bottom: 10px;">📋 Waiting OPD Patients</h4>
+                <div id="doctorQueueList" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Injected via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Right: Active Patient Consultation Pad -->
+            <div class="hd-card" id="doctorConsultationPad">
+                <div style="border-bottom: 1px solid var(--border-card); padding-bottom: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 id="activePatientName" style="font-size: 16px;">Select a patient from the OPD Queue</h4>
+                        <p id="activePatientMeta" style="font-size: 12px; color: var(--text-muted);">Patient details will load here</p>
+                    </div>
+                    <span class="hd-badge blue" id="activeTokenBadge">No Patient Active</span>
+                </div>
+
+                <!-- 1-Click Test Ordering Section -->
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="color: #166534; font-size: 13px;">⚡ Direct Diagnostic Test Ordering</strong>
+                        <span style="font-size: 11px; color: #15803d;">Auto-queues into Hospital Diagnostics section</span>
+                    </div>
+                    <p style="font-size: 12px; color: #166534; margin-bottom: 10px;">Select required diagnostic tests for this patient and dispatch order:</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;" id="quickTestCheckboxes">
+                        <!-- Checkboxes injected via JavaScript -->
+                    </div>
+                    <button class="hd-btn hd-btn-success hd-btn-sm" style="margin-top: 10px;" onclick="submitDoctorTestOrder()">⚡ Order Selected Diagnostic Tests</button>
+                </div>
+
+                <!-- Clinical Diagnosis & Prescription Pad -->
+                <div class="hd-form-group">
+                    <label>Symptoms & Complaints</label>
+                    <input type="text" id="docSymptomsInput" class="hd-input" placeholder="e.g. Chest tightness, mild dyspnea on exertion for 3 days">
+                </div>
+                <div class="hd-form-group">
+                    <label>Clinical Diagnosis</label>
+                    <input type="text" id="docDiagnosisInput" class="hd-input" placeholder="e.g. Atypical Angina / Stage 1 Hypertension">
+                </div>
+                <div class="hd-form-group">
+                    <label>Prescription & Dosage (auto-syncs with Hospital Pharmacy)</label>
+                    <textarea id="docPrescriptionInput" class="hd-textarea" rows="3" placeholder="e.g. 1. Tab Amlodipine 5mg - 1 tab OD morning x 30 days&#10;2. Tab Sorbitrate 5mg - SOS sublingual"></textarea>
+                </div>
+                <div class="hd-form-group">
+                    <label>Doctor Notes & Follow-up Plan</label>
+                    <input type="text" id="docNotesInput" class="hd-input" placeholder="e.g. Review in OPD with CBC & ECG reports after 3 days">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                    <button class="hd-btn hd-btn-outline" onclick="resetConsultationPad()">Cancel</button>
+                    <button class="hd-btn hd-btn-primary" onclick="completeDoctorConsultation()">✅ Complete Consultation & Discharge Token</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANEL 4: BEDS & WARDS MANAGEMENT -->
+    <section class="hd-panel" id="panel-beds">
+        <div class="hd-section-header">
+            <div>
+                <h3>🛏️ Hospital Beds & Ward Management</h3>
+                <p>Real-time ward occupancy, ICU status, bed reservation, patient assignment, and discharges.</p>
+            </div>
+            <div class="hd-actions-row">
+                <button class="hd-btn hd-btn-primary" onclick="openAssignBedModal()">➕ Assign Bed to Patient</button>
+            </div>
+        </div>
+
+        <div id="wardsOverviewContainer">
+            <!-- Injected via JavaScript -->
+        </div>
+    </section>
+
+    <!-- PANEL 5: PHARMACY & PRESCRIPTIONS -->
+    <section class="hd-panel" id="panel-pharmacy">
+        <div class="hd-section-header">
+            <div>
+                <h3>💊 Hospital Pharmacy & Medicine Dispensing</h3>
+                <p>Medicine catalog, inventory stock alerts, and prescription fulfillment direct from OPD.</p>
+            </div>
+            <div class="hd-actions-row">
+                <span class="hd-badge green">Pharmacy Desk Active</span>
+            </div>
+        </div>
+
+        <div class="hd-table-wrap">
+            <table class="hd-table">
+                <thead>
+                    <tr>
+                        <th>Medicine Name</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Unit Price</th>
+                        <th>Availability</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pharmacyTableBody">
+                    <!-- Injected via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- PANEL 6: BILLING & INVOICES -->
+    <section class="hd-panel" id="panel-billing">
+        <div class="hd-section-header">
+            <div>
+                <h3>💳 Billing, Cashier Desk & Invoices</h3>
+                <p>Generate patient invoices for OPD consultations, diagnostic tests, procedures, and admissions.</p>
+            </div>
+            <div class="hd-actions-row">
+                <button class="hd-btn hd-btn-primary" onclick="openCreateInvoiceModal()">➕ Create New Invoice</button>
+            </div>
+        </div>
+
+        <div class="hd-table-wrap">
+            <table class="hd-table">
+                <thead>
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Patient Name & ID</th>
+                        <th>Service Description</th>
+                        <th>Total Amount</th>
+                        <th>Paid Amount</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="billingTableBody">
+                    <!-- Injected via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- PANEL 7: EMERGENCY & AMBULANCES -->
+    <section class="hd-panel" id="panel-emergency">
+        <div class="hd-section-header">
+            <div>
+                <h3>🚨 Emergency Management & Ambulances</h3>
+                <p>Trauma admissions, red triage cases, and assigned emergency response fleet.</p>
+            </div>
+            <div class="hd-actions-row">
+                <span class="hd-badge red">Emergency Desk 24x7</span>
+            </div>
+        </div>
+
+        <div class="hd-table-wrap">
+            <table class="hd-table">
+                <thead>
+                    <tr>
+                        <th>Ambulance Code</th>
+                        <th>Vehicle Reg No</th>
+                        <th>Ambulance Type</th>
+                        <th>Driver & Contact</th>
+                        <th>Current Location</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="emergencyAmbulancesTableBody">
+                    <!-- Injected via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- PANEL 8: HOSPITAL ADMIN & SETTINGS -->
+    <section class="hd-panel" id="panel-admin">
+        <div class="hd-section-header">
+            <div>
+                <h3>⚙️ Hospital Administration & Staff Control</h3>
+                <p>Manage hospital departments, authorized staff accounts, role permissions, and facility profile.</p>
+            </div>
+            <div class="hd-actions-row">
+                <button class="hd-btn hd-btn-primary" onclick="openAddStaffModal()">➕ Add Staff Member</button>
+            </div>
+        </div>
+
+        <div class="hd-card">
+            <h4>Authorized Staff Members & Roles</h4>
+            <div class="hd-table-wrap" style="margin-top: 12px;">
+                <table class="hd-table">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Hospital Role</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminStaffTableBody">
+                        <!-- Injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. MODAL: OFFLINE TEST BOOKING (RECEPTION / CASHIER) -->
+<div class="hd-modal" id="modalOfflineBooking">
+    <div class="hd-modal-box">
+        <button class="hd-modal-close" onclick="closeHdModal('modalOfflineBooking')">✕</button>
+        <h3 style="margin-bottom: 6px;">📋 Create Offline Diagnostic Test Booking</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Generates patient token, billing receipt, and routes directly to sample collection.</p>
+
+        <form id="offlineBookingForm" onsubmit="handleOfflineBookingSubmit(event)">
+            <div class="hd-form-group">
+                <label>Select Diagnostic Test *</label>
+                <select id="offTestSelect" class="hd-select" required onchange="updateOfflinePrice()">
+                    <option value="">-- Choose Test --</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Patient Full Name *</label>
+                    <input type="text" id="offPatientName" class="hd-input" required placeholder="e.g. Ramesh Kumar">
+                </div>
+                <div class="hd-form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="offPatientMobile" class="hd-input" placeholder="10-digit mobile">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Age</label>
+                    <input type="number" id="offPatientAge" class="hd-input" placeholder="Age" min="1" max="120">
+                </div>
+                <div class="hd-form-group">
+                    <label>Gender</label>
+                    <select id="offPatientGender" class="hd-select">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Fee (₹)</label>
+                    <input type="text" id="offTestFee" class="hd-input" readonly style="background: #f1f5f9; font-weight: 800; color: #047857;">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Payment Method</label>
+                <select id="offPaymentMethod" class="hd-select">
+                    <option value="Cash">Cash at Counter</option>
+                    <option value="UPI">UPI / QR Payment</option>
+                    <option value="Card">Debit / Credit Card</option>
+                    <option value="Free">Ayushman Bharat / Free</option>
+                </select>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalOfflineBooking')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-success">Generate Token & Print Receipt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. MODAL: PUBLISH DIAGNOSTIC REPORT -->
+<div class="hd-modal" id="modalPublishReport">
+    <div class="hd-modal-box modal-lg">
+        <button class="hd-modal-close" onclick="closeHdModal('modalPublishReport')">✕</button>
+        <h3 style="margin-bottom: 6px;">📑 Publish Diagnostic Test Report</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Generates official report, signs with digital credentials, and issues authentic QR verification token.</p>
+
+        <form id="publishReportForm" onsubmit="handlePublishReportSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Select Booking / Token *</label>
+                    <select id="repBookingSelect" class="hd-select" required onchange="onReportBookingSelected()">
+                        <option value="">-- Choose Processed Booking --</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Verifying Pathologist / Doctor</label>
+                    <input type="text" id="repVerifiedBy" class="hd-input" required value="Dr. Anand Verma, MD DM (Cardiology)">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Clinical Test Parameters & Findings</label>
+                <table class="hd-table" style="background: #f8fafc;">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Result</th>
+                            <th>Unit</th>
+                            <th>Reference Range</th>
+                            <th>Flag</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportParamsTableBody">
+                        <tr>
+                            <td><input type="text" class="hd-input p-name" value="Hemoglobin (Hb)"></td>
+                            <td><input type="text" class="hd-input p-val" value="14.2"></td>
+                            <td><input type="text" class="hd-input p-unit" value="g/dL"></td>
+                            <td><input type="text" class="hd-input p-ref" value="13.0 - 17.0"></td>
+                            <td><input type="text" class="hd-input p-flag" value="Normal"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" class="hd-input p-name" value="Total Leukocyte Count (TLC)"></td>
+                            <td><input type="text" class="hd-input p-val" value="6800"></td>
+                            <td><input type="text" class="hd-input p-unit" value="/cu.mm"></td>
+                            <td><input type="text" class="hd-input p-ref" value="4000 - 11000"></td>
+                            <td><input type="text" class="hd-input p-flag" value="Normal"></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" class="hd-input p-name" value="Platelet Count"></td>
+                            <td><input type="text" class="hd-input p-val" value="2.45"></td>
+                            <td><input type="text" class="hd-input p-unit" value="Lakhs/cu.mm"></td>
+                            <td><input type="text" class="hd-input p-ref" value="1.5 - 4.5"></td>
+                            <td><input type="text" class="hd-input p-flag" value="Normal"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Doctor Remarks / Interpretation</label>
+                <textarea id="repRemarksInput" class="hd-textarea" rows="2" placeholder="Clinical interpretation and advice...">Normocytic normochromic blood picture. All hematologic parameters within healthy adult reference ranges.</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalPublishReport')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Publish & Generate QR Verified Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. MODAL: VIEW / PRINT DIAGNOSTIC REPORT -->
+<div class="hd-modal" id="modalViewReport">
+    <div class="hd-modal-box modal-lg" style="max-width: 800px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalViewReport')">✕</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3>Official Diagnostic Laboratory Report</h3>
+            <div style="display: flex; gap: 8px;">
+                <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="printReportDocument()">🖨️ Print Report</button>
+                <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="downloadReportPDF()">📥 Download</button>
+            </div>
+        </div>
+
+        <div class="report-paper" id="printableReportArea">
+            <div class="report-header">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <div class="report-hosp-logo" id="rpHospLogo">🏥</div>
+                    <div>
+                        <h2 id="rpHospName" style="font-size: 20px; color: #0284c7;">AIIMS GORAKHPUR</h2>
+                        <p id="rpHospAddress" style="font-size: 11px; color: #64748b;">Kushmi Forest, Gorakhpur, UP 273008 • Emergency: 102</p>
+                        <p style="font-size: 11px; font-weight: 700; color: #0f172a;">CENTRAL CLINICAL DIAGNOSTIC LABORATORY</p>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span class="hd-badge green" style="font-size: 12px;">OFFICIAL REPORT</span>
+                    <p style="font-size: 11px; color: #64748b; margin-top: 4px;" id="rpReportId">RPT-2026-001</p>
+                </div>
+            </div>
+
+            <div class="report-patient-grid">
+                <div><span>Patient Name:</span> <strong id="rpPatientName">Omkar Yadav</strong></div>
+                <div><span>Patient ID:</span> <strong id="rpPatientId">PAT-5931984821</strong></div>
+                <div><span>Age / Gender:</span> <strong id="rpPatientAgeGender">22 Yrs / Male</strong></div>
+                <div><span>Sample Collection Date:</span> <strong id="rpColDate">2026-09-20</strong></div>
+                <div><span>Report Date:</span> <strong id="rpRepDate">2026-09-20</strong></div>
+                <div><span>Token No:</span> <strong id="rpTokenNo">A-021</strong></div>
+            </div>
+
+            <h4 id="rpTestName" style="font-size: 15px; margin-bottom: 10px; color: #0c4a6e; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                Complete Blood Count (CBC) with ESR
+            </h4>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Investigation Parameter</th>
+                        <th>Observed Result</th>
+                        <th>Unit</th>
+                        <th>Biological Reference Range</th>
+                        <th>Clinical Flag</th>
+                    </tr>
+                </thead>
+                <tbody id="rpParamsTbody">
+                    <!-- Injected via JavaScript -->
+                </tbody>
+            </table>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 12px; margin-bottom: 20px;">
+                <strong>Interpretation / Clinical Notes:</strong>
+                <p id="rpRemarks" style="color: #475569; margin-top: 4px;">Normal standard tracing / findings.</p>
+            </div>
+
+            <div class="report-signatures">
+                <div>
+                    <p style="font-size: 11px; color: #64748b;">Medical Lab Technician</p>
+                    <strong id="rpTechnician" style="font-size: 13px;">Sunil Sharma, DMLT</strong>
+                </div>
+                <div class="report-qr-box">
+                    <div id="rpQRCode"></div>
+                    <small style="font-size: 9px; color: #64748b; display: block; margin-top: 4px;">Scan to Authenticate</small>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-size: 11px; color: #64748b;">Verified & Authorized By</p>
+                    <strong id="rpVerifiedBy" style="font-size: 13px;">Dr. Anand Verma, MD</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. MODAL: ASSIGN BED (NURSE / WARD DESK) -->
+<div class="hd-modal" id="modalAssignBed">
+    <div class="hd-modal-box">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAssignBed')">✕</button>
+        <h3 style="margin-bottom: 6px;">🛏️ Assign Hospital Bed</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Allocate an available bed in chosen ward for patient admission.</p>
+
+        <form id="assignBedForm" onsubmit="handleAssignBedSubmit(event)">
+            <div class="hd-form-group">
+                <label>Select Available Bed *</label>
+                <select id="bedAssignSelect" class="hd-select" required>
+                    <!-- Injected via JavaScript -->
+                </select>
+            </div>
+            <div class="hd-form-group">
+                <label>Patient Name *</label>
+                <input type="text" id="bedPatientName" class="hd-input" required placeholder="Patient Full Name">
+            </div>
+            <div class="hd-form-group">
+                <label>Patient ID *</label>
+                <input type="text" id="bedPatientId" class="hd-input" required placeholder="e.g. PAT-5931984821">
+            </div>
+            <div class="hd-form-group">
+                <label>Admission Notes / Diagnosis</label>
+                <input type="text" id="bedNotes" class="hd-input" placeholder="e.g. Admitted under Cardiology for observation">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAssignBed')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Confirm Bed Allocation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 5. MODAL: CREATE INVOICE (BILLING) -->
+<div class="hd-modal" id="modalCreateInvoice">
+    <div class="hd-modal-box">
+        <button class="hd-modal-close" onclick="closeHdModal('modalCreateInvoice')">✕</button>
+        <h3 style="margin-bottom: 6px;">💳 Generate Hospital Billing Invoice</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Bill for consultations, diagnostic tests, procedures, and admissions.</p>
+
+        <form id="createInvoiceForm" onsubmit="handleCreateInvoiceSubmit(event)">
+            <div class="hd-form-group">
+                <label>Patient Name *</label>
+                <input type="text" id="invPatientName" class="hd-input" required placeholder="Patient Full Name">
+            </div>
+            <div class="hd-form-group">
+                <label>Patient ID *</label>
+                <input type="text" id="invPatientId" class="hd-input" required placeholder="e.g. PAT-1002348">
+            </div>
+            <div class="hd-form-group">
+                <label>Service Description *</label>
+                <input type="text" id="invServiceType" class="hd-input" required placeholder="e.g. CT Scan Brain + OPD Consultation">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Total Amount (₹) *</label>
+                    <input type="number" id="invTotalAmount" class="hd-input" required min="0" value="500">
+                </div>
+                <div class="hd-form-group">
+                    <label>Discount (₹)</label>
+                    <input type="number" id="invDiscount" class="hd-input" min="0" value="0">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Payment Method</label>
+                    <select id="invPaymentMethod" class="hd-select">
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Payment Status</label>
+                    <select id="invPaymentStatus" class="hd-select">
+                        <option value="Paid">Paid (Full Receipt)</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalCreateInvoice')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-success">Generate & Record Invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 6. MODAL: REGISTER WALK-IN PATIENT (OPD DESK) -->
+<div class="hd-modal" id="modalRegisterWalkIn">
+    <div class="hd-modal-box">
+        <button class="hd-modal-close" onclick="closeHdModal('modalRegisterWalkIn')">✕</button>
+        <h3 style="margin-bottom: 6px;">➕ Register Walk-in OPD Patient</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Issue instant OPD queue token and doctor consultation entry.</p>
+
+        <form id="registerWalkInForm" onsubmit="handleRegisterWalkInSubmit(event)">
+            <div class="hd-form-group">
+                <label>Patient Full Name *</label>
+                <input type="text" id="walkinPatientName" class="hd-input" required placeholder="e.g. Ramesh Kumar">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Age *</label>
+                    <input type="number" id="walkinPatientAge" class="hd-input" required min="1" max="120" placeholder="e.g. 35">
+                </div>
+                <div class="hd-form-group">
+                    <label>Gender *</label>
+                    <select id="walkinPatientGender" class="hd-select" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Mobile Number *</label>
+                <input type="tel" id="walkinPatientMobile" class="hd-input" required pattern="[0-9]{10}" placeholder="10-digit mobile number">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Department *</label>
+                    <select id="walkinDepartment" class="hd-select" required onchange="filterWalkInDoctorsByDept(this.value)">
+                        <option value="General Medicine">General Medicine</option>
+                        <option value="Cardiology">Cardiology</option>
+                        <option value="Pediatrics">Pediatrics</option>
+                        <option value="Orthopedics">Orthopedics</option>
+                        <option value="Neurology">Neurology</option>
+                        <option value="Gynecology">Gynecology</option>
+                        <option value="General Surgery">General Surgery</option>
+                        <option value="Dermatology">Dermatology</option>
+                        <option value="ENT">ENT</option>
+                        <option value="Ophthalmology">Ophthalmology</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Consulting Doctor *</label>
+                    <select id="walkinDoctorSelect" class="hd-select" required>
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalRegisterWalkIn')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Confirm & Issue OPD Token</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 7. MODAL: OFFLINE DIAGNOSTIC TEST BOOKING -->
+<div class="hd-modal" id="modalOfflineBooking">
+    <div class="hd-modal-box">
+        <button class="hd-modal-close" onclick="closeHdModal('modalOfflineBooking')">✕</button>
+        <h3 style="margin-bottom: 6px;">📋 Reception Desk - Offline Test Booking</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Book diagnostic tests at hospital reception counter with instant token slip.</p>
+
+        <form id="offlineBookingForm" onsubmit="handleOfflineBookingSubmit(event)">
+            <div class="hd-form-group">
+                <label>Patient Full Name *</label>
+                <input type="text" id="offlinePatientName" class="hd-input" required placeholder="e.g. Meera Devi">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Patient ID (Optional)</label>
+                    <input type="text" id="offlinePatientId" class="hd-input" placeholder="e.g. PAT-5931984821">
+                </div>
+                <div class="hd-form-group">
+                    <label>Mobile Number *</label>
+                    <input type="tel" id="offlinePatientMobile" class="hd-input" required pattern="[0-9]{10}" placeholder="10-digit mobile number">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Select Diagnostic Test *</label>
+                <select id="offlineTestSelect" class="hd-select" required onchange="updateOfflineTestFee(this)">
+                    <!-- Populated by JavaScript -->
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Time Slot *</label>
+                    <select id="offlineBookingSlot" class="hd-select" required>
+                        <option value="Morning (08:00 AM - 11:00 AM)">Morning (08:00 AM - 11:00 AM)</option>
+                        <option value="Afternoon (12:00 PM - 03:00 PM)">Afternoon (12:00 PM - 03:00 PM)</option>
+                        <option value="Evening (04:00 PM - 07:00 PM)">Evening (04:00 PM - 07:00 PM)</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Payment Method</label>
+                    <select id="offlinePaymentMethod" class="hd-select">
+                        <option value="Cash">Cash (Counter Paid)</option>
+                        <option value="UPI">UPI / QR Code</option>
+                        <option value="Card">Debit / Credit Card</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="offlineFeeDisplay" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin: 12px 0; font-size:13px; font-weight:700; color:#1e293b;">
+                Fee: ₹0
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalOfflineBooking')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-success">Issue Diagnostic Token & Slip</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../auth.js"></script>
+<script src="hospital_dashboard.js"></script>
+</body>
+</html>

@@ -8,7 +8,16 @@
  *  - In-clinic consultation writer & status management
  */
 
-const API_BASE = window.location.origin.includes(':5000') ? '' : 'http://localhost:5000';
+const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+    ? window.API_BASE_URL
+    : (window.location.origin.includes(':5000') ? '' : 'http://localhost:5000');
+
+function getAuthHeaders(extra = {}) {
+    const token = localStorage.getItem("smartcity_auth_token") || (window.SmartCityAuth && window.SmartCityAuth.getToken ? window.SmartCityAuth.getToken() : null);
+    const headers = { ...extra };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+}
 
 let allDoctors = [];
 let currentDoctor = null;
@@ -73,7 +82,7 @@ async function initDoctorProfiles() {
         const res = await fetch(`${API_BASE}/api/doctors`);
         if (!res.ok) throw new Error('Failed to load doctors');
         const data = await res.json();
-        allDoctors = Array.isArray(data) ? data : (data.doctors || []);
+        allDoctors = Array.isArray(data) ? data : (data.doctors || data.data || []);
 
         const select = document.getElementById('doctorSelect');
         select.innerHTML = '';
@@ -135,7 +144,9 @@ async function loadDoctorQueue() {
     `;
 
     try {
-        const res = await fetch(`${API_BASE}/api/doctor/${doctorId}/appointments`);
+        const res = await fetch(`${API_BASE}/api/doctor/${doctorId}/appointments`, {
+            headers: getAuthHeaders()
+        });
         if (!res.ok) throw new Error('Failed to fetch doctor appointments');
         const data = await res.json();
         currentQueue = data.appointments || (Array.isArray(data) ? data : []);
@@ -264,7 +275,7 @@ async function updateAppointmentStatus(appointmentId, newStatus) {
     try {
         const res = await fetch(`${API_BASE}/api/appointments/${appointmentId}/status`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ status: newStatus })
         });
         const data = await res.json();
@@ -374,7 +385,9 @@ async function openPatientDossier(patientId, appointmentId = null) {
     `;
 
     try {
-        const res = await fetch(`${API_BASE}/api/doctor/patient-history/${patientId}`);
+        const res = await fetch(`${API_BASE}/api/doctor/patient-history/${patientId}`, {
+            headers: getAuthHeaders()
+        });
         if (!res.ok) {
             throw new Error('Patient record not found on server');
         }
@@ -653,7 +666,7 @@ async function submitConsultation(event) {
 
         const res = await fetch(`${API_BASE}/api/doctor/consultation`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify(payload)
         });
 

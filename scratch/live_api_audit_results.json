@@ -1,0 +1,70 @@
+{
+  "total": 176,
+  "passed": 110,
+  "mismatchesOrMissing": [
+    {
+      "file": "frontend\\pages\\hospital\\hospital.js",
+      "method": "GET",
+      "url": "/api/hospitals/${hospitalId}",
+      "testedUrl": "/api/hospitals/1",
+      "status": 404,
+      "response": "{\"message\":\"Hospital not found.\"}"
+    },
+    {
+      "file": "frontend\\pages\\parking\\parking.js",
+      "method": "POST",
+      "url": "/api/parking/bookings/${bookingId}/cancel",
+      "testedUrl": "/api/parking/bookings/1/cancel",
+      "status": 404,
+      "response": "{\"success\":false,\"message\":\"Booking pass not found.\"}"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "method": "GET",
+      "url": "/api/traffic/junctions/${jncId}",
+      "testedUrl": "/api/traffic/junctions/1",
+      "status": 404,
+      "response": "{\"error\":\"Junction not found\"}"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "method": "POST",
+      "url": "/api/traffic/violations/${currentPayingChallan.id}/pay",
+      "testedUrl": "/api/traffic/violations/1/pay",
+      "status": 404,
+      "response": "{\"error\":\"Violation record / Challan not found.\"}"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "method": "POST",
+      "url": "/api/traffic/vms-boards/${boardId}/message",
+      "testedUrl": "/api/traffic/vms-boards/1/message",
+      "status": 404,
+      "response": "{\"error\":\"VMS Board not found\"}"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "method": "GET",
+      "url": "/api/traffic/junctions/${jncId}/webster-timing",
+      "testedUrl": "/api/traffic/junctions/1/webster-timing",
+      "status": 404,
+      "response": "{\"error\":\"Junction not found\"}"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "method": "GET",
+      "url": "/api/traffic/violations/${violationId}/evidence",
+      "testedUrl": "/api/traffic/violations/1/evidence",
+      "status": 404,
+      "response": "{\"error\":\"Violation not found\"}"
+    },
+    {
+      "file": "frontend\\pages\\traffic\\traffic.js",
+      "method": "GET",
+      "url": "/api/traffic/junctions/${jncId}/camera-traffic-summary",
+      "testedUrl": "/api/traffic/junctions/1/camera-traffic-summary",
+      "status": 404,
+      "response": "{\"error\":\"Junction not found\"}"
+    }
+  ]
+}

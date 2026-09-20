@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Tourism & Heritage Explorer | Gorakhpur SmartCity AI</title>
+    <meta name="description" content="Discover the heritage, culture, nature, and famous places of Gorakhpur with SmartCity AI interactive GIS map, trip planner, and AI guide.">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="famous.css">
+</head>
+
+<body>
+
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="../../index.html" class="logo">
+                Smart<span>City AI</span>
+            </a>
+            <div class="breadcrumb">
+                Places / Gorakhpur / Smart Tourism & Heritage Explorer
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <button class="nav-action-btn" onclick="openSavedPlacesModal()" title="View your saved places">
+                ⭐ Saved Places
+            </button>
+            <button id="adminPortalBtn" class="nav-action-btn" style="display: none;" onclick="openAdminModal()" title="Tourism & Civic Management">
+                🛡️ Staff Portal
+            </button>
+            <a href="../../index.html" class="back-btn">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </nav>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="container">
+
+        <!-- ================= HERO SECTION ================= -->
+        <section class="hero" id="heroSection">
+            <div class="hero-content">
+                <span class="location-tag">
+                    📍 Gorakhpur, Uttar Pradesh
+                </span>
+
+                <h1 id="heroTitle">
+                    Explore Gorakhpur
+                </h1>
+
+                <p id="heroSubtitle">
+                    Discover the heritage, culture, nature, and famous places of Gorakhpur with SmartCity AI.
+                </p>
+
+                <div class="hero-buttons">
+                    <button class="primary-btn" onclick="scrollToMap()">
+                        🧭 Explore Interactive Map
+                    </button>
+                    <button class="secondary-btn" onclick="openTripPlannerModal()">
+                        ✨ Plan My Trip
+                    </button>
+                    <button class="secondary-btn" onclick="openAIDrawer()">
+                        🤖 AI Tourist Guide
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-info">
+                <div class="hero-stat">
+                    <strong id="statPlacesCount">14</strong>
+                    <span>Verified Places</span>
+                </div>
+
+                <div class="hero-stat">
+                    <strong>🌤️ 31°C</strong>
+                    <span>Gorakhpur Weather</span>
+                </div>
+
+                <div class="hero-stat">
+                    <strong class="green">🟢 Live</strong>
+                    <span>GIS Telemetry</span>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= SEARCH & CATEGORIES ================= -->
+        <section class="explorer-search-bar" id="searchFilterBar">
+            <div class="search-input-row">
+                <div class="search-field-wrap">
+                    <span class="search-icon-inline">🔍</span>
+                    <input 
+                        type="text" 
+                        id="placeSearchInput" 
+                        class="search-places-input" 
+                        placeholder="Search places by name, locality, or keywords (e.g. Ramgarh, Mandir, Museum)..." 
+                        oninput="handleSearchInput(this.value)"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <select id="sortSelect" class="sort-select" onchange="handleSortChange(this.value)">
+                    <option value="default">Sort: Default</option>
+                    <option value="rating">Highest Rated ⭐</option>
+                    <option value="name">Alphabetical (A-Z)</option>
+                </select>
+
+                <button id="clearFiltersBtn" class="clear-filter-btn" onclick="resetFilters()">
+                    ✕ Clear Filters
+                </button>
+            </div>
+
+            <!-- Category Chips -->
+            <div class="category-chips-row" id="categoryChipsContainer">
+                <button class="cat-chip active" data-cat="All" onclick="selectCategory('All')">
+                    🌟 All Places <span class="chip-count" id="countAll">14</span>
+                </button>
+                <button class="cat-chip" data-cat="Religious" onclick="selectCategory('Religious')">
+                    🕉️ Religious <span class="chip-count" id="countReligious">4</span>
+                </button>
+                <button class="cat-chip" data-cat="Historical" onclick="selectCategory('Historical')">
+                    📜 Historical <span class="chip-count" id="countHistorical">2</span>
+                </button>
+                <button class="cat-chip" data-cat="Cultural" onclick="selectCategory('Cultural')">
+                    🎨 Cultural <span class="chip-count" id="countCultural">2</span>
+                </button>
+                <button class="cat-chip" data-cat="Nature" onclick="selectCategory('Nature')">
+                    🌿 Nature & Lakes <span class="chip-count" id="countNature">2</span>
+                </button>
+                <button class="cat-chip" data-cat="Educational" onclick="selectCategory('Educational')">
+                    🔭 Educational <span class="chip-count" id="countEducational">2</span>
+                </button>
+                <button class="cat-chip" data-cat="Family & Recreation" onclick="selectCategory('Family & Recreation')">
+                    🎡 Family & Fun <span class="chip-count" id="countFamily">1</span>
+                </button>
+                <button class="cat-chip" data-cat="Heritage" onclick="selectCategory('Heritage')">
+                    🏛️ Heritage <span class="chip-count" id="countHeritage">1</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- ================= INTERACTIVE EXPLORE MAP ================= -->
+        <section class="map-card-container" id="mapSection">
+            <div class="map-toolbar">
+                <div>
+                    <span class="section-label">GIS LIVE EXPLORER</span>
+                    <h2 class="section-title">📍 Interactive Heritage & Places Map</h2>
+                    <p class="section-sub">Select any marker to inspect details, get directions, or view nearby Smart City facilities.</p>
+                </div>
+
+                <div class="map-layer-toggles">
+                    <button id="layerHospitalsBtn" class="map-layer-btn" onclick="toggleMapLayer('hospitals')">
+                        🏥 Hospitals
+                    </button>
+                    <button id="layerPoliceBtn" class="map-layer-btn" onclick="toggleMapLayer('police')">
+                        🚔 Police
+                    </button>
+                    <button id="layerParkingBtn" class="map-layer-btn" onclick="toggleMapLayer('parking')">
+                        🅿️ Smart Parking
+                    </button>
+                    <button id="layerAtmsBtn" class="map-layer-btn" onclick="toggleMapLayer('atms')">
+                        🏧 ATMs
+                    </button>
+                    <button id="layerFoodBtn" class="map-layer-btn" onclick="toggleMapLayer('food')">
+                        🍴 Food & Dining
+                    </button>
+                </div>
+
+                <div class="map-view-actions">
+                    <button class="map-action-btn" onclick="centerGorakhpur()">
+                        🎯 Center Gorakhpur
+                    </button>
+                    <button class="map-action-btn" onclick="getUserCurrentLocation()">
+                        📍 My Location
+                    </button>
+                    <button class="map-action-btn" onclick="fitAllPlaces()">
+                        🗺️ Fit All Places
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leaflet Map Mount Point with Route Banner -->
+            <div class="map-wrapper-relative">
+                <div id="serviceRouteBanner" class="service-route-banner" style="display: none;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="routeBannerIcon" style="font-size: 18px;">📍</span>
+                        <span id="routeBannerText" style="font-weight: 700; font-size: 13px;">Route to Destination</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button id="routeNavExternalBtn" class="primary-small" style="font-size: 11px; padding: 4px 8px; border:none; border-radius:4px; cursor:pointer;">🧭 Google Maps</button>
+                        <button onclick="clearServiceRoute()" style="background: rgba(255,255,255,0.25); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">✕ Clear</button>
+                    </div>
+                </div>
+                <div id="placeMap"></div>
+            </div>
+        </section>
+
+
+        <!-- ================= FAMOUS PLACES DIRECTORY ================= -->
+        <section class="places-directory-section" id="placesDirectorySection">
+            <div class="section-header">
+                <div>
+                    <span class="section-label">VERIFIED DIRECTORY</span>
+                    <h2 class="section-title">Gorakhpur Landmark Directory</h2>
+                    <p class="section-sub" id="directoryResultsSub">Showing verified destinations across Gorakhpur</p>
+                </div>
+            </div>
+
+            <!-- Places Cards Grid -->
+            <div class="places-grid" id="placesGrid">
+                <!-- Dynamically populated via famose.js -->
+            </div>
+        </section>
+
+
+        <!-- ================= FEATURED PLACE SPOTLIGHT & QUICK STATUS ================= -->
+        <!-- Maintained for full backwards compatibility and live telemetry -->
+        <div class="section-header" style="margin-top: 40px;">
+            <div>
+                <span class="section-label">SELECTED DESTINATION TELEMETRY</span>
+                <h2 class="section-title" id="featuredPlaceTitle">🌊 Ramgarh Taal – Live Status & Services</h2>
+                <p class="section-sub">Real-time indicators, nearby services, parking, and municipal emergency links.</p>
+            </div>
+        </div>
+
+        <!-- QUICK STATUS -->
+        <section class="quick-grid">
+            <div class="quick-card" onclick="openTrafficAnalysisModal()" style="cursor: pointer;" title="Click for Detailed Traffic Analysis">
+                <div class="quick-icon">🚦</div>
+                <div>
+                    <span>Traffic Flow</span>
+                    <strong class="green" id="spotlightTraffic">Low Flow (24%)</strong>
+                    <small id="spotlightTrafficSub">Avg: <span id="spotlightSpeed">36 km/h</span> • Delay: <span id="spotlightDelay">0 mins</span></small>
+                </div>
+            </div>
+
+            <div class="quick-card" onclick="openNearbyParking()" style="cursor: pointer;" title="Click to book nearest smart parking slot">
+                <div class="quick-icon">🅿️</div>
+                <div>
+                    <span>Nearest Parking</span>
+                    <strong class="green" id="spotlightParking">Available</strong>
+                    <small id="spotlightParkingSlots">Multiple spots open</small>
+                </div>
+            </div>
+
+            <div class="quick-card">
+                <div class="quick-icon">👥</div>
+                <div>
+                    <span>Crowd Status</span>
+                    <strong class="green" id="spotlightCrowd">Moderate</strong>
+                    <small>Optimal time to visit</small>
+                </div>
+            </div>
+
+            <div class="quick-card">
+                <div class="quick-icon">🌦️</div>
+                <div>
+                    <span>Current Weather</span>
+                    <strong id="spotlightWeather">31°C</strong>
+                    <small id="spotlightWeatherSub">Partly cloudy with breeze</small>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- OVERVIEW & DETAILED SUMMARY -->
+        <section class="two-column">
+            <div class="card">
+                <span class="section-label">PLACE INFORMATION</span>
+                <h2 id="spotlightAboutTitle">About Ramgarh Taal</h2>
+                <p class="description" id="spotlightAboutDesc">
+                    Ramgarh Taal is an expansive 1,800-acre natural lake in Gorakhpur, transformed into a world-class waterfront tourist hub featuring pedestrian walkways, decorative lighting, paddle and speed boating, laser light shows, and floating restaurants.
+                </p>
+
+                <div class="info-list">
+                    <div>
+                        <span>📍 Locality</span>
+                        <strong id="spotlightLocality">Taramandal</strong>
+                    </div>
+                    <div>
+                        <span>🕒 Timings</span>
+                        <strong id="spotlightTimings">Open 24 Hours (Promenade till 11 PM)</strong>
+                    </div>
+                    <div>
+                        <span>🎫 Entry Fee</span>
+                        <strong id="spotlightFee">Free Promenade Entry</strong>
+                    </div>
+                    <div>
+                        <span>⭐ Visitor Rating</span>
+                        <strong id="spotlightRating">4.7 / 5</strong>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="full-btn" onclick="openSelectedPlaceModal()">
+                        Inspect Place Details
+                    </button>
+                    <button class="dir-btn" style="flex: 1;" onclick="getDirections()">
+                        🧭 Navigate Here
+                    </button>
+                </div>
+            </div>
+
+            <!-- SMART CITY SERVICES AROUND PLACE -->
+            <div class="card">
+                <span class="section-label">SMART CITY INTEGRATION</span>
+                <h2>Services Around This Destination</h2>
+                <p class="description">Live integration with SmartCity Gorakhpur municipal modules.</p>
+
+                <div class="service-grid">
+                    <div class="service-card" onclick="openNearbyHospitals()" title="View nearby hospitals from Hospital Module">
+                        <div class="service-icon">🏥</div>
+                        <h3>Hospitals</h3>
+                        <p id="serviceHospDesc">Trauma & Emergency</p>
+                        <span>Open Healthcare Module →</span>
+                    </div>
+
+                    <div class="service-card" onclick="showNearbyPoliceOnMap()" title="Show nearest police stations on map">
+                        <div class="service-icon">🚔</div>
+                        <h3>Police</h3>
+                        <p>Nearest Outposts</p>
+                        <span>Show on Map →</span>
+                    </div>
+
+                    <div class="service-card" onclick="openNearbyParking()" title="Open nearest smart parking lot & e-book slot">
+                        <div class="service-icon">🅿️</div>
+                        <h3>Parking</h3>
+                        <p id="serviceParkDesc">Smart Lot Vacancy</p>
+                        <span>E-Book in Parking Module →</span>
+                    </div>
+
+                    <div class="service-card" onclick="showNearbyFoodOnMap()" title="Locate nearest restaurants and trace map route">
+                        <div class="service-icon">🍴</div>
+                        <h3>Food & Dining</h3>
+                        <p id="serviceFoodDesc">Local Eateries & Cafés</p>
+                        <span>Find Route on Map →</span>
+                    </div>
+
+                    <div class="service-card" onclick="showNearbyATMsOnMap()" title="Locate nearest ATMs and trace map route">
+                        <div class="service-icon">🏧</div>
+                        <h3>ATM</h3>
+                        <p id="serviceAtmDesc">24/7 Cash Points</p>
+                        <span>Find Route on Map →</span>
+                    </div>
+
+                    <div class="service-card" onclick="openCivicIssueModal()">
+                        <div class="service-icon">📝</div>
+                        <h3>Report Issue</h3>
+                        <p>Civic Complaint</p>
+                        <span>Report Here →</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PARKING INTEGRATION SECTION -->
+        <section class="card" style="margin-bottom: 28px;">
+            <div class="section-header" style="margin-bottom: 8px;">
+                <div>
+                    <span class="section-label">SMART PARKING TELEMETRY</span>
+                    <h2 class="section-title">🅿️ Nearby Smart Parking Lots</h2>
+                </div>
+                <a href="../parking/parking.html" class="dir-btn" style="text-decoration: none;">
+                    Open Master Parking Module →
+                </a>
+            </div>
+
+            <div class="parking-grid" id="nearbyParkingGrid">
+                <!-- Dynamically populated from backend /api/parking -->
+            </div>
+        </section>
+
+
+        <!-- TOURIST EMERGENCY & SAFETY -->
+        <section class="emergency-section">
+            <div>
+                <span>🚨 TOURIST SAFETY & EMERGENCY ASSISTANCE</span>
+                <h2>Need Immediate Help in Gorakhpur?</h2>
+                <p>Official 24/7 Gorakhpur emergency dispatch and rapid-response safety helplines.</p>
+            </div>
+
+            <div class="emergency-buttons">
+                <button onclick="callEmergency('112')">
+                    🚨 Emergency Helpline 112
+                </button>
+                <button onclick="callEmergency('108')">
+                    🚑 Ambulance 108
+                </button>
+                <button onclick="findNearby('police')">
+                    🚔 Police Assistance
+                </button>
+                <a href="../emergency/emergency.html" style="text-decoration: none;">
+                    <button style="background: #fee2e2; color: #991b1b;">
+                        🆘 Open SOS Center
+                    </button>
+                </a>
+            </div>
+        </section>
+
+
+        <!-- VISITOR REVIEWS -->
+        <section class="card" style="margin-bottom: 28px;">
+            <div class="section-header">
+                <div>
+                    <span class="section-label">COMMUNITY EXPERIENCES</span>
+                    <h2 class="section-title">⭐ Verified Visitor Reviews</h2>
+                </div>
+                <button class="primary-small" onclick="openWriteReviewModal()">
+                    + Write a Review
+                </button>
+            </div>
+
+            <div class="review-grid" id="reviewsContainer">
+                <!-- Dynamically loaded from DB -->
+            </div>
+        </section>
+
+
+        <!-- AI TOURIST ASSISTANT PROMO CARD -->
+        <section class="ai-section">
+            <div class="ai-icon">🤖</div>
+            <div>
+                <span>SMARTCITY AI HERITAGE & TOURISM GUIDE</span>
+                <h2>Ask SmartCity AI About Gorakhpur</h2>
+                <p>Plan customized itineraries, discover hidden gems, inquire about holy temples, or check transport routes in Hindi and English.</p>
+            </div>
+            <button onclick="openAIDrawer()">
+                Chat with Tourist AI →
+            </button>
+        </section>
+
+    </main>
+
+
+    <!-- ================= MODALS & DRAWERS ================= -->
+
+    <!-- 1. PLACE DETAILS MODAL -->
+    <div class="modal-backdrop" id="placeDetailsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalPlaceName">Place Details</h3>
+                <button class="modal-close-btn" onclick="closeModal('placeDetailsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="place-modal-hero" id="modalHeroCover">
+                    <div class="place-modal-hero-overlay">
+                        <span class="place-badge" id="modalCategoryBadge" style="position: static; display: inline-block; margin-bottom: 6px;">Category</span>
+                        <h2 id="modalPlaceHeroTitle" style="font-size: 24px; font-weight: 800;">Place Name</h2>
+                        <p id="modalPlaceLocality" style="font-size: 13px; color: #e2e8f0;">Locality</p>
+                    </div>
+                </div>
+
+                <p id="modalFullDescription" style="font-size: 14.5px; line-height: 1.7; color: #334155; margin-bottom: 16px;">
+                    Detailed description...
+                </p>
+
+                <div class="place-modal-specs">
+                    <div class="spec-box">
+                        <span>🕒 Opening Hours</span>
+                        <strong id="modalTimings">08:00 AM - 08:00 PM</strong>
+                    </div>
+                    <div class="spec-box">
+                        <span>🎫 Entry Fee</span>
+                        <strong id="modalEntryFee">Free Entry</strong>
+                    </div>
+                    <div class="spec-box">
+                        <span>🌤️ Best Season</span>
+                        <strong id="modalBestTime">October to March</strong>
+                    </div>
+                    <div class="spec-box">
+                        <span>📍 GPS Distance</span>
+                        <strong id="modalDistance">Calculating...</strong>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;">
+                    <button class="primary-btn" id="modalDirectionsBtn" onclick="navigateCurrentModalPlace()">
+                        🧭 Navigate Here
+                    </button>
+                    <button class="secondary-btn" id="modalFavBtn" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1;" onclick="toggleFavoriteFromModal()">
+                        ❤️ Save to Favorites
+                    </button>
+                    <button class="secondary-btn" style="background: #f1f5f9; color: #0f172a; border-color: #cbd5e1;" onclick="shareCurrentPlace()">
+                        🔗 Share Place
+                    </button>
+                    <button class="secondary-btn" style="background: #fef2f2; color: #991b1b; border-color: #fca5a5;" onclick="reportIssueFromModal()">
+                        📝 Report Civic Issue
+                    </button>
+                </div>
+
+                <!-- Connected Smart City Services for This Place -->
+                <h4 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #0f172a;">
+                    🏙️ Nearest City Services to This Location
+                </h4>
+                <div id="modalNearbyServicesGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 2. SMART TRIP PLANNER MODAL -->
+    <div class="modal-backdrop" id="tripPlannerModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>✨ Smart Trip Planner – Gorakhpur</h3>
+                <button class="modal-close-btn" onclick="closeModal('tripPlannerModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+                    Tell us your start point, time budget, and interests. SmartCity AI calculates an optimal visit sequence and estimated travel times.
+                </p>
+
+                <div class="form-group">
+                    <label>📍 Starting Point</label>
+                    <select id="planStartPoint" class="form-control">
+                        <option value="railway_station">Gorakhpur Junction Railway Station</option>
+                        <option value="airport">Gorakhpur Airport (Mahayogi Gorakhnath)</option>
+                        <option value="golghar">Golghar Commercial Hub</option>
+                        <option value="current_location">My Current GPS Location</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-group">
+                        <label>⏱️ Time Budget</label>
+                        <select id="planDuration" class="form-control">
+                            <option value="half_day">Half Day (3 - 4 Hours)</option>
+                            <option value="1_day" selected>1 Full Day</option>
+                            <option value="2_days">2 Days Exploration</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🚗 Transport Mode</label>
+                        <select id="planTransport" class="form-control">
+                            <option value="car" selected>Car / Taxi</option>
+                            <option value="auto">Auto Rickshaw / E-Rickshaw</option>
+                            <option value="walking">Walking / Eco-Stroll</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>🎯 Preferred Categories</label>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <label style="font-weight: 500; font-size: 13px; cursor: pointer;">
+                            <input type="checkbox" name="planCat" value="Religious" checked> Religious & Temples
+                        </label>
+                        <label style="font-weight: 500; font-size: 13px; cursor: pointer;">
+                            <input type="checkbox" name="planCat" value="Nature" checked> Nature & Lakes
+                        </label>
+                        <label style="font-weight: 500; font-size: 13px; cursor: pointer;">
+                            <input type="checkbox" name="planCat" value="Cultural" checked> Culture & Literature
+                        </label>
+                        <label style="font-weight: 500; font-size: 13px; cursor: pointer;">
+                            <input type="checkbox" name="planCat" value="Historical" checked> Historical Memorials
+                        </label>
+                        <label style="font-weight: 500; font-size: 13px; cursor: pointer;">
+                            <input type="checkbox" name="planCat" value="Educational"> Science & Museums
+                        </label>
+                    </div>
+                </div>
+
+                <button class="primary-btn" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="generateTripPlan()">
+                    ✨ Generate Optimized Route
+                </button>
+
+                <!-- Planner Result Output Area -->
+                <div id="plannerResultsArea" style="display: none; margin-top: 24px;">
+                    <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <h4 style="font-size: 16px; font-weight: 800;">Recommended Itinerary</h4>
+                        <span id="planStatsSummary" style="font-size: 13px; font-weight: 700; color: var(--primary);"></span>
+                    </div>
+                    <div class="planner-timeline" id="plannerTimeline"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 3. CIVIC ISSUE REPORTING MODAL -->
+    <div class="modal-backdrop" id="civicIssueModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>📝 Report Civic Issue at Tourist Location</h3>
+                <button class="modal-close-btn" onclick="closeModal('civicIssueModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                    Help maintain Gorakhpur's tourist heritage clean and safe. Reports are routed directly to Gorakhpur Nagar Nigam field units.
+                </p>
+
+                <div class="form-group">
+                    <label>Tourist Place</label>
+                    <select id="issuePlaceSelect" class="form-control">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Issue Category</label>
+                    <select id="issueCategory" class="form-control">
+                        <option value="Garbage / Cleanliness">🗑️ Garbage / Litter / Cleanliness Issue</option>
+                        <option value="Street Light">💡 Street Light / Illumination Fault</option>
+                        <option value="Road / Footpath">🛣️ Damaged Road / Pothole / Footpath</option>
+                        <option value="Waterlogging">🌊 Waterlogging / Drainage Overflow</option>
+                        <option value="Public Toilet">🚻 Public Toilet Maintenance / Hygiene</option>
+                        <option value="Signboard">🪧 Missing or Damaged Signboard</option>
+                        <option value="Other">⚠️ Other Civic Issue</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Detailed Description</label>
+                    <textarea id="issueDescription" class="form-control" placeholder="Describe the problem, exact spot, or condition observed..."></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="issueCitizenName" class="form-control" placeholder="Enter full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="issueCitizenMobile" class="form-control" placeholder="10-digit mobile number">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Photo URL (Optional)</label>
+                    <input type="url" id="issuePhotoUrl" class="form-control" placeholder="https://example.com/photo.jpg">
+                </div>
+
+                <button class="primary-btn" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="submitCivicIssue()">
+                    📤 Submit Civic Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 4. WRITE REVIEW MODAL -->
+    <div class="modal-backdrop" id="reviewModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>⭐ Write a Visitor Review</h3>
+                <button class="modal-close-btn" onclick="closeModal('reviewModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Selected Destination</label>
+                    <select id="reviewPlaceSelect" class="form-control"></select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Rating</label>
+                    <select id="reviewRatingSelect" class="form-control">
+                        <option value="5">⭐⭐⭐⭐⭐ 5 - Exceptional Experience</option>
+                        <option value="4" selected>⭐⭐⭐⭐ 4 - Very Good</option>
+                        <option value="3">⭐⭐⭐ 3 - Average</option>
+                        <option value="2">⭐⭐ 2 - Needs Improvement</option>
+                        <option value="1">⭐ 1 - Disappointing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Review</label>
+                    <textarea id="reviewCommentInput" class="form-control" placeholder="Share your experience, tips for visitors, best time to visit..."></textarea>
+                </div>
+
+                <button class="primary-btn" style="width: 100%; justify-content: center;" onclick="submitPlaceReview()">
+                    Publish Review
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 5. SAVED / FAVORITES MODAL -->
+    <div class="modal-backdrop" id="savedPlacesModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>❤️ My Saved Places</h3>
+                <button class="modal-close-btn" onclick="closeModal('savedPlacesModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="savedPlacesList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 6. STAFF / ADMIN MANAGEMENT MODAL -->
+    <div class="modal-backdrop" id="adminModal">
+        <div class="modal-card" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3>🛡️ Tourist Civic Issues & Heritage Staff Portal</h3>
+                <button class="modal-close-btn" onclick="closeModal('adminModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                    Review reported civic issues across Gorakhpur tourist sites and update remediation status.
+                </p>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid var(--border); text-align: left;">
+                                <th style="padding: 10px;">Code</th>
+                                <th style="padding: 10px;">Place</th>
+                                <th style="padding: 10px;">Category</th>
+                                <th style="padding: 10px;">Citizen</th>
+                                <th style="padding: 10px;">Status</th>
+                                <th style="padding: 10px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminIssuesTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 8. LIVE TRAFFIC ANALYSIS MODAL -->
+    <div class="modal-backdrop" id="trafficAnalysisModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>🚦 Live Traffic Analysis & Congestion Telemetry</h3>
+                <button class="modal-close-btn" onclick="closeModal('trafficAnalysisModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 11px; text-transform: uppercase; color: #38bdf8; font-weight: 700;">Gorakhpur Traffic Control Telemetry</span>
+                            <h2 id="modalTrafficPlaceName" style="font-size: 20px; font-weight: 800; margin-top: 4px;">Ramgarh Taal</h2>
+                        </div>
+                        <span id="modalTrafficBadge" style="background: #22c55e; color: #0f172a; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 800;">Low Flow (24%)</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                        <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px;">
+                            <span style="font-size: 11px; color: #94a3b8; display: block;">Average Transit Speed</span>
+                            <strong id="modalTrafficSpeed" style="font-size: 18px; color: #f8fafc;">36 km/h</strong>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px;">
+                            <span style="font-size: 11px; color: #94a3b8; display: block;">Expected Approach Delay</span>
+                            <strong id="modalTrafficDelay" style="font-size: 18px; color: #f8fafc;">0 mins (Normal)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-list" style="margin-bottom: 20px;">
+                    <div>
+                        <span>🕒 Peak Traffic Hours</span>
+                        <strong id="modalTrafficPeak">08:30 AM - 11:00 AM & 05:30 PM - 08:30 PM</strong>
+                    </div>
+                    <div>
+                        <span>🛣️ Active Corridors</span>
+                        <strong id="modalTrafficCorridors">Green Corridors: Golghar & Medical Road normal</strong>
+                    </div>
+                    <div>
+                        <span>📢 Traffic Advisory</span>
+                        <strong id="modalTrafficAdvisory">Optimal driving and walking conditions. Free-flowing traffic along approach roads.</strong>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <a href="../traffic/traffic.html" class="primary-btn" style="flex: 1; text-decoration: none; justify-content: center; display: flex; align-items: center;">
+                        Open Full Traffic Module →
+                    </a>
+                    <button class="secondary-btn" onclick="openGoogleTraffic()" style="flex: 1; justify-content: center;">
+                        Live Google Traffic ↗
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 9. NEARBY SERVICES MODAL (HOSPITALS & HEALTHCARE) -->
+    <div class="modal-backdrop" id="nearbyServicesModal">
+        <div class="modal-card" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 id="nearbyServicesModalTitle">🏥 Verified City Services</h3>
+                <button class="modal-close-btn" onclick="closeModal('nearbyServicesModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="nearbyServicesModalSub" style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                    Verified facilities sorted by distance from destination.
+                </p>
+                <div id="nearbyServicesModalList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 7. AI TOURIST ASSISTANT DRAWER -->
+    <div class="ai-drawer" id="aiDrawer">
+        <div class="ai-drawer-header">
+            <h3>🤖 SmartCity AI Tourist Guide</h3>
+            <button class="modal-close-btn" style="background: rgba(255, 255, 255, 0.15); color: white;" onclick="closeAIDrawer()">✕</button>
+        </div>
+
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg bot">
+                👋 <strong>Namaste!</strong> I am your SmartCity AI Tourist Guide for Gorakhpur. Ask me about heritage places, 1-day trip plans, family destinations, or nearby services.
+            </div>
+        </div>
+
+        <!-- Quick Prompts -->
+        <div class="ai-prompts-bar">
+            <span class="ai-prompt-chip" onclick="sendQuickAIPrompt('Family ke saath kahan ja sakte hain?')">👨‍👩‍👧 Family Places</span>
+            <span class="ai-prompt-chip" onclick="sendQuickAIPrompt('Suggest 1-day itinerary for Gorakhpur')">🗓️ 1-Day Plan</span>
+            <span class="ai-prompt-chip" onclick="sendQuickAIPrompt('Which places are near Ramgarh Taal?')">🌊 Ramgarh Taal</span>
+            <span class="ai-prompt-chip" onclick="sendQuickAIPrompt('Famous religious temples in Gorakhpur')">🕉️ Temples</span>
+        </div>
+
+        <div class="ai-input-bar">
+            <input type="text" id="aiUserMsgInput" placeholder="Ask in English or Hindi..." onkeydown="handleAIInputKey(event)">
+            <button onclick="sendAIChatMessage()">Send</button>
+        </div>
+    </div>
+
+
+    <!-- Floating AI Launcher -->
+    <button class="floating-ai-btn" id="floatingAIBtn" onclick="openAIDrawer()" title="Chat with Gorakhpur AI Guide">
+        🤖 Ask Tourist AI
+    </button>
+
+
+    <!-- ================= FOOTER ================= -->
+    <footer>
+        <div class="footer-logo">
+            Smart<span>City AI</span> – Gorakhpur
+        </div>
+        <p>Smart Tourism, Heritage Explorer & GIS Urban Intelligence Platform</p>
+        <a href="../../index.html" class="back-btn" style="display: inline-flex;">
+            ← Return to Master Dashboard
+        </a>
+    </footer>
+
+
+    <!-- ================= TOAST NOTIFICATION ================= -->
+    <div id="toast">
+        Action completed
+    </div>
+
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Global App Scripts -->
+    <script src="../../auth.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../../realtime.js"></script>
+
+    <!-- Famous Places Client Script -->
+    <script src="famous.js"></script>
+
+</body>
+
+</html>

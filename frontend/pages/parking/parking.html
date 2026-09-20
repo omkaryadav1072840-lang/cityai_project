@@ -6,6 +6,7 @@
 
     <title>Parking Management | SmartCity AI</title>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="parking.css">
 </head>
 
@@ -13,25 +14,107 @@
 
 <!-- ================= NAVBAR ================= -->
 
+<!-- ================= NAVBAR ================= -->
+
 <nav class="navbar">
 
-    <div class="logo">
-        Smart<span>City AI</span>
+    <div class="nav-left-group">
+        <div class="logo">
+            Smart<span>City AI</span>
+        </div>
     </div>
 
     <div class="nav-right">
+        <a href="../../index.html" class="nav-dashboard-link">🏠 Dashboard</a>
 
-    <a href="../../index.html">
-    Dashboard
-      </a>
-        <div class="login-user">
-            👤 <span id="navUserName">User</span>
+        <!-- SIGN IN BUTTON (Shown when citizen/staff is not logged in) -->
+        <a href="javascript:void(0)" onclick="SmartCityAuth && SmartCityAuth.showLoginModal()" class="nav-login-btn" id="navLoginBtn" style="display: none;">
+            🔑 Sign In
+        </a>
+
+        <!-- TOP RIGHT CITIZEN PROFILE BADGE & DROPDOWN -->
+        <div class="user-profile-menu-container" id="userProfileMenuContainer">
+            <button type="button" class="user-badge-btn" id="userBadgeBtn" onclick="toggleUserDropdown(event)">
+                <span class="user-avatar-circle" id="userAvatarCircle">OY</span>
+                <div class="user-badge-info">
+                    <span class="user-badge-name" id="navUserName">Omkar Yadav</span>
+                    <span class="user-badge-status" id="navUserStatus">🟢 Active Citizen</span>
+                </div>
+                <span class="dropdown-caret">▾</span>
+            </button>
+
+            <!-- DROPDOWN MENU: PROFILE, MY ACTIVITY, STAFF SCANNER, LOGOUT -->
+            <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
+                <div class="dropdown-header-info">
+                    <div class="user-dh-avatar" id="ddUserAvatarCircle">OY</div>
+                    <div class="user-dh-meta">
+                        <strong id="ddUserFullName">Omkar Yadav</strong>
+                        <span id="ddUserContact">6306880179 • Citizen</span>
+                    </div>
+                </div>
+                <div class="dropdown-separator"></div>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="openUserProfileModal()">
+                    <span class="dd-icon">👤</span>
+                    <div class="dd-info">
+                        <strong>My Profile</strong>
+                        <small>Citizen dossier & vehicle number</small>
+                    </div>
+                </a>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="openUserActivityModal()">
+                    <span class="dd-icon">🎫</span>
+                    <div class="dd-info">
+                        <strong>My Activity & Passes</strong>
+                        <small>Booked bays & active QR access passes</small>
+                    </div>
+                    <span class="dd-badge-count" id="activePassCountBadge" style="display: none;">1</span>
+                </a>
+                <a href="javascript:void(0)" class="dropdown-option-item staff-only-item" id="ddStaffScannerItem" style="display: none;" onclick="openStaffQrScannerModal()">
+                    <span class="dd-icon">📷</span>
+                    <div class="dd-info">
+                        <strong>Staff QR Gate Scanner</strong>
+                        <small>Scan QR & verify vehicle entry</small>
+                    </div>
+                </a>
+                <div class="dropdown-separator"></div>
+                <a href="javascript:void(0)" class="dropdown-option-item dd-logout" onclick="handleUserLogout()">
+                    <span class="dd-icon">🚪</span>
+                    <div class="dd-info">
+                        <strong>Logout</strong>
+                        <small>End session safely</small>
+                    </div>
+                </a>
+            </div>
         </div>
-
     </div>
 
 </nav>
 
+<!-- ================= 3-LAYER NAVIGATION TABS (MATCHING TRAFFIC/WASTE/WATER) ================= -->
+<div class="layer-tabs-container">
+    <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchParkingLayer('citizen')">
+        <span>👤</span> 1. Citizen Parking Services
+    </button>
+    <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchParkingLayer('staff')">
+        <span>⚡</span> 2. Staff Operations & Barrier Booth
+    </button>
+    <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchParkingLayer('admin')">
+        <span>⚙️</span> 3. Admin & ICCC Asset Management
+    </button>
+</div>
+
+<!-- ================= ROLE BANNER ================= -->
+<div class="role-banner" id="roleBanner" style="max-width: min(1400px, 94%); margin: 20px auto 10px;">
+    <div>
+        <strong id="roleTitle">Smart Parking Management System</strong>
+        <span id="roleSubtitle">Find live slots, book digital QR access passes, and monitor multi-facility occupancy.</span>
+    </div>
+    <span class="role-pill citizen-pill" id="rolePill">CITIZEN</span>
+</div>
+
+<!-- =========================================================
+     LAYER 1: CITIZEN PARKING SERVICES
+========================================================= -->
+<div id="layer-citizen-content">
 
 <!-- ================= HERO ================= -->
 
@@ -108,7 +191,7 @@
             </span>
 
             <h2 id="totalSlots">
-                120
+                --
             </h2>
 
         </div>
@@ -129,7 +212,7 @@
             </span>
 
             <h2 id="availableSlots">
-                72
+                --
             </h2>
 
         </div>
@@ -150,7 +233,7 @@
             </span>
 
             <h2 id="occupiedSlots">
-                48
+                --
             </h2>
 
         </div>
@@ -171,7 +254,7 @@
             </span>
 
             <h2 id="occupancy">
-                40%
+                --%
             </h2>
 
         </div>
@@ -531,6 +614,55 @@
 </section>
 
 
+<!-- ================= LIVE GPS PARKING FACILITIES MAP SECTION (PHASE 3) ================= -->
+<section class="parking-map-section" id="parkingGpsMapSection">
+
+    <div class="section-title">
+        <span>GIS SATELLITE & SENSOR RADAR</span>
+        <h2>Gorakhpur Smart City Parking Radar Map</h2>
+        <p>Real-time geographic distribution of all municipal & private parking facilities with live sensor occupancy.</p>
+    </div>
+
+    <div class="gps-map-card">
+        <div class="gps-map-header">
+            <div class="map-status-pill">
+                <span class="pulse-dot"></span> LIVE SATELLITE RADAR • GORAKHPUR MUNICIPAL GRID
+            </div>
+
+            <!-- 3 MAP LAYER SWITCHER: STANDARD, SATELLITE, TRAFFIC + API KEY -->
+            <div class="map-view-switcher">
+                <button type="button" class="btn-map-layer active" id="btnLayerStreet" onclick="switchMapLayer('streets')">
+                    🗺️ Standard Map
+                </button>
+                <button type="button" class="btn-map-layer" id="btnLayerSat" onclick="switchMapLayer('satellite')">
+                    🛰️ Satellite Map
+                </button>
+                <button type="button" class="btn-map-layer" id="btnLayerTraffic" onclick="switchMapLayer('traffic')">
+                    🚦 Traffic Radar
+                </button>
+                <button type="button" class="btn-map-layer key-btn" onclick="openMapApiKeyModal()" title="Configure Custom Map / Traffic API Key">
+                    🔑 API Key
+                </button>
+            </div>
+
+            <div class="map-legend-items">
+                <span class="legend-badge green"><span class="badge-dot"></span> High Availability (>40%)</span>
+                <span class="legend-badge yellow"><span class="badge-dot"></span> Filling Fast (10-40%)</span>
+                <span class="legend-badge red"><span class="badge-dot"></span> Near Full (&lt;10%)</span>
+            </div>
+        </div>
+
+        <div id="parkingGpsMap" class="parking-leaflet-container"></div>
+
+        <div class="gps-map-footer">
+            <span class="map-hint">💡 <strong>Pro-Tip:</strong> Click any parking facility pin on the map to inspect live vacant bays and book directly.</span>
+            <button type="button" class="btn-recenter-map" onclick="recenterParkingMap()">📍 Recenter Gorakhpur</button>
+        </div>
+    </div>
+
+</section>
+
+
 <!-- ================= UNIFIED INTERACTIVE PARKING SLOT GRID (CITIZEN & STAFF) ================= -->
 <section class="interactive-slot-section" id="interactiveSlotSection">
 
@@ -548,6 +680,7 @@
             <button class="lot-tab" onclick="switchLotTab('PARK-003')">🏥 Hospital Parking (PARK-003)</button>
             <button class="lot-tab" onclick="switchLotTab('PARK-004')">🛍️ Golghar Market (PARK-004)</button>
             <button class="lot-tab" onclick="switchLotTab('PARK-005')">🎓 DDU Chowk (PARK-005)</button>
+            <button class="lot-tab" onclick="switchLotTab('PARK-006')">🏥 AIIMS Campus (PARK-006)</button>
         </div>
 
         <div class="grid-mode-card" id="gridModeCard">
@@ -574,6 +707,21 @@
         </div>
     </div>
 
+    <!-- INTERACTIVE BAY CATEGORY FILTERS & AI SURGE PRICING -->
+    <div class="slot-filter-toolbar" id="bayCategoryFilters">
+        <div class="filter-chips-group">
+            <button type="button" class="filter-chip active" onclick="applySlotFilter('all')">🚗 All Bays</button>
+            <button type="button" class="filter-chip" onclick="applySlotFilter('ev')">⚡ EV Charging</button>
+            <button type="button" class="filter-chip" onclick="applySlotFilter('accessible')">♿ Accessible</button>
+            <button type="button" class="filter-chip" onclick="applySlotFilter('bike')">🏍️ Two-Wheelers</button>
+            <button type="button" class="filter-chip" onclick="applySlotFilter('available')">🟢 Available Only</button>
+        </div>
+        <div class="surge-pricing-tag normal" id="surgePricingBadge">
+            <span class="surge-icon">🤖</span>
+            <span id="surgePricingText">AI Tariff: Standard Demand (Base ₹20/hr)</span>
+        </div>
+    </div>
+
     <!-- INTERACTIVE SLOT BAYS CONTAINER -->
     <div class="slot-grid-wrapper">
         <div class="slot-grid" id="interactiveSlotGrid">
@@ -584,15 +732,123 @@
         </div>
     </div>
 
+
+    <!-- CITIZEN PARKING COST & TIME ESTIMATOR -->
+    <div class="cost-calculator-card" style="max-width: min(1400px, 94%); margin: 25px auto;">
+        <h3 style="color: #f8fafc; font-size: 16px; margin-bottom: 4px;">💰 Parking Fare & Time Estimator</h3>
+        <p style="font-size: 13px; color: #94a3b8;">Estimate your parking fee before driving in:</p>
+        <div class="cost-calc-grid">
+            <div>
+                <label style="font-size: 12px; color: #94a3b8; font-weight: 700;">Select Facility</label>
+                <select id="calcLotSelect" style="width: 100%; padding: 9px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px;" onchange="calculateEstimatedCost()">
+                    <option value="PARK-001">City Centre Parking (₹20/hr)</option>
+                    <option value="PARK-002">Railway Station Parking (₹15/hr)</option>
+                    <option value="PARK-003">Hospital Parking (₹10/hr)</option>
+                    <option value="PARK-004">Golghar Market Parking (₹25/hr)</option>
+                    <option value="PARK-005">DDU Chowk Parking (₹20/hr)</option>
+                    <option value="PARK-006">AIIMS Campus Parking (₹10/hr)</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #94a3b8; font-weight: 700;">Vehicle Type</label>
+                <select id="calcVehicleType" style="width: 100%; padding: 9px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px;" onchange="calculateEstimatedCost()">
+                    <option value="car">🚗 4-Wheeler Car / SUV (1.0x)</option>
+                    <option value="bike">🏍️ 2-Wheeler Two-Wheeler (0.5x)</option>
+                    <option value="ev">⚡ Electric Vehicle / EV (1.2x with Fast Charging)</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 12px; color: #94a3b8; font-weight: 700;">Duration (Hours)</label>
+                <input type="number" id="calcHours" value="2" min="1" max="24" style="width: 100%; padding: 9px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 8px;" oninput="calculateEstimatedCost()">
+            </div>
+            <div class="cost-result-box">
+                <span style="font-size: 12px; color: #94a3b8;">Estimated Parking Fee</span>
+                <strong id="calcTotalFare" style="font-size: 22px; color: #38bdf8;">₹40</strong>
+                <small id="calcRateNote" style="font-size: 11px; color: #64748b;">Base: ₹20/hr</small>
+            </div>
+        </div>
+    </div>
+
 </section>
 
+</div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
 
-<!-- ================= STAFF CONTROL ================= -->
 
-<section
-    class="staff-section"
-    id="staffSection"
->
+<!-- =========================================================
+     LAYER 2: STAFF OPERATIONS & BARRIER BOOTH
+========================================================= -->
+<div id="layer-staff-content" style="display:none; max-width: min(1400px, 94%); margin: auto;">
+
+    <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
+    <div class="layer-gatekeeper-card" id="staffGatekeeper">
+        <div class="gatekeeper-icon">🔒</div>
+        <h3>Parking Staff Operations Access Restricted</h3>
+        <p>
+            This layer is reserved for parking attendants, barrier operators, and ICCC booth supervisors.
+        </p>
+        <button class="primary-btn" style="width: auto; padding: 11px 26px; border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; background: #0284c7; color: white;" onclick="promptParkingStaffLogin()">
+            ⚡ Log in as Parking Staff (PRK001)
+        </button>
+    </div>
+
+    <!-- STAFF OPERATIONS MAIN CONTAINER -->
+    <div id="staffOperationsMain" style="display:none;">
+
+        <!-- SHIFT REGISTER & BOOTH COLLECTION STATS -->
+        <div class="stats-section" style="margin-bottom: 25px;">
+            <div class="stat-card">
+                <div class="stat-icon">🅿️</div>
+                <div>
+                    <span>ACTIVE SLOTS</span>
+                    <h2 id="staffTotalSlots">132</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon occupied">🔴</div>
+                <div>
+                    <span>OCCUPIED BAYS</span>
+                    <h2 id="staffOccupiedSlots">20</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">⏱️</div>
+                <div>
+                    <span>OVERSTAY ALERTS</span>
+                    <h2 id="staffOverstayCount">02</h2>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon available">💵</div>
+                <div>
+                    <span>TODAY REVENUE</span>
+                    <h2 id="staffShiftRevenue">₹2,270</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMERGENCY MASTER BARRIER OVERRIDE BAR -->
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 14px 20px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <strong style="color: #f87171; font-size: 15px;">🚨 Emergency Master Barrier Evacuation Override</strong>
+                <p style="margin: 2px 0 0; font-size: 12px; color: #94a3b8;">Instantly lift all parking entry & exit barriers across Gorakhpur facilities for fire or priority vehicle evacuation.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="badge-emergency" onclick="triggerEmergencyBarrierOverride('ALL_OPEN')" style="cursor: pointer; border: 0;">
+                    ⚠️ LIFT ALL BARRIERS
+                </button>
+                <button class="action-btn-sm" onclick="triggerEmergencyBarrierOverride('RESTORE')" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; cursor: pointer;">
+                    ✓ Restore Auto
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= STAFF CONTROL ================= -->
+
+        <section
+            class="staff-section"
+            id="staffSection"
+            style="margin-top: 0;"
+        >
 
     <div class="section-title">
 
@@ -634,6 +890,107 @@
                 ● CONTROL ENABLED
             </div>
 
+        </div>
+
+        <!-- SMART GATE SCANNER & AUTOMATED BARRIER CONTROL -->
+        <div class="staff-gate-scanner-card" id="staffGateScannerCard">
+            <div class="scanner-header-bar">
+                <div class="scanner-title-group">
+                    <span class="scanner-icon">🚧</span>
+                    <div>
+                        <h4>Automated Gate Scanner & Barrier Control</h4>
+                        <p>Scan Citizen QR Parking Pass or enter Booking ID / Vehicle Plate</p>
+                    </div>
+                </div>
+                <div class="barrier-status-indicator closed" id="gateBarrierIndicator">
+                    <span class="pulse-dot"></span> BARRIER: DOWN (CLOSED)
+                </div>
+            </div>
+
+            <div class="scanner-controls-grid">
+                <div class="scanner-input-wrap">
+                    <input type="text" id="gateScannerInput" placeholder="Scan QR Pass or enter Booking Ref (e.g. BKG-PK1-A02) or Plate (UP 53 AB 1008)" />
+                    <button type="button" class="btn-gate-verify" onclick="handleGateScanAction('lookup')">🔍 Verify Pass</button>
+                </div>
+                <div class="gate-action-buttons">
+                    <button type="button" class="btn-gate-in" onclick="handleGateScanAction('checkin')">🚗 Open Barrier (Check-in)</button>
+                    <button type="button" class="btn-gate-out" onclick="handleGateScanAction('checkout')">🏁 Check-out & Vacate</button>
+                    <button type="button" class="btn-demo-scan" onclick="simulateGateQrDemo()">📷 Scan Demo QR</button>
+                </div>
+            </div>
+
+            <div class="gate-scan-dossier" id="gateScanDossier" style="display: none;">
+                <!-- Dynamically populated with vehicle dossier & receipt -->
+            </div>
+        </div>
+
+        <!-- AI ANPR OPTICAL CAMERA SIMULATOR -->
+        <div class="anpr-camera-card" id="anprSimulatorCard">
+            <div class="anpr-header-bar">
+                <div class="anpr-title-group">
+                    <span class="camera-lens-icon">📷</span>
+                    <div>
+                        <h4>AI Optical ANPR Gate Camera</h4>
+                        <p>Real-time License Plate Recognition & Automated Gate Ingress</p>
+                    </div>
+                </div>
+                <div class="anpr-live-badge">
+                    <span class="rec-dot"></span> AI CAMERA FEED: ACTIVE
+                </div>
+            </div>
+
+            <div class="anpr-grid-layout">
+                <!-- VIRTUAL VIEW-FINDER -->
+                <div class="anpr-viewfinder-box" id="anprViewfinder">
+                    <div class="hud-bracket top-left"></div>
+                    <div class="hud-bracket top-right"></div>
+                    <div class="hud-bracket bottom-left"></div>
+                    <div class="hud-bracket bottom-right"></div>
+                    <div class="hud-laser-beam" id="anprLaserBeam"></div>
+
+                    <div class="detected-plate-card" id="hudPlateCard">
+                        <span class="target-chip">TARGET DETECTED</span>
+                        <div class="plate-highlight-text" id="hudPlateText">UP 53 AB 1008</div>
+                        <span class="confidence-badge" id="hudConfidenceScore">OCR Confidence: 99.2%</span>
+                    </div>
+                </div>
+
+                <!-- CONTROLS & TEST PRESETS -->
+                <div class="anpr-control-stack">
+                    <div class="anpr-input-line">
+                        <label for="anprPlateInput">Simulate Vehicle Arriving at Gate:</label>
+                        <div class="input-with-button">
+                            <input type="text" id="anprPlateInput" value="UP 53 AB 1008" placeholder="e.g. UP 53 EV 7700" />
+                            <button type="button" class="btn-anpr-scan" onclick="triggerAnprRecognition()">⚡ Scan & Ingress</button>
+                        </div>
+                    </div>
+
+                    <div class="anpr-preset-buttons">
+                        <span class="preset-label">Quick Scenarios:</span>
+                        <button type="button" class="btn-preset" onclick="setAnprPreset('UP 53 AB 1008', false)">🚗 Reserved: UP 53 AB 1008</button>
+                        <button type="button" class="btn-preset" onclick="setAnprPreset('UP 53 EV 7700', true)">⚡ EV Vehicle: UP 53 EV 7700</button>
+                        <button type="button" class="btn-preset" onclick="setAnprPreset('UP 53 GUEST ' + Math.floor(100 + Math.random()*899), false)">🆕 Unreserved Walk-in</button>
+                    </div>
+
+                    <div class="anpr-scan-feedback" id="anprScanFeedback" style="display: none;">
+                        <!-- Real-time result banner -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- PHASE 3: STAFF MANAGEMENT & CITIZEN GATE BOOKING ACTION BAR -->
+        <div class="staff-action-toolbar">
+            <button type="button" class="btn-staff-action primary" onclick="openStaffDirectBookingModal()">
+                <span>➕</span> Direct Gate Booking (Citizen Lookup)
+            </button>
+            <button type="button" class="btn-staff-action secondary" onclick="openAddLotModal()">
+                <span>🏢</span> Add New Facility
+            </button>
+            <button type="button" class="btn-staff-action secondary" onclick="openEditLotModal()">
+                <span>✏️</span> Edit Facility Settings
+            </button>
         </div>
 
 
@@ -921,6 +1278,232 @@
 
 </section>
 
+        <!-- SHIFT REGISTER & BAY OVERRIDE GRID -->
+        <div class="staff-feature-grid">
+            <!-- SHIFT CASH REGISTER -->
+            <div class="staff-feature-card" id="staffCashRegisterCard">
+                <h4>💼 Attendant Shift Cash Drawer & Reconciliation</h4>
+                <p>Track cash collected at your booth, online receipts, and settle daily shift ledger.</p>
+                <div class="shift-stats-row">
+                    <div class="shift-stat-box">
+                        <div class="stat-lbl">💵 Cash in Drawer</div>
+                        <div class="stat-val" id="shiftCashDisplay">₹420</div>
+                    </div>
+                    <div class="shift-stat-box">
+                        <div class="stat-lbl">💳 Digital / FASTag</div>
+                        <div class="stat-val" id="shiftDigitalDisplay">₹1,850</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn-sm" onclick="printShiftSummaryReport()" style="background: #0284c7; color: white; flex: 1; justify-content: center; padding: 10px;">
+                        📄 Print Shift Report
+                    </button>
+                    <button class="action-btn-sm" onclick="fetchShiftSummary()" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 10px;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- MANUAL BAY STATUS OVERRIDE TOOL -->
+            <div class="staff-feature-card" id="staffSlotOverrideCard">
+                <h4>🔧 Manual Bay Status Override</h4>
+                <p>Block a bay for maintenance, reserve for emergency/VIP, or free up a bay directly in MySQL DB.</p>
+                <div class="bay-override-row" style="margin-bottom: 12px;">
+                    <select id="overrideLotSelect">
+                        <option value="PARK-001">City Center Parking</option>
+                        <option value="PARK-002">Railway Station Parking</option>
+                        <option value="PARK-003">Hospital Parking</option>
+                        <option value="PARK-004">Mall Parking</option>
+                        <option value="PARK-005">DDU Chowk Parking</option>
+                        <option value="PARK-006">AIIMS Campus Parking</option>
+                    </select>
+                    <input type="text" id="overrideSlotInput" placeholder="Bay (e.g. A-02)" style="max-width: 110px;" />
+                </div>
+                <div class="bay-override-row">
+                    <select id="overrideStatusSelect">
+                        <option value="Available">🟢 Available (Vacant)</option>
+                        <option value="Occupied">🔴 Occupied (In Use)</option>
+                        <option value="Maintenance">🟡 Maintenance (Blocked)</option>
+                        <option value="Booked">🔵 Reserved (VIP / Pre-book)</option>
+                    </select>
+                    <button class="action-btn-sm" onclick="submitStaffBayOverride()" style="background: #16a34a; color: white; padding: 10px 16px;">
+                        💾 Save to DB
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIVE OVERSTAY & PENALTY ENFORCEMENT TABLE -->
+        <div class="control-card" style="margin-top: 25px;">
+            <div class="card-header">
+                <div>
+                    <h3>⏱️ Live Overstay & Penalty Enforcement Queue</h3>
+                    <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Vehicles exceeding their booked duration requiring attendant verification and fine collection.</p>
+                </div>
+                <button class="action-btn-sm" onclick="fetchOverstays()" style="background: #0284c7; color: white; cursor: pointer;">
+                    🔄 Refresh Overstays
+                </button>
+            </div>
+            <div class="op-table-wrapper">
+                <table class="op-table" id="staffOverstaysTable">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Vehicle Plate</th>
+                            <th>Facility & Bay</th>
+                            <th>Driver Contact</th>
+                            <th>Overstay Time</th>
+                            <th>Fine Due</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS WILL POPULATE -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div> <!-- end staffOperationsMain -->
+
+</div> <!-- ================= END LAYER 2 (STAFF) ================= -->
+
+
+<!-- =========================================================
+     LAYER 3: ADMIN & ICCC ASSET MANAGEMENT
+========================================================= -->
+<div id="layer-admin-content" style="display:none; max-width: min(1400px, 94%); margin: auto;">
+
+    <!-- GATEKEEPER CARD (NON-STAFF/ADMIN) -->
+    <div class="layer-gatekeeper-card" id="adminGatekeeper">
+        <div class="gatekeeper-icon">🔒</div>
+        <h3>Admin & ICCC Asset Management Restricted</h3>
+        <p>
+            Dynamic tariff configuration, facility capacity edits, and ANPR audit registries require Administrator privileges.
+        </p>
+        <button class="primary-btn" style="width: auto; padding: 11px 26px; border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; background: #0284c7; color: white;" onclick="promptParkingStaffLogin()">
+            ⚡ Log in as City Admin / Parking Staff
+        </button>
+    </div>
+
+    <!-- ADMIN ASSETS MAIN -->
+    <div id="adminAssetsMain" style="display:none;">
+
+        <!-- FACILITY CRUD & INFRASTRUCTURE -->
+        <div class="control-card" style="margin-bottom: 25px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3>🏢 Municipal Parking Facilities Management</h3>
+                    <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Configure municipal parking complexes, bay capacities, and facility operating hours.</p>
+                </div>
+                <button class="action-btn-sm" style="background: #16a34a; color: white; font-weight: 700;" onclick="openAddLotModal()">
+                    + Add New Parking Facility
+                </button>
+            </div>
+            <div id="adminLotsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px;">
+                <!-- JS will populate -->
+            </div>
+        </div>
+
+        <!-- DYNAMIC PRICING & SURGE TARIFF ENGINE -->
+        <div class="control-card" style="margin-bottom: 25px;">
+            <div class="card-header">
+                <div>
+                    <h3>💳 Dynamic Hourly Pricing & Peak-Hour Surge Engine</h3>
+                    <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Configure base hourly rates, evening rush surge rates (05:00 PM - 09:00 PM), and festival tariffs.</p>
+                </div>
+                <button class="action-btn-sm" onclick="fetchAdminPricing()" style="background: #0284c7; color: white; cursor: pointer;">
+                    🔄 Refresh Tariffs
+                </button>
+            </div>
+            <div class="op-table-wrapper">
+                <table class="op-table" id="adminPricingTable">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Facility Name</th>
+                            <th>Area</th>
+                            <th>Base Rate (₹/hr)</th>
+                            <th>Peak Surge Rate (₹/hr)</th>
+                            <th>Surge Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS WILL POPULATE -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ANPR SCAN AUDIT REGISTRY -->
+        <div class="control-card" style="margin-bottom: 25px;">
+            <div class="card-header">
+                <div>
+                    <h3>📷 ANPR License Plate Scan Registry (Audit Log)</h3>
+                    <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Historical camera detections, recognition confidence, and barrier access actions.</p>
+                </div>
+                <button class="action-btn-sm" onclick="fetchAdminAnprLogs()" style="background: #0284c7; color: white; cursor: pointer;">
+                    🔄 Refresh Scan Logs
+                </button>
+            </div>
+            <div class="op-table-wrapper" style="max-height: 300px; overflow-y: auto;">
+                <table class="op-table" id="adminAnprLogsTable">
+                    <thead>
+                        <tr>
+                            <th>Scan ID</th>
+                            <th>Plate Number</th>
+                            <th>Facility</th>
+                            <th>Gate</th>
+                            <th>Confidence</th>
+                            <th>Action Taken</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- JS WILL POPULATE -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CCTV & SECURITY SCADA STATUS -->
+        <div class="control-card">
+            <div class="card-header">
+                <div>
+                    <h3>📹 Facility Surveillance & Security Guard SCADA Status</h3>
+                    <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Real-time health monitoring of entrance cameras, automated barriers, and on-duty security staff.</p>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div style="background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155;">
+                    <span style="font-size: 12px; color: #94a3b8;">City Centre Complex</span>
+                    <h4 style="margin: 6px 0; color: #f8fafc;">4 CCTV Active</h4>
+                    <span style="color: #34d399; font-size: 12px; font-weight: 700;">● Security Team A On-Duty</span>
+                </div>
+                <div style="background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155;">
+                    <span style="font-size: 12px; color: #94a3b8;">Railway Station Lot</span>
+                    <h4 style="margin: 6px 0; color: #f8fafc;">6 CCTV Active</h4>
+                    <span style="color: #34d399; font-size: 12px; font-weight: 700;">● Security Team B On-Duty</span>
+                </div>
+                <div style="background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155;">
+                    <span style="font-size: 12px; color: #94a3b8;">Golghar Market Lot</span>
+                    <h4 style="margin: 6px 0; color: #f8fafc;">4 CCTV Active</h4>
+                    <span style="color: #34d399; font-size: 12px; font-weight: 700;">● Security Team D On-Duty</span>
+                </div>
+                <div style="background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155;">
+                    <span style="font-size: 12px; color: #94a3b8;">AIIMS Campus Multilevel</span>
+                    <h4 style="margin: 6px 0; color: #f8fafc;">8 CCTV Active</h4>
+                    <span style="color: #34d399; font-size: 12px; font-weight: 700;">● Security Team F On-Duty</span>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- end adminAssetsMain -->
+
+</div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
+
 
 <!-- ================= CITIZEN SLOT BOOKING MODAL ================= -->
 <div class="parking-modal" id="slotBookingModal">
@@ -951,6 +1534,10 @@
                         <span class="highlight-label">Hourly Rate</span>
                         <strong id="modalSlotRate">₹20 / hr</strong>
                     </div>
+                    <div>
+                        <span class="highlight-label">Floor / Level</span>
+                        <strong id="modalSlotFloor">Level 1</strong>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -971,6 +1558,17 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="bookingDate">Reservation Date <span class="req">*</span></label>
+                        <input type="date" id="bookingDate" onchange="calculateBookingAmount()" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingStartTime">Entry Time <span class="req">*</span></label>
+                        <input type="time" id="bookingStartTime" onchange="calculateBookingAmount()" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label for="bookingDurationHours">Duration (Hours)</label>
                         <select id="bookingDurationHours" onchange="calculateBookingAmount()">
                             <option value="1">1 Hour</option>
@@ -979,12 +1577,18 @@
                             <option value="4">4 Hours</option>
                             <option value="6">6 Hours</option>
                             <option value="8">8 Hours</option>
+                            <option value="12">12 Hours (Half Day)</option>
+                            <option value="24">24 Hours (Full Day)</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Total Fare</label>
                         <div class="calculated-amount" id="modalCalculatedAmount">₹40.00</div>
                     </div>
+                </div>
+
+                <div class="booking-estimate-summary" style="margin-top: 10px; padding: 8px 12px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; font-size: 0.85rem; color: #38bdf8;">
+                    <span>⏱️ Stay Window: <strong id="modalEstimatedStayText">Today (2 hr stay)</strong></span>
                 </div>
             </div>
 
@@ -1022,7 +1626,642 @@
 </div>
 
 
-<!-- ================= TOAST ================= -->
+<!-- ================= DIGITAL QR PARKING PASS MODAL ================= -->
+<div class="parking-modal" id="citizenQrPassModal">
+    <div class="parking-modal-dialog qr-pass-dialog">
+        <div class="parking-modal-header pass-header">
+            <div class="header-left">
+                <span class="modal-icon">🎫</span>
+                <div>
+                    <h3>Digital Parking Pass & QR Voucher</h3>
+                    <p>Present this ticket at the entry barrier scanner</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('citizenQrPassModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <div class="parking-pass-voucher" id="printableParkingPass">
+                <div class="voucher-top-bar">
+                    <div class="city-brand-tag">
+                        <span class="brand-pill">SMARTCITY GORAKHPUR</span>
+                        <h4>Official Parking Pass</h4>
+                    </div>
+                    <span class="pass-status-chip">✓ CONFIRMED</span>
+                </div>
+
+                <div class="voucher-qr-section">
+                    <div class="qr-canvas-box" id="passQrCanvas">
+                        <!-- Rendered QR / Barcode -->
+                    </div>
+                    <div class="qr-code-text" id="passBookingId">BKG-MU1FM24J</div>
+                    <p class="qr-scan-guide">📱 Scan this QR code at the automated gate barrier</p>
+                </div>
+
+                <div class="voucher-details-grid">
+                    <div class="v-cell">
+                        <span class="v-label">Assigned Bay</span>
+                        <strong class="v-value highlight-val" id="passSlotNumber">A-01</strong>
+                    </div>
+                    <div class="v-cell">
+                        <span class="v-label">Vehicle Registration</span>
+                        <strong class="v-value plate-chip" id="passVehicleNumber">UP 53 AB 1008</strong>
+                    </div>
+                    <div class="v-cell">
+                        <span class="v-label">Parking Facility</span>
+                        <strong class="v-value" id="passLotName">City Centre Parking</strong>
+                    </div>
+                    <div class="v-cell">
+                        <span class="v-label">Customer Name</span>
+                        <strong class="v-value" id="passCustomerName">Citizen Driver</strong>
+                    </div>
+                    <div class="v-cell">
+                        <span class="v-label">Reserved On</span>
+                        <strong class="v-value" id="passBookingTime">Just now</strong>
+                    </div>
+                    <div class="v-cell">
+                        <span class="v-label">Fare Amount</span>
+                        <strong class="v-value" id="passAmount">₹40.00</strong>
+                    </div>
+                </div>
+
+                <div class="voucher-security-bar">
+                    <span>🔐 Digital Signature: <strong id="passSecurityToken">SEC-7788-SMARTCITY</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeSlotModal('citizenQrPassModal')">Close</button>
+            <button type="button" class="btn-navigate-pass" onclick="openBayNavigationModal(document.getElementById('passSlotNumber').textContent)">🗺️ Guide Me to Bay</button>
+            <button type="button" class="btn-print-voucher" onclick="printParkingPass()">🖨️ Print / Download Ticket</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= INDOOR "FIND MY CAR" / BAY NAVIGATION MODAL ================= -->
+<div class="parking-modal" id="bayNavigationModal">
+    <div class="parking-modal-dialog nav-dialog">
+        <div class="parking-modal-header nav-header">
+            <div class="header-left">
+                <span class="modal-icon">🗺️</span>
+                <div>
+                    <h3>Indoor Wayfinding & Bay Navigation</h3>
+                    <p id="navModalSubtitle">Route from Entry Barrier to Assigned Bay</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('bayNavigationModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <div class="floor-nav-map-container" id="floorNavMapContainer">
+                <div class="nav-map-header">
+                    <span class="gate-tag">🚩 GATE ENTRY BARRIER</span>
+                    <span class="target-bay-tag" id="navTargetBayBadge">DESTINATION: BAY A-01</span>
+                </div>
+
+                <!-- 2D INDOOR FLOOR SCHEMATIC WITH ANIMATED PATH -->
+                <div class="floor-schematic" id="floorSchematicSvg">
+                    <!-- SVG Navigation Map -->
+                </div>
+
+                <div class="turn-by-turn-list" id="turnByTurnList">
+                    <!-- Step-by-step guidance list -->
+                </div>
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeSlotModal('bayNavigationModal')">Close Navigation</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= PHASE 3: STAFF DIRECT GATE BOOKING MODAL ================= -->
+<div class="parking-modal" id="staffDirectBookingModal">
+    <div class="parking-modal-dialog staff-direct-dialog">
+        <div class="parking-modal-header staff-header">
+            <div class="header-left">
+                <span class="modal-icon">🛡️</span>
+                <div>
+                    <h3>Staff Direct Gate Booking</h3>
+                    <p>Issue barrier clearance pass & reserve physical bays for citizens or walk-ins</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('staffDirectBookingModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <!-- LOT & BAY SELECTOR ROW -->
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="staffDirectLotSelect">Parking Facility:</label>
+                    <select id="staffDirectLotSelect" onchange="onStaffDirectLotChanged()">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="staffDirectBaySelect">Target Bay Number:</label>
+                    <select id="staffDirectBaySelect">
+                        <!-- Populated with vacant bays -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- CITIZEN LOOKUP SEARCH BAR -->
+            <div class="citizen-search-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label for="citizenSearchInput" style="margin: 0; font-weight: 700;">🔎 Registered Citizen Directory Lookup:</label>
+                    <button type="button" class="btn-link-action" onclick="enableWalkInGuest()">👤 Walk-in Guest (No Account)</button>
+                </div>
+                <div class="search-input-wrapper">
+                    <input type="text" id="citizenSearchInput" placeholder="Search by citizen name, phone (e.g. 6306880179), or email..." oninput="handleCitizenSearch(this.value)" autocomplete="off" />
+                    <span class="search-indicator" id="citizenSearchSpinner" style="display: none;">⏳</span>
+                </div>
+                <!-- AUTOCOMPLETE DROPDOWN -->
+                <div class="citizen-results-dropdown" id="citizenSearchResults" style="display: none;"></div>
+            </div>
+
+            <!-- VEHICLE & DRIVER DETAILS -->
+            <div class="form-row-2" style="margin-top: 14px;">
+                <div class="field-group">
+                    <label for="staffDirectPlate">Vehicle Registration Plate: <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="staffDirectPlate" placeholder="e.g. UP 53 AB 1008" />
+                </div>
+                <div class="field-group">
+                    <label for="staffDirectName">Citizen / Driver Name:</label>
+                    <input type="text" id="staffDirectName" placeholder="Full Name" />
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label for="staffDirectPhone">Mobile Number:</label>
+                    <input type="tel" id="staffDirectPhone" placeholder="10-digit phone" />
+                </div>
+                <div class="field-group">
+                    <label for="staffDirectHours">Expected Stay Duration:</label>
+                    <select id="staffDirectHours" onchange="updateStaffFarePreview()">
+                        <option value="1">1 Hour</option>
+                        <option value="2" selected>2 Hours</option>
+                        <option value="4">4 Hours</option>
+                        <option value="8">8 Hours</option>
+                        <option value="12">12 Hours (Half Day)</option>
+                        <option value="24">24 Hours (Full Day)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- CHECK-IN TOGGLE & FARE BANNER -->
+            <div class="staff-booking-summary">
+                <label class="checkbox-option">
+                    <input type="checkbox" id="staffCheckInNow" checked />
+                    <span>🚗 <strong>Immediate Gate Check-in</strong>: Lift barrier now and mark bay as <em>Occupied</em></span>
+                </label>
+                <div class="fare-preview-pill">
+                    <span>Estimated Fare:</span>
+                    <strong id="staffDirectFareDisplay">₹40.00</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeSlotModal('staffDirectBookingModal')">Cancel</button>
+            <button type="button" class="btn-confirm-booking" onclick="submitStaffDirectBooking()">🎟️ Reserve Bay & Issue Ticket</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= PHASE 3: ADD PARKING FACILITY MODAL ================= -->
+<div class="parking-modal" id="addLotModal">
+    <div class="parking-modal-dialog">
+        <div class="parking-modal-header">
+            <div class="header-left">
+                <span class="modal-icon">🏢</span>
+                <div>
+                    <h3>Register New Parking Facility</h3>
+                    <p>Provision smart sensors and automated physical bays into Gorakhpur grid</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('addLotModal')">✕</button>
+        </div>
+
+        <form id="addLotForm" onsubmit="submitAddLot(event)">
+            <div class="parking-modal-body">
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="newLotCode">Facility Code: <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="newLotCode" placeholder="e.g. PARK-007" required />
+                    </div>
+                    <div class="field-group">
+                        <label for="newLotName">Facility Name: <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="newLotName" placeholder="e.g. Gorakhpur Airport Concourse" required />
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="newLotArea">Area / Zone:</label>
+                        <input type="text" id="newLotArea" placeholder="e.g. Airport Road / Civil Lines" />
+                    </div>
+                    <div class="field-group">
+                        <label for="newLotAddress">Full Address:</label>
+                        <input type="text" id="newLotAddress" placeholder="e.g. Airport Terminal Gate 2, Gorakhpur" required />
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="newLotSlots">Total Physical Bays:</label>
+                        <input type="number" id="newLotSlots" value="24" min="12" max="60" />
+                        <small style="color: #94a3b8; font-size: 0.76rem;">Automatically generates Row A (Car), Row B (EV), Row C (Bike)</small>
+                    </div>
+                    <div class="field-group">
+                        <label for="newLotRate">Hourly Tariff (₹):</label>
+                        <input type="number" id="newLotRate" value="25" min="5" max="200" required />
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="field-group">
+                        <label for="newLotLat">Latitude:</label>
+                        <input type="number" id="newLotLat" step="0.0001" value="26.7390" required />
+                    </div>
+                    <div class="field-group">
+                        <label for="newLotLng">Longitude:</label>
+                        <input type="number" id="newLotLng" step="0.0001" value="83.4500" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="parking-modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeSlotModal('addLotModal')">Cancel</button>
+                <button type="submit" class="btn-confirm-booking">🚀 Provision Facility & Generate Bays</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ================= PHASE 3: EDIT PARKING FACILITY MODAL ================= -->
+<div class="parking-modal" id="editLotModal">
+    <div class="parking-modal-dialog">
+        <div class="parking-modal-header">
+            <div class="header-left">
+                <span class="modal-icon">✏️</span>
+                <div>
+                    <h3>Edit Facility Configuration</h3>
+                    <p>Adjust live operational status, hourly tariff, or details</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('editLotModal')">✕</button>
+        </div>
+
+        <form id="editLotForm" onsubmit="submitEditLot(event)">
+            <div class="parking-modal-body">
+                <div class="field-group">
+                    <label for="editLotSelect">Select Facility to Edit:</label>
+                    <select id="editLotSelect" onchange="onEditLotSelected()">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="form-row-2" style="margin-top: 12px;">
+                    <div class="field-group">
+                        <label for="editLotStatus">Operational Status:</label>
+                        <select id="editLotStatus">
+                            <option value="OPEN">🟢 OPEN (Normal Operations)</option>
+                            <option value="FULL">🟡 FULL (No Entry)</option>
+                            <option value="MAINTENANCE">🔧 MAINTENANCE (Closed)</option>
+                            <option value="CLOSED">🔴 CLOSED</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="editLotRate">Hourly Tariff (₹):</label>
+                        <input type="number" id="editLotRate" min="5" max="200" required />
+                    </div>
+                </div>
+
+                <div class="field-group" style="margin-top: 12px;">
+                    <label for="editLotAddress">Address / Location Details:</label>
+                    <input type="text" id="editLotAddress" required />
+                </div>
+            </div>
+
+            <div class="parking-modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeSlotModal('editLotModal')">Cancel</button>
+                <button type="submit" class="btn-confirm-booking">💾 Save Facility Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= USER PROFILE MODAL ================= -->
+<div class="parking-modal" id="userProfileModal">
+    <div class="parking-modal-dialog">
+        <div class="parking-modal-header">
+            <div class="header-left">
+                <span class="modal-icon">👤</span>
+                <div>
+                    <h3>Citizen Profile Dossier</h3>
+                    <p>SmartCity Gorakhpur Citizen Identity & Parking Credentials</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('userProfileModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <div class="profile-hero-card">
+                <div class="profile-avatar-large">👤</div>
+                <div class="profile-meta">
+                    <h3 id="profCardName">Omkar Yadav</h3>
+                    <span class="citizen-id-pill" id="profCardId">CITIZEN ID: GKP-2026-001</span>
+                    <span class="citizen-tier-pill">✓ VERIFIED CITIZEN</span>
+                </div>
+            </div>
+
+            <div class="form-row-2" style="margin-top: 16px;">
+                <div class="field-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="profInputName" readonly />
+                </div>
+                <div class="field-group">
+                    <label>Contact Mobile:</label>
+                    <input type="tel" id="profInputPhone" readonly />
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="field-group">
+                    <label>Email Address:</label>
+                    <input type="email" id="profInputEmail" readonly />
+                </div>
+                <div class="field-group">
+                    <label for="profInputPlate">Primary Vehicle Plate: <small style="color: #38bdf8;">(Auto-fills booking)</small></label>
+                    <input type="text" id="profInputPlate" placeholder="e.g. UP 53 AB 1008" />
+                </div>
+            </div>
+
+            <!-- ACTIVE BOOKING SUMMARY IN PROFILE -->
+            <div class="profile-active-pass-box" id="profActiveBookingBox" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <strong style="color: #4ade80; font-size: 0.88rem;">🟢 ACTIVE PARKING ACCESS TICKET</strong>
+                    <span class="plate-chip" id="profActivePlate">UP 53 AB 1008</span>
+                </div>
+                <p style="margin: 0 0 10px; font-size: 0.82rem; color: #cbd5e1;">
+                    Reserved at <strong id="profActiveLot">City Centre</strong> • Assigned Bay: <strong style="color: #38bdf8; font-size: 1rem;" id="profActiveBay">A-01</strong>
+                </p>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-navigate-pass" style="padding: 6px 12px; font-size: 0.8rem;" onclick="viewMyActivePassQr()">🎟️ View QR Pass</button>
+                    <button type="button" class="btn-navigate-pass" style="padding: 6px 12px; font-size: 0.8rem; background: #334155;" onclick="openBayNavigationModal(document.getElementById('profActiveBay').textContent)">🗺️ Guide Me</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeSlotModal('userProfileModal')">Close</button>
+            <button type="button" class="btn-confirm-booking" onclick="saveUserProfileVehicle()">💾 Save Vehicle Details</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= MY ACTIVITY & PASSES MODAL ================= -->
+<div class="parking-modal" id="userActivityModal">
+    <div class="parking-modal-dialog activity-dialog">
+        <div class="parking-modal-header">
+            <div class="header-left">
+                <span class="modal-icon">🎫</span>
+                <div>
+                    <h3>My Parking Activity & Access Passes</h3>
+                    <p>Active barrier clearance tickets, assigned bays, and booking history</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('userActivityModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <div class="activity-filter-bar">
+                <button type="button" class="act-tab active" id="actTabActive" onclick="switchActivityTab('active')">🟢 Active Clearance Passes</button>
+                <button type="button" class="act-tab" id="actTabHistory" onclick="switchActivityTab('history')">📜 Booking History</button>
+            </div>
+
+            <div class="activity-history-filters" id="actHistoryFilters" style="display: none; gap: 8px; margin-top: 12px; margin-bottom: 8px; flex-wrap: wrap;">
+                <button type="button" class="hist-pill active" id="pillHistAll" onclick="filterHistoryStatus('all')">All Records</button>
+                <button type="button" class="hist-pill" id="pillHistCompleted" onclick="filterHistoryStatus('completed')">🏁 Completed</button>
+                <button type="button" class="hist-pill" id="pillHistCancelled" onclick="filterHistoryStatus('cancelled')">❌ Cancelled</button>
+                <button type="button" class="hist-pill" id="pillHistExpired" onclick="filterHistoryStatus('expired')">⏰ Expired</button>
+            </div>
+
+            <div class="activity-passes-container" id="userActivityList">
+                <!-- Dynamically populated booking cards -->
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeSlotModal('userActivityModal')">Close</button>
+            <button type="button" class="btn-confirm-booking" onclick="closeSlotModal('userActivityModal'); scrollToSlotGrid();">➕ Book Another Bay</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= STAFF QR SCANNER TERMINAL MODAL ================= -->
+<div class="parking-modal" id="staffQrScannerModal">
+    <div class="parking-modal-dialog scanner-dialog">
+        <div class="parking-modal-header staff-header">
+            <div class="header-left">
+                <span class="modal-icon">📷</span>
+                <div>
+                    <h3>Staff Gate Entry Scanner</h3>
+                    <p>Optical QR Pass Validation & Automated Barrier Clearance</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeStaffQrScannerModal()">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <!-- CAMERA VIEWFINDER & OPTICAL QR DECODER -->
+            <div class="scanner-camera-container" style="position: relative; background: #000000; border-radius: 12px; overflow: hidden; min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div id="staffQrReader" style="width: 100%;"></div>
+                <video id="staffScannerVideo" style="width: 100%; max-height: 240px; object-fit: cover; display: none;" playsinline muted></video>
+                <div class="scanner-camera-status" id="scannerCameraStatus" style="margin-top: 8px; font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 6px;">🟢 Scanner ready — Align QR pass inside frame</div>
+            </div>
+
+            <!-- MANUAL ENTRY FALLBACK -->
+            <div class="scanner-manual-box" style="margin-top: 14px;">
+                <label for="manualQrTokenInput" style="font-size: 0.85rem; font-weight: 700; color: #cbd5e1;">Or Enter Booking Reference ID / QR Token Manually:</label>
+                <div class="manual-input-row" style="display: flex; gap: 8px; margin-top: 6px;">
+                    <input type="text" id="manualQrTokenInput" placeholder="e.g. BKG-MU1FM24J or SMARTCITY|... or Token Hex" style="flex: 1;" onkeypress="if(event.key==='Enter')handleManualQrVerify()" />
+                    <button type="button" class="btn-confirm-booking" style="white-space: nowrap; padding: 10px 16px;" onclick="handleManualQrVerify()">
+                        🔍 Verify & Check In
+                    </button>
+                </div>
+            </div>
+
+            <!-- RESULT DOSSIER CARD -->
+            <div class="scanner-result-card" id="scannerResultCard" style="display: none; margin-top: 14px; padding: 14px; border-radius: 10px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1);">
+                <!-- Populated on verification -->
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeStaffQrScannerModal()">Close Terminal</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================= MAP API KEY CONFIGURATION MODAL ================= -->
+<div class="parking-modal" id="mapApiKeyModal">
+    <div class="parking-modal-dialog">
+        <div class="parking-modal-header">
+            <div class="header-left">
+                <span class="modal-icon">🔑</span>
+                <div>
+                    <h3>Map & Traffic Radar API Settings</h3>
+                    <p>Configure custom tile service provider or traffic radar credentials</p>
+                </div>
+            </div>
+            <button type="button" class="modal-close" onclick="closeSlotModal('mapApiKeyModal')">✕</button>
+        </div>
+
+        <div class="parking-modal-body">
+            <div class="api-info-note">
+                <span style="font-size: 1.2rem;">💡</span>
+                <div>
+                    <strong>Zero-Configuration Ready:</strong>
+                    <p style="margin: 2px 0 0; font-size: 0.8rem; color: #94a3b8;">
+                        Normal Map (CartoDB/OSM), Satellite Map (Esri High-Res), and Traffic Radar are already fully integrated and active without needing any paid key! You can optionally provide a custom Mapbox or TomTom key below.
+                    </p>
+                </div>
+            </div>
+
+            <div class="field-group" style="margin-top: 14px;">
+                <label for="mapProviderSelect">Map Provider Profile:</label>
+                <select id="mapProviderSelect">
+                    <option value="osm" selected>Built-in Free Services (OpenStreetMap / Esri Satellite / CartoDB)</option>
+                    <option value="mapbox">Mapbox HD Streets & Satellite</option>
+                    <option value="tomtom">TomTom Real-Time Live Traffic Layer</option>
+                    <option value="google">Google Maps Elevation / Tile Proxy</option>
+                </select>
+            </div>
+
+            <div class="field-group" style="margin-top: 12px;">
+                <label for="customMapApiKeyInput">Custom API Key / Access Token: <small style="color: #64748b;">(Optional)</small></label>
+                <input type="text" id="customMapApiKeyInput" placeholder="e.g. pk.eyJ1Ijoic21hcnRjaXR5... or tomtom-key" />
+            </div>
+        </div>
+
+        <div class="parking-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeSlotModal('mapApiKeyModal')">Close</button>
+            <button type="button" class="btn-confirm-booking" onclick="saveMapApiKey()">💾 Save & Apply Layers</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= OVERSTAY FINE COLLECTION MODAL ================= -->
+<div class="fine-modal-overlay" id="overstayCollectModal" style="display: none;">
+    <div class="fine-modal-content">
+        <div class="fine-modal-header">
+            <h3>💵 Settle Overstay Parking Penalty</h3>
+            <button type="button" class="fine-close-btn" onclick="closeOverstayCollectModal()">✕</button>
+        </div>
+
+        <div id="fineFormView">
+            <div class="fine-summary-box">
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Vehicle & Booking</div>
+                    <div style="font-size: 18px; font-weight: 900; color: #0f172a; margin-top: 2px;" id="fineModalPlate">UP 53 DX 9988</div>
+                    <div style="font-size: 12px; color: #0284c7; margin-top: 2px;" id="fineModalBookingId">BKG-OVR-01</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 11px; font-weight: 700; color: #dc2626; text-transform: uppercase;" id="fineModalOverstayMins">+60 Mins Overdue</div>
+                    <div style="font-size: 26px; font-weight: 900; color: #dc2626; margin-top: 2px;" id="fineModalAmountDisplay">₹100</div>
+                </div>
+            </div>
+
+            <label style="font-size: 13px; font-weight: 700; color: #334155;">Select Payment Method:</label>
+            <div class="fine-payment-methods">
+                <div class="method-option active" id="methodCash" onclick="selectFinePaymentMethod('CASH')">
+                    💵 Cash in Hand
+                </div>
+                <div class="method-option" id="methodUpi" onclick="selectFinePaymentMethod('UPI')">
+                    📱 UPI / QR Code
+                </div>
+                <div class="method-option" id="methodFastag" onclick="selectFinePaymentMethod('FASTAG')">
+                    🏷️ FASTag Auto-Toll
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="fineAttendantNote" style="font-size: 12px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Attendant Note (Optional):</label>
+                <input type="text" id="fineAttendantNote" placeholder="e.g. Cleared at Booth 1" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;" />
+            </div>
+
+            <input type="hidden" id="fineHiddenBookingId" value="" />
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="btn-cancel" onclick="closeOverstayCollectModal()" style="padding: 10px 18px; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer;">Cancel</button>
+                <button type="button" id="btnConfirmFinePayment" onclick="confirmOverstayFinePayment()" style="padding: 10px 22px; border: 0; background: #16a34a; color: white; font-weight: 800; border-radius: 8px; cursor: pointer;">
+                    ✓ Confirm Payment & Clear Bay
+                </button>
+            </div>
+        </div>
+
+        <!-- PRINTABLE RECEIPT VIEW (APPEARS AFTER SUCCESS) -->
+        <div id="fineReceiptView" style="display: none;">
+            <div class="municipal-receipt-card" id="printableReceiptArea">
+                <div class="receipt-header">
+                    <h4>GORAKHPUR MUNICIPAL SMART PARKING</h4>
+                    <p>OFFICIAL PENALTY CLEARANCE INVOICE</p>
+                </div>
+                <div class="receipt-line">
+                    <span>Receipt No:</span>
+                    <strong id="rcptNo">RCP-PRK-123456</strong>
+                </div>
+                <div class="receipt-line">
+                    <span>Date & Time:</span>
+                    <strong id="rcptDate">2026-09-19 21:50</strong>
+                </div>
+                <div class="receipt-line">
+                    <span>Vehicle Plate:</span>
+                    <strong id="rcptPlate">UP 53 DX 9988</strong>
+                </div>
+                <div class="receipt-line">
+                    <span>Booking Ref:</span>
+                    <strong id="rcptBooking">BKG-OVR-01</strong>
+                </div>
+                <div class="receipt-line">
+                    <span>Payment Mode:</span>
+                    <strong id="rcptMethod">CASH</strong>
+                </div>
+                <div class="receipt-line">
+                    <span>Attendant ID:</span>
+                    <strong id="rcptAttendant">PRK001 (Gate 1)</strong>
+                </div>
+                <div class="receipt-line" style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #0f172a; font-size: 15px;">
+                    <span>TOTAL PENALTY PAID:</span>
+                    <strong id="rcptAmount" style="color: #16a34a;">₹100.00</strong>
+                </div>
+                <div style="margin-top: 12px; font-size: 10px; color: #64748b;">
+                    *** GATE CLEARANCE PERMITTED — BARRIER LIFTED ***
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px;">
+                <button type="button" onclick="printReceiptArea()" style="padding: 9px 18px; border: 1px solid #0284c7; background: #f0f9ff; color: #0284c7; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                    🖨️ Print Receipt
+                </button>
+                <button type="button" onclick="closeOverstayCollectModal()" style="padding: 9px 18px; border: 0; background: #0284c7; color: white; font-weight: 700; border-radius: 8px; cursor: pointer;">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div
     id="toast"
@@ -1030,8 +2269,11 @@
 >
 </div>
 
+<!-- LEAFLET JAVASCRIPT -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="../../auth.js"></script>
 <script src="../../realtime.js"></script>
 <script src="parking.js"></script>

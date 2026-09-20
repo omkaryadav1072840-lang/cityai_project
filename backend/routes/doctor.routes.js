@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { authenticateToken, requireRole, generateToken } = require("../middleware/auth.middleware");
+const { authenticateToken, requireRole, generateToken, optionalToken } = require("../middleware/auth.middleware");
 
 // =========================================================
 // DOCTOR AUTHENTICATION & MANAGEMENT
@@ -457,7 +457,7 @@ router.delete("/api/doctor-slots/:id", authenticateToken, requireRole(["staff", 
  * GET /api/doctor/:doctorId/appointments
  * Retrieves all appointments assigned to a specific doctor, joined with patient demographics.
  */
-router.get("/api/doctor/:doctorId/appointments", (req, res) => {
+router.get("/api/doctor/:doctorId/appointments", optionalToken, (req, res) => {
     const doctorId = req.params.doctorId;
 
     if (!doctorId) {
@@ -474,6 +474,7 @@ router.get("/api/doctor/:doctorId/appointments", (req, res) => {
             a.appointment_date,
             a.appointment_time,
             a.status,
+            a.token_number,
             a.created_at,
             p.name AS patient_name,
             p.age AS patient_age,
@@ -509,7 +510,7 @@ router.get("/api/doctor/:doctorId/appointments", (req, res) => {
  * GET /api/doctor/patient-history/:patientId
  * Instant comprehensive medical dossier: demographics, past visits, diagnoses, reports, prescriptions.
  */
-router.get("/api/doctor/patient-history/:patientId", async (req, res) => {
+router.get("/api/doctor/patient-history/:patientId", optionalToken, async (req, res) => {
     const patientId = req.params.patientId.trim();
 
     if (!patientId) {
@@ -534,11 +535,35 @@ router.get("/api/doctor/patient-history/:patientId", async (req, res) => {
             [patientId]
         );
 
-        // 3. Diagnostic / Lab Reports
+        // 3. Diagnostic / Lab Reports (patient_reports + test_bookings)
         const [reports] = await db.promise().query(
             "SELECT id, patient_id, title, report_type, doctor_name, hospital_name, status, file_path, report_date, created_at FROM patient_reports WHERE patient_id = ? ORDER BY report_date DESC, id DESC",
             [patientId]
         );
+
+        const [testBookings] = await db.promise().query(`
+            SELECT 
+                tb.id, 
+                tb.patient_id, 
+                tb.test_name AS title, 
+                'Diagnostic Lab' AS report_type, 
+                COALESCE(tb.doctor_name, 'Attending Pathologist') AS doctor_name, 
+                COALESCE(h.hospital_name, 'Hospital Diagnostic Wing') AS hospital_name, 
+                CONCAT(tb.status, ' (Token: ', COALESCE(tb.token_number, 'N/A'), ')') AS status, 
+                NULL AS file_path, 
+                tb.booking_date AS report_date, 
+                tb.created_at,
+                tb.booking_id,
+                tb.token_number,
+                tb.amount,
+                tb.qr_token
+            FROM test_bookings tb
+            LEFT JOIN hospitals h ON tb.hospital_id = h.hospital_id
+            WHERE tb.patient_id = ?
+            ORDER BY tb.booking_date DESC, tb.id DESC
+        `, [patientId]);
+
+        const allReports = [...reports, ...testBookings];
 
         // 4. Prescriptions
         const [prescriptions] = await db.promise().query(
@@ -559,7 +584,7 @@ router.get("/api/doctor/patient-history/:patientId", async (req, res) => {
             success: true,
             patient,
             records,
-            reports,
+            reports: allReports,
             prescriptions,
             appointments
         });
@@ -573,7 +598,7 @@ router.get("/api/doctor/patient-history/:patientId", async (req, res) => {
  * POST /api/doctor/consultation
  * Doctor saves clinical consultation notes, diagnosis, and treatment for a patient.
  */
-router.post("/api/doctor/consultation", async (req, res) => {
+router.post("/api/doctor/consultation", optionalToken, async (req, res) => {
     let { patientId, doctorId, doctorName, appointmentId, diagnosis, symptoms, treatment, notes, recordDate } = req.body;
 
     if (!patientId || (!diagnosis && !treatment && !notes)) {
@@ -646,7 +671,7 @@ router.post("/api/doctor/consultation", async (req, res) => {
  * PUT /api/appointments/:id/status
  * Updates appointment status (e.g. 'In Consultation', 'Completed', 'Cancelled', 'Confirmed')
  */
-router.put("/api/appointments/:id/status", (req, res) => {
+router.put("/api/appointments/:id/status", optionalToken, (req, res) => {
     const appointmentId = req.params.id;
     const { status } = req.body;
 
@@ -675,6 +700,117 @@ router.put("/api/appointments/:id/status", (req, res) => {
             message: `Appointment status updated to ${status}.`
         });
     });
+});
+
+/**
+ * POST /api/doctor/order-tests
+ * Doctor directly requests diagnostic tests for a patient during consultation
+ */
+router.post("/api/doctor/order-tests", optionalToken, async (req, res) => {
+    const {
+        patientId,
+        hospitalId,
+        doctorId,
+        doctorName,
+        testIds, // array of test IDs e.g. ['TEST-CBC-001', 'TEST-LFT-001']
+        notes
+    } = req.body;
+
+    if (!patientId || !testIds || !Array.isArray(testIds) || testIds.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "patientId and a non-empty array of testIds are required."
+        });
+    }
+
+    try {
+        const p = db.promise();
+
+        // 1. Fetch patient details
+        const [patRows] = await p.query("SELECT name, age, gender, mobile, hospital_id FROM patients WHERE patient_id = ?", [patientId]);
+        const patient = patRows[0] || { name: "Patient", age: 30, gender: "Other", mobile: null };
+        const effectiveHospitalId = hospitalId || patient.hospital_id || "HOSP-001";
+
+        // 2. Fetch doctor details if needed
+        let effectiveDocName = doctorName;
+        if (!effectiveDocName && doctorId) {
+            const [docRows] = await p.query("SELECT name FROM doctors WHERE doctor_id = ?", [doctorId]);
+            if (docRows.length) effectiveDocName = docRows[0].name;
+        }
+        if (!effectiveDocName) effectiveDocName = "Dr. Consulting Physician";
+
+        const today = new Date().toISOString().split("T")[0];
+        const createdOrders = [];
+
+        for (const testId of testIds) {
+            const [tRows] = await p.query("SELECT name, code, price FROM diagnostic_tests WHERE test_id = ?", [testId]);
+            if (!tRows.length) continue;
+            const t = tRows[0];
+
+            // Generate token number
+            const [countRows] = await p.query(
+                "SELECT COUNT(*) AS total FROM test_bookings WHERE hospital_id = ? AND test_id = ? AND booking_date = ?",
+                [effectiveHospitalId, testId, today]
+            );
+            const seq = (countRows[0]?.total || 0) + 1;
+            const prefix = (t.code && t.code[0]) ? t.code[0].toUpperCase() : "D";
+            const tokenNumber = `${prefix}-${String(seq).padStart(3, "0")}`;
+
+            const yr = new Date().getFullYear();
+            const rand = Math.floor(10000 + Math.random() * 90000);
+            const bookingId = `TB-DOC-${yr}-${rand}`;
+            const qrToken = `QR-TB-DOC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+            await p.query(`
+                INSERT INTO test_bookings
+                (booking_id, booking_type, hospital_id, test_id, test_name, patient_id, patient_name, patient_mobile, patient_age, patient_gender, doctor_id, doctor_name, booking_date, time_slot, token_number, amount, payment_method, payment_status, status, qr_token)
+                VALUES (?, 'DOCTOR_ORDER', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Immediate OPD Order', ?, ?, 'Hospital Desk', 'Pending', 'ORDERED', ?)
+            `, [
+                bookingId,
+                effectiveHospitalId,
+                testId,
+                t.name,
+                patientId,
+                patient.name,
+                patient.mobile,
+                patient.age,
+                patient.gender,
+                doctorId || null,
+                effectiveDocName,
+                today,
+                tokenNumber,
+                Number(t.price || 0),
+                qrToken
+            ]);
+
+            createdOrders.push({
+                booking_id: bookingId,
+                test_id: testId,
+                test_name: t.name,
+                token_number: tokenNumber,
+                amount: Number(t.price || 0)
+            });
+        }
+
+        // Notification for Lab
+        await p.query(`
+            INSERT INTO hospital_notifications (hospital_id, recipient_role, title, message, category)
+            VALUES (?, 'lab', ?, ?, 'test_booking')
+        `, [
+            effectiveHospitalId,
+            `Doctor Ordered Tests: ${patient.name}`,
+            `${effectiveDocName} ordered ${createdOrders.length} diagnostic test(s) for patient ${patient.name} (${patientId}).`
+        ]);
+
+        res.status(201).json({
+            success: true,
+            message: `Successfully placed ${createdOrders.length} test order(s) for ${patient.name}.`,
+            orders: createdOrders
+        });
+    } catch (err) {
+        console.error("[DOCTOR ORDER TESTS ERROR]", err);
+        res.status(500).json({ success: false, message: "Failed to order tests." });
+    }
 });
 
 module.exports = router;

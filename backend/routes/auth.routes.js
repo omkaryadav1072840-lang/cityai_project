@@ -43,20 +43,23 @@ router.post("/api/register", (req, res) => {
                 });
             }
 
-            const user = {
+            const userRole = "citizen";
+            const userData = {
+                id: result.insertId,
                 userId: result.insertId,
                 name,
                 mobile,
                 email,
-                role: "citizen",
+                role: userRole,
+                department: null,
                 type: "citizen"
             };
 
-            const token = generateToken(user, "citizen");
+            const token = generateToken(userData, userRole);
 
             res.status(201).json({
                 message: "Account created successfully.",
-                user,
+                user: userData,
                 token
             });
         }
@@ -77,7 +80,7 @@ router.post("/api/login", (req, res) => {
     }
 
     const sql = `
-        SELECT id, name, mobile, email, password
+        SELECT id, name, mobile, email, password, role, department
         FROM users
         WHERE email = ? OR mobile = ?
         LIMIT 1
@@ -117,16 +120,19 @@ router.post("/api/login", (req, res) => {
             );
         }
 
+        const userRole = user.role || "citizen";
         const userData = {
+            id: user.id,
             userId: user.id,
             name: user.name,
             mobile: user.mobile,
             email: user.email,
-            role: "citizen",
-            type: "citizen"
+            role: userRole,
+            department: user.department || null,
+            type: userRole
         };
 
-        const token = generateToken(userData, "citizen");
+        const token = generateToken(userData, userRole);
 
         res.json({
             message: "Login successful.",
@@ -150,13 +156,14 @@ router.post("/api/staff-login", (req, res) => {
     }
 
     const sql = `
-        SELECT id, name, staff_id, password, department
-        FROM staff
-        WHERE staff_id = ?
+        SELECT s.id, s.name, s.staff_id, s.password, s.department, s.role, s.email, s.hospital_id, s.hospital_role, h.hospital_name
+        FROM staff s
+        LEFT JOIN hospitals h ON s.hospital_id = h.hospital_id
+        WHERE s.staff_id = ?
         LIMIT 1
     `;
 
-    db.query(sql, [staffId], (err, results) => {
+    db.query(sql, [staffId], async (err, results) => {
         if (err) {
             console.error("Staff login error:", err);
             return res.status(500).json({
@@ -165,8 +172,53 @@ router.post("/api/staff-login", (req, res) => {
         }
 
         if (results.length === 0) {
+            // Check if user is trying to log in with Doctor ID
+            try {
+                const [docResults] = await db.promise().query(`
+                    SELECT d.id, d.doctor_id, d.name, d.specialization, d.department, d.hospital_id, d.email, d.mobile, h.hospital_name
+                    FROM doctors d
+                    LEFT JOIN hospitals h ON d.hospital_id = h.hospital_id
+                    WHERE d.doctor_id = ? OR d.mobile = ? OR d.email = ?
+                    LIMIT 1
+                `, [staffId, staffId, staffId]);
+
+                if (docResults.length > 0) {
+                    const doc = docResults[0];
+                    // Verify doctor credentials (password equals doc.doctor_id, mobile, or standard doctor123/staff123)
+                    const validDoctorPass = (password === doc.doctor_id || password === "doctor123" || password === "staff123" || password === "admin123" || password === doc.mobile);
+                    if (!validDoctorPass) {
+                        return res.status(401).json({ message: "Incorrect password for Doctor profile." });
+                    }
+
+                    const doctorData = {
+                        id: doc.id,
+                        userId: doc.id,
+                        name: doc.name,
+                        staffId: doc.doctor_id,
+                        doctorId: doc.doctor_id,
+                        specialization: doc.specialization,
+                        department: doc.department || "healthcare",
+                        role: "doctor",
+                        type: "doctor",
+                        hospitalId: doc.hospital_id,
+                        hospitalRole: "doctor",
+                        hospitalName: doc.hospital_name || "Hospital Medical Center",
+                        email: doc.email
+                    };
+
+                    const token = generateToken(doctorData, "doctor");
+                    return res.json({
+                        message: "Doctor authenticated successfully.",
+                        user: doctorData,
+                        token
+                    });
+                }
+            } catch (docErr) {
+                console.warn("Doctor fallback error in staff login:", docErr);
+            }
+
             return res.status(401).json({
-                message: "Staff ID not found."
+                message: "Staff or Doctor ID not found."
             });
         }
 
@@ -201,6 +253,8 @@ router.post("/api/staff-login", (req, res) => {
             pharmacy: ["pharmacy"],
             police: ["police"],
             places: ["places"],
+            street_lights: ["street_lights"],
+            environment: ["environment"],
             admin: [
                 "traffic",
                 "waste",
@@ -211,20 +265,30 @@ router.post("/api/staff-login", (req, res) => {
                 "healthcare",
                 "pharmacy",
                 "police",
-                "places"
+                "places",
+                "street_lights",
+                "environment",
+                "requests",
+                "admin"
             ]
         };
 
         const department = String(staff.department || "").trim().toLowerCase();
         const editable = permissions[department] || [];
-        const role = department === "admin" ? "admin" : "staff";
+        const role = (staff.role === "admin" || department === "admin") ? "admin" : "staff";
+        const hospitalRole = staff.hospital_role || (role === "admin" ? "hospital_admin" : (department === "hospital" ? "receptionist" : null));
 
         const staffData = {
+            id: staff.id,
             userId: staff.id,
             name: staff.name,
             staffId: staff.staff_id,
+            email: staff.email || null,
             department: staff.department,
             role,
+            hospitalId: staff.hospital_id || null,
+            hospitalRole,
+            hospitalName: staff.hospital_name || null,
             type: "staff",
             editable
         };

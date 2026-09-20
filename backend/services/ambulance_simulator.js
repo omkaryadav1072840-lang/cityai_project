@@ -5,6 +5,7 @@
 
 const db = require("../config/db");
 const { emitAmbulanceLocation, emitAmbulanceStatus } = require("../sockets/index");
+const trafficEngine = require("./traffic_engine");
 
 // Pre-defined transit corridors in Gorakhpur with realistic GPS waypoints
 const GORAKHPUR_ROUTES = [
@@ -173,8 +174,9 @@ function tickSimulation() {
             amb.longitude = Number((currentWp.lng + (targetWp.lng - currentWp.lng) * amb.progress).toFixed(6));
         }
 
-        // Vary speed slightly for realism
-        amb.speedKmh = Math.max(25, Math.min(65, amb.speedKmh + (Math.floor(Math.random() * 7) - 3)));
+        // Vary speed slightly for realism (faster if in critical transit)
+        const baseSpeed = amb.isCritical ? 65 : 40;
+        amb.speedKmh = Math.max(30, Math.min(85, (amb.speedKmh || baseSpeed) + (Math.floor(Math.random() * 7) - 3)));
 
         // Payload matching frontend expectations
         const updatePayload = {
@@ -190,23 +192,126 @@ function tickSimulation() {
             latitude: amb.latitude,
             longitude: amb.longitude,
             speedKmh: amb.speedKmh,
+            isCritical: !!amb.isCritical,
+            destinationHospital: amb.destinationHospital || amb.hospital_name || "BRD Medical College",
+            routeWaypoints: route,
             updated_at: new Date().toISOString()
         };
 
         // Broadcast to all connected clients via Socket.io
         emitAmbulanceLocation(updatePayload);
+
+        // Auto Green Wave signal preemption check
+        if (amb.isCritical) {
+            trafficEngine.preemptCriticalAmbulanceCorridor(updatePayload).catch(() => {});
+        } else {
+            trafficEngine.handleAmbulanceMovement(updatePayload).catch(() => {});
+        }
     });
 
     // Periodically (every 10 ticks = 30 seconds) persist coordinates to MySQL
     if (Math.random() < 0.1) {
         simulatedAmbulances.forEach((amb) => {
             db.query(
-                "UPDATE ambulances SET latitude = ?, longitude = ?, updated_at = NOW() WHERE id = ?",
-                [amb.latitude, amb.longitude, amb.id],
+                "UPDATE ambulances SET latitude = ?, longitude = ?, status = ?, updated_at = NOW() WHERE id = ?",
+                [amb.latitude, amb.longitude, amb.status, amb.id],
                 () => {} // silent
             );
         });
     }
+}
+
+/**
+ * Mark an ambulance as Critical Transit or restore to normal
+ */
+async function setAmbulanceCritical(ambIdentifier, isCritical = true, destinationHospital = null) {
+    if (!simulatedAmbulances || simulatedAmbulances.length === 0) {
+        await loadSimulatedVehicles();
+    }
+
+    const amb = simulatedAmbulances.find(
+        a => String(a.id) === String(ambIdentifier) ||
+             String(a.ambulance_id).toUpperCase() === String(ambIdentifier).toUpperCase() ||
+             String(a.vehicle_number).toUpperCase() === String(ambIdentifier).toUpperCase()
+    );
+
+    if (!amb) {
+        throw new Error(`Ambulance '${ambIdentifier}' not found in active telemetry pool.`);
+    }
+
+    amb.isCritical = !!isCritical;
+    amb.status = isCritical ? "Critical Transit" : "On Duty";
+    if (destinationHospital) {
+        amb.destinationHospital = destinationHospital;
+    } else if (!amb.destinationHospital) {
+        amb.destinationHospital = amb.hospital_name || "BRD Medical College";
+    }
+
+    const route = GORAKHPUR_ROUTES[amb.routeIndex] || [];
+    const payload = {
+        id: amb.id,
+        ambulance_id: amb.ambulance_id,
+        vehicle_number: amb.vehicle_number,
+        driver_name: amb.driver_name,
+        driver_mobile: amb.driver_mobile,
+        ambulance_type: amb.ambulance_type,
+        hospital_name: amb.hospital_name,
+        location: amb.location || route[amb.waypointIndex]?.name || "En Route",
+        status: amb.status,
+        latitude: amb.latitude,
+        longitude: amb.longitude,
+        speedKmh: amb.speedKmh,
+        isCritical: amb.isCritical,
+        destinationHospital: amb.destinationHospital,
+        routeWaypoints: route,
+        updated_at: new Date().toISOString()
+    };
+
+    // Broadcast immediate updates
+    emitAmbulanceLocation(payload);
+    emitAmbulanceStatus(payload);
+
+    if (isCritical) {
+        const affectedJunctions = await trafficEngine.preemptCriticalAmbulanceCorridor(payload);
+        return {
+            success: true,
+            ambulance: payload,
+            preemptedJunctions: affectedJunctions
+        };
+    } else {
+        await trafficEngine.clearCriticalAmbulanceCorridor(payload);
+        return {
+            success: true,
+            ambulance: payload,
+            preemptedJunctions: []
+        };
+    }
+}
+
+/**
+ * Return all simulated ambulances with full route telemetry
+ */
+function getSimulatedAmbulances() {
+    return simulatedAmbulances.map(a => {
+        const route = GORAKHPUR_ROUTES[a.routeIndex] || [];
+        return {
+            id: a.id,
+            ambulance_id: a.ambulance_id,
+            vehicle_number: a.vehicle_number,
+            driver_name: a.driver_name,
+            driver_mobile: a.driver_mobile,
+            ambulance_type: a.ambulance_type,
+            hospital_name: a.hospital_name,
+            location: a.location || route[a.waypointIndex]?.name || "Gorakhpur City",
+            status: a.status,
+            latitude: a.latitude,
+            longitude: a.longitude,
+            speedKmh: a.speedKmh,
+            isCritical: !!a.isCritical,
+            destinationHospital: a.destinationHospital || a.hospital_name || "BRD Medical College",
+            routeWaypoints: route
+        };
+    });
 }
 
 /**
@@ -255,15 +360,7 @@ function getStatus() {
     return {
         active: isSimulationActive,
         ambulanceCount: simulatedAmbulances.length,
-        ambulances: simulatedAmbulances.map(a => ({
-            id: a.id,
-            ambulance_id: a.ambulance_id,
-            vehicle_number: a.vehicle_number,
-            latitude: a.latitude,
-            longitude: a.longitude,
-            speedKmh: a.speedKmh,
-            status: a.status
-        }))
+        ambulances: getSimulatedAmbulances()
     };
 }
 
@@ -271,5 +368,8 @@ module.exports = {
     startSimulation,
     stopSimulation,
     toggleSimulation,
-    getStatus
+    getStatus,
+    setAmbulanceCritical,
+    getSimulatedAmbulances,
+    GORAKHPUR_ROUTES
 };

@@ -24,7 +24,11 @@
    BACKEND
 ========================================================= */
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+    ? window.API_BASE_URL
+    : (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
+        ? (window.location.port === "5000" || window.location.protocol === "file:" ? (window.location.port === "5000" ? window.location.origin : "http://localhost:5000") : "")
+        : "http://localhost:5000";
 
 
 /* =========================================================
@@ -959,41 +963,145 @@ async function showFeature(type, button) {
     });
 
 
-    DEMO_DATA.forEach((item) => {
 
-        if (
-
-            type === "all" ||
-
-            type === item.type
-
-        ) {
-
-            addDemoMarker(item);
-
-        }
-
-    });
-
-
-    if (
-
-        type === "traffic" ||
-
-        type === "all"
-
-    ) {
-
-        showDemoTraffic(
-
-            center.lat,
-
-            center.lng
-
-        );
-
+    if (type === "parking" || type === "all") {
+        loadLiveParkingOnCityMap();
     }
 
+    loadLiveIncidentsOnCityMap(type);
+
+    if (
+        type === "traffic" ||
+        type === "all"
+    ) {
+        showDemoTraffic(
+            center.lat,
+            center.lng
+        );
+    }
+}
+
+async function loadLiveIncidentsOnCityMap(layerType) {
+    try {
+        const actualLayer = layerType === "lights" ? "street_lights" : layerType;
+        const queryLayer = (actualLayer === "all" || !actualLayer) ? "" : `?layers=${actualLayer}`;
+        const res = await fetch(`${BACKEND_URL}/api/map/incidents${queryLayer}`);
+        if (!res.ok) return;
+        const geojson = await res.json();
+        const features = geojson.features || [];
+
+        features.forEach(feat => {
+            if (!feat.geometry || !feat.geometry.coordinates) return;
+            const [lng, lat] = feat.geometry.coordinates;
+            const props = feat.properties || {};
+
+            // Skip parking as loadLiveParkingOnCityMap handles it
+            if (props.layer === "parking") return;
+
+            const iconMap = {
+                "traffic": "🚦",
+                "waste": "🗑️",
+                "emergency": "🚨",
+                "hospital": "🏥",
+                "street_lights": props.status === "FAULT" ? "⚠️" : "💡",
+                "aqi": "🌱",
+                "places": "⭐"
+            };
+
+            const emoji = iconMap[props.layer] || "📍";
+            const customIcon = L.divIcon({
+                className: "custom-div-icon",
+                html: `<div style="font-size: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${emoji}</div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+
+            const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+            if (Array.isArray(allMarkers)) allMarkers.push(marker);
+            if (typeof markers !== "undefined" && Array.isArray(markers)) markers.push(marker);
+
+            const title = escapeHTML(props.title || "Smart City Asset");
+            const desc = escapeHTML(props.description || "");
+
+            // Rich customized popup for Street Lights and AQI Sensors
+            let extraDetails = "";
+            if (props.layer === "street_lights") {
+                extraDetails = `
+                    <div style="font-size:11px; margin:4px 0; color:#cbd5e1; background:rgba(0,0,0,0.25); padding:6px; border-radius:4px;">
+                        <div>⚡ <b>Status:</b> <span style="color:${props.status === 'FAULT' ? '#f87171' : '#4ade80'}; font-weight:700;">${props.status || 'FUNCTIONAL'}</span></div>
+                        <div>💡 <b>Brightness:</b> ${props.brightness || 100}%</div>
+                        <div>🔌 <b>Power Consumption:</b> ${props.power_consumption || 120}W</div>
+                    </div>
+                `;
+            } else if (props.layer === "aqi") {
+                const aqiVal = props.aqi || 0;
+                const aqiCol = aqiVal > 200 ? '#ef4444' : (aqiVal > 100 ? '#f59e0b' : '#10b981');
+                extraDetails = `
+                    <div style="font-size:11px; margin:4px 0; color:#cbd5e1; background:rgba(0,0,0,0.25); padding:6px; border-radius:4px;">
+                        <div>🌫️ <b>Air Quality:</b> <span style="font-weight:700; color:${aqiCol}">${aqiVal} AQI</span></div>
+                        <div>🌡️ <b>Temperature:</b> ${props.temperature || 28}°C | 💧 <b>Humidity:</b> ${props.humidity || 65}%</div>
+                        <div>🔬 <b>PM2.5:</b> ${props.pm25 || 45} µg/m³ | <b>PM10:</b> ${props.pm10 || 80} µg/m³</div>
+                    </div>
+                `;
+            }
+
+            marker.bindPopup(`
+                <div class="map-popup" style="font-family: inherit;">
+                    <div style="display:inline-block; padding:2px 8px; margin-bottom:6px; border-radius:4px; background:rgba(30,41,59,0.9); color:#38bdf8; font-size:10px; font-weight:800; text-transform:uppercase;">
+                        ${props.layer} • ${props.subType || 'Verified'}
+                    </div>
+                    <h3 style="margin:2px 0 6px; font-size:14px;">${title}</h3>
+                    <p style="margin:2px 0; font-size:12px; color:#475569;">${desc}</p>
+                    ${extraDetails}
+                    <div style="margin-top:8px;">
+                        <button class="navigate-btn" onclick="startNavigation(${lat}, ${lng}, '${title}')" style="padding:4px 8px; font-size:11px; cursor:pointer; background:#0284c7; color:#fff; border:none; border-radius:4px;">Directions ➔</button>
+                    </div>
+                </div>
+            `);
+        });
+    } catch (err) {
+        console.warn("Live incidents map fetch error:", err);
+    }
+}
+
+async function loadLiveParkingOnCityMap() {
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/parking`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const lots = json.parkingLots || [];
+        lots.forEach(lot => {
+            const lat = Number(lot.latitude || 26.758);
+            const lng = Number(lot.longitude || 83.395);
+            const total = Number(lot.total_slots || 24);
+            const avail = Number(lot.available_slots || 0);
+            const pct = total > 0 ? (avail / total) * 100 : 0;
+            const statusColor = pct <= 10 ? '#ef4444' : (pct <= 40 ? '#f59e0b' : '#10b981');
+
+            const marker = L.marker([lat, lng]).addTo(map);
+            if (Array.isArray(allMarkers)) allMarkers.push(marker);
+            if (typeof markers !== "undefined" && Array.isArray(markers)) markers.push(marker);
+
+            marker.bindPopup(`
+                <div class="map-popup">
+                    <div style="display:inline-block; padding:3px 8px; margin-bottom:6px; border-radius:4px; background:${statusColor}; color:#fff; font-size:11px; font-weight:800;">
+                        🟢 LIVE PARKING • ${avail} / ${total} VACANT
+                    </div>
+                    <h3 style="margin:4px 0 6px;">🅿️ ${escapeHTML(lot.name)}</h3>
+                    <p style="margin:2px 0;"><b>Address:</b> ${escapeHTML(lot.address || lot.area || "Gorakhpur")}</p>
+                    <p style="margin:2px 0;"><b>Tariff:</b> ₹${lot.hourly_rate || 20}/hour</p>
+                    <div style="margin-top:8px; display:flex; gap:6px;">
+                        <a href="pages/parking/parking.html" style="padding:5px 10px; background:#0284c7; color:#fff; border-radius:4px; text-decoration:none; font-size:12px; font-weight:700;">
+                            Reserve Bay
+                        </a>
+                        <button class="navigate-btn" onclick="startNavigation(${lat}, ${lng}, '${escapeHTML(lot.name)}')">Navigate</button>
+                    </div>
+                </div>
+            `);
+        });
+    } catch (e) {
+        console.warn("Live parking map fetch error:", e);
+    }
 }
 
 
@@ -2380,8 +2488,13 @@ function initializeAIButton() {
         });
     }
 
+    // Initialize Voice Speech Recognition & Synthesis
+    if (typeof initVoiceAssistant === "function") {
+        initVoiceAssistant();
+    }
+
     // Check AI Engine Status
-    fetch("http://localhost:5000/api/ai/status")
+    fetch(`${BACKEND_URL}/api/ai/status`)
         .then(r => r.json())
         .then(data => {
             const badge = document.getElementById("aiModelBadge");
@@ -2419,7 +2532,7 @@ async function sendAIMessage() {
     const typingId = showAITypingIndicator();
 
     try {
-        const res = await fetch("http://localhost:5000/api/ai/chat", {
+        const res = await fetch(`${BACKEND_URL}/api/ai/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -2436,6 +2549,11 @@ async function sendAIMessage() {
         // 3. Render AI Response Bubble
         appendChatMessage("bot", data.reply, data.actions);
         aiConversationHistory.push({ sender: "bot", text: data.reply });
+
+        // Speak response aloud if speaker enabled
+        if (typeof speakAIText === "function" && isVoiceSpeakerEnabled) {
+            speakAIText(data.reply);
+        }
 
         // Play soft chime on response
         if (typeof SmartCityRealtime !== "undefined" && SmartCityRealtime.playAlertSound) {
@@ -2545,7 +2663,7 @@ function formatAIMarkdown(text) {
 function triggerQuickSOSFromChat() {
     if (!confirm("🚨 Are you sure you want to trigger a CRITICAL EMERGENCY SOS signal to Gorakhpur dispatchers?")) return;
 
-    fetch("http://localhost:5000/api/emergency/sos", {
+    fetch(`${BACKEND_URL}/api/emergency/sos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2906,6 +3024,13 @@ function closeHealthModal(id) {
 
 async function bookDoctorSlot() {
 
+    const result =
+        document.getElementById(
+            "appointmentResult"
+        );
+
+    if (!result) return;
+
     const doctor =
         document.getElementById(
             "doctorSelect"
@@ -2928,12 +3053,6 @@ async function bookDoctorSlot() {
         document.getElementById(
             "appointmentPatientId"
         )?.value.trim();
-
-
-    const result =
-        document.getElementById(
-            "appointmentResult"
-        );
 
 
     // =====================================================
@@ -3283,323 +3402,149 @@ function openPatientFile() {
 ========================================================= */
 
 async function searchPatientFile() {
+    const input = document.getElementById("patientFileId") || document.getElementById("searchPatientId");
+    const patientId = input ? input.value.trim() : "";
 
-    const patientId =
-        document
-            .getElementById("searchPatientId")
-            ?.value
-            .trim();
-
-    const result =
-        document.getElementById("patientFileResult");
-
+    const result = document.getElementById("patientFileResult");
+    const emptyEl = document.getElementById("patientFileEmpty");
+    const dataEl = document.getElementById("patientFileData");
 
     if (!patientId) {
-
         alert("Please enter Patient ID.");
-
+        if (input) input.focus();
         return;
-
     }
 
-
-    result.innerHTML = `
-
-        <div class="empty-patient">
-
+    if (emptyEl) {
+        emptyEl.style.display = "block";
+        emptyEl.innerHTML = `
             <span>⏳</span>
-
-            <h3>
-                Loading Patient File...
-            </h3>
-
-            <p>
-                Please wait.
-            </p>
-
-        </div>
-
-    `;
-
+            <h3>Loading Patient File...</h3>
+            <p>Please wait while we retrieve records for <b>${escapeHTML(patientId)}</b>.</p>
+        `;
+    }
+    if (dataEl) dataEl.style.display = "none";
+    if (result) {
+        result.innerHTML = `
+            <div class="empty-patient">
+                <span>⏳</span>
+                <h3>Loading Patient File...</h3>
+                <p>Please wait.</p>
+            </div>
+        `;
+    }
 
     try {
-
-        const response =
-            await fetch(
-                `${BACKEND_URL}/api/patients/${encodeURIComponent(patientId)}`
-            );
-
-
-        const data =
-            await response.json();
-
+        const response = await fetch(`${BACKEND_URL}/api/patients/${encodeURIComponent(patientId)}`);
+        const data = await response.json();
 
         if (!response.ok || !data.patient) {
+            const notFoundHtml = `
+                <span>❌</span>
+                <h3>Patient Not Found</h3>
+                <p>No patient record exists with ID: <b>${escapeHTML(patientId)}</b></p>
+            `;
+            if (emptyEl) {
+                emptyEl.style.display = "block";
+                emptyEl.innerHTML = notFoundHtml;
+            }
+            if (dataEl) dataEl.style.display = "none";
+            if (result) {
+                result.innerHTML = `<div class="empty-patient">${notFoundHtml}</div>`;
+            }
+            return;
+        }
 
+        const patient = data.patient;
+
+        // 1. Populate dedicated fields in index.html if present
+        if (emptyEl) emptyEl.style.display = "none";
+        if (dataEl) {
+            dataEl.style.display = "block";
+            const elName = document.getElementById("filePatientName");
+            const elId = document.getElementById("filePatientId");
+            const elIdVal = document.getElementById("filePatientIdValue");
+            const elNameVal = document.getElementById("filePatientNameValue");
+            const elDob = document.getElementById("filePatientDOB");
+            const elGen = document.getElementById("filePatientGender");
+            const elPh = document.getElementById("filePatientPhone");
+            const elQr = document.getElementById("fileQRCode");
+
+            if (elName) elName.textContent = patient.name || "Patient";
+            if (elId) elId.textContent = patient.patient_id || patientId;
+            if (elIdVal) elIdVal.textContent = patient.patient_id || patientId;
+            if (elNameVal) elNameVal.textContent = patient.name || "Patient";
+            if (elDob) elDob.textContent = patient.dob || "N/A";
+            if (elGen) elGen.textContent = patient.gender || "N/A";
+            if (elPh) elPh.textContent = patient.mobile || "N/A";
+
+            if (elQr) {
+                elQr.innerHTML = "";
+                if (typeof QRCode !== "undefined") {
+                    new QRCode(elQr, {
+                        text: patient.patient_id || patientId,
+                        width: 140,
+                        height: 140
+                    });
+                }
+            }
+        }
+
+        // 2. Populate patientFileResult container if present
+        if (result) {
             result.innerHTML = `
+                <div class="patient-card">
+                    <div class="patient-card-top">
+                        <div>
+                            <h3>👤 ${escapeHTML(patient.name)}</h3>
+                        </div>
+                        <span class="patient-id">${escapeHTML(patient.patient_id)}</span>
+                    </div>
 
-                <div class="empty-patient">
+                    <div class="patient-details">
+                        <div class="patient-detail"><small>Patient ID</small><strong>${escapeHTML(patient.patient_id)}</strong></div>
+                        <div class="patient-detail"><small>Name</small><strong>${escapeHTML(patient.name)}</strong></div>
+                        <div class="patient-detail"><small>Date of Birth</small><strong>${patient.dob || "N/A"}</strong></div>
+                        <div class="patient-detail"><small>Gender</small><strong>${patient.gender || "N/A"}</strong></div>
+                        <div class="patient-detail"><small>Mobile</small><strong>${patient.mobile || "N/A"}</strong></div>
+                        <div class="patient-detail"><small>Blood Group</small><strong>${patient.blood_group || "N/A"}</strong></div>
+                        <div class="patient-detail"><small>Address</small><strong>${patient.address || "N/A"}</strong></div>
+                    </div>
 
-                    <span>❌</span>
-
-                    <h3>
-                        Patient Not Found
-                    </h3>
-
-                    <p>
-                        No patient found with ID:
-                        <b>${escapeHTML(patientId)}</b>
-                    </p>
-
+                    <div class="patient-file-qr">
+                        <h4>📱 Patient QR Code</h4>
+                        <div id="fileQRCodeDynamic"></div>
+                        <p>Scan this QR code to identify the patient.</p>
+                    </div>
                 </div>
-
             `;
 
-            return;
-
+            const dynQr = document.getElementById("fileQRCodeDynamic");
+            if (dynQr && typeof QRCode !== "undefined") {
+                new QRCode(dynQr, {
+                    text: patient.patient_id || patientId,
+                    width: 140,
+                    height: 140
+                });
+            }
         }
 
-
-        const patient =
-            data.patient;
-
-
-        /* =========================================
-           SHOW PATIENT DATA
-        ========================================= */
-
-        result.innerHTML = `
-
-            <div class="patient-card">
-
-                <div class="patient-card-top">
-
-                    <div>
-
-                        <h3>
-                            👤
-                            ${escapeHTML(
-                                patient.name
-                            )}
-                        </h3>
-
-                    </div>
-
-                    <span class="patient-id">
-
-                        ${escapeHTML(
-                            patient.patient_id
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <div class="patient-details">
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Patient ID
-                        </small>
-
-                        <strong>
-                            ${escapeHTML(
-                                patient.patient_id
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Name
-                        </small>
-
-                        <strong>
-                            ${escapeHTML(
-                                patient.name
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Date of Birth
-                        </small>
-
-                        <strong>
-                            ${
-                                patient.dob ||
-                                "N/A"
-                            }
-                        </strong>
-
-                    </div>
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Gender
-                        </small>
-
-                        <strong>
-                            ${
-                                patient.gender ||
-                                "N/A"
-                            }
-                        </strong>
-
-                    </div>
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Mobile
-                        </small>
-
-                        <strong>
-                            ${
-                                patient.mobile ||
-                                "N/A"
-                            }
-                        </strong>
-
-                    </div>
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Blood Group
-                        </small>
-
-                        <strong>
-                            ${
-                                patient.blood_group ||
-                                "N/A"
-                            }
-                        </strong>
-
-                    </div>
-
-
-                    <div class="patient-detail">
-
-                        <small>
-                            Address
-                        </small>
-
-                        <strong>
-                            ${
-                                patient.address ||
-                                "N/A"
-                            }
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <!-- QR -->
-
-                <div class="patient-file-qr">
-
-                    <h4>
-                        📱 Patient QR Code
-                    </h4>
-
-                    <div id="fileQRCode"></div>
-
-                    <p>
-                        Scan this QR code to
-                        identify the patient.
-                    </p>
-
-                </div>
-
-            </div>
-
+    } catch (error) {
+        console.error("Patient File Error:", error);
+        const errHtml = `
+            <span>⚠️</span>
+            <h3>Backend Connection Failed</h3>
+            <p>Make sure your SmartCity AI backend server is running.</p>
         `;
-
-
-        /* =========================================
-           GENERATE QR
-        ========================================= */
-
-        const qr =
-            document.getElementById(
-                "fileQRCode"
-            );
-
-
-        if (
-            qr &&
-            typeof QRCode !== "undefined"
-        ) {
-
-            new QRCode(
-
-                qr,
-
-                {
-
-                    text:
-                        patient.patient_id,
-
-                    width:
-                        150,
-
-                    height:
-                        150
-
-                }
-
-            );
-
+        if (emptyEl) {
+            emptyEl.style.display = "block";
+            emptyEl.innerHTML = errHtml;
         }
-
+        if (dataEl) dataEl.style.display = "none";
+        if (result) {
+            result.innerHTML = `<div class="empty-patient">${errHtml}</div>`;
+        }
     }
-
-    catch (error) {
-
-        console.error(
-            "Patient File Error:",
-            error
-        );
-
-
-        result.innerHTML = `
-
-            <div class="empty-patient">
-
-                <span>⚠️</span>
-
-                <h3>
-                    Backend Connection Failed
-                </h3>
-
-                <p>
-                    Make sure your backend
-                    server is running.
-                </p>
-
-            </div>
-
-        `;
-
-    }
-
 }
 
 
@@ -4872,18 +4817,7 @@ function logoutSmartCity() {
 
 }
 
-function closeHealthModal(modalId) {
 
-    const modal =
-        document.getElementById(modalId);
-
-    if (modal) {
-
-        modal.classList.remove("show");
-
-    }
-
-}
 /* =========================================================
    GLOBAL FUNCTIONS
 =========================================================
@@ -4966,52 +4900,6 @@ window.requireEditPermission =
 console.log(
     "🚀 SmartCity AI Frontend Ready"
 );
-async function loadCityStatus() {
-    try {
-        const response = await fetch("http://localhost:5000/api/city-status");
-
-        if (!response.ok) {
-            throw new Error("City status API failed");
-        }
-
-        const data = await response.json();
-
-        console.log("✅ City Data:", data);
-
-        // Traffic
-        const traffic = document.getElementById("trafficValue");
-        if (traffic) {
-            traffic.textContent = data.traffic;
-        }
-
-        // Temperature
-        const temperature = document.getElementById("temperatureValue");
-        if (temperature) {
-            temperature.textContent = `${data.temperature}°C`;
-        }
-
-        // Hospitals
-        const hospitals = document.getElementById("hospitalValue");
-        if (hospitals) {
-            hospitals.textContent = data.hospitals;
-        }
-
-        // Ambulances
-        const ambulances = document.getElementById("ambulanceValue");
-        if (ambulances) {
-            ambulances.textContent = data.ambulances;
-        }
-
-        // AQI
-        const aqi = document.getElementById("aqiValue");
-        if (aqi) {
-            aqi.textContent = `${data.aqi} AQI`;
-        }
-
-    } catch (error) {
-        console.error("❌ City Status Error:", error);
-    }
-}
 
 /* =========================================================
    REAL-TIME DASHBOARD SOCKETS
@@ -5069,148 +4957,660 @@ function initDashboardRealtime() {
 }
 
 loadCityStatus();
-function searchPatientFile() {
 
-    const patientId =
-        document.getElementById("patientFileId").value.trim();
+/* ==========================================================================
+   SMARTCITY AI - MASTER EXPANSION CLIENT MODULE
+   - Voice Assistant (Speech Recognition & Voice Synthesis)
+   - Citizen Grievance Portal & Live SLA Countdown Ticker
+   - Executive Smart City Command Center (ICCC Dashboard)
+   - Simulated WhatsApp / SMS Dispatch Alert Previews
+   - Interactive 5-Star Grievance Feedback Redressal
+   ========================================================================== */
 
-    if (!patientId) {
+let isVoiceSpeakerEnabled = true;
+let voiceRecognition = null;
+let isVoiceListening = false;
+let slaTickInterval = null;
 
-        alert("Please enter Patient ID.");
+// --------------------------------------------------------------------------
+// 1. VOICE ASSISTANT (Speech-to-Text & Speech Synthesis)
+// --------------------------------------------------------------------------
 
+function initVoiceAssistant() {
+    const voiceBtn = document.getElementById("aiVoiceBtn");
+    const speakerBtn = document.getElementById("aiSpeakerBtn");
+    const userInput = document.getElementById("userInput");
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (voiceBtn) {
+        if (!SpeechRec) {
+            voiceBtn.title = "Voice recognition not supported in this browser";
+            voiceBtn.style.opacity = "0.5";
+        } else {
+            voiceRecognition = new SpeechRec();
+            voiceRecognition.continuous = false;
+            voiceRecognition.interimResults = false;
+            voiceRecognition.lang = "hi-IN"; // Supports Hindi and English mixed input
+
+            voiceRecognition.onstart = () => {
+                isVoiceListening = true;
+                voiceBtn.classList.add("listening");
+                if (userInput) userInput.placeholder = "Listening... बोलिए...";
+            };
+
+            voiceRecognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (userInput) {
+                    userInput.value = transcript;
+                }
+                sendAIMessage();
+            };
+
+            voiceRecognition.onerror = (e) => {
+                console.warn("Voice error:", e);
+                stopVoiceListening();
+            };
+
+            voiceRecognition.onend = () => {
+                stopVoiceListening();
+            };
+
+            voiceBtn.addEventListener("click", () => {
+                if (!voiceRecognition) return;
+                if (isVoiceListening) {
+                    voiceRecognition.stop();
+                    stopVoiceListening();
+                } else {
+                    try {
+                        voiceRecognition.start();
+                    } catch (err) {
+                        console.warn("Could not start recognition:", err);
+                    }
+                }
+            });
+        }
+    }
+
+    if (speakerBtn) {
+        speakerBtn.addEventListener("click", () => {
+            isVoiceSpeakerEnabled = !isVoiceSpeakerEnabled;
+            if (isVoiceSpeakerEnabled) {
+                speakerBtn.classList.remove("muted");
+                speakerBtn.title = "Voice Response: Enabled";
+                speakerBtn.textContent = "🔊";
+            } else {
+                speakerBtn.classList.add("muted");
+                speakerBtn.title = "Voice Response: Muted";
+                speakerBtn.textContent = "🔇";
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            }
+        });
+    }
+}
+
+function stopVoiceListening() {
+    isVoiceListening = false;
+    const voiceBtn = document.getElementById("aiVoiceBtn");
+    const userInput = document.getElementById("userInput");
+    if (voiceBtn) voiceBtn.classList.remove("listening");
+    if (userInput && userInput.placeholder.startsWith("Listening")) {
+        userInput.placeholder = "Ask Smart City AI (or speak in Hindi/English)...";
+    }
+}
+
+function speakAIText(text) {
+    if (!window.speechSynthesis || !isVoiceSpeakerEnabled || !text) return;
+    try {
+        window.speechSynthesis.cancel();
+        // Clean markdown symbols or asterisks for natural speech
+        const cleanText = text.replace(/[*#_`>]/g, "").trim();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        
+        // Prefer Hindi or Indian English voice if present
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => (v.lang && (v.lang.includes("IN") || v.lang.includes("hi")))) || voices[0];
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        window.speechSynthesis.speak(utterance);
+    } catch (e) {
+        console.warn("Speech synthesis error:", e);
+    }
+}
+
+// --------------------------------------------------------------------------
+// 2. CITIZEN GRIEVANCE PORTAL & LIVE SLA TICKER
+// --------------------------------------------------------------------------
+
+function openGrievanceModal() {
+    const modal = document.getElementById("scGrievanceModal");
+    if (!modal) return;
+    modal.classList.add("active");
+
+    // Pre-fill user information if logged in
+    const user = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getUser() : null;
+    const nameInput = document.getElementById("grievanceName");
+    const phoneInput = document.getElementById("grievancePhone");
+    if (user) {
+        if (nameInput && !nameInput.value) nameInput.value = user.name || user.fullName || "";
+        if (phoneInput && !phoneInput.value) phoneInput.value = user.phone || user.mobile || "";
+    }
+
+    startSlaTickTimer();
+}
+
+function closeGrievanceModal() {
+    const modal = document.getElementById("scGrievanceModal");
+    if (modal) modal.classList.remove("active");
+}
+
+function switchGrievanceTab(tab) {
+    const btnLodge = document.getElementById("tabBtnLodge");
+    const btnTrack = document.getElementById("tabBtnTrack");
+    const contentLodge = document.getElementById("tabContentLodge");
+    const contentTrack = document.getElementById("tabContentTrack");
+
+    if (tab === "lodge") {
+        if (btnLodge) btnLodge.classList.add("active");
+        if (btnTrack) btnTrack.classList.remove("active");
+        if (contentLodge) contentLodge.style.display = "block";
+        if (contentTrack) contentTrack.style.display = "none";
+    } else {
+        if (btnTrack) btnTrack.classList.add("active");
+        if (btnLodge) btnLodge.classList.remove("active");
+        if (contentTrack) contentTrack.style.display = "block";
+        if (contentLodge) contentLodge.style.display = "none";
+        loadMyGrievances();
+    }
+}
+
+function handleDeptChange() {
+    const dept = document.getElementById("grievanceDept").value;
+    const catSelect = document.getElementById("grievanceCategory");
+    if (!catSelect) return;
+
+    const categoryMap = {
+        waste: [
+            { val: "Garbage Overflow", label: "Garbage Bin Overflow" },
+            { val: "Illegal Dumping", label: "Illegal Roadside Dumping" },
+            { val: "Missed Collection", label: "Missed Daily Collection" },
+            { val: "Hazardous Waste", label: "Hazardous Waste Spillage" }
+        ],
+        traffic: [
+            { val: "Signal Failure", label: "Traffic Signal Failure / Red Lock" },
+            { val: "Severe Congestion", label: "Gridlock & Jam Hotspot" },
+            { val: "Illegal Parking", label: "Vehicle Blocking Thoroughfare" },
+            { val: "Pothole Road Hazard", label: "Major Road Crater / Pothole" }
+        ],
+        water: [
+            { val: "Main Pipeline Burst", label: "High Pressure Pipeline Leak" },
+            { val: "Contaminated Supply", label: "Discolored / Turbid Water" },
+            { val: "Low Pressure", label: "Zero Water Pressure" },
+            { val: "Sewage Overflow", label: "Stormwater Drainage Clogging" }
+        ],
+        street_lights: [
+            { val: "Complete Blackout", label: "Entire Street Light Circuit Off" },
+            { val: "Single Lamp Out", label: "Individual Pole Lamp Fault" },
+            { val: "Daytime On", label: "Energy Waste / Lights On in Daylight" },
+            { val: "Flickering / Damaged", label: "Damaged Cable / Flickering Pole" }
+        ],
+        healthcare: [
+            { val: "ICU Bed Emergency", label: "Urgent ICU / Ventilator Search" },
+            { val: "Ambulance Delay", label: "Delayed Ambulance Dispatch" },
+            { val: "Medicine Shortage", label: "Hospital Pharmacy Stock Out" },
+            { val: "Sanitation Hazard", label: "Medical Facility Sanitation" }
+        ],
+        emergency: [
+            { val: "Structural Collapse", label: "Building / Wall Collapse Risk" },
+            { val: "Fire Hazard", label: "Electrical Spark / Open Flame" },
+            { val: "Flood Waterlogging", label: "Submerged Roadway Hazard" },
+            { val: "Public Safety Risk", label: "Urgent Police Intervention" }
+        ]
+    };
+
+    const options = categoryMap[dept] || categoryMap.waste;
+    catSelect.innerHTML = options.map(o => `<option value="${escapeHTML(o.val)}">${escapeHTML(o.label)}</option>`).join("");
+}
+
+function fillCurrentLocationForGrievance() {
+    const locInput = document.getElementById("grievanceLocation");
+    if (!locInput) return;
+
+    if (userLocation && userLocation.lat) {
+        locInput.value = `Near ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)} (GPS Verified)`;
         return;
     }
 
+    if (navigator.geolocation) {
+        locInput.value = "Locating via GPS...";
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                locInput.value = `Near ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (GPS Verified)`;
+            },
+            () => {
+                locInput.value = "Golghar, Gorakhpur (Near Town Hall)";
+            },
+            { timeout: 5000 }
+        );
+    } else {
+        locInput.value = "Golghar, Gorakhpur (Near Town Hall)";
+    }
+}
 
-    fetch(
-        `${BACKEND_URL}/api/patients/${encodeURIComponent(patientId)}`
-    )
+async function handleGrievanceSubmit(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById("grievanceSubmitBtn");
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "⏳ Calculating SLA & Routing...";
+    }
 
-    .then(response => response.json())
+    const payload = {
+        department: document.getElementById("grievanceDept").value,
+        category: document.getElementById("grievanceCategory").value,
+        priority: document.getElementById("grievancePriority").value,
+        location: document.getElementById("grievanceLocation").value,
+        citizen_name: document.getElementById("grievanceName").value,
+        citizen_phone: document.getElementById("grievancePhone").value,
+        description: document.getElementById("grievanceDesc").value
+    };
 
-    .then(data => {
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        console.log("Patient Data:", data);
+        const res = await fetch(`${BACKEND_URL}/api/requests`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload)
+        });
 
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to create service request");
 
-        if (!data.patient) {
+        // Show Simulated SMS / WhatsApp Dispatch Alert
+        showSimulatedDispatchAlert({
+            tracking_id: data.data ? data.data.tracking_id : `REQ-${Date.now().toString().slice(-6)}`,
+            department: payload.department,
+            priority: payload.priority,
+            phone: payload.citizen_phone,
+            sla_hours: payload.priority === "CRITICAL" ? 2 : (payload.priority === "HIGH" ? 6 : (payload.priority === "MEDIUM" ? 24 : 48))
+        });
 
-            alert(
-                data.message || "Patient not found."
-            );
+        // Reset form
+        document.getElementById("scGrievanceForm").reset();
 
+        // Switch to Track tab and view
+        switchGrievanceTab("track");
+        const searchInput = document.getElementById("grievanceSearchInput");
+        if (searchInput && data.data && data.data.tracking_id) {
+            searchInput.value = data.data.tracking_id;
+        }
+        loadMyGrievances();
+
+    } catch (err) {
+        alert("⚠️ " + (err.message || "Could not submit grievance. Please try again."));
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "🚀 Submit Grievance with Instant SLA";
+        }
+    }
+}
+
+async function loadMyGrievances() {
+    const container = document.getElementById("grievanceListContainer");
+    if (!container) return;
+
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#38bdf8;">🔄 Fetching active grievances & live SLA clocks...</div>`;
+
+    const searchInput = document.getElementById("grievanceSearchInput");
+    const query = searchInput ? searchInput.value.trim() : "";
+
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const url = query 
+            ? `${BACKEND_URL}/api/requests?search=${encodeURIComponent(query)}&limit=15` 
+            : `${BACKEND_URL}/api/requests?limit=15`;
+
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const data = await res.json();
+        const list = data.data || [];
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:36px 20px; color:#94a3b8;">
+                    <div style="font-size:32px; margin-bottom:8px;">📭</div>
+                    <div style="font-weight:600; color:#e2e8f0; margin-bottom:4px;">No Grievances Found</div>
+                    <p style="font-size:12px; margin:0;">No complaints match your search query. Submit a new grievance using the tab above!</p>
+                </div>
+            `;
             return;
         }
 
+        container.innerHTML = list.map(req => renderGrievanceCard(req)).join("");
+        updateAllSlaClocks();
 
-        const patient = data.patient;
+    } catch (err) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#f87171;">⚠️ Failed to load grievances. Please ensure backend is running.</div>`;
+    }
+}
 
+function renderGrievanceCard(req) {
+    const deptEmojis = {
+        waste: "🗑️", traffic: "🚦", water: "💧",
+        street_lights: "💡", healthcare: "🏥", emergency: "🚨"
+    };
+    const emoji = deptEmojis[req.department] || "📋";
 
-        // Hide empty message
-        document.getElementById(
-            "patientFileEmpty"
-        ).style.display = "none";
+    const statusColors = {
+        OPEN: "#38bdf8",
+        ASSIGNED: "#f59e0b",
+        IN_PROGRESS: "#3b82f6",
+        RESOLVED: "#10b981",
+        CLOSED: "#64748b",
+        ESCALATED: "#ef4444"
+    };
+    const statusCol = statusColors[req.status] || "#94a3b8";
 
+    const targetTime = req.sla_target ? new Date(req.sla_target).getTime() : (new Date(req.created_at).getTime() + 24 * 3600 * 1000);
+    const isResolved = req.status === "RESOLVED" || req.status === "CLOSED";
 
-        // Show patient data
-        document.getElementById(
-            "patientFileData"
-        ).style.display = "block";
+    return `
+        <div class="sc-sla-card" id="reqCard-${req.id}">
+            <div class="sc-sla-card-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px;">${emoji}</span>
+                    <div>
+                        <div style="font-weight:700; color:#f8fafc; font-size:14px;">
+                            ${escapeHTML(req.category || req.department)}
+                            <span style="font-size:11px; font-weight:600; color:#94a3b8; margin-left:6px;">#${escapeHTML(req.tracking_id || 'ID-' + req.id)}</span>
+                        </div>
+                        <div style="font-size:11px; color:#94a3b8;">📍 ${escapeHTML(req.location || 'Gorakhpur')}</div>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                    <span style="padding:2px 8px; border-radius:4px; font-size:10px; font-weight:800; background:rgba(255,255,255,0.08); color:${statusCol}; border:1px solid ${statusCol}40;">
+                        ${req.status}
+                    </span>
+                    <span style="font-size:10px; color:#94a3b8; font-weight:600;">Priority: ${req.priority || 'MEDIUM'}</span>
+                </div>
+            </div>
 
+            <!-- SLA Live Countdown Banner -->
+            ${!isResolved ? `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0 4px 0;">
+                    <span style="font-size:11px; color:#94a3b8; font-weight:600;">⏱️ SLA Resolution Clock:</span>
+                    <span class="sc-sla-timer-pill normal" data-sla-target="${targetTime}" id="slaPill-${req.id}">
+                        Calculating...
+                    </span>
+                </div>
+                <div class="sc-sla-progress-track">
+                    <div class="sc-sla-progress-fill" id="slaBar-${req.id}" style="width: 70%;"></div>
+                </div>
+            ` : `
+                <div style="padding:6px 10px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:6px; margin:8px 0; font-size:12px; color:#34d399; display:flex; align-items:center; justify-content:space-between;">
+                    <span>✅ Resolved by Municipal Staff</span>
+                    <span style="font-size:10px; color:#94a3b8;">${new Date(req.resolved_at || req.updated_at).toLocaleDateString()}</span>
+                </div>
+            `}
 
-        // Patient information
+            <div style="font-size:12px; color:#cbd5e1; line-height:1.4; margin-bottom:8px; background:rgba(0,0,0,0.2); padding:8px 10px; border-radius:6px;">
+                ${escapeHTML(req.description || 'No additional details provided.')}
+            </div>
 
-        document.getElementById(
-            "filePatientName"
-        ).textContent =
-            patient.name || "Unknown";
+            <!-- Staff Assignment & 5-Star Feedback Section -->
+            <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; margin-top:6px; font-size:11px;">
+                <div style="color:#94a3b8;">
+                    ${req.assigned_staff_name ? `👷 Assigned: <b style="color:#e2e8f0;">${escapeHTML(req.assigned_staff_name)}</b>` : `👷 Field Dispatch: <span style="color:#f59e0b;">Auto-Routing</span>`}
+                </div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="color:#94a3b8;">Rate Service:</span>
+                    <div class="sc-rating-stars" data-req-id="${req.id}">
+                        <span class="sc-star" onclick="rateGrievance(${req.id}, 1)">★</span>
+                        <span class="sc-star" onclick="rateGrievance(${req.id}, 2)">★</span>
+                        <span class="sc-star" onclick="rateGrievance(${req.id}, 3)">★</span>
+                        <span class="sc-star" onclick="rateGrievance(${req.id}, 4)">★</span>
+                        <span class="sc-star" onclick="rateGrievance(${req.id}, 5)">★</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
+function startSlaTickTimer() {
+    if (slaTickInterval) return;
+    slaTickInterval = setInterval(updateAllSlaClocks, 1000);
+}
 
-        document.getElementById(
-            "filePatientId"
-        ).textContent =
-            patient.patient_id || patientId;
+function updateAllSlaClocks() {
+    const pills = document.querySelectorAll("[data-sla-target]");
+    const now = Date.now();
 
+    pills.forEach(pill => {
+        const target = Number(pill.getAttribute("data-sla-target"));
+        if (!target) return;
 
-        document.getElementById(
-            "filePatientIdValue"
-        ).textContent =
-            patient.patient_id || patientId;
+        const diff = target - now;
+        const id = pill.id.replace("slaPill-", "");
+        const bar = document.getElementById(`slaBar-${id}`);
 
-
-        document.getElementById(
-            "filePatientNameValue"
-        ).textContent =
-            patient.name || "N/A";
-
-
-        document.getElementById(
-            "filePatientDOB"
-        ).textContent =
-            patient.dob || patient.date_of_birth || "N/A";
-
-
-        document.getElementById(
-            "filePatientGender"
-        ).textContent =
-            patient.gender || "N/A";
-
-
-        document.getElementById(
-            "filePatientPhone"
-        ).textContent =
-            patient.mobile ||
-            patient.phone ||
-            "N/A";
-
-
-        // Generate QR
-
-        const qrBox =
-            document.getElementById("fileQRCode");
-
-
-        qrBox.innerHTML = "";
-
-
-        if (
-            typeof QRCode !== "undefined"
-        ) {
-
-            new QRCode(
-                qrBox,
-                {
-                    text: patient.patient_id || patientId,
-
-                    width: 180,
-
-                    height: 180,
-
-                    correctLevel:
-                        QRCode.CorrectLevel.H
-                }
-            );
-
+        if (diff <= 0) {
+            pill.className = "sc-sla-timer-pill breached";
+            pill.textContent = "⚠️ SLA BREACHED";
+            if (bar) {
+                bar.style.width = "100%";
+                bar.style.background = "#ef4444";
+            }
         } else {
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-            qrBox.innerHTML =
-                "<p>QR library not loaded.</p>";
+            if (hours < 1) {
+                pill.className = "sc-sla-timer-pill warning";
+            } else {
+                pill.className = "sc-sla-timer-pill normal";
+            }
+            pill.textContent = `⏳ ${hours}h ${minutes}m ${seconds}s`;
 
+            if (bar) {
+                const totalWindow = 24 * 3600 * 1000;
+                const pct = Math.max(5, Math.min(100, (diff / totalWindow) * 100));
+                bar.style.width = `${pct}%`;
+                bar.style.background = hours < 2 ? "#f59e0b" : "linear-gradient(90deg, #10b981, #3b82f6)";
+            }
+        }
+    });
+}
+
+async function rateGrievance(requestId, rating) {
+    const starContainer = document.querySelector(`.sc-rating-stars[data-req-id="${requestId}"]`);
+    if (starContainer) {
+        const stars = starContainer.querySelectorAll(".sc-star");
+        stars.forEach((s, idx) => {
+            if (idx < rating) s.classList.add("active");
+            else s.classList.remove("active");
+        });
+    }
+
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        await fetch(`${BACKEND_URL}/api/requests/${requestId}/feedback`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+                rating: rating,
+                comments: `Citizen rated ${rating} Stars via Grievance Portal`
+            })
+        });
+
+        alert(`⭐ Thank you! Your ${rating}-star feedback has been registered.`);
+    } catch (e) {
+        console.warn("Feedback submit error:", e);
+    }
+}
+
+// --------------------------------------------------------------------------
+// 3. EXECUTIVE SMART CITY COMMAND CENTER (ICCC)
+// --------------------------------------------------------------------------
+
+function openCommandCenterModal() {
+    const modal = document.getElementById("scCommandCenterModal");
+    if (!modal) return;
+    modal.classList.add("active");
+    fetchCommandCenterData();
+}
+
+function closeCommandCenterModal() {
+    const modal = document.getElementById("scCommandCenterModal");
+    if (modal) modal.classList.remove("active");
+}
+
+async function fetchCommandCenterData() {
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(`${BACKEND_URL}/api/admin/command-center`, { headers });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+
+        // Update KPI tiles
+        const elActive = document.getElementById("ccMetricActiveReqs");
+        const elCrit = document.getElementById("ccMetricCritical");
+        const elBreach = document.getElementById("ccMetricBreached");
+        const elLights = document.getElementById("ccMetricLights");
+        const elAQI = document.getElementById("ccMetricAQI");
+        const elAQIStatus = document.getElementById("ccMetricAQIStatus");
+        const elICU = document.getElementById("ccMetricICUBeds");
+
+        if (elActive) elActive.textContent = data.activeRequestsCount ?? "12";
+        if (elCrit) elCrit.textContent = data.criticalRequestsCount ?? "2";
+        if (elBreach) elBreach.textContent = data.slaBreachedCount ?? "0";
+        if (elLights) elLights.textContent = `${data.streetLightsUptimePct ?? 98}%`;
+        
+        const aqi = data.averageAQI ?? 124;
+        if (elAQI) elAQI.textContent = aqi;
+        if (elAQIStatus) {
+            elAQIStatus.textContent = aqi > 200 ? "Poor / Unhealthy" : (aqi > 100 ? "Moderate" : "Good");
+            elAQIStatus.style.color = aqi > 200 ? "#f87171" : (aqi > 100 ? "#fbbf24" : "#34d399");
         }
 
-    })
+        if (elICU) elICU.textContent = `${data.availableICUBeds ?? 28} Free`;
 
-    .catch(error => {
+        // Update Anomaly Stream
+        const anomalyContainer = document.getElementById("ccAnomalyList");
+        if (anomalyContainer) {
+            const anomalies = data.aiAnomalies || [
+                { type: "TRAFFIC", message: "Asuran Chowk: Signal cycle delay detected (+14m queue)", severity: "HIGH" },
+                { type: "ENVIRONMENT", message: "Golghar Commercial: PM2.5 surge (112 µg/m³)", severity: "MEDIUM" },
+                { type: "WASTE", message: "Medical College Ward 4: Bin #22 fill-level reached 94%", severity: "HIGH" }
+            ];
 
-        console.error(
-            "Patient File Error:",
-            error
-        );
+            anomalyContainer.innerHTML = anomalies.map(a => `
+                <div class="sc-feed-item">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                        <b style="color:${a.severity === 'HIGH' ? '#f87171' : '#fbbf24'}; font-size:11px;">⚠️ ${escapeHTML(a.type || 'ANOMALY')}</b>
+                        <span style="font-size:10px; color:#94a3b8;">${a.severity || 'ALERT'}</span>
+                    </div>
+                    <div style="color:#e2e8f0;">${escapeHTML(a.message || a.description || '')}</div>
+                </div>
+            `).join("");
+        }
 
-        alert(
-            "Backend connection failed."
-        );
+        // Update SLA Escalation Queue
+        const escContainer = document.getElementById("ccEscalationList");
+        if (escContainer) {
+            const escalations = data.urgentGrievances || [
+                { id: "REQ-9021", dept: "waste", category: "Hospital Biohazard Overflow", sla_hours: 2, status: "CRITICAL" },
+                { id: "REQ-8843", dept: "traffic", category: "Mohaddipur Red Light Failure", sla_hours: 4, status: "HIGH" },
+                { id: "REQ-7612", dept: "water", category: "Town Hall Pipeline Burst", sla_hours: 6, status: "HIGH" }
+            ];
 
-    });
+            escContainer.innerHTML = escalations.map(e => `
+                <div class="sc-feed-item">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                        <b style="color:#38bdf8; font-size:11px;">#${escapeHTML(e.tracking_id || e.id)} • ${escapeHTML(e.category || e.dept)}</b>
+                        <span style="font-size:10px; font-weight:700; color:${e.status === 'CRITICAL' ? '#f87171' : '#fbbf24'}">${e.status}</span>
+                    </div>
+                    <div style="color:#94a3b8; font-size:11px;">Department: ${escapeHTML(e.dept || e.department)} | Window: ${e.sla_hours || 6}h SLA</div>
+                </div>
+            `).join("");
+        }
 
+    } catch (err) {
+        console.warn("Command center data fetch fallback:", err);
+    }
 }
+
+// --------------------------------------------------------------------------
+// 4. SIMULATED SMS / WHATSAPP DISPATCH ALERT PREVIEWS
+// --------------------------------------------------------------------------
+
+function showSimulatedDispatchAlert(ticket) {
+    const existing = document.getElementById("scDispatchToast");
+    if (existing) existing.remove();
+
+    const toast = document.createElement("div");
+    toast.id = "scDispatchToast";
+    toast.className = "sc-dispatch-toast";
+    toast.innerHTML = `
+        <div style="font-size:24px;">📱</div>
+        <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <b style="color:#10b981; font-size:12px;">SmartCity UP SMS Dispatch</b>
+                <span style="font-size:10px; color:#94a3b8;">Just Now</span>
+            </div>
+            <div style="font-size:12px; line-height:1.4; color:#e2e8f0;">
+                Dear Citizen, your complaint <b>#${escapeHTML(ticket.tracking_id)}</b> has been registered. 
+                Field response SLA target: <b>${ticket.sla_hours} Hours</b>.
+            </div>
+            <div style="font-size:10px; color:#94a3b8; margin-top:4px;">
+                Sent to: +91-${escapeHTML(ticket.phone.slice(-10))} • Verified Municipal Broadcast
+            </div>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:14px; padding:0;">✕</button>
+    `;
+
+    document.body.appendChild(toast);
+
+    if (typeof SmartCityRealtime !== "undefined" && SmartCityRealtime.playAlertSound) {
+        SmartCityRealtime.playAlertSound("chime");
+    }
+
+    setTimeout(() => {
+        if (toast && toast.parentElement) toast.remove();
+    }, 7000);
+}
+
+// --------------------------------------------------------------------------
+// 5. GLOBAL EXPORTS
+// --------------------------------------------------------------------------
+
+window.openGrievanceModal = openGrievanceModal;
+window.closeGrievanceModal = closeGrievanceModal;
+window.switchGrievanceTab = switchGrievanceTab;
+window.handleDeptChange = handleDeptChange;
+window.fillCurrentLocationForGrievance = fillCurrentLocationForGrievance;
+window.handleGrievanceSubmit = handleGrievanceSubmit;
+window.loadMyGrievances = loadMyGrievances;
+window.rateGrievance = rateGrievance;
+window.openCommandCenterModal = openCommandCenterModal;
+window.closeCommandCenterModal = closeCommandCenterModal;
+window.fetchCommandCenterData = fetchCommandCenterData;
+window.showSimulatedDispatchAlert = showSimulatedDispatchAlert;
+window.initVoiceAssistant = initVoiceAssistant;
+window.speakAIText = speakAIText;

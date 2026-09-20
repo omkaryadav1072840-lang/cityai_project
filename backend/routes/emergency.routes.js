@@ -31,8 +31,8 @@ db.query(createIncidentsTableSQL, (err) => {
 // EMERGENCY DEPARTMENTS
 // =========================================================
 
-// GET EMERGENCY INFORMATION
-router.get("/api/emergency-departments", (req, res) => {
+// GET EMERGENCY INFORMATION (Supports both hyphen and slash format)
+router.get(["/api/emergency-departments", "/api/emergency/departments"], (req, res) => {
     const sql = `
         SELECT
             id,
@@ -283,8 +283,16 @@ router.post("/api/emergency/sos", (req, res) => {
             callerMobile || null
         ],
         (err, result) => {
+            if (err) {
+                console.error("Critical SOS database error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Failed to persist SOS incident into emergency database."
+                });
+            }
+
             const sosPayload = {
-                id: result ? result.insertId : Date.now(),
+                id: result.insertId,
                 incidentCode,
                 type: type || "CRITICAL SOS",
                 location: address || `Coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`,

@@ -3665,3 +3665,425 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* =====================================================
+   PATIENT REGISTRATION & SMART HEALTH CARD STYLES
+===================================================== */
+
+.patient-reg-modal-box {
+    max-width: 680px !important;
+    width: 95% !important;
+}
+
+.patient-reg-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+}
+
+.required-star {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.patient-reg-form label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.patient-reg-form input,
+.patient-reg-form select,
+.patient-reg-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.patient-reg-form input:focus,
+.patient-reg-form select:focus,
+.patient-reg-form textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* =====================================================
+   OFFICIAL PATIENT SMART ID CARD (PRINTABLE)
+===================================================== */
+
+.patient-id-card-modal-box {
+    max-width: 720px !important;
+    width: 95% !important;
+}
+
+.printable-card-wrapper {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.patient-smart-card {
+    width: 100%;
+    max-width: 640px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 60%, #eff6ff 100%);
+    border: 2px solid #2563eb;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.12);
+    overflow: hidden;
+    position: relative;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: #0f172a;
+}
+
+.smart-card-header {
+    background: linear-gradient(90deg, #1e40af 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-emblem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-emblem .emblem-icon {
+    font-size: 26px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.header-emblem h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.header-emblem p {
+    margin: 2px 0 0;
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+.smart-card-chip {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+}
+
+.smart-card-body {
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 1fr 180px;
+    gap: 18px;
+    align-items: center;
+}
+
+.card-avatar-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.card-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #e0f2fe;
+    color: #0369a1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 1px solid #bae6fd;
+}
+
+.card-id-pill {
+    background: #1e293b;
+    color: #38bdf8;
+    font-family: ui-monospace, monospace;
+    font-size: 15px;
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    display: inline-block;
+}
+
+.card-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+}
+
+.card-field.span-2 {
+    grid-column: span 2;
+}
+
+.card-field .lbl {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-field .val {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 2px;
+}
+
+.smart-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+}
+
+.qr-frame {
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.print-qr-target img,
+.print-qr-target canvas {
+    display: block;
+    margin: 0 auto;
+}
+
+.qr-caption {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    color: #475569;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+}
+
+.card-sec-seal {
+    font-size: 9px;
+    font-weight: 800;
+    color: #16a34a;
+    background: #f0fdf4;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #bbf7d0;
+}
+
+.card-sec-seal small {
+    display: block;
+    font-size: 8px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.smart-card-footer {
+    background: #f1f5f9;
+    padding: 8px 16px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #64748b;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+}
+
+.print-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+/* =====================================================
+   ABHA BADGES & NOTICES
+===================================================== */
+
+.abha-badge-linked {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.abha-badge-not-linked {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.abdm-notice-banner {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #0369a1;
+    margin-top: 12px;
+}
+
+.abdm-notice-banner strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.abdm-notice-banner p {
+    margin: 0;
+    line-height: 1.5;
+    color: #0c4a6e;
+}
+
+/* =====================================================
+   STAFF DIRECTORY TABLE
+===================================================== */
+
+.staff-patient-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+
+.staff-patient-table th {
+    background: #f8fafc;
+    padding: 10px 12px;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 2px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.staff-patient-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.staff-patient-table tr:hover td {
+    background: #f8fafc;
+}
+
+.status-pill-active {
+    background: #dcfce7;
+    color: #166534;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.status-pill-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* =====================================================
+   PRINT MEDIA RULES
+===================================================== */
+
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #printablePatientCardWrapper,
+    #printablePatientCardWrapper * {
+        visibility: visible !important;
+    }
+    #printablePatientCardWrapper {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .form-row-2,
+    .form-row-3 {
+        grid-template-columns: 1fr;
+    }
+    .smart-card-body {
+        grid-template-columns: 1fr;
+    }
+    .staff-patient-filters {
+        grid-template-columns: 1fr !important;
+    }
+}

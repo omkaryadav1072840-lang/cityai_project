@@ -16,6 +16,10 @@ let emergencyMarkers = [];
 
 let currentFilter = "all";
 
+const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+    ? window.API_BASE_URL
+    : (typeof window !== "undefined" && (window.location.port === "5000" || window.location.protocol === "file:") ? "http://localhost:5000" : "");
+
 
 /* =====================================================
    INITIALIZE
@@ -532,7 +536,7 @@ function submitEmergency() {
     );
 
     // Broadcast incident to live backend & socket network
-    fetch("http://localhost:5000/api/emergency/incidents", {
+    fetch(`${API_BASE}/api/emergency/incidents`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -670,32 +674,45 @@ function addEmergencyToUI(
 
 
 /* =====================================================
-   LOAD SAVED EMERGENCIES
+   LOAD SAVED EMERGENCIES (FROM BACKEND MYSQL DATABASE)
 ===================================================== */
 
-function loadSavedEmergencies() {
-
-    const emergencies =
-        JSON.parse(
-            localStorage.getItem(
-                "smartCityEmergencies"
-            )
-        ) || [];
-
-
-    emergencies.forEach(
-        emergency => {
-
-            addEmergencyToUI(
-                emergency
-            );
-
+async function loadSavedEmergencies() {
+    let emergencies = [];
+    try {
+        const res = await fetch(`${API_BASE}/api/emergency/incidents`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.incidents)) {
+                emergencies = data.incidents.map(inc => ({
+                    id: inc.incident_code || inc.id,
+                    type: inc.type,
+                    location: inc.location,
+                    description: inc.description,
+                    status: inc.status,
+                    priority: inc.priority || "HIGH",
+                    callerName: inc.caller_name || "Citizen",
+                    createdAt: inc.created_at ? new Date(inc.created_at).toLocaleString() : new Date().toLocaleString()
+                }));
+                localStorage.setItem("smartCityEmergencies", JSON.stringify(emergencies));
+            }
         }
-    );
+    } catch (err) {
+        console.warn("Backend emergency incidents fetch error:", err);
+    }
 
+    if (!emergencies.length) {
+        emergencies = JSON.parse(localStorage.getItem("smartCityEmergencies")) || [];
+    }
+
+    const listEl = document.getElementById("emergencyList");
+    if (listEl) listEl.innerHTML = "";
+
+    emergencies.forEach(emergency => {
+        addEmergencyToUI(emergency);
+    });
 
     updateActiveCount();
-
 }
 
 
@@ -704,31 +721,16 @@ function loadSavedEmergencies() {
 ===================================================== */
 
 function updateActiveCount() {
-
-    const emergencies =
-        JSON.parse(
-            localStorage.getItem(
-                "smartCityEmergencies"
-            )
-        ) || [];
-
-
-    const count =
-        emergencies.filter(
-            item =>
-                item.status === "ACTIVE"
-        ).length;
-
-
-    const defaultCount =
-        2;
-
-
-    document.getElementById(
-        "activeCount"
-    ).textContent =
-        defaultCount + count;
-
+    try {
+        const incidents = getEmergencyIncidents();
+        const active = incidents.filter(i => (i.status || "").toUpperCase() === "ACTIVE").length;
+        const element = document.getElementById("activeCount");
+        if (element) {
+            element.textContent = active;
+        }
+    } catch (e) {
+        console.warn("Error updating active count:", e);
+    }
 }
 
 
@@ -739,7 +741,7 @@ function updateActiveCount() {
 async function fetchLiveEmergencyData() {
     // 1. Ambulances
     try {
-        const res = await fetch("http://localhost:5000/api/ambulances");
+        const res = await fetch(`${API_BASE}/api/ambulances`);
         if (res.ok) {
             const json = await res.json();
             const ambulances = json.ambulances || [];
@@ -770,7 +772,7 @@ async function fetchLiveEmergencyData() {
 
     // 2. Emergency Departments
     try {
-        const res = await fetch("http://localhost:5000/api/emergency-departments");
+        const res = await fetch(`${API_BASE}/api/emergency-departments`);
         if (res.ok) {
             const json = await res.json();
             const depts = json.emergencyDepartments || [];
@@ -851,7 +853,7 @@ function initEmergencyRealtime() {
         if (!amb) return;
         const ambCountEl = document.getElementById("ambulanceCount");
         if (ambCountEl) {
-            fetch("http://localhost:5000/api/ambulances")
+            fetch(`${API_BASE}/api/ambulances`)
                 .then(r => r.json())
                 .then(d => {
                     const active = (d.ambulances || []).filter(a => (a.status || "").toLowerCase() !== "offline");
@@ -909,33 +911,29 @@ function checkStaffPermission() {
     const closeBtn =
         document.getElementById("closeIncidentBtn");
 
-    // Default: disabled
-    updateBtn.disabled = true;
-    dispatchBtn.disabled = true;
-    closeBtn.disabled = true;
+    // Default: disabled if elements exist
+    if (updateBtn) updateBtn.disabled = true;
+    if (dispatchBtn) dispatchBtn.disabled = true;
+    if (closeBtn) closeBtn.disabled = true;
 
     const session =
         localStorage.getItem("smartCityCurrentUser");
 
     if (!session) {
-
-        accessText.innerHTML =
-            "❌ You are not logged in.";
-
+        if (accessText) {
+            accessText.innerHTML = "❌ You are not logged in.";
+        }
         return;
     }
 
     let user;
 
     try {
-
         user = JSON.parse(session);
-
     } catch (error) {
-
-        accessText.innerHTML =
-            "❌ Invalid login session.";
-
+        if (accessText) {
+            accessText.innerHTML = "❌ Invalid login session.";
+        }
         return;
     }
 
@@ -961,26 +959,31 @@ function checkStaffPermission() {
         userType === "admin" ||
         (userType === "staff" && (department === "emergency" || !department))
     ) {
+        if (accessText) {
+            accessText.innerHTML = `
+                <span style="color:#16a34a;font-weight:800;">
+                    ✓ Emergency Staff Access
+                </span>
+                <br>
+                <small>
+                    ${user.name || "Staff"} —
+                    You can manage emergency incidents.
+                </small>
+            `;
+        }
 
-        accessText.innerHTML = `
-            <span style="color:#16a34a;font-weight:800;">
-                ✓ Emergency Staff Access
-            </span>
-            <br>
-            <small>
-                ${user.name || "Staff"} —
-                You can manage emergency incidents.
-            </small>
-        `;
-
-
-        updateBtn.disabled = false;
-        dispatchBtn.disabled = false;
-        closeBtn.disabled = false;
-
-        updateBtn.style.opacity = "1";
-        dispatchBtn.style.opacity = "1";
-        closeBtn.style.opacity = "1";
+        if (updateBtn) {
+            updateBtn.disabled = false;
+            updateBtn.style.opacity = "1";
+        }
+        if (dispatchBtn) {
+            dispatchBtn.disabled = false;
+            dispatchBtn.style.opacity = "1";
+        }
+        if (closeBtn) {
+            closeBtn.disabled = false;
+            closeBtn.style.opacity = "1";
+        }
 
         return;
     }
@@ -990,20 +993,20 @@ function checkStaffPermission() {
     */
 
     if (userType === "staff") {
-
-        accessText.innerHTML = `
-            <span style="color:#d97706;font-weight:800;">
-                ⚠ Staff View Access
-            </span>
-            <br>
-            <small>
-                ${user.name || "Staff"} —
-                ${user.department || "Unknown Department"}
-                staff can view emergency information,
-                but cannot edit it.
-            </small>
-        `;
-
+        if (accessText) {
+            accessText.innerHTML = `
+                <span style="color:#d97706;font-weight:800;">
+                    ⚠ Staff View Access
+                </span>
+                <br>
+                <small>
+                    ${user.name || "Staff"} —
+                    ${user.department || "Unknown Department"}
+                    staff can view emergency information,
+                    but cannot edit it.
+                </small>
+            `;
+        }
         return;
     }
 
@@ -1011,16 +1014,18 @@ function checkStaffPermission() {
     Normal user
     */
 
-    accessText.innerHTML = `
-        <span style="color:#2563eb;font-weight:800;">
-            👤 Citizen / User
-        </span>
-        <br>
-        <small>
-            View and report emergencies.
-            Staff controls are unavailable.
-        </small>
-    `;
+    if (accessText) {
+        accessText.innerHTML = `
+            <span style="color:#2563eb;font-weight:800;">
+                👤 Citizen / User
+            </span>
+            <br>
+            <small>
+                View and report emergencies.
+                Staff controls are unavailable.
+            </small>
+        `;
+    }
 }
 /* =====================================================
    STAFF UPDATE
@@ -1100,50 +1105,7 @@ function closeIncident() {
 }
 
 
-/* =====================================================
-   CHECK STAFF
-===================================================== */
 
-function isEmergencyStaff() {
-
-    const session =
-        localStorage.getItem(
-            "smartCityCurrentUser"
-        );
-
-
-    if (!session) {
-
-        return false;
-
-    }
-
-
-    try {
-
-        const user =
-            JSON.parse(
-                session
-            );
-
-
-        return (
-
-            user.type === "staff" &&
-
-            user.department === "emergency"
-
-        );
-
-    }
-
-    catch {
-
-        return false;
-
-    }
-
-}
 
 
 /* =====================================================
@@ -1941,10 +1903,17 @@ function resolveSelectedIncident() {
     }
 
 
-    saveEmergencyIncidents(
-        incidents
-    );
-
+    const incidentCode = incidents[index] ? (incidents[index].id || incidents[index].incidentCode) : selectedId;
+    if (incidentCode) {
+        const token = (window.SmartCityAuth && SmartCityAuth.getToken()) || localStorage.getItem("smartCityJWT") || "";
+        fetch(`${API_BASE}/api/emergency/incidents/${encodeURIComponent(incidentCode)}/resolve`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token ? `Bearer ${token}` : ""
+            }
+        }).catch(err => console.warn("Incident resolve backend sync warning:", err));
+    }
 
     document.getElementById(
         "incidentStatus"
@@ -1964,149 +1933,4 @@ function resolveSelectedIncident() {
 
 }
 
-
-/* =====================================================
-   UPDATE ACTIVE COUNT
-===================================================== */
-
-function updateActiveCount() {
-
-    const incidents =
-        getEmergencyIncidents();
-
-
-    const active =
-        incidents.filter(
-            incident =>
-
-                incident.status !==
-                "RESOLVED"
-
-        ).length;
-
-
-    const count =
-        2 + active;
-
-
-    const element =
-        document.getElementById(
-            "activeCount"
-        );
-
-
-    if (element) {
-
-        element.textContent =
-            count;
-
-    }
-
-}
-
-
-/* =====================================================
-   UPDATE STAFF PERMISSION
-===================================================== */
-
-function checkStaffPermission() {
-
-    const accessText =
-        document.getElementById(
-            "staffAccessText"
-        );
-
-
-    if (!accessText) {
-        return;
-    }
-
-
-    const user =
-        getCurrentEmergencyUser();
-
-
-    if (!user) {
-
-        accessText.innerHTML =
-            "❌ Please login to access staff controls.";
-
-        return;
-
-    }
-
-
-    if (
-        isEmergencyStaff()
-    ) {
-
-        accessText.innerHTML = `
-
-            <span style="
-                color:#16a34a;
-                font-weight:800;
-            ">
-                ✓ Emergency Staff Access
-            </span>
-
-            <br>
-
-            <small>
-                ${user.name || "Staff"}
-                — Full emergency management access.
-            </small>
-
-        `;
-
-        initializeIncidentControl();
-
-    }
-
-    else if (
-        String(user.type)
-            .toLowerCase() === "staff"
-    ) {
-
-        accessText.innerHTML = `
-
-            <span style="
-                color:#d97706;
-                font-weight:800;
-            ">
-                ⚠ Staff View Only
-            </span>
-
-            <br>
-
-            <small>
-                ${user.name || "Staff"}
-                — ${user.department || "Department"}
-                staff cannot edit emergency incidents.
-            </small>
-
-        `;
-
-    }
-
-    else {
-
-        accessText.innerHTML = `
-
-            <span style="
-                color:#2563eb;
-                font-weight:800;
-            ">
-                👤 Citizen / User
-            </span>
-
-            <br>
-
-            <small>
-                You can view and report emergencies.
-            </small>
-
-        `;
-
-    }
-
-}
+

@@ -1,0 +1,2154 @@
+[
+  {
+    "file": "admin.routes.js",
+    "path": "/api/admin/command-center",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "admin.routes.js",
+    "path": "/api/admin/audit-logs",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "admin.routes.js",
+    "path": "/api/admin/users",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "admin.routes.js",
+    "path": "/api/admin/users/:id/role",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "admin.routes.js",
+    "path": "/api/admin/analytics",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ai.routes.js",
+    "path": "/api/ai/status",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ai.routes.js",
+    "path": [
+      "/api/ai/assistant",
+      "/api/ai/chat"
+    ],
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "ai.routes.js",
+    "path": "/api/ai/traffic/predict",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ai.routes.js",
+    "path": "/api/ai/camera/analyze",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "ai.routes.js",
+    "path": "/api/ai/waste/predict",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ai.routes.js",
+    "path": "/api/ai/anomalies",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id/location",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id/assign",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id/reset",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/nearby/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "ambulance.routes.js",
+    "path": "/api/ambulances/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "appointment.routes.js",
+    "path": "/api/appointments/availability",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "appointment.routes.js",
+    "path": "/api/appointments/book-strict",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "appointment.routes.js",
+    "path": "/api/appointments",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "appointment.routes.js",
+    "path": "/api/appointments/:id/cancel",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "appointment.routes.js",
+    "path": "/api/appointments",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "appointment.routes.js",
+    "path": "/api/appointments/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "auth.routes.js",
+    "path": "/api/register",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "auth.routes.js",
+    "path": "/api/login",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "auth.routes.js",
+    "path": "/api/staff-login",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "auth.routes.js",
+    "path": "/api/auth/me",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "city.routes.js",
+    "path": [
+      "/",
+      "/api",
+      "/api/status"
+    ],
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "city.routes.js",
+    "path": "/api/city-status",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/categories",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/categories",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/tests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/hospitals/:hospitalId/tests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/tests/:testId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/tests",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/tests/:testId",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/bookings",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/bookings",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/bookings/:bookingId/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/queue",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/queue/call-next",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/samples",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/samples",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/reports",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/reports/:reportId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/reports/verify/:qrToken",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/home-collections",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "path": "/api/diagnostics/home-collections/:bookingId/assign",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor/login",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctors",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctors",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctors/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctors/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor-slots",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctors/:doctorId/slots",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor-slots",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor-slots/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor/:doctorId/appointments",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor/patient-history/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor/consultation",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/appointments/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "doctor.routes.js",
+    "path": "/api/doctor/order-tests",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": [
+      "/api/emergency-departments",
+      "/api/emergency/departments"
+    ],
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": "/api/emergency-departments",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": "/api/emergency-departments/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": "/api/emergency/incidents",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": "/api/emergency/incidents",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": "/api/emergency/sos",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "emergency.routes.js",
+    "path": "/api/emergency/incidents/:id/resolve",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "environment.routes.js",
+    "path": "/api/environment/aqi",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "environment.routes.js",
+    "path": "/api/environment/stations",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "environment.routes.js",
+    "path": "/api/environment/sensors/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/categories",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:identifier",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/nearby-services",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/nearby-atms",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/nearby-food",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/traffic-analysis",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/reviews",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/reviews",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/issues",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/user/favorites",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/:id/favorite",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/trip-planner",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/famous-places/ai-assistant",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/admin/famous-places/issues",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/admin/famous-places/issues/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/admin/famous-places",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "famous_places.routes.js",
+    "path": "/api/admin/famous-places/:id/reviews/:reviewId",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospital/beds",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospital/beds/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/nearby/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/beds",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/treatments",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/doctors",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/dashboard",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/appointments",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/appointments",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/appointments/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/wards",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/ward-beds",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/ward-beds/assign",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/ward-beds/release",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/invoices",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/invoices",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/staff",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "hospital.routes.js",
+    "path": "/api/hospitals/:hospitalId/notifications",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "map.routes.js",
+    "path": "/api/map/incidents",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "notifications.routes.js",
+    "path": "/api/notifications",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "notifications.routes.js",
+    "path": "/api/notifications/unread-count",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "notifications.routes.js",
+    "path": "/api/notifications/:id/read",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "notifications.routes.js",
+    "path": "/api/notifications/read-all",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/stats",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/users/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/my-bookings",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/:id",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/staff-book",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/:id/book",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/:id/release",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/:id/slots",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/:id/book-slot",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/bookings/:bookingId/cancel",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/verify-qr",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/slots/:slotId/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/gate-action",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/anpr-scan",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/operations/summary",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/staff/overstays",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/emergency-barrier-override",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/admin/pricing",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/lots/:id/pricing",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/admin/anpr-logs",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/resolve-overstay-penalty",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/send-overstay-alert",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/slots/:slotId/staff-override",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "parking.routes.js",
+    "path": "/api/parking/staff/shift-summary",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/qr",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/verify-qr",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/link-abha",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/unlink-abha",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/status",
+    "methods": [
+      "PATCH"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/appointments",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/prescriptions",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/records",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/records",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/reports",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/:patientId/reports",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "patient.routes.js",
+    "path": "/api/patients/search/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/search/:medicine",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/prescriptions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/cart",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/cart/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/cart/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/checkout",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/bills/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/prescriptions/:patientId",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/prescriptions/upload",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "path": "/api/pharmacy/payment",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "police.routes.js",
+    "path": "/api/police/stations",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "police.routes.js",
+    "path": "/api/police/stats",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "police.routes.js",
+    "path": "/api/police/complaint",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "police.routes.js",
+    "path": "/api/police/complaints",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "police.routes.js",
+    "path": "/api/police/complaints/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/requests",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/requests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/requests/:id",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/requests/:id/assign",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/requests/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/staff/my-tasks",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "requests.routes.js",
+    "path": "/api/requests/:id/feedback",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "search.routes.js",
+    "path": "/api/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "street_lights.routes.js",
+    "path": "/api/street-lights",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "street_lights.routes.js",
+    "path": "/api/street-lights/faults",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "street_lights.routes.js",
+    "path": "/api/street-lights",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "street_lights.routes.js",
+    "path": "/api/street-lights/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id/webster-timing",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/signals",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/signals",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/signals/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/signals/:id/location",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/signals/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id/signals",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id/override",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id/cameras",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras/test-connection",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id/cameras",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras/:id/telemetry",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/cameras/:id/traffic-feed",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/junctions/:id/camera-traffic-summary",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/violations/search",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/violations/:id/pay",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/violations",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/violations/:id/evidence",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/violations",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/violations/:id/review",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/movement-rules",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/movement-rules",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/movement-rules/:id/toggle",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/incidents",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/incidents",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/incidents/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/incidents/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/corridors",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/corridors/dispatch",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/corridors/:id/deactivate",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/alternative-routes",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/parking-lots",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/ai-insights",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/ai-recommendation/apply",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/admin/users",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/admin/users",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/admin/audit-logs",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/admin/ai-settings",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/admin/ai-settings",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/analytics/summary",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/analytics/historical",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/waterlogging",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/reports/export-csv",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/vms-boards",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/vms-boards/:id/message",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/commute-alerts/subscribe",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/ambulances/live",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/ambulances/:id/critical-dispatch",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "traffic.routes.js",
+    "path": "/api/traffic/ambulances/:id/clear-critical",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/upload-evidence",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bins",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/reports",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/pickups",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/my-requests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/facilities",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bin-requests",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bin-requests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bin-requests/:requestCode/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/requests",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/requests/:id",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/requests/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/requests/:id/reopen",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/operations/summary",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bins",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bins/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bins/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/bins/:id/fill",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/vehicles",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/vehicles",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/vehicles/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/vehicles/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/workers",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/workers",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/workers/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/workers/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/routes",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/routes",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/routes/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/routes/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/analytics",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/hotspots",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "waste.routes.js",
+    "path": "/api/waste/smart-priority",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/operations/summary",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanks",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanks/:id",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanks",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanks/:id",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanks/:id/pump",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanks/:id",
+    "methods": [
+      "DELETE"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/reports",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/reports",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/reports/:id/assign",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/reports/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanker-bookings",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanker-bookings",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanker-bookings/:id/dispatch",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/tanker-bookings/:id/status",
+    "methods": [
+      "PUT"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/pipelines",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/technicians",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/quality",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/quality",
+    "methods": [
+      "POST"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/schedules",
+    "methods": [
+      "GET"
+    ]
+  },
+  {
+    "file": "water.routes.js",
+    "path": "/api/water/schedules/:id",
+    "methods": [
+      "PUT"
+    ]
+  }
+]

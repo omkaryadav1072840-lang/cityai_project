@@ -58,6 +58,8 @@ function generateToken(user, role = "citizen") {
         mobile: user.mobile || null,
         staffId: user.staffId || user.staff_id || null,
         department: user.department || null,
+        hospitalId: user.hospitalId || user.hospital_id || null,
+        hospitalRole: user.hospitalRole || user.hospital_role || null,
         editable: user.editable || []
     };
 

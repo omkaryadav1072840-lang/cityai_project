@@ -96,7 +96,11 @@ VALUES
 ('Amlodipine 5mg', 'Antihypertensive', 350, 55.00, 'In Stock'),
 ('ORS Oral Rehydration Salt Sachet', 'Electrolyte', 800, 22.00, 'In Stock'),
 ('Vitamin C + Zinc Chewable Tablets', 'Immunity Supplement', 400, 65.00, 'In Stock'),
-('Betadine Ointment 20g', 'Antiseptic', 180, 72.00, 'In Stock');
+('Betadine Ointment 20g', 'Antiseptic', 180, 72.00, 'In Stock')
+ON DUPLICATE KEY UPDATE 
+    `quantity` = VALUES(`quantity`),
+    `price` = VALUES(`price`),
+    `availability` = VALUES(`availability`);
 
 -- 9. SEED DEMO CITIZEN & STAFF (Plain-text passwords will auto-upgrade to scrypt hashes on first login)
 INSERT IGNORE INTO `users` (`name`, `mobile`, `email`, `password`)

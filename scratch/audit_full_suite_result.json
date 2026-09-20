@@ -1,0 +1,148 @@
+{
+  "pages": {
+    "frontend/index.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\script.js"
+      ]
+    },
+    "frontend/pages/hospital/hospital.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\hospital\\hospital.js"
+      ]
+    },
+    "frontend/pages/hospital/doctor_dashboard.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\hospital\\doctor_dashboard.js"
+      ]
+    },
+    "frontend/pages/hospital/hospital_dashboard.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\pages\\hospital\\hospital_dashboard.js"
+      ]
+    },
+    "frontend/pages/traffic/traffic.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\pages\\traffic\\openlayers_map.js",
+        "frontend\\pages\\traffic\\traffic_ai_vision.js",
+        "frontend\\pages\\traffic\\traffic.js"
+      ]
+    },
+    "frontend/pages/parking/parking.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\parking\\parking.js"
+      ]
+    },
+    "frontend/pages/police/police.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\police\\police.js"
+      ]
+    },
+    "frontend/pages/waste/waste.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\waste\\waste.js"
+      ]
+    },
+    "frontend/pages/water/water.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\water\\water.js"
+      ]
+    },
+    "frontend/pages/emergency/emergency.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\emergency\\emergency.js"
+      ]
+    },
+    "frontend/pages/famous/famous.html": {
+      "missingScripts": [],
+      "missingStyles": [],
+      "deadLinks": [],
+      "duplicateIds": [],
+      "missingHandlers": [],
+      "scriptFiles": [
+        "frontend\\auth.js",
+        "frontend\\realtime.js",
+        "frontend\\pages\\famous\\famous.js"
+      ]
+    }
+  },
+  "summary": {
+    "totalHtmlPages": 12,
+    "criticalBugs": [],
+    "mediumBugs": [],
+    "deadLinks": [],
+    "duplicateFiles": [],
+    "duplicateFunctions": [],
+    "duplicateIds": [],
+    "missingAssets": [],
+    "missingFunctions": [],
+    "backendRouteMismatches": []
+  }
+}

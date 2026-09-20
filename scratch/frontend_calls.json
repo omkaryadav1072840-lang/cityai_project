@@ -1,0 +1,882 @@
+[
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/hospitals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/police/stations",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/parking",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-atms",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-food",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${place.id}/nearby-atms",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${place.id}/nearby-food",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/traffic-analysis",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/categories",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/user/favorites",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${id}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/parking",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/reviews",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/favorite",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/user/favorites",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/trip-planner",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/${placeId}/reviews",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/famous-places/ai-assistant",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/admin/famous-places/issues",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famose.js",
+    "rawUrl": "/api/admin/famous-places/issues/${issueId}",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/hospitals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/police/stations",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/parking",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-atms",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-food",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${place.id}/nearby-atms",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${place.id}/nearby-food",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/traffic-analysis",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/categories",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/user/favorites",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${id}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/parking",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/reviews",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/nearby-services",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/favorite",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/user/favorites",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/trip-planner",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/${placeId}/reviews",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/famous-places/ai-assistant",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/admin/famous-places/issues",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\famous\\famous.js",
+    "rawUrl": "/api/admin/famous-places/issues/${issueId}",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/${hospitalId}/doctors",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/appointments/book-strict",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/doctors",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/treatments",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/${encodeURIComponent(hospital.hospital_id)}/beds",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/diagnostics/tests?hospital_id=${encodeURIComponent(hospital.hospital_id)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/diagnostics/bookings",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/doctors",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/doctors/${encodeURIComponent(businessId)}/slots",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/appointments",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/doctors",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/appointments/${encodeURIComponent(patientId)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/appointments/${encodeURIComponent(appointmentId)}/cancel",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/ambulances",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/nearby/search?lat=${lat}&lng=${lng}&limit=5",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/ambulances/nearby/search?lat=${lat}&lng=${lng}&limit=5",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/ambulances/${emergencySelectedAmbulanceId}/assign",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/${hospitalId}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/ambulances/${ambulanceId}/status",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/ambulances/${ambulanceId}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/ambulances/${ambulanceId}/reset",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/hospitals/${encodeURIComponent(hospitalId)}/beds",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patientId)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patientId)}/link-abha",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patientId)}/unlink-abha",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/verify-qr",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients?${params.toString()}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patientId)}/status",
+    "method": "PATCH"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/appointments/${encodeURIComponent(patient.patient_id)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/prescriptions/${encodeURIComponent(patient.patient_id)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/bills/${encodeURIComponent(patient.patient_id)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patient.patient_id)}/records",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patient.patient_id)}/reports",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patientId)}/records",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/patients/${encodeURIComponent(patientId)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/cart",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/cart/${encodeURIComponent(patientId)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/cart/${item.id}",
+    "method": "DELETE"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/cart",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/cart/${encodeURIComponent(cartId)}",
+    "method": "DELETE"
+  },
+  {
+    "file": "frontend\\pages\\hospital\\hospital.js",
+    "rawUrl": "/api/pharmacy/payment",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/staff-login",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/operations/summary",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/staff/overstays",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/resolve-overstay-penalty",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/send-overstay-alert",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/slots/${slotNumber}/staff-override",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/staff/shift-summary",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/emergency-barrier-override",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/admin/pricing",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/lots/${lotId}/pricing",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/lots/${lotId}/pricing",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/admin/anpr-logs",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/${lotId}/slots",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/${activeSlotLotId}/book-slot",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/slots/${slotId}/status",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/gate-action",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/anpr-scan",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/${chosenLot}/slots",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/users/search?q=${encodeURIComponent(q)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/staff-book",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/${code}",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/bookings/${bookingId}/cancel",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\parking\\parking.js",
+    "rawUrl": "/api/parking/verify-qr",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/signals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/parking-lots",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/parking",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/incidents",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/analytics/summary",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/alternative-routes?from=${encodeURIComponent(fromVal)}&to=${encodeURIComponent(toVal)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${jncId}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${selectedJunctionId}/signals",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${selectedJunctionId}/override",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${jncId}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/cameras",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/cameras/test-connection",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/violations",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/violations/${vioId}/review",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/corridors/dispatch",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/corridors/${corrId}/deactivate",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/movement-rules",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/movement-rules/${id}/toggle",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/signals",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/admin/users",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/admin/ai-settings",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/admin/ai-settings",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/admin/audit-logs",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/cameras/test-connection",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/cameras/${camId}",
+    "method": "DELETE"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${id}",
+    "method": "DELETE"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/signals/${sigId}",
+    "method": "DELETE"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/admin/users",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/incidents",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/waterlogging",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/violations/search?plate=${encodeURIComponent(plate)}",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/violations/${currentPayingChallan.id}/pay",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/vms-boards",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/vms-boards/${boardId}/message",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/commute-alerts/subscribe",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${jncId}/webster-timing",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/JNC-01/override",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/JNC-01/override",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/violations/${violationId}/evidence",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/ambulances/live",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/ambulances/${ambId}/critical-dispatch",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/ambulances/${ambId}/clear-critical",
+    "method": "POST"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/signals/${encodeURIComponent(sigId)}/location",
+    "method": "PUT"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/junctions/${jncId}/camera-traffic-summary",
+    "method": "GET"
+  },
+  {
+    "file": "frontend\\pages\\traffic\\traffic.js",
+    "rawUrl": "/api/traffic/cameras/${camId}/traffic-feed",
+    "method": "POST"
+  }
+]

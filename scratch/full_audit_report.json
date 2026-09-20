@@ -1,0 +1,273 @@
+{
+  "pagesAnalyzed": 12,
+  "brokenAssets": [
+    {
+      "page": "frontend\\pages\\traffic\\traffic.html",
+      "type": "script",
+      "src": "/socket.io/socket.io.js",
+      "resolved": "frontend\\socket.io\\socket.io.js"
+    }
+  ],
+  "missingFunctions": [],
+  "missingModalTriggers": [],
+  "backendRouteMismatches": [
+    {
+      "endpoint": "/api/famous-places/PARAM/favorite",
+      "testedUrl": "/api/famous-places/1/favorite",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/famous-places/trip-planner",
+      "testedUrl": "/api/famous-places/trip-planner",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/famous-places/ai-assistant",
+      "testedUrl": "/api/famous-places/ai-assistant",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/admin/famous-places/issues/PARAM",
+      "testedUrl": "/api/admin/famous-places/issues/1",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/appointments/PARAM/cancel",
+      "testedUrl": "/api/appointments/1/cancel",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/ambulances/PARAM/assign",
+      "testedUrl": "/api/ambulances/1/assign",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/hospitals/PARAM",
+      "testedUrl": "/api/hospitals/1",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/ambulances/PARAM/status",
+      "testedUrl": "/api/ambulances/1/status",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/ambulances/PARAM/reset",
+      "testedUrl": "/api/ambulances/1/reset",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/patients/PARAM/link-abha",
+      "testedUrl": "/api/patients/1/link-abha",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/patients/PARAM/unlink-abha",
+      "testedUrl": "/api/patients/1/unlink-abha",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/patients/verify-qr",
+      "testedUrl": "/api/patients/verify-qr",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/patients/PARAM/status",
+      "testedUrl": "/api/patients/1/status",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/pharmacy/cart",
+      "testedUrl": "/api/pharmacy/cart",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/pharmacy/payment",
+      "testedUrl": "/api/pharmacy/payment",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/staff-login",
+      "testedUrl": "/api/staff-login",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/resolve-overstay-penalty",
+      "testedUrl": "/api/parking/resolve-overstay-penalty",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/send-overstay-alert",
+      "testedUrl": "/api/parking/send-overstay-alert",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/slots/PARAM/staff-override",
+      "testedUrl": "/api/parking/slots/1/staff-override",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/emergency-barrier-override",
+      "testedUrl": "/api/parking/emergency-barrier-override",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/lots/PARAM/pricing",
+      "testedUrl": "/api/parking/lots/1/pricing",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/PARAM/book-slot",
+      "testedUrl": "/api/parking/1/book-slot",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/slots/PARAM/status",
+      "testedUrl": "/api/parking/slots/1/status",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/gate-action",
+      "testedUrl": "/api/parking/gate-action",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/anpr-scan",
+      "testedUrl": "/api/parking/anpr-scan",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/staff-book",
+      "testedUrl": "/api/parking/staff-book",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/bookings/PARAM/cancel",
+      "testedUrl": "/api/parking/bookings/1/cancel",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/parking/verify-qr",
+      "testedUrl": "/api/parking/verify-qr",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/junctions/PARAM",
+      "testedUrl": "/api/traffic/junctions/1",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/junctions/PARAM/signals",
+      "testedUrl": "/api/traffic/junctions/1/signals",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/junctions/PARAM/override",
+      "testedUrl": "/api/traffic/junctions/1/override",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/cameras/test-connection",
+      "testedUrl": "/api/traffic/cameras/test-connection",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/violations/PARAM/review",
+      "testedUrl": "/api/traffic/violations/1/review",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/corridors/dispatch",
+      "testedUrl": "/api/traffic/corridors/dispatch",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/corridors/PARAM/deactivate",
+      "testedUrl": "/api/traffic/corridors/1/deactivate",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/movement-rules/PARAM/toggle",
+      "testedUrl": "/api/traffic/movement-rules/1/toggle",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/cameras/PARAM",
+      "testedUrl": "/api/traffic/cameras/1",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/signals/PARAM",
+      "testedUrl": "/api/traffic/signals/1",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/violations/PARAM/pay",
+      "testedUrl": "/api/traffic/violations/1/pay",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/vms-boards/PARAM/message",
+      "testedUrl": "/api/traffic/vms-boards/1/message",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/commute-alerts/subscribe",
+      "testedUrl": "/api/traffic/commute-alerts/subscribe",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/junctions/PARAM/webster-timing",
+      "testedUrl": "/api/traffic/junctions/1/webster-timing",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/junctions/JNC-01/override",
+      "testedUrl": "/api/traffic/junctions/JNC-01/override",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/violations/PARAM/evidence",
+      "testedUrl": "/api/traffic/violations/1/evidence",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/ambulances/PARAM/critical-dispatch",
+      "testedUrl": "/api/traffic/ambulances/1/critical-dispatch",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/ambulances/PARAM/clear-critical",
+      "testedUrl": "/api/traffic/ambulances/1/clear-critical",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/signals/PARAM/location",
+      "testedUrl": "/api/traffic/signals/1/location",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/junctions/PARAM/camera-traffic-summary",
+      "testedUrl": "/api/traffic/junctions/1/camera-traffic-summary",
+      "status": 404
+    },
+    {
+      "endpoint": "/api/traffic/cameras/PARAM/traffic-feed",
+      "testedUrl": "/api/traffic/cameras/1/traffic-feed",
+      "status": 404
+    }
+  ],
+  "duplicateFiles": [
+    {
+      "issue": "Duplicate / Typo HTML file in Famous Places module",
+      "files": [
+        "frontend/pages/famous/famose.html",
+        "frontend/pages/famous/famous.html"
+      ],
+      "recommendation": "Remove famose.html (typo) and keep only famous.html"
+    }
+  ],
+  "jsSyntaxErrors": [],
+  "databaseIssues": [],
+  "uxSuggestions": []
+}
