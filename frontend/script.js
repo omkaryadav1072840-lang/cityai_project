@@ -3352,21 +3352,115 @@ async function bookDoctorSlot() {
    HEALTHCARE BUTTONS
 ========================================================= */
 
-function trackAmbulance() {
+async function trackAmbulance() {
+    const mapEl = document.getElementById("cityMap");
+    if (mapEl) {
+        mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
-    alert(
-        "🚑 Ambulance tracking module will open here."
-    );
+    // Remove existing ambulance telemetry card if present
+    const existingCard = document.getElementById("scAmbulanceTelemetryCard");
+    if (existingCard) existingCard.remove();
 
+    let targetAmb = null;
+
+    try {
+        const res = await fetch("/api/ambulances");
+        const json = await res.json();
+        const ambulances = json.ambulances || [];
+
+        if (ambulances.length > 0 && typeof map !== "undefined" && map) {
+            targetAmb = ambulances.find(a => Number(a.latitude) && Number(a.longitude)) || ambulances[0];
+            const lat = Number(targetAmb.latitude) || 26.7606;
+            const lng = Number(targetAmb.longitude) || 83.3732;
+            const ambKey = String(targetAmb.id || targetAmb.ambulance_id || targetAmb.vehicle_number);
+
+            map.setView([lat, lng], 15);
+
+            if (dashboardAmbulanceMarkers[ambKey]) {
+                dashboardAmbulanceMarkers[ambKey].openPopup();
+            } else if (typeof L !== "undefined") {
+                const ambIcon = L.divIcon({
+                    className: "dashboard-amb-icon",
+                    html: `<div style="background:#ef4444; color:#fff; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 15px rgba(239,68,68,0.9); border:2px solid #fff; font-size:18px;">🚑</div>`,
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17]
+                });
+                const marker = L.marker([lat, lng], { icon: ambIcon }).addTo(map);
+                marker.bindPopup(`
+                    <div style="font-size:12px; line-height:1.4;">
+                        <strong style="color:#dc2626;">🚑 Live Ambulance Telemetry</strong><br>
+                        <b>Vehicle:</b> ${targetAmb.vehicle_number || ambKey}<br>
+                        <b>Status:</b> ${targetAmb.status || 'Active'}<br>
+                        <b>Driver:</b> ${targetAmb.driver_name || 'Emergency Unit'}<br>
+                        <b>Hospital:</b> ${targetAmb.hospital_name || 'Gorakhpur'}
+                    </div>
+                `).openPopup();
+                dashboardAmbulanceMarkers[ambKey] = marker;
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch ambulance list:", err);
+    }
+
+    const ambNumber = (targetAmb && targetAmb.vehicle_number) || "UP-53-AMB-101";
+    const hospName = (targetAmb && (targetAmb.hospital_name || targetAmb.destinationHospital)) || "BRD Medical College";
+    const driverName = (targetAmb && targetAmb.driver_name) || "Emergency Response Team";
+    const ambStatus = (targetAmb && targetAmb.status) || "Active In Transit";
+
+    const card = document.createElement("div");
+    card.id = "scAmbulanceTelemetryCard";
+    card.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 360px;
+        max-width: calc(100vw - 48px);
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(12px);
+        border: 2px solid #ef4444;
+        border-radius: 14px;
+        box-shadow: 0 12px 30px rgba(239, 68, 68, 0.35);
+        z-index: 99999;
+        color: #f8fafc;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+
+    card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:20px;">🚑</span>
+                <strong style="color:#ef4444; font-size:14px;">Live Ambulance Telemetry</strong>
+            </div>
+            <button onclick="document.getElementById('scAmbulanceTelemetryCard')?.remove()" style="background:transparent; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">✕</button>
+        </div>
+        <div style="font-size:13px; line-height:1.6; margin-bottom:12px;">
+            <div><b>Vehicle:</b> <span style="font-family:monospace; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${escapeHTML(ambNumber)}</span></div>
+            <div><b>Status:</b> <span style="color:#34d399; font-weight:700;">🟢 ${escapeHTML(ambStatus)}</span></div>
+            <div><b>Hospital:</b> ${escapeHTML(hospName)}</div>
+            <div><b>Driver:</b> ${escapeHTML(driverName)}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <a href="tel:108" style="background:#dc2626; color:#fff; text-align:center; padding:8px; border-radius:8px; font-weight:700; text-decoration:none; font-size:13px; display:block;">
+                📞 Call 108 Emergency Helpline
+            </a>
+            <div style="display:flex; gap:8px;">
+                <button onclick="window.location.href='pages/emergency/emergency.html'" style="flex:1; background:#0284c7; color:#fff; border:none; padding:7px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">
+                    🚨 Dispatch Console
+                </button>
+                <button onclick="window.location.href='pages/hospital/hospital.html'" style="flex:1; background:#1e293b; border:1px solid rgba(255,255,255,0.2); color:#fff; padding:7px; border-radius:6px; cursor:pointer; font-size:12px;">
+                    🏥 Hospital Portal
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(card);
 }
 
-
 function openHospitalBooking() {
-
-    alert(
-        "🏥 Hospital booking module will open here."
-    );
-
+    window.location.href = "pages/hospital/hospital.html";
 }
 
 

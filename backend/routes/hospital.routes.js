@@ -509,15 +509,27 @@ router.put("/api/hospitals/:id", authenticateToken, requireRole(["staff", "admin
 
 // Helper: Hospital authorization checker
 function verifyHospitalStaffAccess(req, hospitalId) {
-    if (!req.user) return true; // Allow seamless demo mode
-    if (req.user.role === "admin" || req.user.role === "staff" || req.user.role === "doctor") return true;
-    if (req.user.hospitalId && String(req.user.hospitalId) === String(hospitalId)) return true;
-    return true;
+    if (!req.user) return false;
+    const role = (req.user.role || req.user.type || "").toLowerCase();
+    if (role === "admin") return true;
+    if (role === "staff" || role === "doctor") {
+        if (!req.user.hospitalId || !hospitalId || String(req.user.hospitalId) === String(hospitalId)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // 1. HOSPITAL DASHBOARD STATISTICS (Aggregated from live DB)
 router.get("/api/hospitals/:hospitalId/dashboard", optionalToken, async (req, res) => {
     const { hospitalId } = req.params;
+
+    if (!verifyHospitalStaffAccess(req, hospitalId)) {
+        return res.status(req.user ? 403 : 401).json({
+            success: false,
+            message: "Access denied. Action reserved for hospital medical staff or administrators."
+        });
+    }
 
     try {
         const p = db.promise();
@@ -723,7 +735,12 @@ router.get("/api/hospitals/:hospitalId/appointments", optionalToken, async (req,
     const { hospitalId } = req.params;
     const { date, status, doctor_id } = req.query;
 
-    // Allow viewing queue in hospital dashboard for evaluation and staff desk
+    if (!verifyHospitalStaffAccess(req, hospitalId)) {
+        return res.status(req.user ? 403 : 401).json({
+            success: false,
+            message: "Access denied. Action reserved for hospital medical staff or administrators."
+        });
+    }
 
     try {
         let sql = `

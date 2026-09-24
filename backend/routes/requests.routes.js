@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db").promise();
-const { authenticateToken } = require("../middleware/auth.middleware");
+const { authenticateToken, optionalToken, requireRole } = require("../middleware/auth.middleware");
 const { calculatePriorityAndSLA } = require("../services/priority_engine");
 const { logAudit } = require("../services/audit_logger");
 
@@ -22,7 +22,7 @@ function canManageDepartment(user, dept) {
 // 1. CREATE SERVICE REQUEST / COMPLAINT
 // =========================================================
 
-router.post("/api/requests", async (req, res) => {
+router.post("/api/requests", optionalToken, async (req, res) => {
     try {
         const {
             department,
@@ -60,18 +60,11 @@ router.post("/api/requests", async (req, res) => {
         let cName = citizen_name || "Citizen";
         let cMobile = citizen_mobile || null;
 
-        // If authenticated, associate user ID
-        if (req.headers.authorization) {
-            try {
-                const token = req.headers.authorization.split(" ")[1];
-                const jwt = require("jsonwebtoken");
-                const decoded = jwt.decode(token);
-                if (decoded && (decoded.id || decoded.userId)) {
-                    userId = decoded.id || decoded.userId;
-                    cName = cName || decoded.name;
-                    cMobile = cMobile || decoded.mobile;
-                }
-            } catch (e) {}
+        // If authenticated via verified JWT, associate user ID securely
+        if (req.user) {
+            userId = req.user.id || req.user.userId || null;
+            cName = req.user.name || cName;
+            cMobile = req.user.mobile || cMobile;
         }
 
         const [result] = await pool.query(
@@ -247,7 +240,7 @@ router.get("/api/requests", authenticateToken, async (req, res) => {
 // 3. GET SINGLE REQUEST DETAILS
 // =========================================================
 
-router.get("/api/requests/:id", async (req, res) => {
+router.get("/api/requests/:id", optionalToken, async (req, res) => {
     try {
         const idOrCode = req.params.id;
         const [rows] = await pool.query(
@@ -260,6 +253,13 @@ router.get("/api/requests/:id", async (req, res) => {
         }
 
         const request = rows[0];
+
+        // Access check:
+        const user = req.user;
+        const role = (user && (user.role || user.type) ? String(user.role || user.type) : "").toLowerCase();
+        const userDept = (user && user.department ? String(user.department) : "").toLowerCase();
+        const isAuthorizedStaffOrAdmin = role === "admin" || (role === "staff" && userDept === (request.department || "").toLowerCase());
+        const isOwner = user && (String(user.id) === String(request.user_id) || (user.mobile && user.mobile === request.citizen_mobile));
 
         // Fetch feedback if any
         const [feedback] = await pool.query(
@@ -280,6 +280,7 @@ router.get("/api/requests/:id", async (req, res) => {
             success: true,
             data: {
                 ...request,
+                citizen_mobile: (isAuthorizedStaffOrAdmin || isOwner) ? request.citizen_mobile : null,
                 slaRemainingMinutes,
                 isOverdue,
                 feedback: feedback[0] || null

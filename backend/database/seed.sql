@@ -45,14 +45,14 @@ INSERT IGNORE INTO `hospital_departments` (`hospital_id`, `department_name`, `ap
 
 -- 4. SEED DOCTORS
 INSERT IGNORE INTO `doctors`
-(`doctor_id`, `hospital_id`, `name`, `specialization`, `department`, `qualification`, `experience`, `mobile`, `email`, `consultation_fee`, `status`) 
+(`doctor_id`, `hospital_id`, `name`, `specialization`, `department`, `qualification`, `experience`, `mobile`, `email`, `password`, `consultation_fee`, `status`) 
 VALUES
-('DOC-101', 'HOSP-001', 'Dr. Anand Verma', 'Cardiologist', 'Cardiology', 'MBBS, MD, DM (Cardio)', '14 Years', '9876543210', 'anand.verma@aiims.edu', 500.00, 'Active'),
-('DOC-102', 'HOSP-001', 'Dr. Priya Singh', 'Neurologist', 'Neurology', 'MBBS, MD, DM (Neuro)', '11 Years', '9876543211', 'priya.singh@aiims.edu', 600.00, 'Active'),
-('DOC-103', 'HOSP-001', 'Dr. Rajesh Mishra', 'Orthopedic Surgeon', 'Orthopedics', 'MBBS, MS (Ortho)', '16 Years', '9876543212', 'rajesh.mishra@aiims.edu', 400.00, 'Active'),
-('DOC-104', 'HOSP-002', 'Dr. Sanjay Gupta', 'General Physician', 'General Medicine', 'MBBS, MD (Medicine)', '18 Years', '9876543213', 'sanjay.gupta@brdmc.ac.in', 250.00, 'Active'),
-('DOC-105', 'HOSP-002', 'Dr. Shalini Tripathi', 'Pediatrician', 'Pediatrics', 'MBBS, DCH, MD', '9 Years', '9876543214', 'shalini.tripathi@brdmc.ac.in', 200.00, 'Active'),
-('DOC-106', 'HOSP-004', 'Dr. Vikramaditya Rao', 'General Surgeon', 'General Surgery', 'MBBS, MS (Gen Surgery)', '12 Years', '9876543215', 'vikram.rao@fatimahospital.org', 450.00, 'Active');
+('DOC-101', 'HOSP-001', 'Dr. Anand Verma', 'Cardiologist', 'Cardiology', 'MBBS, MD, DM (Cardio)', '14 Years', '9876543210', 'anand.verma@aiims.edu', 'scrypt$e3759811a711fb812bf0e404774e48ff$45c04c70cc27e4c37cf01d3796e64d9f71508014411fbfbd3008df13f71fa04f7150841bf2ef42830a7358ade507e86c15d92e85cc90715f778433c9da1db4c6', 500.00, 'Active'),
+('DOC-102', 'HOSP-001', 'Dr. Priya Singh', 'Neurologist', 'Neurology', 'MBBS, MD, DM (Neuro)', '11 Years', '9876543211', 'priya.singh@aiims.edu', 'scrypt$e3759811a711fb812bf0e404774e48ff$45c04c70cc27e4c37cf01d3796e64d9f71508014411fbfbd3008df13f71fa04f7150841bf2ef42830a7358ade507e86c15d92e85cc90715f778433c9da1db4c6', 600.00, 'Active'),
+('DOC-103', 'HOSP-001', 'Dr. Rajesh Mishra', 'Orthopedic Surgeon', 'Orthopedics', 'MBBS, MS (Ortho)', '16 Years', '9876543212', 'rajesh.mishra@aiims.edu', 'scrypt$e3759811a711fb812bf0e404774e48ff$45c04c70cc27e4c37cf01d3796e64d9f71508014411fbfbd3008df13f71fa04f7150841bf2ef42830a7358ade507e86c15d92e85cc90715f778433c9da1db4c6', 400.00, 'Active'),
+('DOC-104', 'HOSP-002', 'Dr. Sanjay Gupta', 'General Physician', 'General Medicine', 'MBBS, MD (Medicine)', '18 Years', '9876543213', 'sanjay.gupta@brdmc.ac.in', 'scrypt$e3759811a711fb812bf0e404774e48ff$45c04c70cc27e4c37cf01d3796e64d9f71508014411fbfbd3008df13f71fa04f7150841bf2ef42830a7358ade507e86c15d92e85cc90715f778433c9da1db4c6', 250.00, 'Active'),
+('DOC-105', 'HOSP-002', 'Dr. Shalini Tripathi', 'Pediatrician', 'Pediatrics', 'MBBS, DCH, MD', '9 Years', '9876543214', 'shalini.tripathi@brdmc.ac.in', 'scrypt$e3759811a711fb812bf0e404774e48ff$45c04c70cc27e4c37cf01d3796e64d9f71508014411fbfbd3008df13f71fa04f7150841bf2ef42830a7358ade507e86c15d92e85cc90715f778433c9da1db4c6', 200.00, 'Active'),
+('DOC-106', 'HOSP-004', 'Dr. Vikramaditya Rao', 'General Surgeon', 'General Surgery', 'MBBS, MS (Gen Surgery)', '12 Years', '9876543215', 'vikram.rao@fatimahospital.org', 'scrypt$e3759811a711fb812bf0e404774e48ff$45c04c70cc27e4c37cf01d3796e64d9f71508014411fbfbd3008df13f71fa04f7150841bf2ef42830a7358ade507e86c15d92e85cc90715f778433c9da1db4c6', 450.00, 'Active');
 
 -- 5. SEED DOCTOR SLOTS (Current & Upcoming dates)
 INSERT IGNORE INTO `doctor_slots`

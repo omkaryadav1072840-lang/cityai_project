@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { authenticateToken, requireRole } = require("../middleware/auth.middleware");
+const { authenticateToken, optionalToken, requireRole } = require("../middleware/auth.middleware");
 
 const AMBULANCE_DETAIL_COLUMNS = `
     id, ambulance_id, vehicle_number, driver_name, driver_mobile,
@@ -13,13 +13,15 @@ const AMBULANCE_DETAIL_COLUMNS = `
 `;
 
 // GET ALL AMBULANCES
-router.get("/api/ambulances", (req, res) => {
+router.get("/api/ambulances", optionalToken, (req, res) => {
+    const isStaffOrAdmin = req.user && (["staff", "admin", "doctor"].includes(req.user.role) || ["staff", "admin", "doctor"].includes(req.user.type));
+
     const sql = `
         SELECT 
             id, ambulance_id, vehicle_number, driver_name, driver_mobile, 
             ambulance_type, hospital_name, location, status, 
             latitude, longitude,
-            patient_name, patient_mobile, patient_lat, patient_lng, patient_address,
+            ${isStaffOrAdmin ? "patient_name, patient_mobile, patient_lat, patient_lng, patient_address," : "NULL AS patient_name, NULL AS patient_mobile, NULL AS patient_lat, NULL AS patient_lng, NULL AS patient_address,"}
             destination_hospital_id, destination_hospital_name, assigned_at,
             created_at, updated_at
         FROM ambulances
@@ -39,15 +41,16 @@ router.get("/api/ambulances", (req, res) => {
 });
 
 // GET SINGLE AMBULANCE
-router.get("/api/ambulances/:id", (req, res) => {
+router.get("/api/ambulances/:id", optionalToken, (req, res) => {
     const id = req.params.id;
+    const isStaffOrAdmin = req.user && (["staff", "admin", "doctor"].includes(req.user.role) || ["staff", "admin", "doctor"].includes(req.user.type));
 
     const sql = `
         SELECT
             id, ambulance_id, vehicle_number, driver_name, driver_mobile,
             ambulance_type, hospital_name, location, status,
-            latitude, longitude, patient_name, patient_mobile,
-            patient_lat, patient_lng, patient_address,
+            latitude, longitude,
+            ${isStaffOrAdmin ? "patient_name, patient_mobile, patient_lat, patient_lng, patient_address," : "NULL AS patient_name, NULL AS patient_mobile, NULL AS patient_lat, NULL AS patient_lng, NULL AS patient_address,"}
             destination_hospital_id, destination_hospital_name,
             assigned_at, created_at, updated_at
         FROM ambulances

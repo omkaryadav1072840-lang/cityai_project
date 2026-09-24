@@ -58,11 +58,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // User Session & Profile Dropdown
 function initUserSession() {
-    const currentUser = (window.SmartCityAuth && SmartCityAuth.getUser()) || {
+    const isAuth = window.SmartCityAuth && typeof SmartCityAuth.isAuthenticated === "function" && SmartCityAuth.isAuthenticated();
+    const token = isAuth ? SmartCityAuth.getToken() : (localStorage.getItem("smartCityJWT") || null);
+
+    let currentUser = (token && window.SmartCityAuth && SmartCityAuth.getUser()) || {
         name: "Omkar Yadav",
         role: "citizen",
         department: "citizen"
     };
+    if (!token) {
+        currentUser = {
+            name: "Omkar Yadav",
+            role: "citizen",
+            department: "citizen"
+        };
+    }
 
     const userNameEl = document.getElementById("navUserName");
     const userStatusEl = document.getElementById("navUserStatus");
@@ -73,20 +83,29 @@ function initUserSession() {
     if (userNameEl) userNameEl.textContent = currentUser.name;
     if (ddUserFullName) ddUserFullName.textContent = currentUser.name;
 
-    const initials = currentUser.name.split(" ").map(p => p[0]).join("").substring(0, 2).toUpperCase() || "OY";
+    const initials = (currentUser.name || "Omkar Yadav").split(" ").map(p => p[0]).join("").substring(0, 2).toUpperCase() || "OY";
     if (userAvatarCircle) userAvatarCircle.textContent = initials;
 
-    if (currentUser.role === "admin" || currentUser.department === "admin") {
+    if (token && (currentUser.role === "admin" || currentUser.department === "admin")) {
         if (userStatusEl) userStatusEl.textContent = "🛡️ System Admin";
         if (ddUserContact) ddUserContact.textContent = "Administrator • ICCC";
-    } else if (currentUser.role === "staff" || currentUser.department === "traffic") {
+    } else if (token && (currentUser.role === "staff" || currentUser.department === "traffic")) {
         if (userStatusEl) userStatusEl.textContent = "👮 Traffic Staff";
         if (ddUserContact) ddUserContact.textContent = "Traffic Officer • Gorakhpur";
+    } else {
+        if (userStatusEl) userStatusEl.textContent = "🟢 Active Citizen";
+        if (ddUserContact) ddUserContact.textContent = "Citizen • Gorakhpur";
     }
 }
 
-// Check if currently authenticated user is Traffic Staff or Administrator
+// Check if currently authenticated user is Traffic Staff or Administrator with valid token
 function isStaffUser() {
+    const token = (window.SmartCityAuth && SmartCityAuth.getToken()) ||
+                  localStorage.getItem("smartCityJWT") ||
+                  localStorage.getItem("smartcity_auth_token") ||
+                  localStorage.getItem("token");
+    if (!token) return false;
+
     if (window.SmartCityAuth && typeof SmartCityAuth.isStaff === "function") {
         if (SmartCityAuth.isStaff()) return true;
     }
@@ -94,6 +113,19 @@ function isStaffUser() {
                  JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
     const role = ((user && (user.role || user.department)) || "").toLowerCase();
     return role.includes("staff") || role.includes("admin") || role.includes("traffic") || role.includes("controller") || role.includes("officer") || role.includes("police");
+}
+
+function isAdminUser() {
+    const token = (window.SmartCityAuth && SmartCityAuth.getToken()) ||
+                  localStorage.getItem("smartCityJWT") ||
+                  localStorage.getItem("smartcity_auth_token") ||
+                  localStorage.getItem("token");
+    if (!token) return false;
+
+    const user = (window.SmartCityAuth && SmartCityAuth.getUser()) ||
+                 JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+    const role = ((user && (user.role || user.department)) || "").toLowerCase();
+    return role === "admin" || role.includes("director") || role.includes("superadmin");
 }
 
 // Attach active role & JWT bearer token to staff mutation API requests
@@ -129,21 +161,43 @@ document.addEventListener("click", () => {
 });
 
 function switchRoleProfile(role) {
-    if (role === "citizen") {
-        localStorage.setItem("smartCityCurrentUser", JSON.stringify({ name: "Omkar Yadav", role: "citizen", department: "citizen" }));
-        initUserSession();
-        switchLayer("citizen");
-    } else if (role === "officer") {
-        localStorage.setItem("smartCityCurrentUser", JSON.stringify({ name: "Insp. R.K. Verma", role: "staff", department: "traffic" }));
-        initUserSession();
-        switchLayer("control");
-    } else if (role === "admin") {
-        localStorage.setItem("smartCityCurrentUser", JSON.stringify({ name: "ICCC Director", role: "admin", department: "admin" }));
-        initUserSession();
-        switchLayer("admin");
-    }
     const menu = document.getElementById("userDropdownMenu");
     if (menu) menu.style.display = "none";
+
+    if (role === "citizen") {
+        if (isStaffUser()) {
+            showToast("🚗 Switching to Citizen / Public map view.");
+        }
+        switchLayer("citizen");
+    } else if (role === "officer") {
+        if (isStaffUser()) {
+            const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || {};
+            showToast(`👮 Active Session: ${user.name || 'Traffic Staff'}`);
+            switchLayer("control");
+        } else {
+            showToast("🔒 Enter Staff ID and Password to switch to Traffic Staff mode.");
+            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "TR-VERMA",
+                    message: "🔒 Staff credentials required to access Traffic Control Room."
+                });
+            }
+        }
+    } else if (role === "admin") {
+        if (isAdminUser()) {
+            const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || {};
+            showToast(`🛡️ Active Admin Session: ${user.name || 'Administrator'}`);
+            switchLayer("admin");
+        } else {
+            showToast("🔒 Enter Admin ID and Password to switch to System Admin mode.");
+            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "TR-ADMIN",
+                    message: "🔒 Administrator credentials required to access System Admin Console."
+                });
+            }
+        }
+    }
 }
 
 function handleUserLogout() {
@@ -156,6 +210,38 @@ function handleUserLogout() {
 // 2. LAYER SWITCHING (CITIZEN, STAFF, ADMIN)
 // =========================================================
 function switchLayer(layer) {
+    if (layer === "control") {
+        if (!isStaffUser()) {
+            showToast("🔒 Authentication Required: Staff ID and Password needed to access Traffic Control Room.");
+            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "TR-VERMA",
+                    message: "🔒 Enter Staff ID and Password to access Traffic Control Room."
+                });
+            }
+            // Revert active tab
+            document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
+            const citTab = document.getElementById("tab-btn-citizen");
+            if (citTab) citTab.classList.add("active");
+            return;
+        }
+    } else if (layer === "admin") {
+        if (!isAdminUser()) {
+            showToast("🔒 Administrator Access Required: Admin ID and Password needed.");
+            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "TR-ADMIN",
+                    message: "🔒 Enter Admin ID and Password to access ICCC System Admin Console."
+                });
+            }
+            // Revert active tab
+            document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
+            const citTab = document.getElementById("tab-btn-citizen");
+            if (citTab) citTab.classList.add("active");
+            return;
+        }
+    }
+
     document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
     const activeTab = document.getElementById(`tab-btn-${layer}`);
     if (activeTab) activeTab.classList.add("active");
@@ -1196,7 +1282,7 @@ async function reviewViolation(vioId, action) {
     try {
         const res = await fetch(`/api/traffic/violations/${vioId}/review`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 action,
                 notes,
@@ -1221,7 +1307,7 @@ async function dispatchEmergencyCorridor() {
     try {
         const res = await fetch("/api/traffic/corridors/dispatch", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 corridor_id: corrId,
                 operator: document.getElementById("navUserName").textContent,
@@ -1244,7 +1330,7 @@ async function deactivateEmergencyCorridor() {
     try {
         const res = await fetch(`/api/traffic/corridors/${corrId}/deactivate`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 operator: document.getElementById("navUserName").textContent,
                 role: "Traffic Staff"
@@ -1304,7 +1390,7 @@ async function toggleRuleStatus(id, newStatus) {
     try {
         const res = await fetch(`/api/traffic/movement-rules/${id}/toggle`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 is_active: newStatus,
                 operator: document.getElementById("navUserName").textContent
@@ -1437,7 +1523,7 @@ async function saveAdminAISettings() {
     try {
         const res = await fetch("/api/traffic/admin/ai-settings", {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 settings,
                 operator: document.getElementById("navUserName").textContent
@@ -3246,12 +3332,23 @@ function updateAmbulanceRowInFleetTable(amb) {
 
 async function dispatchAmbulanceCriticalCorridor(ambId, vehicleNumber, destHospital) {
     try {
+        if (!isStaffUser()) {
+            showToast("🔒 Authentication Required: Traffic Staff ID and Password needed.");
+            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "TR-VERMA",
+                    message: "🔒 Staff credentials required to declare critical ambulance corridor."
+                });
+            }
+            return;
+        }
+
         showToast(`🚨 Dispatching Critical Corridor for ${vehicleNumber}...`);
         WebAudioEngine.playSiren();
 
         const res = await fetch(`/api/traffic/ambulances/${ambId}/critical-dispatch`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 destinationHospital: destHospital || "BRD Medical College",
                 reason: "Acute Trauma Emergency Transit"
@@ -3273,12 +3370,23 @@ async function dispatchAmbulanceCriticalCorridor(ambId, vehicleNumber, destHospi
 
 async function clearAmbulanceCriticalCorridor(ambId, vehicleNumber) {
     try {
+        if (!isStaffUser()) {
+            showToast("🔒 Authentication Required: Traffic Staff ID and Password needed.");
+            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "TR-VERMA",
+                    message: "🔒 Staff credentials required to clear emergency corridor."
+                });
+            }
+            return;
+        }
+
         showToast(`Restoring normal traffic signals for ${vehicleNumber}...`);
         WebAudioEngine.stopSiren();
 
         const res = await fetch(`/api/traffic/ambulances/${ambId}/clear-critical`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" }
+            headers: getAuthHeaders()
         });
 
         const data = await res.json();

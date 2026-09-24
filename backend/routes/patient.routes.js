@@ -256,12 +256,12 @@ router.post("/api/patients", optionalToken, async (req, res) => {
 // 2. GET ALL PATIENTS / SEARCH & FILTER (STAFF / ADMIN / CITIZEN)
 // =========================================================
 
-router.get("/api/patients", optionalToken, async (req, res) => {
+router.get("/api/patients", authenticateToken, async (req, res) => {
     try {
         const { search, hospital, gender, status, page = 1, limit = 50 } = req.query;
-        const role = req.user ? (req.user.role || req.user.type || "").toLowerCase() : null;
+        const role = (req.user.role || req.user.type || "").toLowerCase();
 
-        // If citizen, return their own profile(s)
+        // If citizen, return strictly their own profile(s)
         if (role === "citizen") {
             const userId = req.user.id || req.user.userId;
             const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
@@ -282,7 +282,15 @@ router.get("/api/patients", optionalToken, async (req, res) => {
             });
         }
 
-        // Build dynamic query for staff / admin
+        // Restrict general search across all patients to staff, doctor, or admin
+        if (!["admin", "staff", "doctor"].includes(role)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Action reserved for healthcare staff, doctors, or administrators."
+            });
+        }
+
+        // Build dynamic query for staff / doctor / admin
         let whereClauses = [];
         let params = [];
 
@@ -360,8 +368,8 @@ router.get("/api/patients/:patientId", optionalToken, async (req, res) => {
 
         // Access control check
         const hasAccess = checkPatientAccess(req, patient);
-        if (!hasAccess && req.user && req.user.role === "citizen") {
-            return res.status(403).json({
+        if (!hasAccess) {
+            return res.status(req.user ? 403 : 401).json({
                 success: false,
                 message: "Access denied. You can only view your own patient profile."
             });
@@ -772,17 +780,28 @@ router.get("/api/patients/:patientId/appointments", optionalToken, async (req, r
     const patientId = req.params.patientId.trim();
 
     try {
+        const [patients] = await db.promise().query(
+            "SELECT * FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
+        );
+        if (!patients.length) {
+            return res.status(404).json({ success: false, message: "Patient not found." });
+        }
+        if (!checkPatientAccess(req, patients[0])) {
+            return res.status(req.user ? 403 : 401).json({ success: false, message: "Access denied to patient appointments." });
+        }
+
         const [appointments] = await db.promise().query(`
             SELECT a.*, h.hospital_name 
             FROM appointments a
             LEFT JOIN hospitals h ON a.hospital_id = h.hospital_id
             WHERE a.patient_id = ?
             ORDER BY a.appointment_date DESC, a.appointment_time DESC
-        `, [patientId]);
+        `, [patients[0].patient_id]);
 
         res.json({
             success: true,
-            patientId,
+            patientId: patients[0].patient_id,
             appointments
         });
     } catch (err) {
@@ -799,14 +818,25 @@ router.get("/api/patients/:patientId/prescriptions", optionalToken, async (req, 
     const patientId = req.params.patientId.trim();
 
     try {
+        const [patients] = await db.promise().query(
+            "SELECT * FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
+        );
+        if (!patients.length) {
+            return res.status(404).json({ success: false, message: "Patient not found." });
+        }
+        if (!checkPatientAccess(req, patients[0])) {
+            return res.status(req.user ? 403 : 401).json({ success: false, message: "Access denied to patient prescriptions." });
+        }
+
         const [prescriptions] = await db.promise().query(
             "SELECT * FROM prescriptions WHERE patient_id = ? ORDER BY created_at DESC, id DESC",
-            [patientId]
+            [patients[0].patient_id]
         );
 
         res.json({
             success: true,
-            patientId,
+            patientId: patients[0].patient_id,
             prescriptions
         });
     } catch (err) {
@@ -827,9 +857,20 @@ router.get("/api/patients/:patientId/records", optionalToken, async (req, res) =
     }
 
     try {
+        const [patients] = await db.promise().query(
+            "SELECT * FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
+        );
+        if (!patients.length) {
+            return res.status(404).json({ success: false, message: "Patient not found." });
+        }
+        if (!checkPatientAccess(req, patients[0])) {
+            return res.status(req.user ? 403 : 401).json({ success: false, message: "Access denied to medical records." });
+        }
+
         const [records] = await db.promise().query(
             "SELECT * FROM patient_records WHERE patient_id = ? ORDER BY record_date DESC, id DESC",
-            [patientId]
+            [patients[0].patient_id]
         );
 
         res.json({
@@ -842,7 +883,7 @@ router.get("/api/patients/:patientId/records", optionalToken, async (req, res) =
     }
 });
 
-router.post("/api/patients/:patientId/records", optionalToken, async (req, res) => {
+router.post("/api/patients/:patientId/records", authenticateToken, requireRole(["doctor", "staff", "admin"]), async (req, res) => {
     const patientId = req.params.patientId.trim();
     const { doctorName, diagnosis, symptoms, treatment, notes, recordDate } = req.body;
 
@@ -859,13 +900,15 @@ router.post("/api/patients/:patientId/records", optionalToken, async (req, res) 
 
     try {
         const [lookup] = await db.promise().query(
-            "SELECT id FROM patients WHERE patient_id = ? LIMIT 1",
-            [patientId]
+            "SELECT id, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
         );
 
         if (!lookup.length) {
             return res.status(404).json({ success: false, message: "Patient not found." });
         }
+
+        const canonicalPatientId = lookup[0].patient_id;
 
         const sql = `
             INSERT INTO patient_records
@@ -874,8 +917,8 @@ router.post("/api/patients/:patientId/records", optionalToken, async (req, res) 
         `;
 
         const [result] = await db.promise().query(sql, [
-            patientId,
-            doctorName || (req.user ? req.user.name : "Attending Doctor"),
+            canonicalPatientId,
+            doctorName || req.user.name || "Attending Doctor",
             diagnosis || null,
             symptoms || null,
             treatment || null,
@@ -883,7 +926,7 @@ router.post("/api/patients/:patientId/records", optionalToken, async (req, res) 
             recordDate || new Date()
         ]);
 
-        await logPatientAudit(patientId, "RECORD_ADDED", req, { recordId: result.insertId });
+        await logPatientAudit(canonicalPatientId, "RECORD_ADDED", req, { recordId: result.insertId });
 
         res.status(201).json({
             success: true,
@@ -904,9 +947,20 @@ router.get("/api/patients/:patientId/reports", optionalToken, async (req, res) =
     const patientId = req.params.patientId.trim();
 
     try {
+        const [patients] = await db.promise().query(
+            "SELECT * FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
+        );
+        if (!patients.length) {
+            return res.status(404).json({ success: false, message: "Patient not found." });
+        }
+        if (!checkPatientAccess(req, patients[0])) {
+            return res.status(req.user ? 403 : 401).json({ success: false, message: "Access denied to patient reports." });
+        }
+
         const [reports] = await db.promise().query(
             "SELECT * FROM patient_reports WHERE patient_id = ? ORDER BY report_date DESC, id DESC",
-            [patientId]
+            [patients[0].patient_id]
         );
 
         res.json({
@@ -921,6 +975,8 @@ router.get("/api/patients/:patientId/reports", optionalToken, async (req, res) =
 
 router.post(
     "/api/patients/:patientId/reports",
+    authenticateToken,
+    requireRole(["doctor", "staff", "admin"]),
     (req, res, next) => {
         reportUpload.single("file")(req, res, (uploadErr) => {
             if (uploadErr) {

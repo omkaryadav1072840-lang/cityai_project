@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const db = require("../config/db");
 const { prescriptionUpload, prescriptionUploadDir } = require("../middleware/upload.middleware");
-const { authenticateToken, requireRole } = require("../middleware/auth.middleware");
+const { authenticateToken, requireRole, optionalToken } = require("../middleware/auth.middleware");
 
 // =========================================================
 // PHARMACY - GET ALL MEDICINES
@@ -305,7 +305,7 @@ router.post("/api/pharmacy/cart", (req, res) => {
 // PHARMACY - GET PATIENT CART
 // =========================================================
 
-router.get("/api/pharmacy/cart/:patientId", (req, res) => {
+router.get("/api/pharmacy/cart/:patientId", optionalToken, (req, res) => {
     const patientId = req.params.patientId;
 
     if (!patientId) {
@@ -314,30 +314,52 @@ router.get("/api/pharmacy/cart/:patientId", (req, res) => {
         });
     }
 
-    const sql = `
-        SELECT id, patient_id, medicine_id, medicine_name, quantity, price, total, created_at
-        FROM pharmacy_cart
-        WHERE patient_id = ?
-        ORDER BY created_at DESC
-    `;
-
-    db.query(sql, [patientId], (err, results) => {
-        if (err) {
-            console.error("Cart fetch error:", err);
-            return res.status(500).json({
-                message: "Database error."
-            });
+    db.query("SELECT user_id, mobile, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1", [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)], (pErr, pRows) => {
+        if (req.user) {
+            const role = (req.user.role || req.user.type || "").toLowerCase();
+            if (role === "citizen" && pRows && pRows.length) {
+                const pat = pRows[0];
+                const userId = req.user.id || req.user.userId;
+                const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                const patMobile = pat.mobile ? String(pat.mobile).replace(/\D/g, "") : null;
+                const isOwner = (userId && pat.user_id && Number(userId) === Number(pat.user_id)) ||
+                                (mobile && patMobile && mobile === patMobile) ||
+                                (req.user.patientId && req.user.patientId === pat.patient_id);
+                if (!isOwner) {
+                    return res.status(403).json({ success: false, message: "Access denied to this pharmacy cart." });
+                }
+            }
+        } else if (process.env.REQUIRE_AUTH !== "false") {
+            return res.status(401).json({ success: false, message: "Authentication required to view pharmacy cart." });
         }
 
-        let subtotal = 0;
-        results.forEach(item => {
-            subtotal += Number(item.total || 0);
-        });
+        const canonicalId = pRows && pRows.length ? pRows[0].patient_id : patientId;
 
-        res.json({
-            message: "Cart loaded successfully.",
-            items: results,
-            subtotal
+        const sql = `
+            SELECT id, patient_id, medicine_id, medicine_name, quantity, price, total, created_at
+            FROM pharmacy_cart
+            WHERE patient_id = ?
+            ORDER BY created_at DESC
+        `;
+
+        db.query(sql, [canonicalId], (err, results) => {
+            if (err) {
+                console.error("Cart fetch error:", err);
+                return res.status(500).json({
+                    message: "Database error."
+                });
+            }
+
+            let subtotal = 0;
+            results.forEach(item => {
+                subtotal += Number(item.total || 0);
+            });
+
+            res.json({
+                message: "Cart loaded successfully.",
+                items: results,
+                subtotal
+            });
         });
     });
 });
@@ -346,8 +368,12 @@ router.get("/api/pharmacy/cart/:patientId", (req, res) => {
 // PHARMACY - REMOVE CART ITEM
 // =========================================================
 
-router.delete("/api/pharmacy/cart/:id", (req, res) => {
+router.delete("/api/pharmacy/cart/:id", optionalToken, (req, res) => {
     const id = req.params.id;
+
+    if (!req.user && process.env.REQUIRE_AUTH !== "false") {
+        return res.status(401).json({ success: false, message: "Authentication required." });
+    }
 
     const sql = `
         DELETE FROM pharmacy_cart
@@ -369,7 +395,7 @@ router.delete("/api/pharmacy/cart/:id", (req, res) => {
         }
 
         res.json({
-            message: "Medicine removed from cart."
+            message: "Item removed from cart."
         });
     });
 });
@@ -497,7 +523,7 @@ router.post("/api/pharmacy/checkout", (req, res) => {
 // PHARMACY - GET PATIENT BILLS
 // =========================================================
 
-router.get("/api/pharmacy/bills/:patientId", (req, res) => {
+router.get("/api/pharmacy/bills/:patientId", optionalToken, (req, res) => {
     const patientId = req.params.patientId;
 
     if (!patientId) {
@@ -506,24 +532,46 @@ router.get("/api/pharmacy/bills/:patientId", (req, res) => {
         });
     }
 
-    const sql = `
-        SELECT id, bill_number, patient_id, subtotal, discount, final_amount, payment_status, created_at
-        FROM pharmacy_bills
-        WHERE patient_id = ?
-        ORDER BY created_at DESC
-    `;
-
-    db.query(sql, [patientId], (err, bills) => {
-        if (err) {
-            console.error("Bill fetch error:", err);
-            return res.status(500).json({
-                message: "Database error."
-            });
+    db.query("SELECT user_id, mobile, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1", [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)], (pErr, pRows) => {
+        if (req.user) {
+            const role = (req.user.role || req.user.type || "").toLowerCase();
+            if (role === "citizen" && pRows && pRows.length) {
+                const pat = pRows[0];
+                const userId = req.user.id || req.user.userId;
+                const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                const patMobile = pat.mobile ? String(pat.mobile).replace(/\D/g, "") : null;
+                const isOwner = (userId && pat.user_id && Number(userId) === Number(pat.user_id)) ||
+                                (mobile && patMobile && mobile === patMobile) ||
+                                (req.user.patientId && req.user.patientId === pat.patient_id);
+                if (!isOwner) {
+                    return res.status(403).json({ success: false, message: "Access denied to these pharmacy bills." });
+                }
+            }
+        } else if (process.env.REQUIRE_AUTH !== "false") {
+            return res.status(401).json({ success: false, message: "Authentication required to view pharmacy bills." });
         }
 
-        res.json({
-            message: "Patient bills fetched successfully.",
-            bills
+        const sql = `
+            SELECT id, bill_number, patient_id, subtotal, discount, final_amount, payment_status, created_at
+            FROM pharmacy_bills
+            WHERE patient_id = ?
+            ORDER BY created_at DESC
+        `;
+
+        const canonicalId = pRows && pRows.length ? pRows[0].patient_id : patientId;
+
+        db.query(sql, [canonicalId], (err, bills) => {
+            if (err) {
+                console.error("Bill fetch error:", err);
+                return res.status(500).json({
+                    message: "Database error."
+                });
+            }
+
+            res.json({
+                message: "Patient bills fetched successfully.",
+                bills
+            });
         });
     });
 });
@@ -532,29 +580,51 @@ router.get("/api/pharmacy/bills/:patientId", (req, res) => {
 // GET PRESCRIPTIONS FOR A PATIENT (medical record tab)
 // =========================================================
 
-router.get("/api/prescriptions/:patientId", (req, res) => {
+router.get("/api/prescriptions/:patientId", optionalToken, (req, res) => {
     const patientId = req.params.patientId;
 
     if (!patientId) {
         return res.status(400).json({ message: "Patient ID is required." });
     }
 
-    const sql = `
-        SELECT *
-        FROM prescriptions
-        WHERE patient_id = ?
-        ORDER BY id DESC
-    `;
-
-    db.query(sql, [patientId], (err, results) => {
-        if (err) {
-            console.error("Prescriptions fetch error:", err);
-            return res.status(500).json({ message: "Database error." });
+    db.query("SELECT user_id, mobile, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1", [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)], (pErr, pRows) => {
+        if (req.user) {
+            const role = (req.user.role || req.user.type || "").toLowerCase();
+            if (role === "citizen" && pRows && pRows.length) {
+                const pat = pRows[0];
+                const userId = req.user.id || req.user.userId;
+                const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                const patMobile = pat.mobile ? String(pat.mobile).replace(/\D/g, "") : null;
+                const isOwner = (userId && pat.user_id && Number(userId) === Number(pat.user_id)) ||
+                                (mobile && patMobile && mobile === patMobile) ||
+                                (req.user.patientId && req.user.patientId === pat.patient_id);
+                if (!isOwner) {
+                    return res.status(403).json({ success: false, message: "Access denied to patient prescriptions." });
+                }
+            }
+        } else if (process.env.REQUIRE_AUTH !== "false") {
+            return res.status(401).json({ success: false, message: "Authentication required to view prescriptions." });
         }
 
-        res.json({
-            message: "Prescriptions fetched successfully.",
-            prescriptions: results
+        const canonicalId = pRows && pRows.length ? pRows[0].patient_id : patientId;
+
+        const sql = `
+            SELECT *
+            FROM prescriptions
+            WHERE patient_id = ?
+            ORDER BY id DESC
+        `;
+
+        db.query(sql, [canonicalId], (err, results) => {
+            if (err) {
+                console.error("Prescriptions fetch error:", err);
+                return res.status(500).json({ message: "Database error." });
+            }
+
+            res.json({
+                message: "Prescriptions fetched successfully.",
+                prescriptions: results
+            });
         });
     });
 });

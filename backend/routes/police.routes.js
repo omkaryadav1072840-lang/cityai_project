@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { authenticateToken, requireRole } = require("../middleware/auth.middleware");
+const { authenticateToken, optionalToken, requireRole } = require("../middleware/auth.middleware");
 
 // =========================================================
 // POLICE STATIONS — GET ALL
@@ -83,10 +83,13 @@ router.get("/api/police/stats", (req, res) => {
 // POLICE COMPLAINTS — SUBMIT
 // =========================================================
 
-router.post("/api/police/complaint", (req, res) => {
+router.post("/api/police/complaint", optionalToken, (req, res) => {
     const { userId, citizenName, mobile, category, subject, description, stationId } = req.body;
+    const finalUserId = req.user ? req.user.id : (userId || null);
+    const finalCitizenName = (req.user && req.user.name) ? req.user.name : citizenName;
+    const finalMobile = (req.user && req.user.mobile) ? req.user.mobile : mobile;
 
-    if (!citizenName || !mobile || !category || !subject || !description) {
+    if (!finalCitizenName || !finalMobile || !category || !subject || !description) {
         return res.status(400).json({
             message: "Name, mobile, category, subject, and description are required."
         });
@@ -108,7 +111,7 @@ router.post("/api/police/complaint", (req, res) => {
         `INSERT INTO police_complaints
          (complaint_id, user_id, citizen_name, mobile, category, subject, description, status, station_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, 'Under Review', ?)`,
-        [complaintId, userId || null, citizenName, mobile, category, subject, description, stationId || null],
+        [complaintId, finalUserId, finalCitizenName, finalMobile, category, subject, description, stationId || null],
         (err, result) => {
             if (err) {
                 console.error("Police complaint insert error:", err);
@@ -134,8 +137,9 @@ router.post("/api/police/complaint", (req, res) => {
 // POLICE COMPLAINTS — GET (by user or all for staff)
 // =========================================================
 
-router.get("/api/police/complaints", (req, res) => {
+router.get("/api/police/complaints", authenticateToken, (req, res) => {
     const { userId } = req.query;
+    const isStaffOrAdmin = ["staff", "admin"].includes(req.user.role) || ["staff", "admin"].includes(req.user.type);
 
     let sql = `
         SELECT id, complaint_id, citizen_name, mobile,
@@ -144,7 +148,11 @@ router.get("/api/police/complaints", (req, res) => {
     `;
 
     const params = [];
-    if (userId) {
+    if (!isStaffOrAdmin) {
+        // Citizens strictly isolated to their own complaints
+        sql += " WHERE (user_id = ? OR mobile = ?)";
+        params.push(req.user.id, req.user.mobile || "");
+    } else if (userId) {
         sql += " WHERE user_id = ?";
         params.push(userId);
     }

@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db").promise();
-const jwt = require("jsonwebtoken");
+const { optionalToken } = require("../middleware/auth.middleware");
 
 // =========================================================
 // GLOBAL MULTI-ENTITY SEARCH
 // =========================================================
 
-router.get("/api/search", async (req, res) => {
+router.get("/api/search", optionalToken, async (req, res) => {
     try {
         const query = (req.query.q || "").trim();
         if (!query || query.length < 2) {
@@ -21,14 +21,8 @@ router.get("/api/search", async (req, res) => {
         const searchTerm = `%${query}%`;
         const results = [];
 
-        // Determine user identity if provided
-        let user = null;
-        if (req.headers.authorization) {
-            try {
-                const token = req.headers.authorization.split(" ")[1];
-                user = jwt.decode(token);
-            } catch (e) {}
-        }
+        // Determine user identity securely from verified JWT
+        const user = req.user;
         const role = (user && (user.role || user.type) ? String(user.role || user.type) : "").toLowerCase();
         const userDept = (user && user.department ? String(user.department) : "").toLowerCase();
 

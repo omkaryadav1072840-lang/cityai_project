@@ -72,8 +72,17 @@ const SmartCityAuth = (() => {
     // -------------------------------------------------------
 
     function setSession(token, user) {
-        if (token) localStorage.setItem(TOKEN_KEY, token);
-        if (user)  localStorage.setItem(USER_KEY,  JSON.stringify(user));
+        if (token) {
+            localStorage.setItem(TOKEN_KEY, token);
+            localStorage.setItem("smartcity_auth_token", token);
+            localStorage.setItem("token", token);
+        }
+        if (user) {
+            const userStr = JSON.stringify(user);
+            localStorage.setItem(USER_KEY, userStr);
+            localStorage.setItem("smartcity_user", userStr);
+            localStorage.setItem("currentUser", userStr);
+        }
         renderUserHeader();
         refreshNotificationCount();
         if (typeof window !== "undefined") {
@@ -82,7 +91,9 @@ const SmartCityAuth = (() => {
     }
 
     function getToken() {
-        const token = localStorage.getItem(TOKEN_KEY);
+        const token = localStorage.getItem(TOKEN_KEY) ||
+                      localStorage.getItem("smartcity_auth_token") ||
+                      localStorage.getItem("token");
         if (!token) return null;
         if (_isTokenExpired(token)) {
             logout();
@@ -93,7 +104,9 @@ const SmartCityAuth = (() => {
 
     function getUser() {
         try {
-            const raw = localStorage.getItem(USER_KEY);
+            const raw = localStorage.getItem(USER_KEY) ||
+                        localStorage.getItem("smartcity_user") ||
+                        localStorage.getItem("currentUser");
             return raw ? JSON.parse(raw) : null;
         } catch {
             return null;
@@ -108,7 +121,7 @@ const SmartCityAuth = (() => {
         const user = getUser();
         if (!user) return false;
         const role = (user.role || user.type || "").toLowerCase();
-        return role === "staff" || role === "admin";
+        return role === "staff" || role === "admin" || role === "doctor";
     }
 
     function isCitizen() {
@@ -144,6 +157,12 @@ const SmartCityAuth = (() => {
     function logout() {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem("smartcity_auth_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("smartcity_user");
+        localStorage.removeItem("currentUser");
+        sessionStorage.removeItem("parking_staff_auth");
+        sessionStorage.removeItem("smartCityUser");
         renderUserHeader();
         refreshNotificationCount();
         if (typeof window !== "undefined") {
@@ -158,7 +177,11 @@ const SmartCityAuth = (() => {
         if (token) {
             headers["Authorization"] = `Bearer ${token}`;
         }
-        return fetch(url, Object.assign({}, options, { headers }));
+        const res = await fetch(url, Object.assign({}, options, { headers }));
+        if (res.status === 401 && token) {
+            logout();
+        }
+        return res;
     }
 
     // -------------------------------------------------------
@@ -282,7 +305,7 @@ const SmartCityAuth = (() => {
     // UNIVERSAL MODAL LOGIN DIALOG
     // -------------------------------------------------------
 
-    function showLoginModal(defaultTab = "citizen") {
+    function showLoginModal(defaultTab = "citizen", options = {}) {
         const existing = document.getElementById("scGlobalLoginModal");
         if (existing) existing.remove();
 
@@ -305,7 +328,7 @@ const SmartCityAuth = (() => {
         `;
 
         modal.innerHTML = `
-            <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:16px; width:100%; max-width:400px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.8); overflow:hidden; color:#f8fafc;">
+            <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.3); border-radius:16px; width:100%; max-width:420px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.8); overflow:hidden; color:#f8fafc;">
                 <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:space-between; background:rgba(30,41,59,0.5);">
                     <div style="font-weight:700; font-size:16px; display:flex; align-items:center; gap:8px;">
                         <span>🏛️</span> SmartCity AI Access
@@ -335,9 +358,17 @@ const SmartCityAuth = (() => {
 
                     <!-- Staff Form -->
                     <form id="scStaffForm" style="display:none; flex-direction:column; gap:12px;">
+                        <div style="font-size:11px; background:rgba(30,41,59,0.85); border:1px dashed rgba(56,189,248,0.35); border-radius:8px; padding:8px 10px; color:#94a3b8; display:flex; flex-direction:column; gap:5px;">
+                            <span style="color:#e2e8f0; font-weight:600;">🔑 Click to Auto-fill Demo Staff Credentials:</span>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                <span style="color:#38bdf8; background:#1e293b; padding:3px 7px; border-radius:5px; cursor:pointer; font-family:monospace; border:1px solid rgba(56,189,248,0.25);" onclick="document.getElementById('scStaffId').value='TR-VERMA'; document.getElementById('scStaffPassword').value='verma123';">👮 TR-VERMA (verma123)</span>
+                                <span style="color:#38bdf8; background:#1e293b; padding:3px 7px; border-radius:5px; cursor:pointer; font-family:monospace; border:1px solid rgba(56,189,248,0.25);" onclick="document.getElementById('scStaffId').value='TR-PANDEY'; document.getElementById('scStaffPassword').value='pandey123';">👮 TR-PANDEY (pandey123)</span>
+                                <span style="color:#a855f7; background:#1e293b; padding:3px 7px; border-radius:5px; cursor:pointer; font-family:monospace; border:1px solid rgba(168,85,247,0.25);" onclick="document.getElementById('scStaffId').value='TR-ADMIN'; document.getElementById('scStaffPassword').value='admin123';">🛡️ TR-ADMIN (admin123)</span>
+                            </div>
+                        </div>
                         <div>
                             <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:4px;">Official Staff ID</label>
-                            <input type="text" id="scStaffId" required placeholder="e.g. WST001, TRF001, STAFF-001" style="width:100%; padding:9px 12px; border-radius:8px; background:#1e293b; border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:13px;">
+                            <input type="text" id="scStaffId" required placeholder="e.g. TR-VERMA, TR-PANDEY, TR-ADMIN" style="width:100%; padding:9px 12px; border-radius:8px; background:#1e293b; border:1px solid rgba(255,255,255,0.1); color:#fff; font-size:13px;">
                         </div>
                         <div>
                             <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:4px;">Password</label>
@@ -416,8 +447,19 @@ const SmartCityAuth = (() => {
             });
             if (defaultTab === "staff") {
                 const staffInp = modal.querySelector("#scStaffId");
-                if (staffInp) setTimeout(() => staffInp.focus(), 100);
+                const passInp = modal.querySelector("#scStaffPassword");
+                if (options && options.prefillStaffId && staffInp) {
+                    staffInp.value = options.prefillStaffId;
+                    if (passInp) setTimeout(() => passInp.focus(), 100);
+                } else if (staffInp) {
+                    setTimeout(() => staffInp.focus(), 100);
+                }
             }
+        }
+
+        if (options && options.message && msgEl) {
+            msgEl.textContent = options.message;
+            msgEl.style.color = "#38bdf8";
         }
 
         // Close on background click or ✕
@@ -447,7 +489,11 @@ const SmartCityAuth = (() => {
                     msgEl.textContent = "Login successful!";
                     setTimeout(() => {
                         modal.remove();
-                        window.location.reload();
+                        if (options && typeof options.onSuccess === "function") {
+                            options.onSuccess(data.user, data.token);
+                        } else {
+                            window.location.reload();
+                        }
                     }, 350);
                 } else {
                     msgEl.style.color = "#f87171";
@@ -480,7 +526,11 @@ const SmartCityAuth = (() => {
                     msgEl.textContent = `Welcome ${data.user.name} (${data.user.department})!`;
                     setTimeout(() => {
                         modal.remove();
-                        window.location.reload();
+                        if (options && typeof options.onSuccess === "function") {
+                            options.onSuccess(data.user, data.token);
+                        } else {
+                            window.location.reload();
+                        }
                     }, 350);
                 } else {
                     msgEl.style.color = "#f87171";

@@ -168,13 +168,17 @@ function getCurrentUser() {
 ===================================================== */
 
 function isParkingStaff() {
+    const token = (typeof getAuthToken === "function" ? getAuthToken() : null) ||
+                  localStorage.getItem("smartCityJWT") ||
+                  localStorage.getItem("smartcity_token") ||
+                  localStorage.getItem("smartcity_auth_token");
+    if (!token) return false;
+
     const user = getCurrentUser();
-    if (!user) {
-        return localStorage.getItem("parkingRole") === "staff";
-    }
+    if (!user) return false;
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const department = String(user.department || "").toLowerCase().trim();
-    return (type === "staff" && (department === "parking" || !department)) || type === "admin" || localStorage.getItem("parkingRole") === "staff";
+    return (type === "staff" && (department === "parking" || !department)) || type === "admin" || type === "superadmin";
 }
 
 let currentParkingLayer = "citizen";
@@ -267,6 +271,13 @@ function applyRoleUI() {
 window.applyRoleUI = applyRoleUI;
 
 function promptParkingStaffLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "PRK001",
+            message: "🔒 Enter Parking Staff ID & Password to access attendant controls."
+        });
+        return;
+    }
     const staffId = prompt("Enter Parking Staff ID (Default: PRK001):", "PRK001");
     const pass = prompt("Enter Password (Default: 123456):", "123456");
     if (staffId && pass) {
@@ -4545,8 +4556,16 @@ window.handleUserLogout = function () {
     showToast("👋 Session ended safely. Switching to Guest Mode...");
     localStorage.removeItem("smartcity_auth_token");
     localStorage.removeItem("token");
+    localStorage.removeItem("smartCityJWT");
+    localStorage.removeItem("smartCityCurrentUser");
+    localStorage.removeItem("smartcity_user");
+    localStorage.removeItem("currentUser");
     sessionStorage.removeItem("smartCityUser");
     sessionStorage.removeItem("parking_staff_auth");
+
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("smartcity:auth-change", { detail: { token: null, user: null } }));
+    }
 
     initNavUserProfile();
 

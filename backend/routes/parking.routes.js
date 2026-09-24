@@ -135,7 +135,7 @@ function parseLotIdentifier(id) {
 // CITIZEN DIRECTORY LOOKUP (For Staff Gate Booking)
 // =========================================================
 
-router.get("/api/parking/users/search", optionalToken, async (req, res) => {
+router.get("/api/parking/users/search", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const q = String(req.query.q || "").trim();
     try {
         let query = `
@@ -164,9 +164,9 @@ router.get("/api/parking/users/search", optionalToken, async (req, res) => {
 // =========================================================
 
 router.get("/api/parking/my-bookings", optionalToken, async (req, res) => {
-    const userId = req.query.userId || (req.user ? req.user.id : null);
-    const phone = req.query.phone || (req.user ? req.user.mobile : null);
-    const vehicle = req.query.vehicle ? String(req.query.vehicle).trim().toUpperCase() : null;
+    const rawUserId = req.query.userId;
+    const rawPhone = req.query.phone;
+    const rawVehicle = req.query.vehicle ? String(req.query.vehicle).trim().toUpperCase() : null;
 
     try {
         // Auto-update expired bookings whose end_time has passed and have not checked in
@@ -184,17 +184,30 @@ router.get("/api/parking/my-bookings", optionalToken, async (req, res) => {
         const conditions = [];
         const params = [];
 
-        if (userId) {
-            conditions.push("b.user_id = ?");
-            params.push(userId);
-        }
-        if (phone) {
-            conditions.push("b.customer_phone = ?");
-            params.push(phone);
-        }
-        if (vehicle) {
-            conditions.push("b.vehicle_number = ?");
-            params.push(vehicle);
+        const isStaffOrAdmin = req.user && (["staff", "admin"].includes(req.user.role) || ["staff", "admin"].includes(req.user.type));
+
+        if (isStaffOrAdmin) {
+            // Staff / Admin can filter by any provided param
+            if (rawUserId) { conditions.push("b.user_id = ?"); params.push(rawUserId); }
+            if (rawPhone) { conditions.push("b.customer_phone = ?"); params.push(rawPhone); }
+            if (rawVehicle) { conditions.push("b.vehicle_number = ?"); params.push(rawVehicle); }
+        } else if (req.user) {
+            // Authenticated citizen: strictly restricted to their own account / phone
+            const userSubConditions = ["b.user_id = ?"];
+            params.push(req.user.id);
+            if (req.user.mobile) {
+                userSubConditions.push("b.customer_phone = ?");
+                params.push(req.user.mobile);
+            }
+            conditions.push("(" + userSubConditions.join(" OR ") + ")");
+            if (rawVehicle) {
+                conditions.push("b.vehicle_number = ?");
+                params.push(rawVehicle);
+            }
+        } else {
+            // Unauthenticated: only allow lookup by verified phone or specific vehicle (do not allow arbitrary unauthenticated userId probing)
+            if (rawPhone) { conditions.push("b.customer_phone = ?"); params.push(rawPhone); }
+            if (rawVehicle) { conditions.push("b.vehicle_number = ?"); params.push(rawVehicle); }
         }
 
         // If no citizen identifier provided, do not leak other citizens' bookings
@@ -202,7 +215,7 @@ router.get("/api/parking/my-bookings", optionalToken, async (req, res) => {
             return res.json({ success: true, count: 0, bookings: [] });
         }
 
-        query += ` WHERE (` + conditions.join(" OR ") + `) `;
+        query += ` WHERE ` + conditions.join(" AND ");
         query += ` ORDER BY b.id DESC LIMIT 50 `;
 
         const [rows] = await db.promise().query(query, params);
@@ -247,7 +260,7 @@ router.get("/api/parking/:id", (req, res) => {
 // ADD PARKING LOT (Staff/Admin with automated bay provisioning)
 // =========================================================
 
-router.post("/api/parking", optionalToken, async (req, res) => {
+router.post("/api/parking", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { parkingCode, name, address, area, totalSlots, hourlyRate, status, latitude, longitude } = req.body;
 
     if (!parkingCode || !name || !address) {
@@ -325,7 +338,7 @@ router.post("/api/parking", optionalToken, async (req, res) => {
 // UPDATE PARKING LOT (Staff/Admin)
 // =========================================================
 
-router.put("/api/parking/:id", optionalToken, async (req, res) => {
+router.put("/api/parking/:id", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const id = req.params.id;
     const { name, address, area, totalSlots, availableSlots, occupiedSlots, hourlyRate, status, latitude, longitude } = req.body;
     const { clause, value } = parseLotIdentifier(id);
@@ -372,7 +385,7 @@ router.put("/api/parking/:id", optionalToken, async (req, res) => {
 // STAFF DIRECT GATE BOOKING (Reserve & Issue Pass)
 // =========================================================
 
-router.post("/api/parking/staff-book", optionalToken, async (req, res) => {
+router.post("/api/parking/staff-book", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { lotId, slotNumber, userId, customerName, customerPhone, vehicleNumber, durationHours, checkInNow } = req.body;
 
     if (!lotId || !slotNumber || !vehicleNumber) {
@@ -856,9 +869,9 @@ router.post("/api/parking/:id/book-slot", optionalToken, async (req, res) => {
         const hours = Math.max(1, Math.min(Number(durationHours || 2), 24));
         const totalAmount = Number(lot.hourly_rate) * hours;
         const bookingId = "BKG-" + Date.now().toString(36).toUpperCase();
-        const finalCustomerName = customerName || (req.user ? req.user.name : "Citizen Customer");
-        const finalCustomerPhone = customerPhone || (req.user ? req.user.mobile : "N/A");
-        const finalUserId = userId || (req.user ? req.user.id : "guest-citizen");
+        const finalCustomerName = (req.user && req.user.name) ? req.user.name : (customerName || "Citizen Customer");
+        const finalCustomerPhone = (req.user && req.user.mobile) ? req.user.mobile : (customerPhone || "N/A");
+        const finalUserId = req.user ? req.user.id : (userId || "guest-citizen");
 
         // Parse booking date & time
         let startDt = new Date();
@@ -966,10 +979,9 @@ router.post("/api/parking/:id/book-slot", optionalToken, async (req, res) => {
  */
 router.post("/api/parking/bookings/:bookingId/cancel", optionalToken, async (req, res) => {
     const bookingId = req.params.bookingId;
-    const { reason } = req.body;
-    const currentUserId = req.user ? req.user.id : (req.body.userId || null);
-    const currentUserPhone = req.user ? req.user.mobile : (req.body.phone || null);
-    const userRole = req.user ? req.user.role : null;
+    const { reason, qr_token, qrToken } = req.body;
+    const providedQrToken = qr_token || qrToken || req.query.qr_token || req.query.qrToken;
+    const userRole = req.user ? (req.user.role || req.user.type || "").toLowerCase() : null;
 
     try {
         const [bookings] = await db.promise().query(
@@ -982,12 +994,27 @@ router.post("/api/parking/bookings/:bookingId/cancel", optionalToken, async (req
         }
         const b = bookings[0];
 
-        // Verify authorization (owner or staff/admin)
+        // Verify authorization (staff/admin, authenticated owner, or verified QR token for guest)
         if (userRole !== "admin" && userRole !== "staff") {
-            const isOwner = (currentUserId && String(b.user_id) === String(currentUserId)) ||
-                            (currentUserPhone && String(b.customer_phone) === String(currentUserPhone));
-            if (!isOwner) {
-                return res.status(403).json({ success: false, message: "Unauthorized to cancel this booking." });
+            let isOwner = false;
+            if (req.user) {
+                const uid = req.user.id || req.user.userId;
+                const umobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                const bmobile = b.customer_phone ? String(b.customer_phone).replace(/\D/g, "") : null;
+                if (uid && b.user_id && b.user_id !== "guest-citizen" && String(b.user_id) === String(uid)) {
+                    isOwner = true;
+                } else if (umobile && bmobile && umobile === bmobile) {
+                    isOwner = true;
+                }
+            }
+
+            const hasValidQrToken = providedQrToken && b.qr_token && String(providedQrToken) === String(b.qr_token);
+
+            if (!isOwner && !hasValidQrToken) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Unauthorized to cancel this booking. Please login with your booking account or provide your ticket QR verification token."
+                });
             }
         }
 
@@ -1220,7 +1247,7 @@ router.post("/api/parking/verify-qr", optionalToken, async (req, res) => {
  * PUT /api/parking/slots/:slotId/status
  * Staff control endpoint to update slot state (Available, Occupied, Maintenance).
  */
-router.put("/api/parking/slots/:slotId/status", optionalToken, async (req, res) => {
+router.put("/api/parking/slots/:slotId/status", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const slotId = req.params.slotId;
     const { status } = req.body;
 
@@ -1304,7 +1331,7 @@ router.put("/api/parking/slots/:slotId/status", optionalToken, async (req, res) 
  * POST /api/parking/gate-action
  * Staff QR Gate Scanner: Lookup, Check-in, or Check-out vehicle
  */
-router.post("/api/parking/gate-action", optionalToken, async (req, res) => {
+router.post("/api/parking/gate-action", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { action, bookingId, vehicleNumber } = req.body;
 
     if (!bookingId && !vehicleNumber) {
@@ -1620,7 +1647,7 @@ router.get("/api/parking/operations/summary", async (req, res) => {
 });
 
 // 2. LIVE OVERSTAYS QUEUE (Staff Operations)
-router.get("/api/parking/staff/overstays", async (req, res) => {
+router.get("/api/parking/staff/overstays", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     try {
         const pool = db.promise();
         const [rows] = await pool.query(`
@@ -1644,7 +1671,7 @@ router.get("/api/parking/staff/overstays", async (req, res) => {
 });
 
 // 3. EMERGENCY MASTER BARRIER OVERRIDE
-router.post("/api/parking/emergency-barrier-override", optionalToken, async (req, res) => {
+router.post("/api/parking/emergency-barrier-override", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { action, reason } = req.body;
     const isRaised = action !== "RESTORE";
 
@@ -1665,7 +1692,7 @@ router.post("/api/parking/emergency-barrier-override", optionalToken, async (req
 });
 
 // 4. DYNAMIC PRICING & SURGE ENGINE (Admin)
-router.get("/api/parking/admin/pricing", async (req, res) => {
+router.get("/api/parking/admin/pricing", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     try {
         const pool = db.promise();
         const [lots] = await pool.query(`
@@ -1681,7 +1708,7 @@ router.get("/api/parking/admin/pricing", async (req, res) => {
     }
 });
 
-router.put("/api/parking/lots/:id/pricing", optionalToken, async (req, res) => {
+router.put("/api/parking/lots/:id/pricing", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const id = req.params.id;
     const { hourly_rate, peak_hourly_rate, surge_active } = req.body;
 
@@ -1722,7 +1749,7 @@ router.put("/api/parking/lots/:id/pricing", optionalToken, async (req, res) => {
 });
 
 // 5. ANPR AUDIT LOGS (Admin / Security)
-router.get("/api/parking/admin/anpr-logs", async (req, res) => {
+router.get("/api/parking/admin/anpr-logs", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     try {
         const pool = db.promise();
         const [logs] = await pool.query("SELECT * FROM parking_anpr_scans ORDER BY scanned_at DESC LIMIT 30");
@@ -1734,7 +1761,7 @@ router.get("/api/parking/admin/anpr-logs", async (req, res) => {
 });
 
 // 6. RESOLVE OVERSTAY PENALTY (Direct MySQL DB Update)
-router.post("/api/parking/resolve-overstay-penalty", optionalToken, async (req, res) => {
+router.post("/api/parking/resolve-overstay-penalty", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { bookingId, paymentMethod = "CASH", attendantStaffId = "PRK001", notes = "" } = req.body;
     if (!bookingId) {
         return res.status(400).json({ success: false, message: "Booking ID or Record ID is required." });
@@ -1823,7 +1850,7 @@ router.post("/api/parking/resolve-overstay-penalty", optionalToken, async (req, 
 });
 
 // 7. SEND OVERSTAY ALERT (Driver SMS Reminder)
-router.post("/api/parking/send-overstay-alert", optionalToken, async (req, res) => {
+router.post("/api/parking/send-overstay-alert", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { bookingId, phone, vehicleNumber, overstayMinutes, fineDue } = req.body;
     try {
         const pool = db.promise();
@@ -1848,7 +1875,7 @@ router.post("/api/parking/send-overstay-alert", optionalToken, async (req, res) 
 });
 
 // 8. STAFF BAY STATUS OVERRIDE (Maintenance / Block / Free)
-router.put("/api/parking/slots/:slotId/staff-override", optionalToken, async (req, res) => {
+router.put("/api/parking/slots/:slotId/staff-override", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { slotId } = req.params;
     const { status, lotId, staffId = "PRK001" } = req.body;
 
@@ -1889,7 +1916,7 @@ router.put("/api/parking/slots/:slotId/staff-override", optionalToken, async (re
 });
 
 // 9. STAFF SHIFT SUMMARY & CASH RECONCILIATION
-router.get("/api/parking/staff/shift-summary", optionalToken, async (req, res) => {
+router.get("/api/parking/staff/shift-summary", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     try {
         const pool = db.promise();
         const [revRows] = await pool.query(`

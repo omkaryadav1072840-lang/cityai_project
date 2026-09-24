@@ -63,6 +63,99 @@ const ROLE_MODULES = {
     ]
 };
 
+// ====================================================================
+// STAFF ACCESS CONTROL & AUTHENTICATION GATE
+// ====================================================================
+
+function isStaffUser(user) {
+    if (!user) return false;
+    const role = (user.role || user.type || "").toLowerCase();
+    const hospRole = (user.hospitalRole || "").toLowerCase();
+    const allowedRoles = ["staff", "admin", "doctor", "hospital_admin", "receptionist", "nurse", "lab_technician", "radiologist", "pharmacy", "billing", "ambulance"];
+    return allowedRoles.includes(role) || allowedRoles.includes(hospRole);
+}
+
+function enforceStaffAuth() {
+    const user = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
+    const isAuthed = user && isStaffUser(user);
+
+    const gate = document.getElementById("staffAuthGate");
+    const content = document.getElementById("dashboardMainContent");
+    const userBadge = document.getElementById("navUserBadge");
+    const logoutBtn = document.getElementById("btnStaffLogout");
+
+    if (!isAuthed) {
+        if (gate) gate.style.display = "flex";
+        if (content) content.style.display = "none";
+        if (userBadge) userBadge.style.display = "none";
+        if (logoutBtn) logoutBtn.style.display = "none";
+        return false;
+    }
+
+    if (gate) gate.style.display = "none";
+    if (content) content.style.display = "block";
+    if (userBadge) userBadge.style.display = "flex";
+    if (logoutBtn) logoutBtn.style.display = "inline-flex";
+    return true;
+}
+
+async function handleDashboardStaffLogin(e) {
+    if (e) e.preventDefault();
+    const staffId = document.getElementById("gateStaffId").value.trim();
+    const password = document.getElementById("gatePassword").value;
+    const errEl = document.getElementById("gateErrorMsg");
+    if (errEl) errEl.style.display = "none";
+
+    try {
+        const res = await fetch(`${API_BASE}/api/staff-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password })
+        });
+        const data = await res.json();
+        if (data.token) {
+            localStorage.setItem("smartCityJWT", data.token);
+            if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.setSession) {
+                SmartCityAuth.setSession(data.token, data.user);
+            }
+            if (data.user && data.user.hospitalId) {
+                currentHospitalId = data.user.hospitalId;
+            }
+            enforceStaffAuth();
+            updateUserProfileDisplay();
+            await populateHospitalSwitcher();
+            await loadHospitalInfo();
+            await refreshDashboardData();
+            await loadActiveModuleData();
+        } else {
+            if (errEl) {
+                errEl.textContent = data.message || "Invalid staff credentials.";
+                errEl.style.display = "block";
+            }
+        }
+    } catch (err) {
+        if (errEl) {
+            errEl.textContent = "Server connection error: " + err.message;
+            errEl.style.display = "block";
+        }
+    }
+}
+
+async function quickDemoStaffLogin() {
+    document.getElementById("gateStaffId").value = "STAFF-001";
+    document.getElementById("gatePassword").value = "admin123";
+    await handleDashboardStaffLogin();
+}
+
+function handleStaffLogout() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.logout) {
+        SmartCityAuth.logout();
+    }
+    localStorage.removeItem("smartCityJWT");
+    localStorage.removeItem("smartCityCurrentUser");
+    enforceStaffAuth();
+}
+
 // INITIALIZATION
 document.addEventListener("DOMContentLoaded", async () => {
     // 1. Resolve Hospital ID from URL
@@ -70,11 +163,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const queryHospId = urlParams.get("hospital_id");
     if (queryHospId) currentHospitalId = queryHospId;
 
-    // 2. Set hospital select in switcher
+    // 2. Check Staff / Admin Authorization Gate
+    const hasAccess = enforceStaffAuth();
+    if (!hasAccess) {
+        // Wait for staff/admin login
+        return;
+    }
+
+    // 3. Set hospital select in switcher
     const hospSelect = document.getElementById("demoHospitalSelect");
     if (hospSelect) hospSelect.value = currentHospitalId;
 
-    // 3. Resolve user session & role
+    // 4. Resolve user session & role
     const user = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
     if (user) {
         if (user.hospitalId && (!queryHospId || queryHospId === user.hospitalId)) {
@@ -232,6 +332,22 @@ async function onSwitchHospital(newHospId) {
 
 // SWITCH ROLE (Demo Switcher)
 function onSwitchRole(newRole) {
+    if (newRole !== "citizen") {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) ? SmartCityAuth.getToken() : localStorage.getItem("smartCityJWT");
+        const curUser = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
+        const isStaff = token && curUser && (curUser.role === "staff" || curUser.role === "admin" || curUser.role === "doctor" || curUser.type === "staff");
+        if (!isStaff) {
+            if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+                SmartCityAuth.showLoginModal("staff", {
+                    prefillStaffId: "STAFF-001",
+                    message: "🔒 Enter Staff ID and Password to switch to Medical Staff mode."
+                });
+                const sel = document.getElementById("demoRoleSelect");
+                if (sel) sel.value = currentRole;
+                return;
+            }
+        }
+    }
     currentRole = newRole;
     updateUserProfileDisplay();
     renderModuleTabs();
@@ -370,7 +486,7 @@ async function loadAppointments() {
                     <strong>${escapeHtml(a.patient_name || a.patient_id)}</strong>
                     <div style="font-size:11px; color:#64748b;">${escapeHtml(a.patient_id)}</div>
                 </td>
-                <td>${escapeHtml(a.patient_age ? `${a.patient_age}y` : "-")} / ${escapeHtml(a.patient_gender || "-")}</td>
+                <td>${escapeHtml(a.patient_age && a.patient_age > 0 ? `${a.patient_age}y` : "-")} / ${escapeHtml(a.patient_gender || "-")}</td>
                 <td>${escapeHtml(a.doctor || a.doctor_name || "Assigned Doctor")}</td>
                 <td><span class="hd-badge blue">${escapeHtml(a.department || "OPD")}</span></td>
                 <td>${escapeHtml(a.appointment_time || "10:00 AM")}</td>

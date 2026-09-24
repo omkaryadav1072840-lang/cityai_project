@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const { authenticateToken, optionalToken, requireRole } = require("../middleware/auth.middleware");
 
 // =========================================================
 // DYNAMIC APPOINTMENT AVAILABILITY ENGINE
@@ -407,8 +408,12 @@ router.post("/api/appointments", (req, res) => {
 // CANCEL APPOINTMENT (releases the slot seat back)
 // =========================================================
 
-router.put("/api/appointments/:id/cancel", (req, res) => {
+router.put("/api/appointments/:id/cancel", optionalToken, (req, res) => {
     const appointmentId = req.params.id;
+
+    if (!req.user && process.env.REQUIRE_AUTH !== "false") {
+        return res.status(401).json({ success: false, message: "Authentication required to cancel an appointment." });
+    }
 
     db.getConnection((connErr, conn) => {
         if (connErr) {
@@ -424,9 +429,10 @@ router.put("/api/appointments/:id/cancel", (req, res) => {
             }
 
             const findSql = `
-                SELECT id, slot_id, status
-                FROM appointments
-                WHERE id = ?
+                SELECT a.id, a.slot_id, a.status, a.patient_id, p.user_id, p.mobile
+                FROM appointments a
+                LEFT JOIN patients p ON a.patient_id = p.patient_id
+                WHERE a.id = ?
                 FOR UPDATE
             `;
 
@@ -447,6 +453,25 @@ router.put("/api/appointments/:id/cancel", (req, res) => {
                 }
 
                 const appointment = rows[0];
+
+                // Ownership / Authorization verification
+                if (req.user) {
+                    const role = (req.user.role || req.user.type || "").toLowerCase();
+                    if (role === "citizen") {
+                        const userId = req.user.id || req.user.userId;
+                        const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                        const patientMobile = appointment.mobile ? String(appointment.mobile).replace(/\D/g, "") : null;
+                        const isOwner = (userId && appointment.user_id && Number(userId) === Number(appointment.user_id)) ||
+                                        (mobile && patientMobile && mobile === patientMobile) ||
+                                        (req.user.patientId && req.user.patientId === appointment.patient_id);
+                        if (!isOwner) {
+                            return conn.rollback(() => {
+                                conn.release();
+                                res.status(403).json({ message: "Access denied. You can only cancel your own appointments." });
+                            });
+                        }
+                    }
+                }
 
                 if (["Cancelled", "Completed"].includes(appointment.status)) {
                     return conn.rollback(() => {
@@ -521,8 +546,10 @@ router.put("/api/appointments/:id/cancel", (req, res) => {
 // GET ALL APPOINTMENTS (General / Admin / Staff query)
 // =========================================================
 
-router.get("/api/appointments", (req, res) => {
+router.get("/api/appointments", authenticateToken, (req, res) => {
     const { hospital_id, doctor_id, date, status } = req.query;
+    const role = (req.user.role || req.user.type || "").toLowerCase();
+
     let sql = `
         SELECT 
             a.*,
@@ -538,11 +565,27 @@ router.get("/api/appointments", (req, res) => {
     `;
     const params = [];
 
+    // If caller is citizen, strictly restrict to their own records
+    if (role === "citizen") {
+        const userId = req.user.id || req.user.userId;
+        const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+        sql += ` AND (p.user_id = ? OR (p.mobile = ? AND ? IS NOT NULL))`;
+        params.push(userId, mobile, mobile);
+    } else if (role === "doctor") {
+        const docId = req.user.doctorId || req.user.staffId;
+        if (docId) {
+            sql += ` AND (a.doctor_id = ? OR d.doctor_id = ?)`;
+            params.push(docId, docId);
+        }
+    } else if (!["admin", "staff"].includes(role)) {
+        return res.status(403).json({ success: false, message: "Access denied." });
+    }
+
     if (hospital_id) {
         sql += ` AND a.hospital_id = ?`;
         params.push(hospital_id);
     }
-    if (doctor_id) {
+    if (doctor_id && role !== "doctor") {
         sql += ` AND a.doctor_id = ?`;
         params.push(doctor_id);
     }
@@ -570,7 +613,7 @@ router.get("/api/appointments", (req, res) => {
 // GET PATIENT APPOINTMENTS
 // =========================================================
 
-router.get("/api/appointments/:patientId", (req, res) => {
+router.get("/api/appointments/:patientId", optionalToken, (req, res) => {
     const patientId = req.params.patientId;
 
     if (!patientId) {
@@ -579,37 +622,72 @@ router.get("/api/appointments/:patientId", (req, res) => {
         });
     }
 
-    const sql = `
-        SELECT
-            id,
-            patient_id,
-            doctor,
-            slot_id,
-            doctor_id,
-            appointment_date,
-            appointment_time,
-            status,
-            created_at
-        FROM appointments
-        WHERE patient_id = ?
-        ORDER BY
-            appointment_date DESC,
-            appointment_time DESC
-    `;
+    // Verify patient access
+    db.query(
+        "SELECT id, patient_id, user_id, mobile FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+        [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)],
+        (pErr, pRows) => {
+            if (pErr) {
+                console.error("Patient query error:", pErr);
+                return res.status(500).json({ message: "Database error." });
+            }
 
-    db.query(sql, [patientId], (err, results) => {
-        if (err) {
-            console.error("Appointment fetch error:", err);
-            return res.status(500).json({
-                message: "Database error."
+            if (!pRows.length) {
+                return res.status(404).json({ message: "Patient not found." });
+            }
+
+            const patient = pRows[0];
+
+            if (req.user) {
+                const role = (req.user.role || req.user.type || "").toLowerCase();
+                if (role === "citizen") {
+                    const userId = req.user.id || req.user.userId;
+                    const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                    const patMobile = patient.mobile ? String(patient.mobile).replace(/\D/g, "") : null;
+                    const isOwner = (userId && patient.user_id && Number(userId) === Number(patient.user_id)) ||
+                                    (mobile && patMobile && mobile === patMobile) ||
+                                    (req.user.patientId && req.user.patientId === patient.patient_id);
+                    if (!isOwner) {
+                        return res.status(403).json({ message: "Access denied. You can only view your own appointments." });
+                    }
+                }
+            } else if (process.env.REQUIRE_AUTH !== "false") {
+                return res.status(401).json({ message: "Authentication required to view patient appointments." });
+            }
+
+            const sql = `
+                SELECT
+                    id,
+                    patient_id,
+                    doctor,
+                    slot_id,
+                    doctor_id,
+                    appointment_date,
+                    appointment_time,
+                    status,
+                    created_at
+                FROM appointments
+                WHERE patient_id = ?
+                ORDER BY
+                    appointment_date DESC,
+                    appointment_time DESC
+            `;
+
+            db.query(sql, [patient.patient_id], (err, results) => {
+                if (err) {
+                    console.error("Appointment fetch error:", err);
+                    return res.status(500).json({
+                        message: "Database error."
+                    });
+                }
+
+                res.json({
+                    message: "Appointments fetched successfully.",
+                    appointments: results
+                });
             });
         }
-
-        res.json({
-            message: "Appointments fetched successfully.",
-            appointments: results
-        });
-    });
+    );
 });
 
 module.exports = router;

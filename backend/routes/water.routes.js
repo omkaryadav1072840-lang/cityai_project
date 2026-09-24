@@ -347,13 +347,8 @@ router.delete("/api/water/tanks/:id", authenticateToken, requireWaterStaff, asyn
 // =========================================================
 router.get("/api/water/reports", optionalToken, async (req, res) => {
     const { status, userId, priority } = req.query;
-    let sql = `
-        SELECT id, report_id, user_id, citizen_name, mobile,
-               issue_type, location, description, status, priority,
-               assigned_technician_id, assigned_technician_name,
-               evidence_image, internal_remarks, created_at, updated_at, resolved_at
-        FROM water_reports
-    `;
+    const role = (req.user ? (req.user.role || req.user.type || "") : "").toLowerCase();
+    const isStaffOrAdmin = role === "admin" || (role === "staff" && ((req.user.department || "").toLowerCase() === "water" || (req.user.editable || []).includes("water")));
 
     const params = [];
     const conditions = [];
@@ -366,16 +361,33 @@ router.get("/api/water/reports", optionalToken, async (req, res) => {
         conditions.push("priority = ?");
         params.push(priority);
     }
-    if (userId) {
+
+    if (isStaffOrAdmin) {
+        if (userId) {
+            conditions.push("user_id = ?");
+            params.push(userId);
+        }
+    } else if (req.user) {
+        // Authenticated citizen: restrict to their own reports
         conditions.push("user_id = ?");
-        params.push(userId);
+        params.push(req.user.id);
     }
+
+    let sql = `
+        SELECT id, report_id, user_id, 
+               ${isStaffOrAdmin || req.user ? "citizen_name, mobile," : "'Verified Citizen' AS citizen_name, NULL AS mobile,"}
+               issue_type, location, description, status, priority,
+               assigned_technician_id, assigned_technician_name,
+               ${isStaffOrAdmin ? "evidence_image, internal_remarks," : "NULL AS evidence_image, NULL AS internal_remarks,"}
+               created_at, updated_at, resolved_at
+        FROM water_reports
+    `;
 
     if (conditions.length > 0) {
         sql += " WHERE " + conditions.join(" AND ");
     }
 
-    sql += " ORDER BY created_at DESC";
+    sql += " ORDER BY created_at DESC LIMIT 50";
 
     try {
         const [results] = await pool.query(sql, params);
@@ -574,6 +586,14 @@ router.post("/api/water/tanker-bookings", optionalToken, async (req, res) => {
 // =========================================================
 router.get("/api/water/tanker-bookings", optionalToken, async (req, res) => {
     const { userId, status } = req.query;
+    const role = (req.user ? (req.user.role || req.user.type || "") : "").toLowerCase();
+    const isStaffOrAdmin = role === "admin" || (role === "staff" && ((req.user.department || "").toLowerCase() === "water" || (req.user.editable || []).includes("water")));
+
+    if (!req.user) {
+        // Unauthenticated users cannot view private tanker bookings
+        return res.json({ success: true, count: 0, bookings: [] });
+    }
+
     let sql = `
         SELECT id, booking_id, user_id, citizen_name, mobile,
                delivery_address, capacity, booking_date, delivery_slot,
@@ -585,10 +605,14 @@ router.get("/api/water/tanker-bookings", optionalToken, async (req, res) => {
     const params = [];
     const conditions = [];
 
-    if (userId) {
+    if (!isStaffOrAdmin) {
+        conditions.push("user_id = ?");
+        params.push(req.user.id);
+    } else if (userId) {
         conditions.push("user_id = ?");
         params.push(userId);
     }
+
     if (status) {
         conditions.push("status = ?");
         params.push(status);

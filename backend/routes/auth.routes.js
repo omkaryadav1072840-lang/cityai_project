@@ -175,7 +175,7 @@ router.post("/api/staff-login", (req, res) => {
             // Check if user is trying to log in with Doctor ID
             try {
                 const [docResults] = await db.promise().query(`
-                    SELECT d.id, d.doctor_id, d.name, d.specialization, d.department, d.hospital_id, d.email, d.mobile, h.hospital_name
+                    SELECT d.id, d.doctor_id, d.name, d.specialization, d.department, d.hospital_id, d.email, d.mobile, d.password, h.hospital_name
                     FROM doctors d
                     LEFT JOIN hospitals h ON d.hospital_id = h.hospital_id
                     WHERE d.doctor_id = ? OR d.mobile = ? OR d.email = ?
@@ -184,10 +184,16 @@ router.post("/api/staff-login", (req, res) => {
 
                 if (docResults.length > 0) {
                     const doc = docResults[0];
-                    // Verify doctor credentials (password equals doc.doctor_id, mobile, or standard doctor123/staff123)
-                    const validDoctorPass = (password === doc.doctor_id || password === "doctor123" || password === "staff123" || password === "admin123" || password === doc.mobile);
-                    if (!validDoctorPass) {
+                    // Verify doctor credentials securely
+                    if (!verifyPassword(password, doc.password)) {
                         return res.status(401).json({ message: "Incorrect password for Doctor profile." });
+                    }
+
+                    if (isLegacyPlainPassword(doc.password)) {
+                        db.promise().query(
+                            "UPDATE doctors SET password = ? WHERE id = ?",
+                            [hashPassword(password), doc.id]
+                        ).catch(e => console.warn("Doctor password upgrade error:", e.message));
                     }
 
                     const doctorData = {

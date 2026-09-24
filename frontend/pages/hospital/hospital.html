@@ -2862,6 +2862,21 @@
             />
         </div>
 
+        <!-- DOCTOR PASSWORD INPUT -->
+        <div style="margin-bottom: 16px; text-align: left;">
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">
+                Doctor Password / Security PIN:
+            </label>
+            <input 
+                type="password" 
+                id="doctorPasswordInput" 
+                placeholder="Enter doctor password (default: doctor123)" 
+                value="doctor123"
+                style="width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 700; outline: none;"
+                onkeydown="if(event.key==='Enter') submitDoctorLogin()"
+            />
+        </div>
+
         <!-- QUICK DEMO CHIPS -->
         <div style="margin-bottom: 20px; text-align: left;">
             <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 6px;">Quick Demo Doctor IDs:</span>

@@ -1,20 +1,36 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { authenticateToken, requireRole, generateToken, optionalToken } = require("../middleware/auth.middleware");
+const {
+    authenticateToken,
+    requireRole,
+    generateToken,
+    optionalToken,
+    verifyPassword,
+    hashPassword,
+    isLegacyPlainPassword,
+    requireDoctorOrStaff
+} = require("../middleware/auth.middleware");
 
 // =========================================================
 // DOCTOR AUTHENTICATION & MANAGEMENT
 // =========================================================
 
-// DOCTOR LOGIN WITH DOCTOR ID
+// DOCTOR LOGIN WITH DOCTOR ID & PASSWORD
 router.post("/api/doctor/login", async (req, res) => {
-    const { doctorId } = req.body;
+    const { doctorId, password } = req.body;
 
     if (!doctorId || !String(doctorId).trim()) {
         return res.status(400).json({
             success: false,
             message: "Doctor ID or Registered Mobile/Email is required."
+        });
+    }
+
+    if (!password) {
+        return res.status(400).json({
+            success: false,
+            message: "Doctor password or PIN is required."
         });
     }
 
@@ -31,6 +47,7 @@ router.post("/api/doctor/login", async (req, res) => {
                 d.hospital_id,
                 d.mobile,
                 d.email,
+                d.password,
                 d.status,
                 h.hospital_name
             FROM doctors d
@@ -47,6 +64,22 @@ router.post("/api/doctor/login", async (req, res) => {
         }
 
         const doc = results[0];
+
+        // Secure password verification
+        if (!verifyPassword(password, doc.password)) {
+            return res.status(401).json({
+                success: false,
+                message: "Incorrect password for Doctor profile."
+            });
+        }
+
+        if (isLegacyPlainPassword(doc.password)) {
+            db.promise().query(
+                "UPDATE doctors SET password = ? WHERE id = ?",
+                [hashPassword(password), doc.id]
+            ).catch(e => console.warn("Doctor password upgrade error:", e.message));
+        }
+
         const doctorData = {
             id: doc.id,
             doctorId: doc.doctor_id,
@@ -55,7 +88,8 @@ router.post("/api/doctor/login", async (req, res) => {
             department: doc.department || "healthcare",
             hospitalId: doc.hospital_id,
             hospitalName: doc.hospital_name || "SmartCity Hospital",
-            role: "doctor"
+            role: "doctor",
+            type: "doctor"
         };
 
         const token = generateToken(doctorData, "doctor");
@@ -457,7 +491,7 @@ router.delete("/api/doctor-slots/:id", authenticateToken, requireRole(["staff", 
  * GET /api/doctor/:doctorId/appointments
  * Retrieves all appointments assigned to a specific doctor, joined with patient demographics.
  */
-router.get("/api/doctor/:doctorId/appointments", optionalToken, (req, res) => {
+router.get("/api/doctor/:doctorId/appointments", authenticateToken, requireDoctorOrStaff, (req, res) => {
     const doctorId = req.params.doctorId;
 
     if (!doctorId) {
@@ -510,7 +544,7 @@ router.get("/api/doctor/:doctorId/appointments", optionalToken, (req, res) => {
  * GET /api/doctor/patient-history/:patientId
  * Instant comprehensive medical dossier: demographics, past visits, diagnoses, reports, prescriptions.
  */
-router.get("/api/doctor/patient-history/:patientId", optionalToken, async (req, res) => {
+router.get("/api/doctor/patient-history/:patientId", authenticateToken, requireDoctorOrStaff, async (req, res) => {
     const patientId = req.params.patientId.trim();
 
     if (!patientId) {
@@ -598,7 +632,7 @@ router.get("/api/doctor/patient-history/:patientId", optionalToken, async (req, 
  * POST /api/doctor/consultation
  * Doctor saves clinical consultation notes, diagnosis, and treatment for a patient.
  */
-router.post("/api/doctor/consultation", optionalToken, async (req, res) => {
+router.post("/api/doctor/consultation", authenticateToken, requireDoctorOrStaff, async (req, res) => {
     let { patientId, doctorId, doctorName, appointmentId, diagnosis, symptoms, treatment, notes, recordDate } = req.body;
 
     if (!patientId || (!diagnosis && !treatment && !notes)) {
@@ -629,7 +663,7 @@ router.post("/api/doctor/consultation", optionalToken, async (req, res) => {
 
         const [insertRes] = await db.promise().query(insertSql, [
             patientId,
-            doctorName || "Dr. Medical Officer",
+            doctorName || req.user.name || "Dr. Medical Officer",
             diagnosis || null,
             symptoms || null,
             treatment || null,
@@ -671,7 +705,7 @@ router.post("/api/doctor/consultation", optionalToken, async (req, res) => {
  * PUT /api/appointments/:id/status
  * Updates appointment status (e.g. 'In Consultation', 'Completed', 'Cancelled', 'Confirmed')
  */
-router.put("/api/appointments/:id/status", optionalToken, (req, res) => {
+router.put("/api/appointments/:id/status", authenticateToken, requireDoctorOrStaff, (req, res) => {
     const appointmentId = req.params.id;
     const { status } = req.body;
 
@@ -706,7 +740,7 @@ router.put("/api/appointments/:id/status", optionalToken, (req, res) => {
  * POST /api/doctor/order-tests
  * Doctor directly requests diagnostic tests for a patient during consultation
  */
-router.post("/api/doctor/order-tests", optionalToken, async (req, res) => {
+router.post("/api/doctor/order-tests", authenticateToken, requireDoctorOrStaff, async (req, res) => {
     const {
         patientId,
         hospitalId,

@@ -79,9 +79,9 @@ function authenticateToken(req, res, next) {
         : authHeader;
 
     if (!token) {
-        // If REQUIRE_AUTH is explicitly set to "false", allow bypass in development
+        // If REQUIRE_AUTH is explicitly set to "false", allow bypass in development as guest (never admin)
         if (process.env.REQUIRE_AUTH === "false") {
-            req.user = { id: 0, name: "Dev Guest", role: "admin", type: "admin" };
+            req.user = { id: 0, name: "Dev Guest", role: "guest", type: "guest" };
             return next();
         }
 
@@ -186,6 +186,26 @@ function requireDepartment(allowedDepartments = []) {
     };
 }
 
+// Healthcare Doctor or Medical Staff Guard
+function requireDoctorOrStaff(req, res, next) {
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: "Authentication required."
+        });
+    }
+
+    const role = (req.user.role || req.user.type || "").toLowerCase();
+    if (["admin", "staff", "doctor"].includes(role)) {
+        return next();
+    }
+
+    return res.status(403).json({
+        success: false,
+        message: "Access denied. Action reserved for healthcare doctors, medical staff, or administrators."
+    });
+}
+
 module.exports = {
     hashPassword,
     verifyPassword,
@@ -194,5 +214,6 @@ module.exports = {
     authenticateToken,
     optionalToken,
     requireRole,
-    requireDepartment
+    requireDepartment,
+    requireDoctorOrStaff
 };

@@ -1225,9 +1225,32 @@
     window.toggleProfile = toggleProfile;
 
     function switchRole(role) {
-        localStorage.setItem("waterRole", role === "worker" ? "worker" : "user");
-        applyRoleUI();
-        showToast(role === "worker" ? "👷 Water Staff mode activated" : "👤 Citizen mode activated");
+        if (role === "worker") {
+            const token = localStorage.getItem("smartCityJWT") || localStorage.getItem("smartcity_token") || (window.SmartCityAuth && SmartCityAuth.getToken());
+            const curUser = (window.SmartCityAuth && SmartCityAuth.getUser()) ||
+                            JSON.parse(localStorage.getItem("smartCityCurrentUser") || localStorage.getItem("smartcity_user") || "{}");
+            const isStaff = token && (curUser.role === "staff" || curUser.role === "admin" || (curUser.department || "").toLowerCase().includes("water"));
+
+            if (isStaff) {
+                localStorage.setItem("waterRole", "worker");
+                applyRoleUI();
+                showToast("👷 Water Staff mode activated");
+            } else {
+                showToast("🔒 Authentication Required: Staff ID and Password needed.");
+                if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+                    SmartCityAuth.showLoginModal("staff", {
+                        prefillStaffId: "WTR001",
+                        message: "🔒 Staff credentials required to access Water Works control."
+                    });
+                } else {
+                    promptStaffLogin();
+                }
+            }
+        } else {
+            localStorage.setItem("waterRole", "user");
+            applyRoleUI();
+            showToast("👤 Citizen mode activated");
+        }
         const menu = document.getElementById("profileMenu");
         if (menu) menu.style.display = "none";
     }

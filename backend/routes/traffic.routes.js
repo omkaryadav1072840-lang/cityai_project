@@ -10,46 +10,54 @@ const trafficEngine = require("../services/traffic_engine");
 const ambulanceSimulator = require("../services/ambulance_simulator");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+const { authenticateToken, requireRole, hashPassword } = require("../middleware/auth.middleware");
 
 /**
  * Access Control Guard: Restricts editing actions to authorized Traffic Staff and Admins only.
- * Citizens / Unauthenticated users are strictly blocked with 403 Forbidden.
+ * Citizens / Unauthenticated users are strictly blocked with 401 Unauthorized or 403 Forbidden.
  */
 function requireStaffRole(req, res, next) {
     let role = null;
     let operatorName = null;
 
+    if (req.user) {
+        role = req.user.role || req.user.type;
+        operatorName = req.user.name || req.user.username;
+    }
+
     // 1. Check Bearer Token
-    const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
-    if (authHeader) {
-        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET);
-            if (decoded) {
-                role = decoded.role || decoded.type;
-                operatorName = decoded.name || decoded.username;
+    if (!role) {
+        const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
+        if (authHeader) {
+            const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                if (decoded) {
+                    role = decoded.role || decoded.type;
+                    operatorName = decoded.name || decoded.username;
+                    req.user = decoded;
+                }
+            } catch (e) {
+                return res.status(401).json({
+                    success: false,
+                    error: "Invalid or expired authorization token."
+                });
             }
-        } catch (e) {
-            return res.status(401).json({
-                success: false,
-                error: "Invalid or expired authorization token."
-            });
         }
     }
 
-    // 2. Check trusted HTTP headers
-    if (!role && req.headers["x-user-role"]) {
-        role = req.headers["x-user-role"];
-    }
-    if (!operatorName && req.headers["x-user-name"]) {
-        operatorName = req.headers["x-user-name"];
+    if (!role) {
+        return res.status(401).json({
+            success: false,
+            error: "Authentication required: Please provide a valid Bearer token."
+        });
     }
 
     const normalizedRole = (role || "").toLowerCase().trim();
     const staffKeywords = ["staff", "admin", "traffic", "controller", "operator", "officer", "police"];
 
-    // Reject explicitly if role is empty or non-staff
-    if (!normalizedRole || normalizedRole === "citizen" || normalizedRole === "user" || normalizedRole === "guest") {
+    // Reject explicitly if role is non-staff
+    if (normalizedRole === "citizen" || normalizedRole === "user" || normalizedRole === "guest") {
         return res.status(403).json({
             success: false,
             error: "Access Denied: Only authorized traffic control staff and administrators can modify traffic lights, timings, overrides, or junction configurations."
@@ -649,8 +657,8 @@ const handleJunctionOverride = async (req, res) => {
         res.status(500).json({ error: "Failed to apply manual override" });
     }
 };
-router.post("/api/traffic/junctions/:id/override", handleJunctionOverride);
-router.put("/api/traffic/junctions/:id/override", handleJunctionOverride);
+router.post("/api/traffic/junctions/:id/override", requireStaffRole, handleJunctionOverride);
+router.put("/api/traffic/junctions/:id/override", requireStaffRole, handleJunctionOverride);
 
 // =========================================================
 // 2. CCTV CAMERAS & AI VISION
@@ -1286,11 +1294,33 @@ router.get("/api/traffic/violations", async (req, res) => {
         query += ` ORDER BY v.timestamp DESC`;
 
         const [violations] = await pool.promise().query(query, params);
+
+        // Check if caller is authorized staff/admin
+        let isStaff = false;
+        const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
+        if (authHeader) {
+            const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                const role = ((decoded && (decoded.role || decoded.type)) || "").toLowerCase();
+                isStaff = ["admin", "staff", "traffic", "police", "controller"].some(k => role.includes(k));
+            } catch (e) {}
+        }
+
+        const sanitizedViolations = violations.map(v => {
+            if (isStaff) return v;
+            return {
+                ...v,
+                vehicle_number: v.vehicle_number ? v.vehicle_number.slice(0, 4) + "-**-****" : "UP-53-**-****"
+            };
+        });
+
         res.json({
             success: true,
-            count: violations.length,
+            count: sanitizedViolations.length,
+            isStaffView: isStaff,
             disclaimer: "Demo / Simulated AI Detection - Verified cases can be referred to Traffic Police Challan Wing.",
-            violations
+            violations: sanitizedViolations
         });
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch traffic violations" });
@@ -1321,10 +1351,21 @@ router.get("/api/traffic/violations/:id/evidence", async (req, res) => {
         const speedVal = v.speed_kmh || (isSpeed ? 76.8 : 34.2);
         const speedLimit = 40;
 
+        let isStaff = false;
+        const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
+        if (authHeader) {
+            const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                const role = ((decoded && (decoded.role || decoded.type)) || "").toLowerCase();
+                isStaff = ["admin", "staff", "traffic", "police", "controller"].some(k => role.includes(k));
+            } catch (e) {}
+        }
+
         const evidenceData = {
             success: true,
             violationId: v.id,
-            vehicleNumber: v.vehicle_number,
+            vehicleNumber: isStaff ? v.vehicle_number : (v.vehicle_number ? v.vehicle_number.slice(0, 4) + "-**-****" : "UP-53-**-****"),
             vehicleType: v.vehicle_type || 'Motorcycle / Car',
             violationType: v.violation_type,
             fineAmount: v.fine_amount,
@@ -1402,7 +1443,7 @@ router.get("/api/traffic/violations/:id/evidence", async (req, res) => {
 });
 
 // Flag new violation (AI or Staff)
-router.post("/api/traffic/violations", async (req, res) => {
+router.post("/api/traffic/violations", requireStaffRole, async (req, res) => {
     try {
         const { junction_id, camera_id, violation_type, vehicle_number, vehicle_type, speed_kmh, fine_amount, notes } = req.body;
 
@@ -1426,7 +1467,7 @@ router.post("/api/traffic/violations", async (req, res) => {
 });
 
 // Review violation: Verify & refer to challan system OR dismiss
-router.put("/api/traffic/violations/:id/review", async (req, res) => {
+router.put("/api/traffic/violations/:id/review", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { action, notes, operator, role } = req.body;
@@ -1478,7 +1519,7 @@ router.get("/api/traffic/movement-rules", async (req, res) => {
     }
 });
 
-router.post("/api/traffic/movement-rules", async (req, res) => {
+router.post("/api/traffic/movement-rules", requireStaffRole, async (req, res) => {
     try {
         const { junction_id, rule_type, title, description, start_time, end_time, penalty_amount, operator } = req.body;
         const ruleId = `RULE-${Date.now().toString().slice(-4)}`;
@@ -1504,7 +1545,7 @@ router.post("/api/traffic/movement-rules", async (req, res) => {
     }
 });
 
-router.put("/api/traffic/movement-rules/:id/toggle", async (req, res) => {
+router.put("/api/traffic/movement-rules/:id/toggle", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { is_active, operator } = req.body;
@@ -1593,7 +1634,7 @@ router.post("/api/traffic/incidents", async (req, res) => {
     }
 });
 
-router.put("/api/traffic/incidents/:id/status", async (req, res) => {
+router.put("/api/traffic/incidents/:id/status", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { status, assigned_officer, resolution_notes, operator, role } = req.body;
@@ -1668,7 +1709,7 @@ router.get("/api/traffic/corridors", async (req, res) => {
     }
 });
 
-router.post("/api/traffic/corridors/dispatch", async (req, res) => {
+router.post("/api/traffic/corridors/dispatch", requireStaffRole, async (req, res) => {
     try {
         const { corridor_id, operator, role } = req.body;
         if (!corridor_id) {
@@ -1687,7 +1728,7 @@ router.post("/api/traffic/corridors/dispatch", async (req, res) => {
     }
 });
 
-router.post("/api/traffic/corridors/:id/deactivate", async (req, res) => {
+router.post("/api/traffic/corridors/:id/deactivate", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { operator, role } = req.body;
@@ -1962,7 +2003,7 @@ router.get("/api/traffic/ai-insights", async (req, res) => {
     }
 });
 
-router.post("/api/traffic/ai-recommendation/apply", async (req, res) => {
+router.post("/api/traffic/ai-recommendation/apply", requireStaffRole, async (req, res) => {
     try {
         const { recommendation_id, junction_id, action, operator, role } = req.body;
 
@@ -2003,7 +2044,7 @@ router.post("/api/traffic/ai-recommendation/apply", async (req, res) => {
 // 9. ADMIN LAYER (RBAC, AUDIT LOGS, AI SETTINGS)
 // =========================================================
 
-router.get("/api/traffic/admin/users", async (req, res) => {
+router.get("/api/traffic/admin/users", authenticateToken, requireRole(["admin", "staff"]), async (req, res) => {
     try {
         const [staff] = await pool.promise().query(
             `SELECT id, name, staff_id, department, created_at FROM staff ORDER BY id ASC`
@@ -2017,16 +2058,17 @@ router.get("/api/traffic/admin/users", async (req, res) => {
     }
 });
 
-router.post("/api/traffic/admin/users", async (req, res) => {
+router.post("/api/traffic/admin/users", authenticateToken, requireRole(["admin"]), async (req, res) => {
     try {
         const { name, staff_id, password, department, operator } = req.body;
         if (!name || !staff_id || !password) {
             return res.status(400).json({ error: "Name, Staff ID, and password are required." });
         }
 
+        const passwordHash = hashPassword(password);
         await pool.promise().query(
             `INSERT INTO staff (name, staff_id, password, department) VALUES (?, ?, ?, ?)`,
-            [name, staff_id, password, department || 'traffic']
+            [name, staff_id, passwordHash, department || 'traffic']
         );
 
         await trafficEngine.logAudit({
@@ -2047,7 +2089,7 @@ router.post("/api/traffic/admin/users", async (req, res) => {
     }
 });
 
-router.get("/api/traffic/admin/audit-logs", async (req, res) => {
+router.get("/api/traffic/admin/audit-logs", authenticateToken, requireRole(["admin", "staff"]), async (req, res) => {
     try {
         const limit = Number(req.query.limit) || 40;
         const [logs] = await pool.promise().query(
@@ -2060,7 +2102,7 @@ router.get("/api/traffic/admin/audit-logs", async (req, res) => {
     }
 });
 
-router.get("/api/traffic/admin/ai-settings", async (req, res) => {
+router.get("/api/traffic/admin/ai-settings", authenticateToken, requireRole(["admin", "staff"]), async (req, res) => {
     try {
         const [settings] = await pool.promise().query(
             `SELECT * FROM traffic_ai_settings ORDER BY category, setting_key`
@@ -2071,7 +2113,7 @@ router.get("/api/traffic/admin/ai-settings", async (req, res) => {
     }
 });
 
-router.put("/api/traffic/admin/ai-settings", async (req, res) => {
+router.put("/api/traffic/admin/ai-settings", authenticateToken, requireRole(["admin"]), async (req, res) => {
     try {
         const { settings, operator } = req.body;
         if (!Array.isArray(settings)) {
@@ -2354,7 +2396,7 @@ router.get("/api/traffic/vms-boards", (req, res) => {
     res.json({ success: true, count: vmsBoards.length, boards: vmsBoards });
 });
 
-router.post("/api/traffic/vms-boards/:id/message", async (req, res) => {
+router.post("/api/traffic/vms-boards/:id/message", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { line1, line2, line3, status, ledColor, operator } = req.body;
@@ -2451,7 +2493,7 @@ router.get("/api/traffic/ambulances/live", async (req, res) => {
 });
 
 // 16B. Declare Critical Condition Transit - Preempt Signals on Corridor
-router.post("/api/traffic/ambulances/:id/critical-dispatch", async (req, res) => {
+router.post("/api/traffic/ambulances/:id/critical-dispatch", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const { destinationHospital, reason } = req.body;
@@ -2471,7 +2513,7 @@ router.post("/api/traffic/ambulances/:id/critical-dispatch", async (req, res) =>
 });
 
 // 16C. Clear Critical Condition - Restore Normal AI Adaptive Traffic Signals
-router.post("/api/traffic/ambulances/:id/clear-critical", async (req, res) => {
+router.post("/api/traffic/ambulances/:id/clear-critical", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
         const result = await ambulanceSimulator.setAmbulanceCritical(id, false);

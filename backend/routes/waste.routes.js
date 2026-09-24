@@ -639,8 +639,10 @@ router.post("/api/waste/bin-requests", (req, res) => {
 /**
  * 1.7 Get Waste Bin Requests (Preserve & Enhance Existing Endpoint)
  */
-router.get("/api/waste/bin-requests", (req, res) => {
+router.get("/api/waste/bin-requests", authenticateToken, (req, res) => {
     const { userId } = req.query;
+    const role = (req.user.role || req.user.type || "").toLowerCase();
+    const isStaffOrAdmin = role === "admin" || (role === "staff" && ((req.user.department || "").toLowerCase() === "waste" || (req.user.editable || []).includes("waste")));
 
     let sql = `
         SELECT id, request_code, user_id, citizen_name, reason,
@@ -649,7 +651,10 @@ router.get("/api/waste/bin-requests", (req, res) => {
         FROM waste_bin_requests
     `;
     const params = [];
-    if (userId) {
+    if (!isStaffOrAdmin) {
+        sql += ` WHERE user_id = ? `;
+        params.push(req.user.id);
+    } else if (userId) {
         sql += ` WHERE user_id = ? `;
         params.push(userId);
     }

@@ -64,10 +64,12 @@ const context = {
         warn: (...args) => console.warn("[BROWSER WARN]", ...args),
         error: (...args) => console.error("[BROWSER ERROR]", ...args)
     },
+    URLSearchParams: global.URLSearchParams,
     window: {
         addEventListener: (ev, fn) => {},
         removeEventListener: (ev, fn) => {},
-        print: () => {}
+        print: () => {},
+        location: { search: '?lot=PARK-001' }
     },
     document: {
         getElementById: (id) => {
@@ -165,6 +167,7 @@ const context = {
 };
 
 context.window = context;
+context.location = { search: '?lot=PARK-001' };
 context.addEventListener = (ev, fn) => {};
 context.removeEventListener = (ev, fn) => {};
 

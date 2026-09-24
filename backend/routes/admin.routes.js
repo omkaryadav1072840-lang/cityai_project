@@ -235,7 +235,7 @@ router.put("/api/admin/users/:id/role", authenticateToken, requireAdmin, async (
 // 4. MULTI-DEPARTMENT ANALYTICS
 // =========================================================
 
-router.get("/api/admin/analytics", authenticateToken, async (req, res) => {
+router.get("/api/admin/analytics", authenticateToken, requireAdmin, async (req, res) => {
     try {
         const [
             [requestsByDept],

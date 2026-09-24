@@ -21,17 +21,6 @@
     </div>
 
     <div class="hd-nav-actions">
-        <div class="hd-user-badge">
-            <div class="hd-user-avatar" id="userAvatar">A</div>
-            <div>
-                <strong id="userDisplayName" style="font-size: 13px; display: block;">Dr. Alok Verma</strong>
-                <span class="hd-role-pill" id="userRoleBadge">Hospital Admin</span>
-            </div>
-        </div>
-
-        <a href="doctor_dashboard.html" class="hd-btn-nav" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
-            👨‍⚕️ Doctor Portal & OPD
-        </a>
         <a href="hospital.html" class="hd-btn-nav">
             🏥 Public Hospital Portal
         </a>
@@ -40,6 +29,47 @@
         </a>
     </div>
 </header>
+
+<!-- ================= STAFF AUTHENTICATION GATE (RESTRICTED TO STAFF/ADMIN ONLY) ================= -->
+<div id="staffAuthGate" class="hd-auth-gate" style="display: none;">
+    <div class="hd-auth-card">
+        <div class="hd-auth-icon">🔒</div>
+        <h2>Hospital Staff & Admin Console</h2>
+        <div class="hd-auth-badge">Restricted Access • Authorized Medical Staff Only</div>
+        <p class="hd-auth-desc">
+            This dashboard is restricted to hospital administrators, doctors, nurses, and desk staff to manage live OPD queues, beds, admissions, diagnostic laboratories, and billing. Regular citizens and normal viewers can access public hospital services, appointments, and diagnostics on the Public Hospital Portal.
+        </p>
+
+        <div class="hd-auth-login-box">
+            <h4>🔐 Staff Credentials Verification</h4>
+            <form id="dashboardStaffLoginForm" onsubmit="handleDashboardStaffLogin(event)">
+                <div class="hd-form-group" style="margin-bottom: 12px;">
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:#475569;">Staff / Employee ID *</label>
+                    <input type="text" id="gateStaffId" class="hd-input" required placeholder="e.g. STAFF-001" value="STAFF-001" style="width:100%;">
+                </div>
+                <div class="hd-form-group" style="margin-bottom: 14px;">
+                    <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px; color:#475569;">Password *</label>
+                    <input type="password" id="gatePassword" class="hd-input" required placeholder="Enter password" value="admin123" style="width:100%;">
+                </div>
+                <div id="gateErrorMsg" style="color: #ef4444; font-size: 12px; margin-bottom: 10px; display: none;"></div>
+                <button type="submit" class="hd-btn hd-btn-primary" style="width: 100%; justify-content: center; padding: 11px; font-size: 14px; cursor: pointer;">
+                    🔓 Verify & Enter Hospital Dashboard
+                </button>
+            </form>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <a href="hospital.html" class="hd-btn hd-btn-outline" style="text-decoration: none; justify-content: center; padding: 10px;">
+                🏥 Back to Public Hospital Portal (For Citizens)
+            </a>
+            <button type="button" class="hd-btn" style="background:#f1f5f9; color:#475569; justify-content:center; padding:8px; font-size:12px; cursor:pointer;" onclick="quickDemoStaffLogin()">
+                ⚡ Quick Demo Access (Dr. Alok Verma - Admin)
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="dashboardMainContent">
 
 <!-- ================= DEMO ROLE & HOSPITAL SWITCHER BAR ================= -->
 <section class="hd-demo-bar">
@@ -1031,6 +1061,8 @@
         </form>
     </div>
 </div>
+
+</div> <!-- /#dashboardMainContent -->
 
 <script src="../../auth.js"></script>
 <script src="hospital_dashboard.js"></script>

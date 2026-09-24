@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const { authenticateToken, requireRole } = require("../middleware/auth.middleware");
+const { authenticateToken, optionalToken, requireRole } = require("../middleware/auth.middleware");
 const { emitEmergencyAlert, emitEmergencyResolved } = require("../sockets/index");
 
 // Auto-create emergency_incidents table if it doesn't exist
@@ -173,10 +173,14 @@ router.put("/api/emergency-departments/:id", authenticateToken, requireRole(["st
 // =========================================================
 
 // GET ACTIVE INCIDENTS
-router.get("/api/emergency/incidents", (req, res) => {
+router.get("/api/emergency/incidents", optionalToken, (req, res) => {
+    const isStaffOrAdmin = req.user && (["staff", "admin"].includes(req.user.role) || ["staff", "admin"].includes(req.user.type));
+
     const sql = `
         SELECT id, incident_code, type, location, latitude, longitude,
-               description, caller_name, caller_mobile, priority, status, created_at, resolved_at
+               description, 
+               ${isStaffOrAdmin ? "caller_name, caller_mobile," : "'Citizen Caller' AS caller_name, NULL AS caller_mobile,"}
+               priority, status, created_at, resolved_at
         FROM emergency_incidents
         ORDER BY created_at DESC
         LIMIT 50

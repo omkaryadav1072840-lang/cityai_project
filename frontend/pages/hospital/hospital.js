@@ -578,9 +578,11 @@ function renderHospitals(hospitals) {
                         <button class="details-btn" style="flex: 1; padding: 9px 14px; background: #2563eb; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="viewHospital('${escapeJS(h.hospital_id)}')">
                             🏥 View Hospital
                         </button>
+                        ${(typeof SmartCityAuth !== "undefined" && SmartCityAuth.isStaff && SmartCityAuth.isStaff()) ? `
                         <button class="select-btn" style="padding: 9px 14px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;" onclick="openHospitalDashboardDirect('${escapeJS(h.hospital_id)}')">
                             📊 Hospital Dashboard →
                         </button>
+                        ` : ''}
                         <a href="${navUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; background: #ffffff; color: #0284c7; border: 1px solid #bae6fd; border-radius: 8px; font-weight: 700; text-decoration: none; cursor: pointer;">
                             🗺️ Navigate
                         </a>
@@ -592,6 +594,14 @@ function renderHospitals(hospitals) {
 }
 
 function openHospitalDashboardDirect(hospitalId) {
+    const isStaff = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.isStaff) ? SmartCityAuth.isStaff() : false;
+    if (!isStaff) {
+        showNotification("🔒 Hospital Management Dashboard is restricted to verified Hospital Staff & Admin.", "warning");
+        if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+            SmartCityAuth.showLoginModal("staff");
+        }
+        return;
+    }
     window.location.href = `hospital_dashboard.html?hospital_id=${encodeURIComponent(hospitalId)}`;
 }
 
@@ -863,12 +873,15 @@ async function openHospitalDetails(hospital) {
 
     const header = document.getElementById("hospitalDetailsHeader");
     const body = document.getElementById("hospitalDetailsBody");
+    const isStaffUser = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.isStaff) ? SmartCityAuth.isStaff() : false;
     header.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <h2>🏥 ${escapeHTML(hospital.hospital_name || "Hospital")}</h2>
-            <button type="button" class="primary-btn" style="padding: 6px 14px; font-size: 12px;" onclick="window.location.href='hospital_dashboard.html?hospital_id=${encodeURIComponent(hospital.hospital_id)}'">
+            ${isStaffUser ? `
+            <button type="button" class="primary-btn" style="padding: 6px 14px; font-size: 12px;" onclick="openHospitalDashboardDirect('${escapeJS(hospital.hospital_id)}')">
                 📊 Access Hospital Dashboard →
             </button>
+            ` : ''}
         </div>
     `;
     showLoading(body, "Loading hospital details, doctors, and diagnostic services...");
@@ -928,7 +941,7 @@ function switchHospitalDetailsTab(tab) {
             </div>
             <div style="margin-top: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; font-size: 13px; color: #166534; display: flex; align-items: center; justify-content: space-between;">
                 <span>Are you an authorized doctor, nurse, or staff member of this hospital?</span>
-                <button type="button" style="background:#16a34a; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:700; cursor:pointer;" onclick="window.location.href='hospital_dashboard.html?hospital_id=${encodeURIComponent(h.hospital_id)}'">
+                <button type="button" style="background:#16a34a; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:700; cursor:pointer;" onclick="openHospitalDashboardDirect('${escapeJS(h.hospital_id)}')">
                     Enter Staff Dashboard →
                 </button>
             </div>
@@ -4145,22 +4158,35 @@ function onSelectDoctorFromDropdown() {
 function fillDoctorLogin(docId) {
     const input = document.getElementById("doctorLoginInput");
     const select = document.getElementById("quickDoctorSelect");
+    const passInput = document.getElementById("doctorPasswordInput");
     if (input) input.value = docId;
     if (select) select.value = docId;
+    if (passInput && !passInput.value) passInput.value = "doctor123";
 }
 
 async function submitDoctorLogin() {
     const input = document.getElementById("doctorLoginInput");
+    const passInput = document.getElementById("doctorPasswordInput");
     const msg = document.getElementById("doctorLoginMsg");
     const btn = document.getElementById("btnDoctorLoginSubmit");
 
     const doctorId = input ? input.value.trim() : "";
+    const password = passInput ? passInput.value.trim() : "";
 
     if (!doctorId) {
         if (msg) {
             msg.style.display = "block";
             msg.style.color = "#dc2626";
             msg.textContent = "⚠️ Please enter or select a Doctor ID.";
+        }
+        return;
+    }
+
+    if (!password) {
+        if (msg) {
+            msg.style.display = "block";
+            msg.style.color = "#dc2626";
+            msg.textContent = "⚠️ Please enter Doctor password/PIN.";
         }
         return;
     }
@@ -4174,7 +4200,7 @@ async function submitDoctorLogin() {
         const res = await fetch(`${API_BASE_URL}/api/doctor/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ doctorId })
+            body: JSON.stringify({ doctorId, password })
         });
 
         const data = await res.json();

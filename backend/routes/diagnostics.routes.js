@@ -59,7 +59,7 @@ router.get("/api/diagnostics/categories", async (req, res) => {
 });
 
 // CREATE CATEGORY (Hospital Admin / Staff)
-router.post("/api/diagnostics/categories", authenticateToken, async (req, res) => {
+router.post("/api/diagnostics/categories", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { hospital_id, name, code, icon, description } = req.body;
     if (!name || !code) {
         return res.status(400).json({ success: false, message: "Category name and code are required." });
@@ -212,7 +212,7 @@ router.get("/api/diagnostics/tests/:testId", async (req, res) => {
 });
 
 // CREATE DIAGNOSTIC TEST (Hospital Admin / Staff)
-router.post("/api/diagnostics/tests", authenticateToken, async (req, res) => {
+router.post("/api/diagnostics/tests", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const {
         hospital_id,
         category_id,
@@ -287,7 +287,7 @@ router.post("/api/diagnostics/tests", authenticateToken, async (req, res) => {
 });
 
 // UPDATE DIAGNOSTIC TEST
-router.put("/api/diagnostics/tests/:testId", authenticateToken, async (req, res) => {
+router.put("/api/diagnostics/tests/:testId", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
     const { testId } = req.params;
     const {
         name,
@@ -493,8 +493,9 @@ router.post("/api/diagnostics/bookings", optionalToken, async (req, res) => {
 });
 
 // GET BOOKINGS LIST
-router.get("/api/diagnostics/bookings", optionalToken, async (req, res) => {
+router.get("/api/diagnostics/bookings", authenticateToken, async (req, res) => {
     const { hospital_id, patient_id, status, type, date } = req.query;
+    const role = (req.user.role || req.user.type || "").toLowerCase();
 
     try {
         let sql = `
@@ -510,6 +511,16 @@ router.get("/api/diagnostics/bookings", optionalToken, async (req, res) => {
             WHERE 1=1
         `;
         const params = [];
+
+        // If caller is citizen, strictly restrict to their own records
+        if (role === "citizen") {
+            const userId = req.user.id || req.user.userId;
+            const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+            sql += ` AND (tb.patient_id IN (SELECT patient_id FROM patients WHERE user_id = ? OR (mobile = ? AND ? IS NOT NULL)))`;
+            params.push(userId, mobile, mobile);
+        } else if (!["admin", "staff", "doctor"].includes(role)) {
+            return res.status(403).json({ success: false, message: "Access denied." });
+        }
 
         if (hospital_id) {
             sql += ` AND tb.hospital_id = ?`;
@@ -547,7 +558,7 @@ router.get("/api/diagnostics/bookings", optionalToken, async (req, res) => {
 });
 
 // UPDATE BOOKING STATUS (Check-in, Sample Collected, Processing, Report Ready, Completed)
-router.put("/api/diagnostics/bookings/:bookingId/status", authenticateToken, async (req, res) => {
+router.put("/api/diagnostics/bookings/:bookingId/status", authenticateToken, requireRole(["staff", "admin", "doctor"]), async (req, res) => {
     const { bookingId } = req.params;
     const { status, payment_status } = req.body;
 
@@ -669,7 +680,7 @@ router.get("/api/diagnostics/queue", async (req, res) => {
 });
 
 // CALL NEXT PATIENT IN QUEUE
-router.post("/api/diagnostics/queue/call-next", authenticateToken, async (req, res) => {
+router.post("/api/diagnostics/queue/call-next", authenticateToken, requireRole(["staff", "admin", "doctor"]), async (req, res) => {
     const { hospital_id, test_id } = req.body;
     if (!hospital_id || !test_id) {
         return res.status(400).json({ success: false, message: "hospital_id and test_id are required." });
@@ -723,7 +734,7 @@ router.post("/api/diagnostics/queue/call-next", authenticateToken, async (req, r
 // ====================================================================
 
 // RECORD SAMPLE COLLECTION
-router.post("/api/diagnostics/samples", authenticateToken, async (req, res) => {
+router.post("/api/diagnostics/samples", authenticateToken, requireRole(["staff", "admin", "doctor"]), async (req, res) => {
     const {
         booking_id,
         hospital_id,
@@ -783,7 +794,7 @@ router.post("/api/diagnostics/samples", authenticateToken, async (req, res) => {
 });
 
 // GET SAMPLES LIST FOR HOSPITAL LAB
-router.get("/api/diagnostics/samples", authenticateToken, async (req, res) => {
+router.get("/api/diagnostics/samples", authenticateToken, requireRole(["staff", "admin", "doctor"]), async (req, res) => {
     const { hospital_id, status } = req.query;
     if (!hospital_id) {
         return res.status(400).json({ success: false, message: "hospital_id is required." });
@@ -824,7 +835,7 @@ router.get("/api/diagnostics/samples", authenticateToken, async (req, res) => {
 // ====================================================================
 
 // GENERATE / PUBLISH REPORT
-router.post("/api/diagnostics/reports", authenticateToken, async (req, res) => {
+router.post("/api/diagnostics/reports", authenticateToken, requireRole(["staff", "admin", "doctor"]), async (req, res) => {
     const {
         booking_id,
         hospital_id,
@@ -919,13 +930,14 @@ router.post("/api/diagnostics/reports", authenticateToken, async (req, res) => {
 });
 
 // GET DIAGNOSTIC REPORT DETAILS
-router.get("/api/diagnostics/reports/:reportId", async (req, res) => {
+router.get("/api/diagnostics/reports/:reportId", optionalToken, async (req, res) => {
     try {
         const [rows] = await db.promise().query(`
             SELECT 
                 dr.*,
                 tb.booking_type,
                 tb.token_number,
+                tb.patient_id,
                 tb.patient_name,
                 tb.patient_age,
                 tb.patient_gender,
@@ -955,6 +967,33 @@ router.get("/api/diagnostics/reports/:reportId", async (req, res) => {
         }
 
         const report = rows[0];
+
+        // Authorization check: Staff, Doctors, Admins, or Report Owner (by token or qr_token query parameter)
+        const isStaffOrDoctor = req.user && (
+            ["staff", "admin", "doctor"].includes((req.user.role || "").toLowerCase()) ||
+            ["staff", "admin", "doctor"].includes((req.user.type || "").toLowerCase())
+        );
+
+        const qrTokenParam = req.query.qr_token || req.query.qrToken;
+        const matchesQrToken = qrTokenParam && (qrTokenParam === report.qr_token);
+
+        let isOwner = false;
+        if (req.user) {
+            const userPhone = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+            const patientPhone = report.patient_mobile ? String(report.patient_mobile).replace(/\D/g, "") : null;
+            isOwner = (userPhone && patientPhone && userPhone === patientPhone) ||
+                      (req.user.patientId && String(req.user.patientId) === String(report.patient_id));
+        }
+
+        if (!isStaffOrDoctor && !matchesQrToken && !isOwner) {
+            if (process.env.REQUIRE_AUTH !== "false") {
+                return res.status(req.user ? 403 : 401).json({
+                    success: false,
+                    message: "Access denied. Valid medical staff authentication, patient credentials, or report QR token required."
+                });
+            }
+        }
+
         try {
             report.parameters = JSON.parse(report.test_parameters_json || "[]");
         } catch {
