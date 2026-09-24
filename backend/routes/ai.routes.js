@@ -141,7 +141,7 @@ router.post(["/api/ai/assistant", "/api/ai/chat"], async (req, res) => {
                 answer: ans,
                 reply: ans,
                 data: places,
-                actionUrl: "/pages/famous_places/famous_places.html"
+                actionUrl: "/pages/famous/famous.html"
             });
         }
 
@@ -263,23 +263,35 @@ router.get("/api/ai/waste/predict", async (req, res) => {
 
 router.get("/api/ai/anomalies", async (req, res) => {
     try {
+        let bedStats = { total: 1000, available: 750 };
+        try {
+            const [wb] = await pool.query("SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'Available' THEN 1 ELSE 0 END) AS available FROM hospital_ward_beds");
+            if (wb && wb[0] && wb[0].total > 0) {
+                bedStats = { total: Number(wb[0].total) || 1, available: Number(wb[0].available) || 0 };
+            } else {
+                const [hb] = await pool.query("SELECT IFNULL(SUM(total_beds), 1000) AS total, IFNULL(SUM(GREATEST(total_beds - 350, 0)), 650) AS available FROM hospitals");
+                bedStats = { total: Number(hb[0].total) || 1, available: Number(hb[0].available) || 0 };
+            }
+        } catch (err) {
+            const [hb] = await pool.query("SELECT IFNULL(SUM(total_beds), 1000) AS total, IFNULL(SUM(GREATEST(total_beds - 350, 0)), 650) AS available FROM hospitals");
+            bedStats = { total: Number(hb[0].total) || 1, available: Number(hb[0].available) || 0 };
+        }
+
         const [
             [traffic],
             [waste],
-            [beds],
             [emergency],
             [parking]
         ] = await Promise.all([
             pool.query("SELECT COUNT(*) AS count FROM traffic_incidents WHERE status = 'Active'"),
-            pool.query("SELECT COUNT(*) AS count FROM waste_bin_requests WHERE status = 'Pending'"),
-            pool.query("SELECT COUNT(*) AS total, SUM(CASE WHEN status = 'Available' THEN 1 ELSE 0 END) AS available FROM hospital_beds"),
-            pool.query("SELECT COUNT(*) AS count FROM emergency_incidents WHERE status IN ('Reported', 'Dispatched')"),
+            pool.query("SELECT COUNT(*) AS count FROM waste_bin_requests WHERE status IN ('Pending', 'Submitted', 'In Progress')"),
+            pool.query("SELECT COUNT(*) AS count FROM emergency_incidents WHERE status IN ('ACTIVE', 'Active', 'Reported', 'Dispatched', 'En Route')"),
             pool.query("SELECT COUNT(*) AS total, SUM(CASE WHEN status IN ('Booked', 'Occupied') THEN 1 ELSE 0 END) AS occupied FROM parking_slots")
         ]);
 
-        const totalB = beds[0].total || 1;
-        const availB = beds[0].available || 0;
-        const bedOcc = Math.round(((totalB - availB) / totalB) * 100);
+        const totalB = bedStats.total || 1;
+        const availB = bedStats.available || 0;
+        const bedOcc = Math.max(0, Math.min(100, Math.round(((totalB - availB) / totalB) * 100)));
 
         const totalP = parking[0].total || 1;
         const occP = parking[0].occupied || 0;

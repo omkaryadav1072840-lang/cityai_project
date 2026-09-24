@@ -764,7 +764,7 @@ function reduceMedicineStock(items, callback) {
     });
 }
 
-router.post("/api/pharmacy/payment", (req, res) => {
+router.post("/api/pharmacy/payment", optionalToken, async (req, res) => {
     const { patientId, paymentMethod, amount, items } = req.body;
 
     if (!patientId) {
@@ -801,6 +801,30 @@ router.post("/api/pharmacy/payment", (req, res) => {
             success: false,
             message: "Invalid payment method."
         });
+    }
+
+    // Pre-flight check: Verify stock availability for all items before charging
+    try {
+        const medicineIds = items.map(i => i.id || i.medicineId).filter(Boolean);
+        if (medicineIds.length > 0) {
+            const [stockRows] = await db.promise().query(
+                "SELECT id, medicine_name, quantity, availability FROM pharmacy WHERE id IN (?)",
+                [medicineIds]
+            );
+            for (const item of items) {
+                const medId = item.id || item.medicineId;
+                const requestedQty = Number(item.quantity) || 1;
+                const found = stockRows.find(r => r.id == medId);
+                if (found && found.quantity < requestedQty) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Insufficient stock for "${found.medicine_name}". Available: ${found.quantity}, Requested: ${requestedQty}`
+                    });
+                }
+            }
+        }
+    } catch (checkErr) {
+        console.warn("Stock pre-check warning:", checkErr.message);
     }
 
     const transactionId = "TXN-" + Date.now() + "-" + Math.floor(1000 + Math.random() * 9000);

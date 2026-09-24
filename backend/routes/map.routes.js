@@ -63,7 +63,7 @@ router.get("/api/map/incidents", async (req, res) => {
         // 2. WASTE REQUESTS
         if (shouldInclude("waste")) {
             const [waste] = await pool.query(
-                "SELECT id, waste_type, status, location, latitude, longitude FROM waste_bin_requests WHERE status IN ('Pending', 'In Progress')"
+                "SELECT id, waste_type, status, location, latitude, longitude FROM waste_bin_requests WHERE status IN ('Submitted', 'Pending', 'In Progress', 'Assigned')"
             );
             waste.forEach(w => {
                 if (w.latitude && w.longitude) {
@@ -87,7 +87,7 @@ router.get("/api/map/incidents", async (req, res) => {
         // 3. EMERGENCY INCIDENTS
         if (shouldInclude("emergency")) {
             const [emergency] = await pool.query(
-                "SELECT id, type, priority, description, latitude, longitude, status FROM emergency_incidents WHERE status IN ('Reported', 'Dispatched', 'En Route')"
+                "SELECT id, type, priority, description, latitude, longitude, status FROM emergency_incidents WHERE status IN ('ACTIVE', 'Active', 'Reported', 'Dispatched', 'En Route', 'Pending')"
             );
             emergency.forEach(em => {
                 if (em.latitude && em.longitude) {

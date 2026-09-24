@@ -32,6 +32,13 @@
 
 
     <!-- =====================================================
+         GOOGLE FONTS (Plus Jakarta Sans)
+    ====================================================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- =====================================================
          YOUR CSS
     ====================================================== -->
 
@@ -63,6 +70,10 @@
             Dashboard
         </a>
 
+        <a href="#map">
+            Map
+        </a>
+
         <a href="#traffic">
             Traffic
         </a>
@@ -79,16 +90,24 @@
             Emergency
         </a>
 
-        <a href="#map">
-            Map
+        <a href="#parking">
+            Parking
         </a>
 
         <a href="#healthcare">
             Healthcare
         </a>
 
+        <a href="#police">
+            Police
+        </a>
+
+        <a href="#famous">
+            Places
+        </a>
+
         <a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #38bdf8; font-weight: 600;">
-            📋 Grievances & SLA
+            📋 Grievances
         </a>
 
         <a href="javascript:void(0)" onclick="openCommandCenterModal()" style="color: #a78bfa; font-weight: 600;">
@@ -124,9 +143,9 @@
         <!-- TRAFFIC -->
 
         <a
-            href="pages/traffic/traffic.html"
+            href="#traffic"
             class="feature"
-            onclick="showFeature('traffic', this)"
+            onclick="showFeature('traffic', null)"
         >
 
             <span>
@@ -144,9 +163,9 @@
         <!-- WASTE -->
 
         <a
-            href="pages/waste/waste.html"
+            href="#waste"
             class="feature"
-            onclick="showFeature('waste', this)"
+            onclick="showFeature('waste', null)"
         >
 
             <span>
@@ -164,9 +183,9 @@
         <!-- WATER -->
 
         <a
-            href="pages/water/water.html"
+            href="#water"
             class="feature"
-            onclick="showFeature('water', this)"
+            onclick="showFeature('water', null)"
         >
 
             <span>
@@ -184,9 +203,9 @@
         <!-- EMERGENCY -->
 
         <a
-            href="pages/emergency/emergency.html"
+            href="#emergency"
             class="feature"
-            onclick="showFeature('emergency', this)"
+            onclick="showFeature('emergency', null)"
         >
 
             <span>
@@ -204,9 +223,9 @@
         <!-- PARKING -->
 
         <a
-            href="pages/parking/parking.html"
+            href="#parking"
             class="feature"
-            onclick="showFeature('parking', this)"
+            onclick="showFeature('parking', null)"
         >
 
             <span>
@@ -224,9 +243,9 @@
         <!-- HOSPITAL -->
 
         <a
-            href="pages/hospital/hospital.html"
+            href="#healthcare"
             class="feature"
-            onclick="showFeature('hospital', this)"
+            onclick="showFeature('hospital', null)"
         >
 
             <span>
@@ -244,9 +263,9 @@
         <!-- POLICE -->
 
         <a
-            href="pages/police/police.html"
+            href="#police"
             class="feature"
-            onclick="showFeature('police', this)"
+            onclick="showFeature('police', null)"
         >
 
             <span>
@@ -264,9 +283,9 @@
         <!-- FAMOUS PLACES -->
 
         <a
-            href="pages/famous/famous.html"
+            href="#famous"
             class="feature"
-            onclick="showFeature('places', this)"
+            onclick="showFeature('places', null)"
         >
 
             <span>
@@ -1084,6 +1103,36 @@
         </div>
 
 
+
+        <!-- =================================================
+             FULL HEALTHCARE PORTAL
+        ================================================== -->
+
+        <div class="health-card">
+
+            <div class="health-icon">
+                🌐
+            </div>
+
+            <h3>
+                Healthcare Portal
+            </h3>
+
+            <p>
+                Access complete digital hospital, pharmacy inventory, and doctor schedules.
+            </p>
+
+            <button
+                type="button"
+                class="health-portal-btn"
+                onclick="window.location.href='pages/hospital/hospital.html'"
+            >
+                Launch Health Portal
+            </button>
+
+        </div>
+
+
     </div>
     <!-- =================================================
          HEALTHCARE GRID END
@@ -1676,6 +1725,1302 @@
 
 
 <!-- =====================================================
+     SMART TRAFFIC & TRANSIT SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-traffic"
+    id="traffic"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                SMART TRAFFIC &amp; TRANSIT
+            </span>
+
+            <h2>
+                Intelligent Traffic Management
+            </h2>
+
+            <p>
+                AI junction cycle controls, real-time congestion monitoring, EV bus fleet tracking, and automated transit dispatch.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            42 JUNCTIONS LIVE
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚦
+            </div>
+
+            <h3>
+                Live Junction Monitor
+            </h3>
+
+            <p>
+                Real-time green/red countdown timers, automated phase shifts, and sensor feeds across Gorakhpur intersections.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="showFeature('traffic', null); document.getElementById('map').scrollIntoView({behavior:'smooth'});"
+            >
+                View on Map
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ⚡
+            </div>
+
+            <h3>
+                Adaptive Signal Control
+            </h3>
+
+            <p>
+                Deep learning algorithms adjust signal green splits based on real-time vehicle density queues to eliminate bottleneck delays.
+            </p>
+
+            <a
+                href="pages/traffic/traffic.html#signals"
+                class="dept-btn dept-btn-outline"
+            >
+                Control Signals
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚌
+            </div>
+
+            <h3>
+                Smart EV City Buses
+            </h3>
+
+            <p>
+                GPS telemetry and arrival estimation for green electric Nagar Nigam city buses along Golghar, Station, and AIIMS.
+            </p>
+
+            <a
+                href="pages/traffic/traffic.html#buses"
+                class="dept-btn dept-btn-outline"
+            >
+                Track EV Buses
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                📷
+            </div>
+
+            <h3>
+                Violation Radar &amp; Challan
+            </h3>
+
+            <p>
+                Automated ANPR cameras detect speed limit violations, red light jumping, and zebra crossing encroachments in real-time.
+            </p>
+
+            <a
+                href="pages/traffic/traffic.html#challan"
+                class="dept-btn dept-btn-outline"
+            >
+                Check Challan
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ⚠️
+            </div>
+
+            <h3>
+                Report Traffic Gridlock
+            </h3>
+
+            <p>
+                Instantly lodge a traffic jam, non-functional signal light, or road hazard directly to the Integrated Traffic Command.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="openGrievanceModal('traffic')"
+            >
+                Report Hazard
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Traffic Command Portal
+            </h3>
+
+            <p>
+                Access the complete interactive Gorakhpur Traffic Management Portal with density heatmaps and corridor override controls.
+            </p>
+
+            <a
+                href="pages/traffic/traffic.html"
+                class="dept-btn"
+            >
+                Launch Traffic Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SMART SANITATION & WASTE SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-waste"
+    id="waste"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                SMART SANITATION &amp; WASTE
+            </span>
+
+            <h2>
+                Clean Gorakhpur Operations
+            </h2>
+
+            <p>
+                IoT ultrasonic bin fill telemetry, GPS garbage fleet tracking, and automated municipal grievance redressal.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            SWACHH GORAKHPUR ACTIVE
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                📢
+            </div>
+
+            <h3>
+                Report Waste / Overflow
+            </h3>
+
+            <p>
+                Geotag uncollected waste with instant photo upload. Automatically assigns Nagar Nigam sanitation supervisors with an SLA target.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="openGrievanceModal('waste')"
+            >
+                Report Garbage
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🗑️
+            </div>
+
+            <h3>
+                IoT Smart Bins
+            </h3>
+
+            <p>
+                Ultrasonic fill-level sensors across 200+ municipal bins send real-time alerts when bins exceed 80% capacity for automated routing.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="showFeature('waste', null); document.getElementById('map').scrollIntoView({behavior:'smooth'});"
+            >
+                View Bins on Map
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚛
+            </div>
+
+            <h3>
+                Garbage Fleet GPS
+            </h3>
+
+            <p>
+                Live route monitoring of municipal compactors and tippers ensuring 100% door-to-door waste collection coverage daily.
+            </p>
+
+            <a
+                href="pages/waste/waste.html#fleet"
+                class="dept-btn dept-btn-outline"
+            >
+                Track Fleet
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ♻️
+            </div>
+
+            <h3>
+                Solid Waste SCADA
+            </h3>
+
+            <p>
+                Daily processing metrics of Gorakhpur's waste-to-energy and bio-methanation plants, composting tonnage, and recycling stats.
+            </p>
+
+            <a
+                href="pages/waste/waste.html#stats"
+                class="dept-btn dept-btn-outline"
+            >
+                Processing Stats
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🔍
+            </div>
+
+            <h3>
+                Track Grievance Status
+            </h3>
+
+            <p>
+                Check real-time progress on your submitted sanitation complaints with verified before/after resolution photographs.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="switchGrievanceTab('track'); openGrievanceModal('waste');"
+            >
+                Track Complaint
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Sanitation &amp; Waste Portal
+            </h3>
+
+            <p>
+                Launch the full Nagar Nigam sanitation operations suite with route optimization algorithms and supervisor attendance.
+            </p>
+
+            <a
+                href="pages/waste/waste.html"
+                class="dept-btn"
+            >
+                Launch Waste Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     URBAN WATER & SCADA SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-water"
+    id="water"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                URBAN WATER SUPPLY &amp; SCADA
+            </span>
+
+            <h2>
+                Smart Water Grid &amp; Quality Control
+            </h2>
+
+            <p>
+                Real-time reservoir capacities, acoustic pipeline leak detection, automated pump relays, and potable water quality index.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            100% PRESSURE NOMINAL
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                💧
+            </div>
+
+            <h3>
+                Reservoir Level SCADA
+            </h3>
+
+            <p>
+                Real-time ultrasonic level sensors monitoring capacities, inlet/outlet flow rates, and water volume across city overhead tanks.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="showFeature('water', null); document.getElementById('map').scrollIntoView({behavior:'smooth'});"
+            >
+                View on Map
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🧪
+            </div>
+
+            <h3>
+                Water Purity &amp; Sensors
+            </h3>
+
+            <p>
+                Live telemetry measuring pH balance, dissolved oxygen, chlorine residual, and TDS to ensure safe, contamination-free drinking water.
+            </p>
+
+            <a
+                href="pages/water/water.html#quality"
+                class="dept-btn dept-btn-outline"
+            >
+                Check Quality
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ⚡
+            </div>
+
+            <h3>
+                Acoustic Leak Detection
+            </h3>
+
+            <p>
+                IoT pressure transducers detect pressure drops and sudden bursts along distribution mains, alerting repair teams within 60 seconds.
+            </p>
+
+            <a
+                href="pages/water/water.html#pressure"
+                class="dept-btn dept-btn-outline"
+            >
+                Pressure Network
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ⏰
+            </div>
+
+            <h3>
+                Ward Supply Timings
+            </h3>
+
+            <p>
+                Check scheduled morning and evening water supply hours for your residential zone, ward pump operational status, and maintenance windows.
+            </p>
+
+            <a
+                href="pages/water/water.html#schedule"
+                class="dept-btn dept-btn-outline"
+            >
+                View Timings
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ⚠️
+            </div>
+
+            <h3>
+                Report Water Leakage
+            </h3>
+
+            <p>
+                Report dirty or discolored tap water, low supply pressure, or visible pipe leaks directly to the Jal Sansthan emergency response wing.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="openGrievanceModal('water')"
+            >
+                Report Issue
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Water SCADA Grid Portal
+            </h3>
+
+            <p>
+                Access the complete Jal Nigam telemetry platform with valve automation, pump cycle controls, and energy efficiency analytics.
+            </p>
+
+            <a
+                href="pages/water/water.html"
+                class="dept-btn"
+            >
+                Launch Water Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     INTEGRATED EMERGENCY & SOS SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-emergency"
+    id="emergency"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                INTEGRATED EMERGENCY &amp; SOS
+            </span>
+
+            <h2>
+                Rapid Emergency Dispatch &amp; Response
+            </h2>
+
+            <p>
+                Instant 1-tap SOS distress broadcasts, live GPS ambulance tracking, Fire &amp; Disaster rapid command, and unified helplines.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            DISPATCH UNITS ON STANDBY
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚨
+            </div>
+
+            <h3>
+                1-Tap Emergency SOS
+            </h3>
+
+            <p>
+                Broadcast your precise GPS location instantly to Police Dial 112, Central Emergency Command, and nearest emergency responders.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                style="background:#dc2626;"
+                onclick="triggerQuickSOSFromChat()"
+            >
+                Broadcast SOS Alert
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚑
+            </div>
+
+            <h3>
+                Track Nearest Ambulance
+            </h3>
+
+            <p>
+                View real-time GPS locations and ETA of Advanced Life Support (ALS) ambulances stationed across Gorakhpur healthcare hubs.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="trackAmbulance()"
+            >
+                Track Ambulance
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚒
+            </div>
+
+            <h3>
+                Fire &amp; Rescue Dispatch
+            </h3>
+
+            <p>
+                Emergency fire station dispatch, hydrant location mapping, and direct emergency call to Gorakhpur District Fire Command (101).
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn dept-btn-outline"
+                onclick="window.location.href='tel:101'"
+            >
+                📞 Call Fire (101)
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌊
+            </div>
+
+            <h3>
+                Flood &amp; SDRF Alerts
+            </h3>
+
+            <p>
+                Live water level telemetry of Rapti and Rohini rivers with automated flood threshold warnings and SDRF relief team deployment status.
+            </p>
+
+            <a
+                href="pages/emergency/emergency.html#disaster"
+                class="dept-btn dept-btn-outline"
+            >
+                Flood Telemetry
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                📞
+            </div>
+
+            <h3>
+                24/7 Helpline Directory
+            </h3>
+
+            <p>
+                Comprehensive directory of verified helpline numbers: 112 (Police), 108 (Ambulance), 101 (Fire), 1090 (Women), 1077 (Disaster).
+            </p>
+
+            <a
+                href="pages/emergency/emergency.html#helplines"
+                class="dept-btn dept-btn-outline"
+            >
+                View Numbers
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Emergency Response Portal
+            </h3>
+
+            <p>
+                Launch the central incident management console with real-time multi-agency coordination, triage management, and incident logs.
+            </p>
+
+            <a
+                href="pages/emergency/emergency.html"
+                class="dept-btn"
+            >
+                Launch Emergency Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     SMART MULTI-LEVEL PARKING SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-parking"
+    id="parking"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                SMART MULTI-LEVEL PARKING
+            </span>
+
+            <h2>
+                Intelligent Urban Parking Availability
+            </h2>
+
+            <p>
+                Real-time lot occupancy sensors, digital slot reservations with QR entry tickets, EV charging spots, and ANPR automated barrier control.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            SENSORS ONLINE
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🅿️
+            </div>
+
+            <h3>
+                Live Lot Occupancy
+            </h3>
+
+            <p>
+                Check available two-wheeler and four-wheeler slots in real-time across Golghar, Railway Station, City Mall, and Civil Lines.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="showFeature('parking', null); document.getElementById('map').scrollIntoView({behavior:'smooth'});"
+            >
+                View on Map
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🎟️
+            </div>
+
+            <h3>
+                Pre-Book Parking Slot
+            </h3>
+
+            <p>
+                Reserve your parking bay in advance with guaranteed availability and receive an instant digital QR pass for contactless gate entry.
+            </p>
+
+            <a
+                href="pages/parking/parking.html#book"
+                class="dept-btn"
+            >
+                Book Slot Now
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                ⚡
+            </div>
+
+            <h3>
+                EV Charging Hubs
+            </h3>
+
+            <p>
+                Locate high-speed CCS2 and Type-2 EV chargers integrated into smart parking bays with live power delivery and slot availability.
+            </p>
+
+            <a
+                href="pages/parking/parking.html#ev"
+                class="dept-btn dept-btn-outline"
+            >
+                Locate EV Chargers
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚗
+            </div>
+
+            <h3>
+                ANPR Contactless Entry
+            </h3>
+
+            <p>
+                Automated license plate recognition gates allow drive-through entry and exit with automatic debit from FASTag or digital municipal wallet.
+            </p>
+
+            <a
+                href="pages/parking/parking.html#anpr"
+                class="dept-btn dept-btn-outline"
+            >
+                Setup ANPR Pass
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🏢
+            </div>
+
+            <h3>
+                MLCP Floor Telemetry
+            </h3>
+
+            <p>
+                Floor-by-floor occupancy status of the Gorakhpur Smart City Multi-Level Parking facility at Golghar with dynamic guidance displays.
+            </p>
+
+            <a
+                href="pages/parking/parking.html#mlcp"
+                class="dept-btn dept-btn-outline"
+            >
+                View Floors
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Smart Parking Portal
+            </h3>
+
+            <p>
+                Access the complete parking management suite with dynamic rate calculators, monthly pass subscriptions, and reservation history.
+            </p>
+
+            <a
+                href="pages/parking/parking.html"
+                class="dept-btn"
+            >
+                Launch Parking Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     DISTRICT POLICE & PUBLIC SAFETY SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-police"
+    id="police"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                DISTRICT POLICE &amp; PUBLIC SAFETY
+            </span>
+
+            <h2>
+                Smart City Police &amp; Surveillance
+            </h2>
+
+            <p>
+                Safe City AI surveillance, 1,200+ CCTV camera integration, Women Safety pink booths, and online e-FIR / citizen complaint filing.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            DIAL 112 DISPATCH READY
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                👮
+            </div>
+
+            <h3>
+                Police Stations Map
+            </h3>
+
+            <p>
+                Locate your nearest Thana (Kotwali, Cantt, Gorakhnath, Shahpur), view station in-charge (SHO) direct contact, and jurisdictional boundary.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                onclick="showFeature('police', null); document.getElementById('map').scrollIntoView({behavior:'smooth'});"
+            >
+                View on Map
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🚨
+            </div>
+
+            <h3>
+                Dial 112 Emergency Call
+            </h3>
+
+            <p>
+                Connect directly to the UP 112 centralized police control room with automatic mobile tower triangulation for immediate patrol dispatch.
+            </p>
+
+            <button
+                type="button"
+                class="dept-btn"
+                style="background:#1d4ed8;"
+                onclick="window.location.href='tel:112'"
+            >
+                📞 Call 112 Police
+            </button>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🛡️
+            </div>
+
+            <h3>
+                Women Safety Corridors
+            </h3>
+
+            <p>
+                AI-monitored safe corridors equipped with 24/7 high-definition cameras, emergency distress poles, and dedicated Pink Police Patrols.
+            </p>
+
+            <a
+                href="pages/police/police.html#women-safety"
+                class="dept-btn dept-btn-outline"
+            >
+                Safe City Zones
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                📝
+            </div>
+
+            <h3>
+                File e-FIR / Lost Report
+            </h3>
+
+            <p>
+                File online non-cognizable reports (NCR) for lost mobile phones, identity cards, driving licenses, and vehicle theft without visiting the Thana.
+            </p>
+
+            <a
+                href="pages/police/police.html#complaint"
+                class="dept-btn dept-btn-outline"
+            >
+                File Online Report
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                📹
+            </div>
+
+            <h3>
+                Smart City CCTV Feeds
+            </h3>
+
+            <p>
+                Integrated surveillance grid across 120 key city junctions featuring automated vehicle tracking, crowd density alerts, and optical AI analytics.
+            </p>
+
+            <a
+                href="pages/police/police.html#cctv"
+                class="dept-btn dept-btn-outline"
+            >
+                Surveillance Grid
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Police &amp; Public Safety Portal
+            </h3>
+
+            <p>
+                Access the complete citizen policing portal including character certificate verification, tenant verification, and traffic advisory bulletins.
+            </p>
+
+            <a
+                href="pages/police/police.html"
+                class="dept-btn"
+            >
+                Launch Police Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HERITAGE & SMART TOURISM SECTION
+===================================================== -->
+
+<section
+    class="dept-section dept-famous"
+    id="famous"
+>
+
+    <div class="dept-header">
+
+        <div>
+
+            <span class="section-tag">
+                HERITAGE &amp; SMART TOURISM
+            </span>
+
+            <h2>
+                Gorakhpur Heritage &amp; Tourist Explorer
+            </h2>
+
+            <p>
+                Interactive 360° virtual tours, historical darshan guides, Ramgarh Taal water sports, and planetarium show reservations.
+            </p>
+
+        </div>
+
+        <div class="dept-status">
+
+            <span></span>
+
+            TOURIST GUIDE ACTIVE
+
+        </div>
+
+    </div>
+
+    <div class="dept-grid">
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🛕
+            </div>
+
+            <h3>
+                Gorakhnath Temple Heritage
+            </h3>
+
+            <p>
+                Sacred centuries-old shrine of Guru Gorakshanath. View daily aarti schedules, historical museum timings, and annual Khichdi mela calendar.
+            </p>
+
+            <a
+                href="pages/famous/famous.html#gorakhnath"
+                class="dept-btn"
+            >
+                Temple Guide
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌊
+            </div>
+
+            <h3>
+                Ramgarh Taal Lakefront
+            </h3>
+
+            <p>
+                1,700-acre lakefront promenade. Reserve speed boat &amp; paddle boat rides, check musical laser light show timings, and enjoy the night view.
+            </p>
+
+            <a
+                href="pages/famous/famous.html#ramgarh"
+                class="dept-btn dept-btn-outline"
+            >
+                Explore Lakefront
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🪐
+            </div>
+
+            <h3>
+                Digital Planetarium
+            </h3>
+
+            <p>
+                State-of-the-art opto-mechanical digital planetarium. Check daily astronomy show schedules, ticket fares, and cosmic science galleries.
+            </p>
+
+            <a
+                href="pages/famous/famous.html#planetarium"
+                class="dept-btn dept-btn-outline"
+            >
+                Book Planetarium Show
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌳
+            </div>
+
+            <h3>
+                Kushmi Forest &amp; Mini Zoo
+            </h3>
+
+            <p>
+                Dense natural Sal forest sanctuary featuring deer park, butterfly pavilion, scenic nature walking tracks, and eco-tourism pavilions.
+            </p>
+
+            <a
+                href="pages/famous/famous.html#kushmi"
+                class="dept-btn dept-btn-outline"
+            >
+                Nature Tour Guide
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🎧
+            </div>
+
+            <h3>
+                Multilingual Audio Guide
+            </h3>
+
+            <p>
+                Immersive narrated audio tour and 360° panoramic views covering Gita Press museum, Railway Museum, and historical Buddhist circuits.
+            </p>
+
+            <a
+                href="pages/famous/famous.html#virtual"
+                class="dept-btn dept-btn-outline"
+            >
+                Listen Audio Guide
+            </a>
+
+        </div>
+
+        <div class="dept-card">
+
+            <div class="dept-icon">
+                🌐
+            </div>
+
+            <h3>
+                Heritage &amp; Places Portal
+            </h3>
+
+            <p>
+                Launch the comprehensive Gorakhpur tourism portal with interactive heritage trails, local culinary guide, and hotel directory.
+            </p>
+
+            <a
+                href="pages/famous/famous.html"
+                class="dept-btn"
+            >
+                Launch Tourism Portal
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
      SMARTCITY AI AUTH SYSTEM
 ===================================================== -->
 
@@ -2093,40 +3438,6 @@
 
 
 
-<!-- =====================================================
-     LOGGED-IN USER / STAFF BAR
-===================================================== -->
-
-<div
-    id="authUserBar"
-    class="auth-user-bar"
->
-
-
-    <div>
-
-        <span class="auth-online"></span>
-
-        <strong id="authUserName">
-            User
-        </strong>
-
-        <small id="authUserRole">
-            Citizen
-        </small>
-
-    </div>
-
-
-    <button
-        type="button"
-        onclick="logoutSmartCity()"
-    >
-        Logout
-    </button>
-
-
-</div>
 
 <!-- =====================================================
      CITIZEN GRIEVANCE & LIVE SLA TRACKING PORTAL MODAL

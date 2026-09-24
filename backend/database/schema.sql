@@ -326,16 +326,29 @@ CREATE TABLE IF NOT EXISTS `waste_bin_requests` (
 
 CREATE TABLE IF NOT EXISTS `parking_lots` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `lot_id` VARCHAR(50) NOT NULL UNIQUE,
+    `parking_code` VARCHAR(50) NOT NULL UNIQUE,
+    `lot_id` VARCHAR(50) DEFAULT NULL,
     `name` VARCHAR(150) NOT NULL,
-    `location` VARCHAR(255) NOT NULL,
+    `address` TEXT DEFAULT NULL,
+    `location` VARCHAR(255) DEFAULT NULL,
+    `area` VARCHAR(100) DEFAULT NULL,
+    `total_slots` INT DEFAULT 50,
     `total_spots` INT DEFAULT 50,
+    `available_slots` INT DEFAULT 50,
     `available_spots` INT DEFAULT 50,
+    `occupied_slots` INT DEFAULT 0,
     `hourly_rate` DECIMAL(10, 2) DEFAULT 20.00,
-    `status` VARCHAR(50) DEFAULT 'Open',
+    `status` VARCHAR(50) DEFAULT 'OPEN',
     `latitude` DECIMAL(10, 7) DEFAULT 26.7606,
     `longitude` DECIMAL(10, 7) DEFAULT 83.3732,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `vehicle_types` VARCHAR(100) DEFAULT 'CAR,BIKE',
+    `cctv_available` TINYINT(1) DEFAULT 1,
+    `security_available` TINYINT(1) DEFAULT 1,
+    `source_type` VARCHAR(50) DEFAULT 'DEMO',
+    `active` TINYINT(1) DEFAULT 1,
+    `last_updated` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_lot_code` (`parking_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `parking_bookings` (

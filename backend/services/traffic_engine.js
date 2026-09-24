@@ -111,14 +111,17 @@ class TrafficEngine {
                         }
                     }
 
-                    if (newCd !== sig.countdown || newColor !== sig.current_color) {
+                    const colorChanged = newColor !== sig.current_color;
+                    const shouldPersist = colorChanged || (newCd % 15 === 0);
+
+                    if (shouldPersist) {
                         await pool.promise().query(
                             `UPDATE traffic_signals SET countdown = ?, current_color = ? WHERE id = ?`,
                             [newCd, newColor, sig.id]
-                        );
-                        sig.current_color = newColor;
-                        sig.countdown = newCd;
+                        ).catch(() => {});
                     }
+                    sig.current_color = newColor;
+                    sig.countdown = newCd;
                 }
 
                 // If phase state transitioned or periodically, broadcast to socket clients

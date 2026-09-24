@@ -3878,27 +3878,26 @@ function checkExistingLogin() {
    OPEN AUTH POPUP
 ========================================================= */
 
-function openAuthPopup() {
+function openAuthPopup(tab = "citizen") {
+    if (window.SmartCityAuth && typeof window.SmartCityAuth.showLoginModal === "function") {
+        window.SmartCityAuth.showLoginModal(tab);
+        return;
+    }
 
     const overlay =
         document.getElementById(
             "authOverlay"
         );
 
-
     if (!overlay) return;
-
 
     overlay.style.display =
         "flex";
 
-
     document.body.style.overflow =
         "hidden";
 
-
     showLogin();
-
 }
 
 
@@ -4601,67 +4600,17 @@ function closeAuthPopup() {
 ========================================================= */
 
 function updateUserBar() {
-
-    if (!currentAuthUser) return;
-
-
-    const bar =
-        document.getElementById(
-            "authUserBar"
-        );
-
-
-    const name =
-        document.getElementById(
-            "authUserName"
-        );
-
-
-    const role =
-        document.getElementById(
-            "authUserRole"
-        );
-
-
-    if (!bar) return;
-
-
-    if (
-        currentAuthUser.type ===
-        "citizen"
-    ) {
-
-        if (name)
-            name.textContent =
-                currentAuthUser.name;
-
-
-        if (role)
-            role.textContent =
-                "Citizen • " +
-                currentAuthUser.userId;
-
+    // Sync seamlessly with centralized SmartCityAuth
+    if (typeof SmartCityAuth !== "undefined") {
+        if (typeof SmartCityAuth.initGlobalNavbar === "function") {
+            SmartCityAuth.initGlobalNavbar();
+        }
     }
 
-    else {
-
-        if (name)
-            name.textContent =
-                currentAuthUser.name;
-
-
-        if (role)
-            role.textContent =
-                currentAuthUser.departmentName +
-                " • " +
-                currentAuthUser.employeeId;
-
+    const bar = document.getElementById("authUserBar");
+    if (bar) {
+        bar.style.display = "none";
     }
-
-
-    bar.style.display =
-        "flex";
-
 }
 
 
@@ -4722,7 +4671,9 @@ function showViewOnlyMessage(feature) {
         "You are logged in as " +
 
         (
+            currentAuthUser?.department ||
             currentAuthUser?.departmentName ||
+            currentAuthUser?.role ||
             "Citizen"
         ) +
 
@@ -5178,10 +5129,19 @@ function speakAIText(text) {
 // 2. CITIZEN GRIEVANCE PORTAL & LIVE SLA TICKER
 // --------------------------------------------------------------------------
 
-function openGrievanceModal() {
+function openGrievanceModal(preselectDept) {
     const modal = document.getElementById("scGrievanceModal");
     if (!modal) return;
     modal.classList.add("active");
+
+    if (preselectDept) {
+        const deptSelect = document.getElementById("grievanceDept");
+        if (deptSelect) {
+            deptSelect.value = preselectDept;
+            handleDeptChange();
+        }
+        switchGrievanceTab("lodge");
+    }
 
     // Pre-fill user information if logged in
     const user = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getUser() : null;
@@ -5707,4 +5667,5 @@ window.closeCommandCenterModal = closeCommandCenterModal;
 window.fetchCommandCenterData = fetchCommandCenterData;
 window.showSimulatedDispatchAlert = showSimulatedDispatchAlert;
 window.initVoiceAssistant = initVoiceAssistant;
-window.speakAIText = speakAIText;
+window.speakAIText = speakAIText;
+window.triggerQuickSOSFromChat = triggerQuickSOSFromChat;

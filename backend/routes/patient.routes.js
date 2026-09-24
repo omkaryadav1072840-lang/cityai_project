@@ -84,8 +84,6 @@ async function logPatientAudit(patientId, action, req, details = null) {
 
 function checkPatientAccess(req, patient) {
     if (!req.user) {
-        // If REQUIRE_AUTH is explicitly disabled in development
-        if (process.env.REQUIRE_AUTH === "false") return true;
         return false;
     }
 

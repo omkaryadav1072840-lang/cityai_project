@@ -87,7 +87,37 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static uploaded files (prescriptions, reports, etc.)
+// Medical uploads security guard (Prescriptions & Diagnostic Reports)
+app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
+    if (process.env.REQUIRE_AUTH === "false") return next();
+
+    const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
+    let token = authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7).trim()
+        : (authHeader || req.query.token);
+
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: "Access denied. Valid authentication token required to view confidential clinical documents."
+        });
+    }
+
+    const jwt = require("jsonwebtoken");
+    const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({
+                success: false,
+                message: "Invalid or expired authorization token."
+            });
+        }
+        req.user = decoded;
+        next();
+    });
+});
+
+// Serve static uploaded files (civic photos, authenticated medical records, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Serve static frontend files (dashboard, subpages, CSS, JS, media)
@@ -182,7 +212,7 @@ app.post("/api/simulation/stop", (req, res) => {
 // =========================================================
 
 app.use(["/api/login", "/api/register", "/api/staff-login"], authRateLimiter);
-app.use("/api/ai/chat", aiRateLimiter);
+app.use(["/api/ai/chat", "/api/ai/assistant"], aiRateLimiter);
 app.use("/api/emergency/sos", sosRateLimiter);
 
 // =========================================================

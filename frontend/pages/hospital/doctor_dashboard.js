@@ -147,6 +147,22 @@ async function loadDoctorQueue() {
         const res = await fetch(`${API_BASE}/api/doctor/${doctorId}/appointments`, {
             headers: getAuthHeaders()
         });
+        if (res.status === 401 || res.status === 403) {
+            queueList.innerHTML = `
+                <div class="empty-state" style="padding: 30px; text-align: center; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; margin: 20px;">
+                    <div style="font-size: 36px; margin-bottom: 12px;">🔒</div>
+                    <h3 style="color: #92400e; font-size: 16px; margin-bottom: 8px;">Doctor Authentication Required</h3>
+                    <p style="color: #b45309; font-size: 13px; max-width: 400px; margin: 0 auto 16px;">
+                        Access to OPD clinical queue and patient dossiers is restricted to authorized medical personnel.
+                    </p>
+                    <button onclick="if(window.SmartCityAuth){SmartCityAuth.showLoginModal('doctor')}else{window.location.href='hospital.html'}" 
+                            style="background: #2563eb; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                        👨‍⚕️ Login with Doctor / Staff Credentials
+                    </button>
+                </div>
+            `;
+            return;
+        }
         if (!res.ok) throw new Error('Failed to fetch doctor appointments');
         const data = await res.json();
         currentQueue = data.appointments || (Array.isArray(data) ? data : []);
@@ -157,7 +173,7 @@ async function loadDoctorQueue() {
         console.error('Error fetching appointments:', err);
         queueList.innerHTML = `
             <div class="empty-state">
-                <p>⚠️ Failed to load queue. Please check server connection.</p>
+                <p>⚠️ Unable to load queue. Please verify server connection and try again.</p>
             </div>
         `;
     }

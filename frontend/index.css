@@ -19,7 +19,7 @@ html {
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: #f4f7fb;
     color: #172033;
     line-height: 1.5;
@@ -1541,6 +1541,215 @@ main {
     transform: translateY(-1px);
 }
 
+.health-portal-btn {
+    background: #0284c7 !important;
+}
+.health-portal-btn:hover {
+    background: #0369a1 !important;
+}
+
+/* =========================================================
+   GENERIC & DEPARTMENT-SPECIFIC SHOWCASE SECTIONS
+========================================================= */
+
+.dept-section {
+    width: 92%;
+    max-width: 1400px;
+    margin: 45px auto;
+    padding: 30px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+    scroll-margin-top: 80px;
+}
+
+.healthcare-section {
+    scroll-margin-top: 80px;
+}
+
+.dept-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.dept-header h2 {
+    font-size: 28px;
+    color: #172033;
+    margin-bottom: 5px;
+}
+
+.dept-header p {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.dept-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 13px;
+    border-radius: 20px;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.dept-status span {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: healthPulse 1.5s infinite;
+}
+
+.dept-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.dept-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 23px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+}
+
+.dept-card:hover {
+    transform: translateY(-4px);
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.dept-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+    margin-bottom: 15px;
+}
+
+.dept-card h3 {
+    color: #172033;
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.dept-card p {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 42px;
+    margin-bottom: 18px;
+    flex-grow: 1;
+}
+
+.dept-btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 9px;
+    padding: 11px 14px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+    box-sizing: border-box;
+}
+
+.dept-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+.dept-btn-outline {
+    background: #ffffff !important;
+    color: #475569 !important;
+    border: 1.5px solid #cbd5e1 !important;
+}
+.dept-btn-outline:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+/* Department Theming */
+/* Traffic */
+.dept-traffic .section-tag { background: #fff7ed; color: #ea580c; }
+.dept-traffic .dept-icon { background: #ffedd5; }
+.dept-traffic .dept-btn { background: #ea580c; }
+.dept-traffic .dept-btn:hover { background: #c2410c; }
+.dept-traffic .dept-card:hover { border-color: #fed7aa; box-shadow: 0 10px 25px rgba(234, 88, 12, 0.12); }
+
+/* Waste */
+.dept-waste .section-tag { background: #ecfdf5; color: #059669; }
+.dept-waste .dept-icon { background: #d1fae5; }
+.dept-waste .dept-btn { background: #059669; }
+.dept-waste .dept-btn:hover { background: #047857; }
+.dept-waste .dept-card:hover { border-color: #a7f3d0; box-shadow: 0 10px 25px rgba(5, 150, 105, 0.12); }
+
+/* Water */
+.dept-water .section-tag { background: #ecfeff; color: #0284c7; }
+.dept-water .dept-icon { background: #cffafe; }
+.dept-water .dept-btn { background: #0284c7; }
+.dept-water .dept-btn:hover { background: #0369a1; }
+.dept-water .dept-card:hover { border-color: #bae6fd; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.12); }
+
+/* Emergency */
+.dept-emergency .section-tag { background: #fef2f2; color: #dc2626; }
+.dept-emergency .dept-icon { background: #fee2e2; }
+.dept-emergency .dept-btn { background: #dc2626; }
+.dept-emergency .dept-btn:hover { background: #b91c1c; }
+.dept-emergency .dept-card:hover { border-color: #fecaca; box-shadow: 0 10px 25px rgba(220, 38, 38, 0.12); }
+.dept-emergency .dept-status { background: #fef2f2; color: #dc2626; }
+.dept-emergency .dept-status span { background: #dc2626; animation: emergencyPulse 1.5s infinite; }
+
+@keyframes emergencyPulse {
+    0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    70% { box-shadow: 0 0 0 7px rgba(220, 38, 38, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+/* Parking */
+.dept-parking .section-tag { background: #eef2ff; color: #4f46e5; }
+.dept-parking .dept-icon { background: #e0e7ff; }
+.dept-parking .dept-btn { background: #4f46e5; }
+.dept-parking .dept-btn:hover { background: #4338ca; }
+.dept-parking .dept-card:hover { border-color: #c7d2fe; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.12); }
+
+/* Police */
+.dept-police .section-tag { background: #eff6ff; color: #1d4ed8; }
+.dept-police .dept-icon { background: #dbeafe; }
+.dept-police .dept-btn { background: #1d4ed8; }
+.dept-police .dept-btn:hover { background: #1e40af; }
+.dept-police .dept-card:hover { border-color: #bfdbfe; box-shadow: 0 10px 25px rgba(29, 78, 216, 0.12); }
+
+/* Famous Places */
+.dept-famous .section-tag { background: #fffbeb; color: #d97706; }
+.dept-famous .dept-icon { background: #fef3c7; }
+.dept-famous .dept-btn { background: #d97706; }
+.dept-famous .dept-btn:hover { background: #b45309; }
+.dept-famous .dept-card:hover { border-color: #fde68a; box-shadow: 0 10px 25px rgba(217, 119, 6, 0.12); }
+
 
 /* =========================================================
    HEALTHCARE MODAL
@@ -1921,7 +2130,8 @@ main {
 
 @media (max-width: 1000px) {
 
-    .healthcare-grid {
+    .healthcare-grid,
+    .dept-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
@@ -1930,22 +2140,26 @@ main {
 
 @media (max-width: 650px) {
 
-    .healthcare-section {
+    .healthcare-section,
+    .dept-section {
         width: 94%;
         padding: 20px;
         margin: 30px auto;
     }
 
-    .healthcare-header {
+    .healthcare-header,
+    .dept-header {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .healthcare-header h2 {
+    .healthcare-header h2,
+    .dept-header h2 {
         font-size: 23px;
     }
 
-    .healthcare-grid {
+    .healthcare-grid,
+    .dept-grid {
         grid-template-columns: 1fr;
     }
 

@@ -193,11 +193,12 @@ router.get("/api/parking/my-bookings", optionalToken, async (req, res) => {
             if (rawVehicle) { conditions.push("b.vehicle_number = ?"); params.push(rawVehicle); }
         } else if (req.user) {
             // Authenticated citizen: strictly restricted to their own account / phone
+            const uid = String(req.user.id || req.user.userId || -1);
             const userSubConditions = ["b.user_id = ?"];
-            params.push(req.user.id);
+            params.push(uid);
             if (req.user.mobile) {
                 userSubConditions.push("b.customer_phone = ?");
-                params.push(req.user.mobile);
+                params.push(String(req.user.mobile).trim());
             }
             conditions.push("(" + userSubConditions.join(" OR ") + ")");
             if (rawVehicle) {
@@ -205,9 +206,13 @@ router.get("/api/parking/my-bookings", optionalToken, async (req, res) => {
                 params.push(rawVehicle);
             }
         } else {
-            // Unauthenticated: only allow lookup by verified phone or specific vehicle (do not allow arbitrary unauthenticated userId probing)
-            if (rawPhone) { conditions.push("b.customer_phone = ?"); params.push(rawPhone); }
-            if (rawVehicle) { conditions.push("b.vehicle_number = ?"); params.push(rawVehicle); }
+            // Unauthenticated: only allow lookup when BOTH phone AND vehicle match to prevent data leakage
+            if (rawPhone && rawVehicle) {
+                conditions.push("b.customer_phone = ? AND b.vehicle_number = ?");
+                params.push(rawPhone, rawVehicle);
+            } else {
+                return res.json({ success: true, count: 0, bookings: [] });
+            }
         }
 
         // If no citizen identifier provided, do not leak other citizens' bookings
@@ -890,48 +895,63 @@ router.post("/api/parking/:id/book-slot", optionalToken, async (req, res) => {
         const qrToken = crypto.randomBytes(16).toString("hex");
         const qrPayload = `SMARTCITY|${bookingId}|${qrToken}|${lot.parking_code}|${slot.slot_number}`;
 
-        await db.promise().query(`
-            INSERT INTO parking_bookings
-            (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, end_time, duration_hours, total_amount, status, qr_token)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
-        `, [
-            bookingId,
-            lot.parking_code,
-            finalUserId,
-            String(vehicleNumber).trim().toUpperCase(),
-            finalCustomerName,
-            finalCustomerPhone,
-            slot.slot_number,
-            startFormatted,
-            endFormatted,
-            hours,
-            totalAmount,
-            qrToken
-        ]);
+        // 4. Atomic Transaction: Slot reservation, booking creation, and counter update
+        const connection = await db.promise().getConnection();
+        try {
+            await connection.beginTransaction();
 
-        // 4. Update physical slot state to Booked atomically
-        const [slotUpdateResult] = await db.promise().query(`
-            UPDATE parking_slots 
-            SET status = 'Booked', current_booking_id = ? 
-            WHERE id = ? AND status = 'Available'
-        `, [bookingId, slot.id]);
+            // Check & Reserve slot atomically
+            const [slotUpdateResult] = await connection.query(`
+                UPDATE parking_slots 
+                SET status = 'Booked', current_booking_id = ? 
+                WHERE id = ? AND status = 'Available'
+            `, [bookingId, slot.id]);
 
-        if (slotUpdateResult.affectedRows === 0) {
-            await db.promise().query("DELETE FROM parking_bookings WHERE booking_id = ?", [bookingId]);
-            return res.status(409).json({
-                success: false,
-                message: `Slot ${slotNumber} was just booked by another user. Please choose another available slot.`
-            });
+            if (slotUpdateResult.affectedRows === 0) {
+                await connection.rollback();
+                connection.release();
+                return res.status(409).json({
+                    success: false,
+                    message: `Slot ${slotNumber} was just booked by another user. Please choose another available slot.`
+                });
+            }
+
+            // Insert booking record
+            await connection.query(`
+                INSERT INTO parking_bookings
+                (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, end_time, duration_hours, total_amount, status, qr_token)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)
+            `, [
+                bookingId,
+                lot.parking_code,
+                finalUserId,
+                String(vehicleNumber).trim().toUpperCase(),
+                finalCustomerName,
+                finalCustomerPhone,
+                slot.slot_number,
+                startFormatted,
+                endFormatted,
+                hours,
+                totalAmount,
+                qrToken
+            ]);
+
+            // Atomically update lot counters
+            await connection.query(`
+                UPDATE parking_lots 
+                SET available_slots = GREATEST(available_slots - 1, 0),
+                    occupied_slots = occupied_slots + 1,
+                    last_updated = NOW() 
+                WHERE parking_code = ?
+            `, [lot.parking_code]);
+
+            await connection.commit();
+            connection.release();
+        } catch (txErr) {
+            await connection.rollback().catch(() => {});
+            connection.release();
+            throw txErr;
         }
-
-        // 5. Atomically update lot availability counters
-        await db.promise().query(`
-            UPDATE parking_lots 
-            SET available_slots = GREATEST(available_slots - 1, 0),
-                occupied_slots = occupied_slots + 1,
-                last_updated = NOW() 
-            WHERE parking_code = ?
-        `, [lot.parking_code]);
 
         // 6. Broadcast real-time slot update to all citizens & staff
         emitParkingUpdate({

@@ -4,7 +4,11 @@
  * Integrates live database, RBAC module filtering, and clinical diagnostics.
  */
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
+    ? window.API_BASE_URL
+    : (typeof window !== "undefined" && window.location && window.location.port === "5000"
+        ? window.location.origin
+        : (typeof window !== "undefined" && window.location && window.location.protocol === "file:" ? "http://localhost:5000" : ""));
 
 // Global Dashboard State
 let currentHospitalId = "HOSP-001";
@@ -1068,7 +1072,7 @@ async function viewDiagnosticReport(reportId, patientName, patientId, testName, 
     qrContainer.innerHTML = "";
     if (typeof QRCode !== "undefined") {
         new QRCode(qrContainer, {
-            text: `http://localhost:5000/api/diagnostics/reports/verify/VERIFY-${reportId}`,
+            text: `${API_BASE || window.location.origin}/api/diagnostics/reports/verify/VERIFY-${reportId}`,
             width: 75,
             height: 75
         });

@@ -175,6 +175,7 @@ router.get("/api/hospitals/nearby/search", (req, res) => {
 // GET SINGLE HOSPITAL
 router.get("/api/hospitals/:hospitalId", (req, res) => {
     const hospitalId = req.params.hospitalId;
+    const numericId = !isNaN(hospitalId) ? Number(hospitalId) : 0;
 
     const sql = `
         SELECT
@@ -194,11 +195,11 @@ router.get("/api/hospitals/:hospitalId", (req, res) => {
             longitude,
             status
         FROM hospitals
-        WHERE hospital_id = ?
+        WHERE hospital_id = ? OR id = ?
         LIMIT 1
     `;
 
-    db.query(sql, [hospitalId], (err, results) => {
+    db.query(sql, [hospitalId, numericId], (err, results) => {
         if (err) {
             console.error("Hospital search error:", err);
             return res.status(500).json({

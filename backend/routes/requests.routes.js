@@ -173,10 +173,16 @@ router.get("/api/requests", authenticateToken, async (req, res) => {
             query += " AND LOWER(department) = ?";
             params.push(staffDept);
         } else if (role === "citizen") {
-            // Citizen sees their own submitted requests
-            const uid = user.id || user.userId;
-            query += " AND (user_id = ? OR citizen_mobile = ?)";
-            params.push(uid, user.mobile || "");
+            // Citizen sees strictly their own submitted requests (isolated by user_id or verified mobile)
+            const uid = user.id || user.userId || -1;
+            const mobile = user.mobile ? String(user.mobile).trim() : null;
+            if (mobile) {
+                query += " AND (user_id = ? OR citizen_mobile = ?)";
+                params.push(uid, mobile);
+            } else {
+                query += " AND user_id = ?";
+                params.push(uid);
+            }
         } else if (department && role === "admin") {
             // Admin can filter by any department
             query += " AND LOWER(department) = ?";
@@ -260,6 +266,10 @@ router.get("/api/requests/:id", optionalToken, async (req, res) => {
         const userDept = (user && user.department ? String(user.department) : "").toLowerCase();
         const isAuthorizedStaffOrAdmin = role === "admin" || (role === "staff" && userDept === (request.department || "").toLowerCase());
         const isOwner = user && (String(user.id) === String(request.user_id) || (user.mobile && user.mobile === request.citizen_mobile));
+
+        if (role === "citizen" && !isOwner) {
+            return res.status(403).json({ success: false, message: "Access denied. You can only view your own service requests." });
+        }
 
         // Fetch feedback if any
         const [feedback] = await pool.query(

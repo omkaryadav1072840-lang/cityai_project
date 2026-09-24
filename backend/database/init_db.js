@@ -82,6 +82,9 @@ async function initDatabase() {
                 slot_number VARCHAR(20) NOT NULL,
                 slot_type VARCHAR(20) DEFAULT 'car',
                 floor VARCHAR(50) DEFAULT 'Ground Floor',
+                status ENUM('Available','Booked','Occupied','Maintenance') DEFAULT 'Available',
+                current_booking_id VARCHAR(50) DEFAULT NULL,
+                last_updated TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 UNIQUE KEY unique_lot_slot (lot_id, slot_number)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);

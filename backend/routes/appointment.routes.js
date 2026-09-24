@@ -567,10 +567,15 @@ router.get("/api/appointments", authenticateToken, (req, res) => {
 
     // If caller is citizen, strictly restrict to their own records
     if (role === "citizen") {
-        const userId = req.user.id || req.user.userId;
+        const userId = req.user.id || req.user.userId || -1;
         const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
-        sql += ` AND (p.user_id = ? OR (p.mobile = ? AND ? IS NOT NULL))`;
-        params.push(userId, mobile, mobile);
+        if (mobile) {
+            sql += ` AND (p.user_id = ? OR p.mobile = ? OR RIGHT(p.mobile, 10) = RIGHT(?, 10))`;
+            params.push(userId, mobile, mobile);
+        } else {
+            sql += ` AND p.user_id = ?`;
+            params.push(userId);
+        }
     } else if (role === "doctor") {
         const docId = req.user.doctorId || req.user.staffId;
         if (docId) {
@@ -651,7 +656,7 @@ router.get("/api/appointments/:patientId", optionalToken, (req, res) => {
                         return res.status(403).json({ message: "Access denied. You can only view your own appointments." });
                     }
                 }
-            } else if (process.env.REQUIRE_AUTH !== "false") {
+            } else {
                 return res.status(401).json({ message: "Authentication required to view patient appointments." });
             }
 
