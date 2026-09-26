@@ -124,6 +124,15 @@
     </button>
 </div>
 
+<!-- ================= ROLE BANNER ================= -->
+<div class="role-banner" id="roleBanner">
+    <div>
+        <strong id="roleTitle">Gorakhpur Integrated Traffic Management & Public Mobility</strong>
+        <span id="roleSubtitle">Real-time corridor speed, AI traffic index, public advisories, and e-challan settlement.</span>
+    </div>
+    <span class="role-pill citizen-pill" id="rolePill">CITIZEN</span>
+</div>
+
 <!-- Coordinate Pick Banner (Active when staff clicks "Pick from Map") -->
 <div id="map-coord-pick-banner" class="map-coord-pick-banner">
     <span><i class="fa-solid fa-crosshairs"></i> <strong>MAP SELECTION MODE:</strong> Click anywhere on the map to set the latitude and longitude coordinates.</span>
@@ -132,6 +141,11 @@
 
 <!-- ================= MAIN CONTENT WRAPPER ================= -->
 <div class="content-wrapper">
+
+    <!-- =========================================================
+         LAYER 1: CITIZEN / PUBLIC SERVICES
+    ========================================================= -->
+    <div id="layer-citizen-content">
 
     <!-- KPI Summary Grid -->
     <div class="kpi-grid">
@@ -469,12 +483,28 @@
                 <!-- Dynamically filled after subscription -->
             </div>
         </div>
-    </div>
+    </div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
 
     <!-- =========================================================
          LAYER 2: TRAFFIC EMPLOYEE / STAFF LAYER
     ========================================================= -->
     <div id="layer-control-content" style="display: none;">
+
+        <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
+        <div class="layer-gatekeeper-card" id="staffGatekeeper">
+            <div class="gatekeeper-icon">🔒</div>
+            <h3>Traffic Staff Operations Access Restricted</h3>
+            <p>
+                This layer is reserved for traffic police officers, junction operators, and ICCC signals personnel.
+            </p>
+            <button class="primary-btn" onclick="promptTrafficStaffLogin()">
+                ⚡ Log in as Traffic Staff (TR-VERMA)
+            </button>
+        </div>
+
+        <!-- STAFF OPERATIONS MAIN CONTAINER -->
+        <div id="staffOperationsMain" style="display: none;">
+
         <!-- Staff Sub-Toolbar -->
         <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; flex-wrap: wrap; gap: 10px;">
             <div style="font-weight: 800; font-size: 15px; color: #0f172a;">
@@ -910,12 +940,29 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div> <!-- ================= END STAFF OPERATIONS MAIN ================= -->
+    </div> <!-- ================= END LAYER 2 (CONTROL) ================= -->
 
     <!-- =========================================================
          LAYER 3: ADMIN LAYER
     ========================================================= -->
     <div id="layer-admin-content" style="display: none;">
+
+        <!-- GATEKEEPER CARD (SHOWN TO NON-ADMINS) -->
+        <div class="layer-gatekeeper-card" id="adminGatekeeper">
+            <div class="gatekeeper-icon">🔒</div>
+            <h3>System Admin Console Access Restricted</h3>
+            <p>
+                Asset commissioning, junction geometry modifications, and municipal infrastructure telemetry require ICCC Administrator credentials.
+            </p>
+            <button class="primary-btn" onclick="promptTrafficAdminLogin()">
+                ⚡ Log in as System Admin (TR-ADMIN)
+            </button>
+        </div>
+
+        <!-- ADMIN MAIN ASSETS CONTAINER -->
+        <div id="adminAssetsMain" style="display: none;">
+
         <!-- Infrastructure Inventory Table -->
         <div class="content-card" style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
@@ -1022,7 +1069,8 @@
                 </table>
             </div>
         </div>
-    </div>
+        </div> <!-- ================= END ADMIN ASSETS MAIN ================= -->
+    </div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
 </div>
 

@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeMap();
     setupAuthBadge();
     checkStaffAccess();
+    applyRoleUI();
     loadAllPlaces();
     loadCategoryStats();
     loadUserFavorites();
@@ -1729,74 +1730,296 @@ async function sendAIChatMessage() {
 }
 
 // =====================================================
-// STAFF / ADMIN CIVIC PORTAL
+// 3-LAYER WORKSPACE NAVIGATION & RBAC GATEKEEPER
 // =====================================================
-async function openAdminModal() {
-    if (typeof SmartCityAuth === "undefined" || !SmartCityAuth.isStaff()) {
-        showToast("⚠️ Staff permissions required.");
-        return;
+function getCurrentFamousUser() {
+    if (typeof localStorage === "undefined") return null;
+    const session = localStorage.getItem("smartCityCurrentUser") || sessionStorage.getItem("smartCityCurrentUser") || localStorage.getItem("currentUser");
+    if (!session) return null;
+    try {
+        return JSON.parse(session);
+    } catch {
+        return null;
+    }
+}
+
+function isFamousStaff() {
+    const user = getCurrentFamousUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const dept = String(user.department || "").toLowerCase().trim();
+    return (type === "staff" && (dept === "tourism" || dept === "famous" || dept === "places" || !dept)) || type === "admin" || type === "superadmin";
+}
+
+function isFamousAdmin() {
+    const user = getCurrentFamousUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const dept = String(user.department || "").toLowerCase().trim();
+    return type === "admin" || type === "superadmin" || (type === "staff" && dept === "admin");
+}
+
+let currentFamousLayer = "citizen";
+
+function switchFamousLayer(layer) {
+    currentFamousLayer = layer;
+    const staff = isFamousStaff();
+    const admin = isFamousAdmin();
+
+    if (typeof document !== "undefined") {
+        document.querySelectorAll(".layer-tab-btn").forEach(btn => btn.classList.remove("active"));
+        const activeBtn = document.getElementById(`tab-btn-${layer}`);
+        if (activeBtn) activeBtn.classList.add("active");
+
+        const citizenLayer = document.getElementById("layer-citizen-content");
+        const staffLayer = document.getElementById("layer-staff-content");
+        const adminLayer = document.getElementById("layer-admin-content");
+
+        if (citizenLayer) citizenLayer.style.display = (layer === "citizen") ? "block" : "none";
+        if (staffLayer) staffLayer.style.display = (layer === "staff") ? "block" : "none";
+        if (adminLayer) adminLayer.style.display = (layer === "admin") ? "block" : "none";
+
+        const staffGatekeeper = document.getElementById("staffGatekeeper");
+        const staffMain = document.getElementById("staffOperationsMain");
+        if (staffGatekeeper && staffMain) {
+            staffGatekeeper.style.display = staff ? "none" : "block";
+            staffMain.style.display = staff ? "block" : "none";
+        }
+
+        const adminGatekeeper = document.getElementById("adminGatekeeper");
+        const adminMain = document.getElementById("adminAssetsMain");
+        if (adminGatekeeper && adminMain) {
+            adminGatekeeper.style.display = admin ? "none" : "block";
+            adminMain.style.display = admin ? "block" : "none";
+        }
+
+        if (layer === "staff" && staff) {
+            loadAdminIssues();
+        }
+    }
+}
+window.switchFamousLayer = switchFamousLayer;
+
+function applyRoleUI() {
+    if (typeof document === "undefined") return;
+    const staff = isFamousStaff();
+    const admin = isFamousAdmin();
+    const user = getCurrentFamousUser();
+    const name = user ? (user.name || user.fullName || "Citizen") : "Citizen";
+
+    const roleTitle = document.getElementById("roleTitle");
+    const roleSubtitle = document.getElementById("roleSubtitle");
+    const rolePill = document.getElementById("rolePill");
+
+    if (roleTitle) {
+        roleTitle.textContent = admin
+            ? "Gorakhpur Tourism Board & Heritage Conservation Administration"
+            : (staff
+                ? "Tourism Field Officer, Monument Operations & Grievance Console"
+                : `Welcome to Gorakhpur Tourism & Heritage Explorer, ${name}`);
     }
 
-    const tbody = document.getElementById("adminIssuesTableBody");
-    if (!tbody) return;
-    tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; text-align:center;">Loading issues...</td></tr>`;
+    if (roleSubtitle) {
+        roleSubtitle.textContent = admin
+            ? "Annual tourist footfall projections, heritage conservation grants, and GIS congestion indexes."
+            : (staff
+                ? "Remediate tourist reported civic issues, monitor daily site density, and coordinate guides."
+                : "Explore verified heritage landmarks, interactive GIS maps, travel itineraries, and tourist guide AI.");
+    }
 
-    openModal("adminModal");
+    if (rolePill) {
+        if (admin) {
+            rolePill.textContent = "ADMIN • TOURISM";
+            rolePill.className = "role-pill admin-pill";
+        } else if (staff) {
+            rolePill.textContent = "STAFF • TOURISM";
+            rolePill.className = "role-pill staff-pill";
+        } else {
+            rolePill.textContent = user ? "CITIZEN" : "GUEST";
+            rolePill.className = "role-pill citizen-pill";
+        }
+    }
+
+    if (staff) {
+        switchFamousLayer("staff");
+    } else {
+        switchFamousLayer("citizen");
+    }
+}
+window.applyRoleUI = applyRoleUI;
+
+function promptFamousStaffLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "PLC001",
+            department: "tourism",
+            message: "🔒 Enter Tourism Staff ID & Password to access field remediation console."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Tourism Staff ID (Default: PLC001):", "PLC001");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptFamousStaffLogin = promptFamousStaffLogin;
+
+function promptFamousAdminLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "TOUR-ADMIN",
+            department: "tourism",
+            message: "🔒 Enter Tourism Board Admin ID & Password to access Heritage Analytics."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Tourism Admin ID (Default: TOUR-ADMIN):", "TOUR-ADMIN");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptFamousAdminLogin = promptFamousAdminLogin;
+
+async function loadAdminIssues() {
+    const tbodies = [
+        document.getElementById("layer2IssuesTableBody"),
+        document.getElementById("adminIssuesTableBody")
+    ].filter(Boolean);
+
+    tbodies.forEach(tb => {
+        tb.innerHTML = `<tr><td colspan="6" style="padding:15px; text-align:center;">Loading issues...</td></tr>`;
+    });
 
     try {
-        const res = await SmartCityAuth.fetch("/api/admin/famous-places/issues");
-        const data = await res.json();
-        const issues = data.issues || [];
+        let issues = [];
+        if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.fetch) {
+            const res = await SmartCityAuth.fetch("/api/admin/famous-places/issues");
+            const data = await res.json();
+            issues = data.issues || [];
+        } else {
+            const token = localStorage.getItem("smartCityJWT");
+            const res = await fetch("/api/admin/famous-places/issues", {
+                headers: token ? { "Authorization": `Bearer ${token}` } : {}
+            });
+            const data = await res.json();
+            issues = data.issues || [];
+        }
+
+        const countEl = document.getElementById("staffActiveIssuesCount");
+        if (countEl) {
+            countEl.textContent = `${issues.length} Active`;
+        }
 
         if (issues.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; text-align:center; color:#64748b;">No open civic issues reported.</td></tr>`;
+            tbodies.forEach(tb => {
+                tb.innerHTML = `<tr><td colspan="6" style="padding:15px; text-align:center; color:#64748b;">No open civic issues reported.</td></tr>`;
+            });
             return;
         }
 
-        tbody.innerHTML = issues.map(iss => `
-            <tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:10px; font-weight:700;">${iss.issue_code}</td>
-                <td style="padding:10px;">${iss.place_name}</td>
-                <td style="padding:10px;">${iss.category}</td>
-                <td style="padding:10px;">${iss.citizen_name} (${iss.citizen_mobile})</td>
-                <td style="padding:10px;">
-                    <select onchange="updateAdminIssueStatus(${iss.id}, this.value)" style="padding:4px 8px; border-radius:4px; font-size:12px;">
+        const html = issues.map(iss => `
+            <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:12px; font-weight:700; color:#0284c7;">${iss.issue_code}</td>
+                <td style="padding:12px; font-weight:600;">${iss.place_name}</td>
+                <td style="padding:12px;"><span style="background:#f1f5f9; padding:3px 8px; border-radius:4px; font-size:11px;">${iss.category}</span></td>
+                <td style="padding:12px; color:#64748b;">${iss.citizen_name || "Anonymous"} (${iss.citizen_mobile || "N/A"})</td>
+                <td style="padding:12px;">
+                    <select onchange="updateAdminIssueStatus(${iss.id}, this.value)" style="padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; font-size:12px;">
                         <option value="Submitted" ${iss.status === 'Submitted' ? 'selected' : ''}>Submitted</option>
                         <option value="In Review" ${iss.status === 'In Review' ? 'selected' : ''}>In Review</option>
                         <option value="Resolved" ${iss.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
                     </select>
                 </td>
-                <td style="padding:10px;">
-                    <button class="primary-small" style="font-size:11px;" onclick="showAdminIssueDetails('${iss.issue_code}', '${encodeURIComponent(iss.description)}')">
+                <td style="padding:12px;">
+                    <button class="primary-small" style="font-size:11px; padding:6px 12px; background:#0284c7; color:#fff; border:none; border-radius:6px; cursor:pointer;" onclick="showAdminIssueDetails('${iss.issue_code}', '${encodeURIComponent(iss.description)}')">
                         Inspect
                     </button>
                 </td>
             </tr>
         `).join("");
+
+        tbodies.forEach(tb => {
+            tb.innerHTML = html;
+        });
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="6" style="padding:15px; text-align:center; color:#ef4444;">Error loading issues.</td></tr>`;
+        tbodies.forEach(tb => {
+            tb.innerHTML = `<tr><td colspan="6" style="padding:15px; text-align:center; color:#ef4444;">Error loading issues.</td></tr>`;
+        });
     }
 }
+window.loadAdminIssues = loadAdminIssues;
+
+async function openAdminModal() {
+    if (typeof SmartCityAuth === "undefined" || !SmartCityAuth.isStaff()) {
+        showToast("⚠️ Staff permissions required.");
+        return;
+    }
+    openModal("adminModal");
+    loadAdminIssues();
+}
+window.openAdminModal = openAdminModal;
 
 async function updateAdminIssueStatus(issueId, newStatus) {
     try {
-        const res = await SmartCityAuth.fetch(`/api/admin/famous-places/issues/${issueId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: newStatus })
-        });
+        let res;
+        if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.fetch) {
+            res = await SmartCityAuth.fetch(`/api/admin/famous-places/issues/${issueId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus })
+            });
+        } else {
+            const token = localStorage.getItem("smartCityJWT");
+            res = await fetch(`/api/admin/famous-places/issues/${issueId}`, {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+        }
         const data = await res.json();
         if (data.success) {
             showToast(`✅ Issue status updated to ${newStatus}`);
+            loadAdminIssues();
         }
     } catch (e) {
         showToast("Error updating status.");
     }
 }
+window.updateAdminIssueStatus = updateAdminIssueStatus;
 
 function showAdminIssueDetails(code, encodedDesc) {
     alert(`Report Code: ${code}\n\nDescription:\n${decodeURIComponent(encodedDesc)}`);
 }
+window.showAdminIssueDetails = showAdminIssueDetails;
 
 // =====================================================
 // UTILITIES & LEGACY BACKWARDS COMPATIBILITY

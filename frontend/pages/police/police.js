@@ -200,7 +200,7 @@ function getCurrentUser() {
 
 
 /* =====================================================
-   POLICE STAFF CHECK
+   POLICE STAFF CHECK & 3-LAYER NAVIGATION
 ===================================================== */
 
 function isPoliceStaff() {
@@ -210,10 +210,169 @@ function isPoliceStaff() {
     }
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const department = String(user.department || "").toLowerCase().trim();
-    return (type === "staff" && (department === "police" || !department)) || type === "admin";
+    return (type === "staff" && (department === "police" || !department)) || type === "admin" || type === "superadmin";
 }
 
+function isPoliceAdmin() {
+    const user = getCurrentUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const department = String(user.department || "").toLowerCase().trim();
+    return type === "admin" || type === "superadmin" || (type === "staff" && department === "admin");
+}
 
+let currentPoliceLayer = "citizen";
+
+function switchPoliceLayer(layer) {
+    currentPoliceLayer = layer;
+    const staff = isPoliceStaff();
+    const admin = isPoliceAdmin();
+
+    // Tab buttons
+    document.querySelectorAll(".layer-tab-btn").forEach(btn => btn.classList.remove("active"));
+    const activeBtn = document.getElementById(`tab-btn-${layer}`);
+    if (activeBtn) activeBtn.classList.add("active");
+
+    // Containers
+    const citizenLayer = document.getElementById("layer-citizen-content");
+    const staffLayer = document.getElementById("layer-staff-content");
+    const adminLayer = document.getElementById("layer-admin-content");
+
+    if (citizenLayer) citizenLayer.style.display = (layer === "citizen") ? "block" : "none";
+    if (staffLayer) staffLayer.style.display = (layer === "staff") ? "block" : "none";
+    if (adminLayer) adminLayer.style.display = (layer === "admin") ? "block" : "none";
+
+    // Gatekeepers
+    const staffGatekeeper = document.getElementById("staffGatekeeper");
+    const staffMain = document.getElementById("staffOperationsMain");
+    if (staffGatekeeper && staffMain) {
+        staffGatekeeper.style.display = staff ? "none" : "block";
+        staffMain.style.display = staff ? "block" : "none";
+    }
+
+    const adminGatekeeper = document.getElementById("adminGatekeeper");
+    const adminMain = document.getElementById("adminAssetsMain");
+    if (adminGatekeeper && adminMain) {
+        adminGatekeeper.style.display = admin ? "none" : "block";
+        adminMain.style.display = admin ? "block" : "none";
+    }
+
+    if (layer === "admin" && admin) {
+        refreshCrimeData();
+    }
+}
+window.switchPoliceLayer = switchPoliceLayer;
+
+function applyRoleUI() {
+    const staff = isPoliceStaff();
+    const admin = isPoliceAdmin();
+    const user = getCurrentUser();
+    const name = user ? (user.name || user.fullName || "Citizen") : "Citizen";
+
+    const roleTitle = document.getElementById("roleTitle");
+    const roleSubtitle = document.getElementById("roleSubtitle");
+    const rolePill = document.getElementById("rolePill");
+
+    if (roleTitle) {
+        roleTitle.textContent = admin
+            ? "Gorakhpur Police ICCC & Crime Intelligence Administration"
+            : (staff
+                ? "Police Dispatch, Precinct Operations & Field Management"
+                : `Welcome to SmartCity AI Police Services, ${name}`);
+    }
+
+    if (roleSubtitle) {
+        roleSubtitle.textContent = admin
+            ? "Verified crime pattern analytics, area incidence hotspots, and station oversight."
+            : (staff
+                ? "Assign patrol units, update incident investigation status, and resolve field dispatches."
+                : "Track verified safety advisories, lookup FIR status, and connect with police stations.");
+    }
+
+    if (rolePill) {
+        if (admin) {
+            rolePill.textContent = "ADMIN • POLICE";
+            rolePill.className = "role-pill admin-pill";
+        } else if (staff) {
+            rolePill.textContent = "STAFF • POLICE";
+            rolePill.className = "role-pill staff-pill";
+        } else {
+            rolePill.textContent = user ? "CITIZEN" : "GUEST";
+            rolePill.className = "role-pill citizen-pill";
+        }
+    }
+
+    if (staff) {
+        switchPoliceLayer("staff");
+    } else {
+        switchPoliceLayer("citizen");
+    }
+}
+window.applyRoleUI = applyRoleUI;
+
+function promptPoliceStaffLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "POL001",
+            department: "police",
+            message: "🔒 Enter Police Staff ID & Password to access incident management."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Police Staff ID (Default: POL001):", "POL001");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptPoliceStaffLogin = promptPoliceStaffLogin;
+
+function promptPoliceAdminLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "POL-ADMIN",
+            department: "police",
+            message: "🔒 Enter Police Admin ID & Password to access Crime Intelligence Console."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Police Admin ID (Default: POL-ADMIN):", "POL-ADMIN");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptPoliceAdminLogin = promptPoliceAdminLogin;
+
+function scrollToIncidents() {
+    const el = document.getElementById("incidentsSection");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+}
+window.scrollToIncidents = scrollToIncidents;
 
 /* =====================================================
    PAGE START
@@ -224,6 +383,8 @@ document.addEventListener(
     function () {
 
         updateUser();
+
+        applyRoleUI();
 
         checkPolicePermission();
 

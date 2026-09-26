@@ -891,3 +891,159 @@ body {
     }
 
 }
+
+/* =====================================================
+   POLICE 3-LAYER NAVIGATION TABS & GATEKEEPER
+   ===================================================== */
+.layer-tabs-container {
+    background: #ffffff;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 0 5%;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    position: sticky;
+    top: 70px;
+    z-index: 990;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.layer-tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.layer-tab-btn:hover {
+    color: #1e3a8a;
+    background: #f0fdf4;
+}
+
+.layer-tab-btn.active {
+    color: #1e3a8a;
+    border-bottom-color: #1e3a8a;
+    background: #e0e7ff;
+    border-radius: 8px 8px 0 0;
+}
+
+/* ================= ROLE BANNER ================= */
+.role-banner {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 16px;
+    padding: 16px 24px;
+    margin: 20px auto 24px;
+    max-width: min(1400px, 94%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 12px rgba(30, 58, 138, 0.08);
+}
+
+.role-banner strong {
+    display: block;
+    font-size: 16px;
+    color: #1e3a8a;
+    margin-bottom: 3px;
+}
+
+.role-banner span {
+    font-size: 13px;
+    color: #166534;
+}
+
+.role-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.role-pill.staff-pill {
+    background: #1e3a8a;
+    color: #ffffff;
+    border: 1px solid #172554;
+    box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+}
+
+.role-pill.citizen-pill {
+    background: #10b981;
+    color: #ffffff;
+    border: 1px solid #059669;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+.role-pill.admin-pill {
+    background: #7c3aed;
+    color: #ffffff;
+    border: 1px solid #6d28d9;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+}
+
+/* ================= GATEKEEPER CARD (LOCK SCREEN) ================= */
+.layer-gatekeeper-card {
+    text-align: center;
+    padding: 45px 25px;
+    background: #ffffff;
+    border: 2px dashed #93c5fd;
+    border-radius: 18px;
+    margin: 30px auto;
+    max-width: 680px;
+    box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.1);
+}
+
+.layer-gatekeeper-card .gatekeeper-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.layer-gatekeeper-card h3 {
+    font-size: 20px;
+    color: #0f172a;
+    margin-bottom: 8px;
+    font-weight: 800;
+}
+
+.layer-gatekeeper-card p {
+    color: #64748b;
+    max-width: 520px;
+    margin: 0 auto 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.layer-gatekeeper-card .primary-btn,
+.layer-gatekeeper-card button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #1e3a8a;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+    transition: all 0.2s ease;
+}
+
+.layer-gatekeeper-card .primary-btn:hover,
+.layer-gatekeeper-card button:hover {
+    background: #172554;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 58, 138, 0.4);
+}

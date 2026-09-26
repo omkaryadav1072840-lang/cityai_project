@@ -4460,6 +4460,187 @@ async function submitAIHealthcareReview(predictionId, actionTaken) {
 }
 
 /* =========================================================
+   3-LAYER WORKSPACE NAVIGATION & RBAC GATEKEEPER
+========================================================= */
+
+function getCurrentHospitalUser() {
+    if (typeof localStorage === "undefined") return null;
+    const session = localStorage.getItem("smartCityCurrentUser") || sessionStorage.getItem("smartCityCurrentUser") || localStorage.getItem("currentUser");
+    if (!session) return null;
+    try {
+        return JSON.parse(session);
+    } catch {
+        return null;
+    }
+}
+
+function isHospitalStaff() {
+    const user = getCurrentHospitalUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const dept = String(user.department || "").toLowerCase().trim();
+    return (type === "staff" && (dept === "hospital" || dept === "healthcare" || !dept)) || type === "doctor" || type === "admin" || type === "superadmin";
+}
+
+function isHospitalAdmin() {
+    const user = getCurrentHospitalUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const dept = String(user.department || "").toLowerCase().trim();
+    return type === "admin" || type === "superadmin" || (type === "staff" && dept === "admin");
+}
+
+let currentHospitalLayer = "citizen";
+
+function switchHospitalLayer(layer) {
+    currentHospitalLayer = layer;
+    const staff = isHospitalStaff();
+    const admin = isHospitalAdmin();
+
+    // Tab buttons
+    if (typeof document !== "undefined") {
+        document.querySelectorAll(".layer-tab-btn").forEach(btn => btn.classList.remove("active"));
+        const activeBtn = document.getElementById(`tab-btn-${layer}`);
+        if (activeBtn) activeBtn.classList.add("active");
+
+        // Containers
+        const citizenLayer = document.getElementById("layer-citizen-content");
+        const staffLayer = document.getElementById("layer-staff-content");
+        const adminLayer = document.getElementById("layer-admin-content");
+
+        if (citizenLayer) citizenLayer.style.display = (layer === "citizen") ? "block" : "none";
+        if (staffLayer) staffLayer.style.display = (layer === "staff") ? "block" : "none";
+        if (adminLayer) adminLayer.style.display = (layer === "admin") ? "block" : "none";
+
+        // Gatekeepers
+        const staffGatekeeper = document.getElementById("staffGatekeeper");
+        const staffMain = document.getElementById("staffOperationsMain");
+        if (staffGatekeeper && staffMain) {
+            staffGatekeeper.style.display = staff ? "none" : "block";
+            staffMain.style.display = staff ? "block" : "none";
+        }
+
+        const adminGatekeeper = document.getElementById("adminGatekeeper");
+        const adminMain = document.getElementById("adminAssetsMain");
+        if (adminGatekeeper && adminMain) {
+            adminGatekeeper.style.display = admin ? "none" : "block";
+            adminMain.style.display = admin ? "block" : "none";
+        }
+    }
+}
+
+function applyRoleUI() {
+    if (typeof document === "undefined") return;
+    const staff = isHospitalStaff();
+    const admin = isHospitalAdmin();
+    const user = getCurrentHospitalUser();
+    const name = user ? (user.name || user.fullName || "Citizen") : "Citizen";
+
+    const roleTitle = document.getElementById("roleTitle");
+    const roleSubtitle = document.getElementById("roleSubtitle");
+    const rolePill = document.getElementById("rolePill");
+
+    if (roleTitle) {
+        roleTitle.textContent = admin
+            ? "Gorakhpur Smart Healthcare ICCC & Health Asset Administration"
+            : (staff
+                ? "Hospital Operations, Ward Duty & Clinical Management Console"
+                : `Welcome to SmartCity AI Hospital & Healthcare Services, ${name}`);
+    }
+
+    if (roleSubtitle) {
+        roleSubtitle.textContent = admin
+            ? "District hospital telemetry, ICU bed reserve audits, and emergency resource quotas."
+            : (staff
+                ? "Admit patients, verify QR badges, update doctor OPD schedules, and manage bed occupancy."
+                : "Find hospitals, book doctor appointments, track live ambulances, and verify prescription records.");
+    }
+
+    if (rolePill) {
+        if (admin) {
+            rolePill.textContent = "ADMIN • HEALTHCARE";
+            rolePill.className = "role-pill admin-pill";
+        } else if (staff) {
+            rolePill.textContent = "STAFF • HEALTHCARE";
+            rolePill.className = "role-pill staff-pill";
+        } else {
+            rolePill.textContent = user ? "CITIZEN" : "GUEST";
+            rolePill.className = "role-pill citizen-pill";
+        }
+    }
+
+    if (staff) {
+        switchHospitalLayer("staff");
+    } else {
+        switchHospitalLayer("citizen");
+    }
+}
+
+function promptHospitalStaffLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "STAFF-001",
+            department: "hospital",
+            message: "🔒 Enter Hospital Staff ID & Password to access clinical duty console."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Hospital Staff ID (Default: STAFF-001):", "STAFF-001");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+
+function promptHospitalAdminLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "HOSP-ADMIN",
+            department: "hospital",
+            message: "🔒 Enter Healthcare Admin ID & Password to access Bed & Inventory Management."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Healthcare Admin Staff ID (Default: HOSP-ADMIN):", "HOSP-ADMIN");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+
+if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", applyRoleUI);
+    } else {
+        applyRoleUI();
+    }
+}
+
+/* =========================================================
    WINDOW EXPORTS — every name here IS defined above, once.
 ========================================================= */
 
@@ -4515,7 +4696,15 @@ Object.assign(window, {
     onAIHospitalChange,
     runAIHealthcareAnalysis,
     loadAIHealthcareAuditTable,
-    submitAIHealthcareReview
+    submitAIHealthcareReview,
+
+    // 3-Layer exports
+    switchHospitalLayer,
+    applyRoleUI,
+    promptHospitalStaffLogin,
+    promptHospitalAdminLogin,
+    isHospitalStaff,
+    isHospitalAdmin
 });
 
 console.log("✅ hospital.js loaded successfully.");

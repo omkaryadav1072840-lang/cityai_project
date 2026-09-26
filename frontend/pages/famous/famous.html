@@ -40,6 +40,32 @@
         </div>
     </nav>
 
+    <!-- ================= 3-LAYER NAVIGATION TABS ================= -->
+    <div class="layer-tabs-container">
+        <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchFamousLayer('citizen')">
+            <span>🏛️</span> 1. Tourist & Heritage Explorer
+        </button>
+        <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchFamousLayer('staff')">
+            <span>⚡</span> 2. Tourism Officer & Field Duty
+        </button>
+        <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchFamousLayer('admin')">
+            <span>⚙️</span> 3. Tourism Board & Heritage Analytics
+        </button>
+    </div>
+
+    <!-- ================= ROLE BANNER ================= -->
+    <div class="role-banner" id="roleBanner">
+        <div>
+            <strong id="roleTitle">Gorakhpur Tourism & Cultural Heritage Network</strong>
+            <span id="roleSubtitle">Explore verified heritage landmarks, interactive GIS maps, travel itineraries, and tourist guide AI.</span>
+        </div>
+        <span class="role-pill citizen-pill" id="rolePill">CITIZEN</span>
+    </div>
+
+    <!-- =========================================================
+         LAYER 1: TOURIST & CITIZEN HERITAGE EXPLORER
+    ========================================================= -->
+    <div id="layer-citizen-content">
 
     <!-- ================= MAIN CONTENT ================= -->
     <main class="container">
@@ -439,6 +465,153 @@
         </section>
 
     </main>
+    </div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
+
+
+    <!-- =========================================================
+         LAYER 2: TOURISM FIELD OFFICER & MONUMENT OPERATIONS
+    ========================================================= -->
+    <div id="layer-staff-content" style="display:none; max-width: min(1400px, 94%); margin: 20px auto;">
+
+        <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
+        <div class="layer-gatekeeper-card" id="staffGatekeeper">
+            <div class="gatekeeper-icon">🔒</div>
+            <h3>Tourism Field Operations Access Restricted</h3>
+            <p>
+                Access to heritage civic issues remediation, crowd capacity controls, guide rosters, and visitor ticketing telemetry requires verified tourism department credentials.
+            </p>
+            <button class="primary-btn" onclick="promptFamousStaffLogin()">
+                ⚡ Log in as Tourism Staff (PLC001)
+            </button>
+        </div>
+
+        <!-- STAFF OPERATIONS MAIN CONTAINER -->
+        <div id="staffOperationsMain" style="display:none;">
+            <!-- Portals Bar -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                <div>
+                    <strong style="color: #0f172a; font-size: 16px;">🏛️ Field Duty & Tourist Grievance Console</strong>
+                    <p style="margin: 3px 0 0; font-size: 13px; color: #64748b;">Direct operational controls for Gorakhpur heritage sites and visitor facilities.</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="primary-btn" onclick="openReportIssueModal()" style="font-size: 13px; padding: 8px 16px;">
+                        🚨 Report Field Issue
+                    </button>
+                    <button type="button" class="secondary-btn" onclick="loadAdminIssues()" style="font-size: 13px; padding: 8px 16px;">
+                        🔄 Refresh Field Queue
+                    </button>
+                </div>
+            </div>
+
+            <!-- Operational Metrics -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Active Heritage Sites</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #0284c7; margin: 6px 0;">14 Sites</div>
+                    <div style="font-size: 12px; color: #10b981;">● All open to public</div>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Est. Daily Footfall</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #059669; margin: 6px 0;">32,450</div>
+                    <div style="font-size: 12px; color: #059669;">● Ramgarh Taal peak: 14.2k</div>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Reported Civic Issues</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #ea580c; margin: 6px 0;" id="staffActiveIssuesCount">3 Pending</div>
+                    <div style="font-size: 12px; color: #ea580c;">● 2 in progress</div>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">AI Guide Queries Handled</div>
+                    <div style="font-size: 26px; font-weight: 800; color: #7c3aed; margin: 6px 0;">1,280</div>
+                    <div style="font-size: 12px; color: #7c3aed;">● 98.4% satisfaction</div>
+                </div>
+            </div>
+
+            <!-- Issues Table Embedded Directly in Layer 2 -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">🛡️ Field Remediation & Grievance Registry</h3>
+                    <span style="font-size: 12px; color: #64748b;">Live sync with tourist reporting intake</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                                <th style="padding: 12px;">Code</th>
+                                <th style="padding: 12px;">Place</th>
+                                <th style="padding: 12px;">Category</th>
+                                <th style="padding: 12px;">Citizen</th>
+                                <th style="padding: 12px;">Status</th>
+                                <th style="padding: 12px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="layer2IssuesTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div> <!-- ================= END LAYER 2 (STAFF) ================= -->
+
+
+    <!-- =========================================================
+         LAYER 3: TOURISM BOARD & HERITAGE ANALYTICS
+    ========================================================= -->
+    <div id="layer-admin-content" style="display:none; max-width: min(1400px, 94%); margin: 20px auto;">
+
+        <!-- GATEKEEPER CARD (SHOWN TO NON-ADMINS) -->
+        <div class="layer-gatekeeper-card" id="adminGatekeeper">
+            <div class="gatekeeper-icon">🔒</div>
+            <h3>Tourism Board & Heritage Analytics Restricted</h3>
+            <p>
+                City tourism development plans, heritage conservation fund allocations, and high-level GIS density analytics require administrative authority.
+            </p>
+            <button class="primary-btn" onclick="promptFamousAdminLogin()">
+                ⚡ Log in as Tourism Admin (TOUR-ADMIN)
+            </button>
+        </div>
+
+        <!-- ADMIN MAIN ASSETS CONTAINER -->
+        <div id="adminAssetsMain" style="display:none;">
+            <section style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 6px;">📈 Gorakhpur Tourism Master Board & GIS Spatial Intelligence</h2>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">Comprehensive telemetry across religious circuits, eco-tourism reserves, and urban parks.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="primary-btn" onclick="alert('Exporting Tourism GIS Summary Report...')">
+                            📑 Export Board Dossier
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Annual Visitor Projection</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #0284c7; margin: 6px 0;">4.8M</div>
+                        <div style="font-size: 12px; color: #10b981;">● +18.4% YoY Growth</div>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Heritage Restoration Grant</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #059669; margin: 6px 0;">₹42.5 Cr</div>
+                        <div style="font-size: 12px; color: #059669;">● Phase 2 Allocated</div>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Congestion Risk Index</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #ea580c; margin: 6px 0;">Moderate (42)</div>
+                        <div style="font-size: 12px; color: #ea580c;">● Smart diversions deployed</div>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                        <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Licensed Guides Active</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #2563eb; margin: 6px 0;">186</div>
+                        <div style="font-size: 12px; color: #2563eb;">● 100% Biometric Verified</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
 
     <!-- ================= MODALS & DRAWERS ================= -->

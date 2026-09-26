@@ -95,7 +95,32 @@
 
 </header>
 
+<!-- ================= 3-LAYER NAVIGATION TABS (MATCHING PARKING/TRAFFIC/WATER) ================= -->
+<div class="layer-tabs-container">
+    <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchHospitalLayer('citizen')">
+        <span>🏥</span> 1. Citizen Healthcare & Patient Services
+    </button>
+    <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchHospitalLayer('staff')">
+        <span>⚡</span> 2. Medical Staff & Ward Operations
+    </button>
+    <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchHospitalLayer('admin')">
+        <span>⚙️</span> 3. Hospital Administration & Bed Inventory
+    </button>
+</div>
 
+<!-- ================= ROLE BANNER ================= -->
+<div class="role-banner" id="roleBanner">
+    <div>
+        <strong id="roleTitle">Gorakhpur Smart Healthcare & Telemedicine Network</strong>
+        <span id="roleSubtitle">Find hospitals, book OPD doctor tokens, check real-time ICU/Oxygen bed availability, and order medicines.</span>
+    </div>
+    <span class="role-pill citizen-pill" id="rolePill">CITIZEN</span>
+</div>
+
+<!-- =========================================================
+     LAYER 1: CITIZEN HEALTHCARE SERVICES
+========================================================= -->
+<div id="layer-citizen-content">
 
 <!-- =====================================================
      HERO
@@ -2563,7 +2588,44 @@
     </div>
 </div>
 
+</div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
 
+
+<!-- =========================================================
+     LAYER 2: MEDICAL STAFF & WARD OPERATIONS
+========================================================= -->
+<div id="layer-staff-content" style="display:none; max-width: min(1400px, 94%); margin: 20px auto;">
+
+    <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
+    <div class="layer-gatekeeper-card" id="staffGatekeeper">
+        <div class="gatekeeper-icon">🔒</div>
+        <h3>Medical Staff Operations Access Restricted</h3>
+        <p>
+            Access to patient admission registry, OPD token queuing, lab test intake, and ward updates is restricted to verified healthcare staff.
+        </p>
+        <button class="primary-btn" onclick="promptHospitalStaffLogin()">
+            ⚡ Log in as Hospital Staff (STAFF-001)
+        </button>
+    </div>
+
+    <!-- STAFF OPERATIONS MAIN CONTAINER -->
+    <div id="staffOperationsMain" style="display:none;">
+
+        <!-- Quick portals bar -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+            <div>
+                <strong style="color: #0f172a; font-size: 16px;">👨‍⚕️ Clinical Dashboards & Duty Portals</strong>
+                <p style="margin: 3px 0 0; font-size: 13px; color: #64748b;">Direct deep access for Doctors, Nurses, and Medical Attendants.</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="doctor_dashboard.html" style="background: #2563eb; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px;">
+                    👨‍⚕️ Open Doctor OPD Console →
+                </a>
+                <a href="hospital_dashboard.html" style="background: #0284c7; color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px;">
+                    🏥 Full Hospital Staff ERP →
+                </a>
+            </div>
+        </div>
 
 <!-- =====================================================
      STAFF CONTROL PANEL
@@ -2572,7 +2634,7 @@
 <section
     id="hospitalStaffPanel"
     class="staff-panel"
-    style="display:none;"
+    style="display:block;"
 >
 
     <div class="staff-header">
@@ -2856,6 +2918,67 @@
     </div>
 
 </section>
+
+    </div>
+</div> <!-- ================= END LAYER 2 (STAFF) ================= -->
+
+
+<!-- =========================================================
+     LAYER 3: HOSPITAL DIRECTOR & ICCC HEALTH ASSET MANAGEMENT
+========================================================= -->
+<div id="layer-admin-content" style="display:none; max-width: min(1400px, 94%); margin: 20px auto;">
+
+    <!-- GATEKEEPER CARD (SHOWN TO NON-ADMINS) -->
+    <div class="layer-gatekeeper-card" id="adminGatekeeper">
+        <div class="gatekeeper-icon">🔒</div>
+        <h3>Hospital Administration & Asset Management Restricted</h3>
+        <p>
+            ICCC healthcare governance, city-wide oxygen logistics, bed quota allocations, and hospital inspection analytics require director-level administrative credentials.
+        </p>
+        <button class="primary-btn" onclick="promptHospitalAdminLogin()">
+            ⚡ Log in as Health Admin (HOSP-ADMIN)
+        </button>
+    </div>
+
+    <!-- ADMIN MAIN ASSETS CONTAINER -->
+    <div id="adminAssetsMain" style="display:none;">
+        <section style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 6px;">🏥 Central Hospital Bed & ICU Telemetry Directory</h2>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;">ICCC Realtime sync with district civil hospital, AIIMS, and partner nursing homes.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="doctor_dashboard.html" style="background: #0ea5e9; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 700;">👨‍⚕️ Doctor OPD Logs</a>
+                    <a href="hospital_dashboard.html" style="background: #7c3aed; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 700;">⚙️ Hospital Admin ERP</a>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total District Beds</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #0284c7; margin: 6px 0;">1,420</div>
+                    <div style="font-size: 12px; color: #10b981;">● 84% Operational Efficiency</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Ventilator ICUs Free</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #059669; margin: 6px 0;">38 / 92</div>
+                    <div style="font-size: 12px; color: #059669;">● Adequate Reserve</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Emergency Trauma Bays</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #ea580c; margin: 6px 0;">14 Active</div>
+                    <div style="font-size: 12px; color: #ea580c;">● 4 High Alert Inbound</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Liquid O2 Supply Buffer</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #2563eb; margin: 6px 0;">94.2%</div>
+                    <div style="font-size: 12px; color: #2563eb;">● 72-hour Reserve Ready</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
 
 

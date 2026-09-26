@@ -367,6 +367,118 @@ body {
     background: #eff6ff;
 }
 
+/* ================= ROLE BANNER ================= */
+.role-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 16px;
+    padding: 16px 24px;
+    margin: 20px auto 10px;
+    max-width: min(1400px, 94%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+}
+
+.role-banner strong {
+    display: block;
+    font-size: 16px;
+    color: #1e40af;
+    margin-bottom: 3px;
+}
+
+.role-banner span {
+    font-size: 13px;
+    color: #2563eb;
+}
+
+.role-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.role-pill.staff-pill {
+    background: #2563eb;
+    color: #ffffff;
+    border: 1px solid #1d4ed8;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.role-pill.citizen-pill {
+    background: #10b981;
+    color: #ffffff;
+    border: 1px solid #059669;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+.role-pill.admin-pill {
+    background: #7c3aed;
+    color: #ffffff;
+    border: 1px solid #6d28d9;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+}
+
+/* ================= GATEKEEPER CARD (LOCK SCREEN) ================= */
+.layer-gatekeeper-card {
+    text-align: center;
+    padding: 45px 25px;
+    background: #ffffff;
+    border: 2px dashed #93c5fd;
+    border-radius: 18px;
+    margin: 30px auto;
+    max-width: 680px;
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1);
+}
+
+.layer-gatekeeper-card .gatekeeper-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.layer-gatekeeper-card h3 {
+    font-size: 20px;
+    color: #0f172a;
+    margin-bottom: 8px;
+    font-weight: 800;
+}
+
+.layer-gatekeeper-card p {
+    color: #64748b;
+    max-width: 520px;
+    margin: 0 auto 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.layer-gatekeeper-card .primary-btn,
+.layer-gatekeeper-card button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #2563eb;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transition: all 0.2s ease;
+}
+
+.layer-gatekeeper-card .primary-btn:hover,
+.layer-gatekeeper-card button:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
 /* ================= MAIN CONTENT LAYOUT ================= */
 .content-wrapper {
     padding: 30px 6%;

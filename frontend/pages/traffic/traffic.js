@@ -96,6 +96,7 @@ function initUserSession() {
         if (userStatusEl) userStatusEl.textContent = "🟢 Active Citizen";
         if (ddUserContact) ddUserContact.textContent = "Citizen • Gorakhpur";
     }
+    applyRoleUI();
 }
 
 // Check if currently authenticated user is Traffic Staff or Administrator with valid token
@@ -170,33 +171,9 @@ function switchRoleProfile(role) {
         }
         switchLayer("citizen");
     } else if (role === "officer") {
-        if (isStaffUser()) {
-            const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || {};
-            showToast(`👮 Active Session: ${user.name || 'Traffic Staff'}`);
-            switchLayer("control");
-        } else {
-            showToast("🔒 Enter Staff ID and Password to switch to Traffic Staff mode.");
-            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
-                SmartCityAuth.showLoginModal("staff", {
-                    prefillStaffId: "TR-VERMA",
-                    message: "🔒 Staff credentials required to access Traffic Control Room."
-                });
-            }
-        }
+        switchLayer("control");
     } else if (role === "admin") {
-        if (isAdminUser()) {
-            const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || {};
-            showToast(`🛡️ Active Admin Session: ${user.name || 'Administrator'}`);
-            switchLayer("admin");
-        } else {
-            showToast("🔒 Enter Admin ID and Password to switch to System Admin mode.");
-            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
-                SmartCityAuth.showLoginModal("staff", {
-                    prefillStaffId: "TR-ADMIN",
-                    message: "🔒 Administrator credentials required to access System Admin Console."
-                });
-            }
-        }
+        switchLayer("admin");
     }
 }
 
@@ -210,56 +187,43 @@ function handleUserLogout() {
 // 2. LAYER SWITCHING (CITIZEN, STAFF, ADMIN)
 // =========================================================
 function switchLayer(layer) {
-    if (layer === "control") {
-        if (!isStaffUser()) {
-            showToast("🔒 Authentication Required: Staff ID and Password needed to access Traffic Control Room.");
-            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
-                SmartCityAuth.showLoginModal("staff", {
-                    prefillStaffId: "TR-VERMA",
-                    message: "🔒 Enter Staff ID and Password to access Traffic Control Room."
-                });
-            }
-            // Revert active tab
-            document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
-            const citTab = document.getElementById("tab-btn-citizen");
-            if (citTab) citTab.classList.add("active");
-            return;
-        }
-    } else if (layer === "admin") {
-        if (!isAdminUser()) {
-            showToast("🔒 Administrator Access Required: Admin ID and Password needed.");
-            if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
-                SmartCityAuth.showLoginModal("staff", {
-                    prefillStaffId: "TR-ADMIN",
-                    message: "🔒 Enter Admin ID and Password to access ICCC System Admin Console."
-                });
-            }
-            // Revert active tab
-            document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
-            const citTab = document.getElementById("tab-btn-citizen");
-            if (citTab) citTab.classList.add("active");
-            return;
-        }
-    }
+    const isStaff = isStaffUser();
+    const isAdmin = isAdminUser();
 
     document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
     const activeTab = document.getElementById(`tab-btn-${layer}`);
     if (activeTab) activeTab.classList.add("active");
 
-    document.getElementById("layer-citizen-content").style.display = "none";
-    document.getElementById("layer-control-content").style.display = "none";
-    document.getElementById("layer-admin-content").style.display = "none";
+    const citLayer = document.getElementById("layer-citizen-content");
+    const ctrlLayer = document.getElementById("layer-control-content");
+    const admLayer = document.getElementById("layer-admin-content");
 
-    const targetLayer = document.getElementById(`layer-${layer}-content`);
-    if (targetLayer) targetLayer.style.display = "block";
+    if (citLayer) citLayer.style.display = (layer === "citizen") ? "block" : "none";
+    if (ctrlLayer) ctrlLayer.style.display = (layer === "control") ? "block" : "none";
+    if (admLayer) admLayer.style.display = (layer === "admin") ? "block" : "none";
 
-    if (layer === "control") {
+    // Gatekeeper controls
+    const staffGatekeeper = document.getElementById("staffGatekeeper");
+    const staffMain = document.getElementById("staffOperationsMain");
+    if (staffGatekeeper && staffMain) {
+        staffGatekeeper.style.display = isStaff ? "none" : "block";
+        staffMain.style.display = isStaff ? "block" : "none";
+    }
+
+    const adminGatekeeper = document.getElementById("adminGatekeeper");
+    const adminMain = document.getElementById("adminAssetsMain");
+    if (adminGatekeeper && adminMain) {
+        adminGatekeeper.style.display = isAdmin ? "none" : "block";
+        adminMain.style.display = isAdmin ? "block" : "none";
+    }
+
+    if (layer === "control" && isStaff) {
         selectControlJunction(selectedJunctionId);
         loadDynamicCCTVWall();
         loadViolationsData();
         loadMovementRules();
         loadAIPredictionsAuditTable();
-    } else if (layer === "admin") {
+    } else if (layer === "admin" && isAdmin) {
         loadAdminJunctionsTable();
         loadAdminSignalsTable();
         loadAdminStaff();
@@ -272,6 +236,106 @@ function switchLayer(layer) {
         if (trafficMap) trafficMap.updateSize();
     }, 60);
 }
+window.switchLayer = switchLayer;
+
+function applyRoleUI() {
+    const isStaff = isStaffUser();
+    const isAdmin = isAdminUser();
+    const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+    const name = user.name || "Citizen";
+
+    const roleTitle = document.getElementById("roleTitle");
+    const roleSubtitle = document.getElementById("roleSubtitle");
+    const rolePill = document.getElementById("rolePill");
+
+    if (roleTitle) {
+        roleTitle.textContent = isAdmin
+            ? "Gorakhpur ICCC Traffic Engineering & Administration Console"
+            : (isStaff
+                ? "Traffic Enforcement, Signal Operations & Field Control"
+                : `Welcome to SmartCity AI Traffic Services, ${name}`);
+    }
+
+    if (roleSubtitle) {
+        roleSubtitle.textContent = isAdmin
+            ? "Configure junctions, commission AI camera feeds, manage officer rosters and review audit trails."
+            : (isStaff
+                ? "Control junction signal phases, dispatch emergency corridors, inspect live CCTV, and verify violations."
+                : "Real-time corridor speed, AI traffic index, public advisories, and citizen e-challan settlement.");
+    }
+
+    if (rolePill) {
+        if (isAdmin) {
+            rolePill.textContent = "ADMIN • ICCC";
+            rolePill.className = "role-pill admin-pill";
+        } else if (isStaff) {
+            rolePill.textContent = "STAFF • TRAFFIC";
+            rolePill.className = "role-pill staff-pill";
+        } else {
+            rolePill.textContent = user.name ? "CITIZEN" : "GUEST";
+            rolePill.className = "role-pill citizen-pill";
+        }
+    }
+}
+window.applyRoleUI = applyRoleUI;
+
+function promptTrafficStaffLogin() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "TR-VERMA",
+            department: "traffic",
+            message: "🔒 Enter Traffic Staff ID and Password to access Traffic Control Room."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Traffic Staff ID (Default: TR-VERMA):", "TR-VERMA");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptTrafficStaffLogin = promptTrafficStaffLogin;
+
+function promptTrafficAdminLogin() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "TR-ADMIN",
+            department: "traffic",
+            message: "🔒 Enter Admin ID and Password to access System Admin Console."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Admin ID (Default: TR-ADMIN):", "TR-ADMIN");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptTrafficAdminLogin = promptTrafficAdminLogin;
 
 // =========================================================
 // 3. SOCKET.IO REAL-TIME CONNECTION

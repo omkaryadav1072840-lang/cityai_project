@@ -31,6 +31,8 @@ document.addEventListener(
 
         initializeEmergencyMap();
 
+        applyRoleUI();
+
         checkStaffPermission();
 
         loadSavedEmergencies();
@@ -1215,35 +1217,178 @@ function getCurrentEmergencyUser() {
 
 
 /* =====================================================
-   CHECK EMERGENCY STAFF
+   CHECK EMERGENCY STAFF & 3-LAYER NAVIGATION
 ===================================================== */
 
 function isEmergencyStaff() {
+    const user = getCurrentEmergencyUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const dept = String(user.department || "").toLowerCase().trim();
+    return (type === "staff" && (dept === "emergency" || !dept)) || type === "admin" || type === "superadmin";
+}
 
-    const user =
-        getCurrentEmergencyUser();
+function isEmergencyAdmin() {
+    const user = getCurrentEmergencyUser();
+    if (!user) return false;
+    const type = String(user.type || user.role || "").toLowerCase().trim();
+    const dept = String(user.department || "").toLowerCase().trim();
+    return type === "admin" || type === "superadmin" || (type === "staff" && dept === "admin");
+}
 
-    if (!user) {
+let currentEmergencyLayer = "citizen";
 
-        return false;
+function switchEmergencyLayer(layer) {
+    currentEmergencyLayer = layer;
+    const staff = isEmergencyStaff();
+    const admin = isEmergencyAdmin();
 
+    // Tab buttons
+    document.querySelectorAll(".layer-tab-btn").forEach(btn => btn.classList.remove("active"));
+    const activeBtn = document.getElementById(`tab-btn-${layer}`);
+    if (activeBtn) activeBtn.classList.add("active");
+
+    // Containers
+    const citizenLayer = document.getElementById("layer-citizen-content");
+    const staffLayer = document.getElementById("layer-staff-content");
+    const adminLayer = document.getElementById("layer-admin-content");
+
+    if (citizenLayer) citizenLayer.style.display = (layer === "citizen") ? "block" : "none";
+    if (staffLayer) staffLayer.style.display = (layer === "staff") ? "block" : "none";
+    if (adminLayer) adminLayer.style.display = (layer === "admin") ? "block" : "none";
+
+    // Gatekeepers
+    const staffGatekeeper = document.getElementById("staffGatekeeper");
+    const staffMain = document.getElementById("staffOperationsMain");
+    if (staffGatekeeper && staffMain) {
+        staffGatekeeper.style.display = staff ? "none" : "block";
+        staffMain.style.display = staff ? "block" : "none";
     }
 
-    return (
+    const adminGatekeeper = document.getElementById("adminGatekeeper");
+    const adminMain = document.getElementById("adminAssetsMain");
+    if (adminGatekeeper && adminMain) {
+        adminGatekeeper.style.display = admin ? "none" : "block";
+        adminMain.style.display = admin ? "block" : "none";
+    }
 
-        String(user.type)
-            .toLowerCase()
-            .trim() === "staff"
+    if (layer === "admin" && admin) {
+        loadAIEmergencyAuditTable();
+    }
 
-        &&
-
-        String(user.department)
-            .toLowerCase()
-            .trim() === "emergency"
-
-    );
-
+    // Refresh map dimensions
+    setTimeout(() => {
+        if (typeof map !== "undefined" && map && map.invalidateSize) {
+            map.invalidateSize();
+        }
+    }, 120);
 }
+window.switchEmergencyLayer = switchEmergencyLayer;
+
+function applyRoleUI() {
+    const staff = isEmergencyStaff();
+    const admin = isEmergencyAdmin();
+    const user = getCurrentEmergencyUser();
+    const name = user ? (user.name || user.fullName || "Citizen") : "Citizen";
+
+    const roleTitle = document.getElementById("roleTitle");
+    const roleSubtitle = document.getElementById("roleSubtitle");
+    const rolePill = document.getElementById("rolePill");
+
+    if (roleTitle) {
+        roleTitle.textContent = admin
+            ? "Gorakhpur Disaster Management Command & Fleet Oversight"
+            : (staff
+                ? "Emergency 112/108 Dispatch & First Responder Command"
+                : `Welcome to SmartCity AI Emergency Services, ${name}`);
+    }
+
+    if (roleSubtitle) {
+        roleSubtitle.textContent = admin
+            ? "Multi-agency emergency routing telemetry, AI travel-time models, and disaster fleet inventory."
+            : (staff
+                ? "Manage real-time incident dispatches, triage distress alerts, and coordinate paramedic units."
+                : "Instant SOS panic trigger, live multi-agency helpline directory, and nearby trauma centers.");
+    }
+
+    if (rolePill) {
+        if (admin) {
+            rolePill.textContent = "ADMIN • EMERGENCY";
+            rolePill.className = "role-pill admin-pill";
+        } else if (staff) {
+            rolePill.textContent = "STAFF • 112 DISPATCH";
+            rolePill.className = "role-pill staff-pill";
+        } else {
+            rolePill.textContent = user ? "CITIZEN" : "GUEST";
+            rolePill.className = "role-pill citizen-pill";
+        }
+    }
+
+    if (staff) {
+        switchEmergencyLayer("staff");
+    } else {
+        switchEmergencyLayer("citizen");
+    }
+}
+window.applyRoleUI = applyRoleUI;
+
+function promptEmergencyStaffLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "EMG001",
+            department: "emergency",
+            message: "🔒 Enter Emergency Staff ID & Password to access dispatcher controls."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Emergency Staff ID (Default: EMG001):", "EMG001");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptEmergencyStaffLogin = promptEmergencyStaffLogin;
+
+function promptEmergencyAdminLogin() {
+    if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.showLoginModal) {
+        SmartCityAuth.showLoginModal("staff", {
+            prefillStaffId: "EMG-ADMIN",
+            department: "emergency",
+            message: "🔒 Enter Emergency Admin ID & Password to access Disaster Command Console."
+        });
+        return;
+    }
+    const staffId = prompt("Enter Admin ID (Default: EMG-ADMIN):", "EMG-ADMIN");
+    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    if (staffId && pass) {
+        fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password: pass })
+        }).then(r => r.json()).then(data => {
+            if (data.token) {
+                localStorage.setItem("smartCityJWT", data.token);
+                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+                window.location.reload();
+            } else {
+                alert(data.message || "Login failed");
+            }
+        });
+    }
+}
+window.promptEmergencyAdminLogin = promptEmergencyAdminLogin;
 
 
 /* =====================================================

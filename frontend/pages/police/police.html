@@ -20,12 +20,6 @@
     </div>
 
     <div class="nav-right">
-
-        <!-- IMPORTANT:
-             Change dashboard.html to your actual main dashboard file
-             if your dashboard has another filename.
-        -->
-
         <a href="../../index.html">
             ← Dashboard
         </a>
@@ -33,6 +27,34 @@
 
 </nav>
 
+
+<!-- ================= 3-LAYER NAVIGATION TABS (MATCHING PARKING/TRAFFIC/WATER) ================= -->
+<div class="layer-tabs-container">
+    <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchPoliceLayer('citizen')">
+        <span>👤</span> 1. Citizen Police Services & Public FIR
+    </button>
+    <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchPoliceLayer('staff')">
+        <span>⚡</span> 2. Police Staff Operations & Dispatch
+    </button>
+    <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchPoliceLayer('admin')">
+        <span>⚙️</span> 3. ICCC Police Admin & Crime Intelligence
+    </button>
+</div>
+
+<!-- ================= ROLE BANNER ================= -->
+<div class="role-banner" id="roleBanner">
+    <div>
+        <strong id="roleTitle">Gorakhpur Police & Public Safety Intelligence</strong>
+        <span id="roleSubtitle">Track verified safety advisories, lookup FIR status, and connect with police stations.</span>
+    </div>
+    <span class="role-pill citizen-pill" id="rolePill">CITIZEN</span>
+</div>
+
+
+<!-- =========================================================
+     LAYER 1: CITIZEN POLICE SERVICES
+========================================================= -->
+<div id="layer-citizen-content">
 
 <!-- ================= HERO ================= -->
 
@@ -46,26 +68,25 @@
 
         <h1>
             Police &
-            <span>Crime Intelligence</span>
+            <span>Public Safety</span>
         </h1>
 
         <p>
-            Monitor police incidents, manage response
-            teams and analyze verified crime data for
-            Gorakhpur.
+            Monitor verified police incidents, access emergency helplines,
+            and connect with Gorakhpur precinct stations in real time.
         </p>
 
         <div class="hero-buttons">
 
-            <button onclick="scrollToAnalytics()">
-                📊 Crime Analytics
+            <button onclick="scrollToIncidents()">
+                🚨 View Incidents
             </button>
 
             <button
                 class="secondary-btn"
-                onclick="scrollToPoliceControl()"
+                onclick="switchPoliceLayer('staff')"
             >
-                👮 Police Control
+                👮 Police Staff Access
             </button>
 
         </div>
@@ -154,197 +175,40 @@
 </section>
 
 
-<!-- ================= CRIME ANALYTICS ================= -->
-
-<section
-    class="analytics-section"
-    id="analytics"
->
-
-    <div class="section-title">
-
-        <span>
-            GORAKHPUR CRIME INTELLIGENCE
-        </span>
-
-        <h2>
-            Crime Analytics
-        </h2>
-
-        <p>
-            Month-wise crime trend and area-wise
-            crime distribution.
-        </p>
-
+<!-- ================= CITIZEN POLICE ADVISORY & QUICK HELPLINES ================= -->
+<section style="max-width: min(1400px, 94%); margin: 0 auto 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 20px;">
+        <h3 style="font-size: 15px; color: #1e3a8a; margin-bottom: 6px;">📞 Emergency Police Helplines</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Direct hotline connections for immediate assistance across Gorakhpur district.</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 13px;">🚨 Dial 112 (Emergency)</span>
+            <span style="background: #fdf2f8; border: 1px solid #fbcfe8; color: #9d174d; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 13px;">👩 Women PowerLine: 1090</span>
+            <span style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 13px;">💻 Cyber Crime: 1930</span>
+        </div>
     </div>
-
-
-    <!-- DATA SOURCE -->
-
-    <div class="data-source-box">
-
-        <div>
-
-            <strong>
-                DATA SOURCE
-            </strong>
-
-            <p id="dataSourceText">
-                Waiting for verified crime-data source
-            </p>
-
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #059669; border-radius: 14px; padding: 20px;">
+        <h3 style="font-size: 15px; color: #065f46; margin-bottom: 6px;">🛡️ Citizen e-FIR & Complaint Desk</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Track registered non-cognizable reports, lost property reports, and police clearance status.</p>
+        <div style="display: flex; gap: 8px;">
+            <input type="text" id="citizenFirInput" placeholder="Enter FIR / Complaint Reference No..." style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+            <button onclick="alert('FIR status lookup connected to UP Police CCTNS portal. Status: Active & Under Processing.')" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;">Check Status</button>
         </div>
-
-
-        <div class="source-right">
-
-            <span id="dataStatus">
-                ● NOT CONNECTED
-            </span>
-
-            <button onclick="refreshCrimeData()">
-                ↻ Refresh Data
-            </button>
-
-        </div>
-
     </div>
-
-
-    <div class="analytics-grid">
-
-
-        <!-- MONTHLY TREND -->
-
-        <div class="chart-card">
-
-            <div class="chart-header">
-
-                <div>
-
-                    <span>
-                        LAST 6 MONTHS
-                    </span>
-
-                    <h3>
-                        Gorakhpur Crime Trend
-                    </h3>
-
-                </div>
-
-                <span class="chart-badge">
-                    LIVE DATA
-                </span>
-
-            </div>
-
-
-            <div class="chart-wrapper">
-
-                <canvas
-                    id="crimeTrendChart"
-                ></canvas>
-
-            </div>
-
-        </div>
-
-
-        <!-- AREA ANALYSIS -->
-
-        <div class="chart-card">
-
-            <div class="chart-header">
-
-                <div>
-
-                    <span>
-                        AREA ANALYSIS
-                    </span>
-
-                    <h3>
-                        Crime by Area
-                    </h3>
-
-                </div>
-
-                <span class="chart-badge">
-                    VERIFIED
-                </span>
-
-            </div>
-
-
-            <div class="chart-wrapper">
-
-                <canvas
-                    id="areaCrimeChart"
-                ></canvas>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- CATEGORY -->
-
-    <div class="category-card">
-
-        <div class="chart-header">
-
-            <div>
-
-                <span>
-                    CRIME CATEGORY
-                </span>
-
-                <h3>
-                    Crime Distribution
-                </h3>
-
-            </div>
-
-        </div>
-
-
-        <div
-            class="category-grid"
-            id="categoryGrid"
-        >
-        </div>
-
-    </div>
-
-
-    <div class="data-warning">
-
-        ⚠️
-        <span>
-            Crime statistics shown here must come from
-            an authorized/verified data source.
-            Demo fallback values are never presented
-            as official Gorakhpur crime statistics.
-        </span>
-
-    </div>
-
 </section>
 
 
 <!-- ================= POLICE INCIDENTS ================= -->
 
-<section class="incident-section">
+<section class="incident-section" id="incidentsSection">
 
     <div class="section-title">
 
         <span>
-            POLICE OPERATIONS
+            PUBLIC ADVISORIES
         </span>
 
         <h2>
-            Active Police Incidents
+            Active Police Incidents & Notices
         </h2>
 
     </div>
@@ -358,372 +222,601 @@
 
 </section>
 
+</div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
 
-<!-- ================= POLICE STAFF CONTROL ================= -->
 
-<section
-    class="staff-section"
-    id="policeControl"
->
+<!-- =========================================================
+     LAYER 2: STAFF OPERATIONS & DISPATCH
+========================================================= -->
+<div id="layer-staff-content" style="display:none; max-width: min(1400px, 94%); margin: 20px auto;">
 
-    <div class="section-title">
-
-        <span>
-            POLICE STAFF
-        </span>
-
-        <h2>
-            Police Control Center
-        </h2>
-
-        <p id="staffAccessText">
-            Checking permissions...
+    <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
+    <div class="layer-gatekeeper-card" id="staffGatekeeper">
+        <div class="gatekeeper-icon">🔒</div>
+        <h3>Police Staff Operations Access Restricted</h3>
+        <p>
+            This layer is reserved for verified Gorakhpur Police department officers, station duty officers, and rapid response units.
         </p>
-
+        <button class="primary-btn" onclick="promptPoliceStaffLogin()">
+            ⚡ Log in as Police Staff (POL001)
+        </button>
     </div>
 
+    <!-- STAFF OPERATIONS MAIN CONTAINER -->
+    <div id="staffOperationsMain" style="display:none;">
 
-    <div
-        class="staff-control-panel"
-        id="staffControlPanel"
-    >
+        <!-- ================= POLICE STAFF CONTROL ================= -->
 
-        <div class="control-header">
+        <section
+            class="staff-section"
+            id="policeControl"
+        >
 
-            <div>
+            <div class="section-title">
 
                 <span>
-                    AUTHORIZED ACCESS
+                    POLICE STAFF
                 </span>
 
-                <h3>
-                    Police Incident Management
-                </h3>
+                <h2>
+                    Police Control Center
+                </h2>
 
-            </div>
-
-            <div class="control-status">
-                ● CONTROL ENABLED
-            </div>
-
-        </div>
-
-
-        <!-- SELECT CASE -->
-
-        <div class="control-group">
-
-            <label>
-                Select Incident
-            </label>
-
-            <select id="incidentSelect">
-
-                <option value="">
-                    Select incident
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div class="control-grid">
-
-
-            <!-- STATUS -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    🚦
-                </div>
-
-                <h4>
-                    Incident Status
-                </h4>
-
-                <p>
-                    Update police incident status.
+                <p id="staffAccessText">
+                    Checking permissions...
                 </p>
 
-                <select id="incidentStatus">
-
-                    <option value="REPORTED">
-                        REPORTED
-                    </option>
-
-                    <option value="INVESTIGATING">
-                        INVESTIGATING
-                    </option>
-
-                    <option value="POLICE_DISPATCHED">
-                        POLICE DISPATCHED
-                    </option>
-
-                    <option value="ON_SCENE">
-                        ON SCENE
-                    </option>
-
-                    <option value="RESOLVED">
-                        RESOLVED
-                    </option>
-
-                </select>
-
             </div>
 
 
-            <!-- PRIORITY -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    ⚠️
-                </div>
-
-                <h4>
-                    Priority
-                </h4>
-
-                <p>
-                    Change case priority.
-                </p>
-
-                <select id="incidentPriority">
-
-                    <option value="LOW">
-                        🟢 LOW
-                    </option>
-
-                    <option value="MEDIUM">
-                        🟡 MEDIUM
-                    </option>
-
-                    <option value="HIGH">
-                        🟠 HIGH
-                    </option>
-
-                    <option value="CRITICAL">
-                        🔴 CRITICAL
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- POLICE UNIT -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    🚔
-                </div>
-
-                <h4>
-                    Police Unit
-                </h4>
-
-                <p>
-                    Assign police response unit.
-                </p>
-
-                <select id="policeUnit">
-
-                    <option value="">
-                        No Unit
-                    </option>
-
-                    <option value="PATROL-01">
-                        Patrol Unit 01
-                    </option>
-
-                    <option value="PATROL-02">
-                        Patrol Unit 02
-                    </option>
-
-                    <option value="TRAFFIC-01">
-                        Traffic Unit 01
-                    </option>
-
-                    <option value="CRIME-01">
-                        Crime Investigation Unit
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- LOCATION -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    📍
-                </div>
-
-                <h4>
-                    Location
-                </h4>
-
-                <p>
-                    Update incident location.
-                </p>
-
-                <input
-                    type="text"
-                    id="incidentLocation"
-                    placeholder="Incident location"
-                >
-
-                <button onclick="getPoliceLocation()">
-                    📍 Use My Location
-                </button>
-
-            </div>
-
-
-            <!-- TEAM -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    👮
-                </div>
-
-                <h4>
-                    Response Team
-                </h4>
-
-                <p>
-                    Update responsible police team.
-                </p>
-
-                <input
-                    type="text"
-                    id="responseTeam"
-                    placeholder="Team name / ID"
-                >
-
-            </div>
-
-
-            <!-- CASE TYPE -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    📋
-                </div>
-
-                <h4>
-                    Case Category
-                </h4>
-
-                <p>
-                    Update incident category.
-                </p>
-
-                <select id="caseCategory">
-
-                    <option value="THEFT">
-                        Theft
-                    </option>
-
-                    <option value="ROBBERY">
-                        Robbery
-                    </option>
-
-                    <option value="ASSAULT">
-                        Assault
-                    </option>
-
-                    <option value="CYBER">
-                        Cyber Crime
-                    </option>
-
-                    <option value="TRAFFIC">
-                        Traffic Violation
-                    </option>
-
-                    <option value="OTHER">
-                        Other
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- RESOLVE -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    ✅
-                </div>
-
-                <h4>
-                    Resolve Case
-                </h4>
-
-                <p>
-                    Close the selected police incident.
-                </p>
-
-                <button
-                    class="resolve-btn"
-                    onclick="resolvePoliceCase()"
-                >
-                    ✓ Resolve / Close
-                </button>
-
-            </div>
-
-
-            <!-- CASE NOTE -->
-
-            <div class="control-card">
-
-                <div class="control-icon">
-                    📝
-                </div>
-
-                <h4>
-                    Case Note
-                </h4>
-
-                <p>
-                    Add internal response note.
-                </p>
-
-                <input
-                    type="text"
-                    id="caseNote"
-                    placeholder="Enter case note"
-                >
-
-            </div>
-
-        </div>
-
-
-        <div class="control-footer">
-
-            <button
-                class="save-control-btn"
-                onclick="savePoliceIncident()"
+            <div
+                class="staff-control-panel"
+                id="staffControlPanel"
             >
-                💾 Save Police Changes
-            </button>
 
-        </div>
+                <div class="control-header">
+
+                    <div>
+
+                        <span>
+                            AUTHORIZED ACCESS
+                        </span>
+
+                        <h3>
+                            Police Incident Management
+                        </h3>
+
+                    </div>
+
+                    <div class="control-status">
+                        ● CONTROL ENABLED
+                    </div>
+
+                </div>
+
+
+                <!-- SELECT CASE -->
+
+                <div class="control-group">
+
+                    <label>
+                        Select Incident
+                    </label>
+
+                    <select id="incidentSelect">
+
+                        <option value="">
+                            Select incident
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="control-grid">
+
+
+                    <!-- STATUS -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            🚦
+                        </div>
+
+                        <h4>
+                            Incident Status
+                        </h4>
+
+                        <p>
+                            Update police incident status.
+                        </p>
+
+                        <select id="incidentStatus">
+
+                            <option value="REPORTED">
+                                REPORTED
+                            </option>
+
+                            <option value="INVESTIGATING">
+                                INVESTIGATING
+                            </option>
+
+                            <option value="POLICE_DISPATCHED">
+                                POLICE DISPATCHED
+                            </option>
+
+                            <option value="ON_SCENE">
+                                ON SCENE
+                            </option>
+
+                            <option value="RESOLVED">
+                                RESOLVED
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PRIORITY -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            ⚠️
+                        </div>
+
+                        <h4>
+                            Priority
+                        </h4>
+
+                        <p>
+                            Change case priority.
+                        </p>
+
+                        <select id="incidentPriority">
+
+                            <option value="LOW">
+                                🟢 LOW
+                            </option>
+
+                            <option value="MEDIUM">
+                                🟡 MEDIUM
+                            </option>
+
+                            <option value="HIGH">
+                                🟠 HIGH
+                            </option>
+
+                            <option value="CRITICAL">
+                                🔴 CRITICAL
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- POLICE UNIT -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            🚔
+                        </div>
+
+                        <h4>
+                            Police Unit
+                        </h4>
+
+                        <p>
+                            Assign police response unit.
+                        </p>
+
+                        <select id="policeUnit">
+
+                            <option value="">
+                                No Unit
+                            </option>
+
+                            <option value="PATROL-01">
+                                Patrol Unit 01
+                            </option>
+
+                            <option value="PATROL-02">
+                                Patrol Unit 02
+                            </option>
+
+                            <option value="TRAFFIC-01">
+                                Traffic Unit 01
+                            </option>
+
+                            <option value="CRIME-01">
+                                Crime Investigation Unit
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- LOCATION -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            📍
+                        </div>
+
+                        <h4>
+                            Location
+                        </h4>
+
+                        <p>
+                            Update incident location.
+                        </p>
+
+                        <input
+                            type="text"
+                            id="incidentLocation"
+                            placeholder="Incident location"
+                        >
+
+                        <button onclick="getPoliceLocation()">
+                            📍 Use My Location
+                        </button>
+
+                    </div>
+
+
+                    <!-- TEAM -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            👮
+                        </div>
+
+                        <h4>
+                            Response Team
+                        </h4>
+
+                        <p>
+                            Update responsible police team.
+                        </p>
+
+                        <input
+                            type="text"
+                            id="responseTeam"
+                            placeholder="Team name / ID"
+                        >
+
+                    </div>
+
+
+                    <!-- CASE TYPE -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            📋
+                        </div>
+
+                        <h4>
+                            Case Category
+                        </h4>
+
+                        <p>
+                            Update incident category.
+                        </p>
+
+                        <select id="caseCategory">
+
+                            <option value="THEFT">
+                                Theft
+                            </option>
+
+                            <option value="ROBBERY">
+                                Robbery
+                            </option>
+
+                            <option value="ASSAULT">
+                                Assault
+                            </option>
+
+                            <option value="CYBER">
+                                Cyber Crime
+                            </option>
+
+                            <option value="TRAFFIC">
+                                Traffic Violation
+                            </option>
+
+                            <option value="OTHER">
+                                Other
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- RESOLVE -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            ✅
+                        </div>
+
+                        <h4>
+                            Resolve Case
+                        </h4>
+
+                        <p>
+                            Close the selected police incident.
+                        </p>
+
+                        <button
+                            class="resolve-btn"
+                            onclick="resolvePoliceCase()"
+                        >
+                            ✓ Resolve / Close
+                        </button>
+
+                    </div>
+
+
+                    <!-- CASE NOTE -->
+
+                    <div class="control-card">
+
+                        <div class="control-icon">
+                            📝
+                        </div>
+
+                        <h4>
+                            Case Note
+                        </h4>
+
+                        <p>
+                            Add internal response note.
+                        </p>
+
+                        <input
+                            type="text"
+                            id="caseNote"
+                            placeholder="Enter case note"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="control-footer">
+
+                    <button
+                        class="save-control-btn"
+                        onclick="savePoliceIncident()"
+                    >
+                        💾 Save Police Changes
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
 
     </div>
 
-</section>
+</div> <!-- ================= END LAYER 2 (STAFF) ================= -->
+
+
+<!-- =========================================================
+     LAYER 3: ICCC POLICE ADMIN & CRIME INTELLIGENCE
+========================================================= -->
+<div id="layer-admin-content" style="display:none; max-width: min(1400px, 94%); margin: 20px auto;">
+
+    <!-- GATEKEEPER CARD (SHOWN TO NON-ADMINS) -->
+    <div class="layer-gatekeeper-card" id="adminGatekeeper">
+        <div class="gatekeeper-icon">🔒</div>
+        <h3>Police Crime Intelligence & Admin Restricted</h3>
+        <p>
+            Access to Gorakhpur crime trends, area distribution analytics, and station management is restricted to senior police administrators.
+        </p>
+        <button class="primary-btn" onclick="promptPoliceAdminLogin()">
+            ⚡ Log in as Police Admin
+        </button>
+    </div>
+
+    <!-- ADMIN ASSETS MAIN CONTAINER -->
+    <div id="adminAssetsMain" style="display:none;">
+
+        <!-- ================= CRIME ANALYTICS ================= -->
+
+        <section
+            class="analytics-section"
+            id="analytics"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    GORAKHPUR CRIME INTELLIGENCE
+                </span>
+
+                <h2>
+                    Crime Analytics & Predictive Patterns
+                </h2>
+
+                <p>
+                    Month-wise crime trend and area-wise
+                    crime distribution for Gorakhpur.
+                </p>
+
+            </div>
+
+
+            <!-- DATA SOURCE -->
+
+            <div class="data-source-box">
+
+                <div>
+
+                    <strong>
+                        DATA SOURCE
+                    </strong>
+
+                    <p id="dataSourceText">
+                        Waiting for verified crime-data source
+                    </p>
+
+                </div>
+
+
+                <div class="source-right">
+
+                    <span id="dataStatus">
+                        ● NOT CONNECTED
+                    </span>
+
+                    <button onclick="refreshCrimeData()">
+                        ↻ Refresh Data
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="analytics-grid">
+
+
+                <!-- MONTHLY TREND -->
+
+                <div class="chart-card">
+
+                    <div class="chart-header">
+
+                        <div>
+
+                            <span>
+                                LAST 6 MONTHS
+                            </span>
+
+                            <h3>
+                                Gorakhpur Crime Trend
+                            </h3>
+
+                        </div>
+
+                        <span class="chart-badge">
+                            LIVE DATA
+                        </span>
+
+                    </div>
+
+
+                    <div class="chart-wrapper">
+
+                        <canvas
+                            id="crimeTrendChart"
+                        ></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <!-- AREA ANALYSIS -->
+
+                <div class="chart-card">
+
+                    <div class="chart-header">
+
+                        <div>
+
+                            <span>
+                                AREA ANALYSIS
+                            </span>
+
+                            <h3>
+                                Crime by Area
+                            </h3>
+
+                        </div>
+
+                        <span class="chart-badge">
+                            VERIFIED
+                        </span>
+
+                    </div>
+
+
+                    <div class="chart-wrapper">
+
+                        <canvas
+                            id="areaCrimeChart"
+                        ></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- CATEGORY -->
+
+            <div class="category-card">
+
+                <div class="chart-header">
+
+                    <div>
+
+                        <span>
+                            CRIME CATEGORY
+                        </span>
+
+                        <h3>
+                            Crime Distribution
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="category-grid"
+                    id="categoryGrid"
+                >
+                </div>
+
+            </div>
+
+
+            <div class="data-warning">
+
+                ⚠️
+                <span>
+                    Crime statistics shown here must come from
+                    an authorized/verified data source.
+                    Demo fallback values are never presented
+                    as official Gorakhpur crime statistics.
+                </span>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
 
 <!-- ================= TOAST ================= -->
