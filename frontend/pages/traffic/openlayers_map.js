@@ -11,6 +11,8 @@ class SmartCityTrafficMap {
         this.junctionLayer = null;
         this.signalSource = new ol.source.Vector();
         this.signalLayer = null;
+        this.cameraSource = new ol.source.Vector();
+        this.cameraLayer = null;
         this.parkingSource = new ol.source.Vector();
         this.parkingLayer = null;
         this.incidentSource = new ol.source.Vector();
@@ -99,6 +101,13 @@ class SmartCityTrafficMap {
             style: (f) => this.getSignalStyle(f)
         });
 
+        this.cameraLayer = new ol.layer.Vector({
+            source: this.cameraSource,
+            style: (f) => this.getCameraStyle(f),
+            zIndex: 44,
+            visible: true
+        });
+
         this.parkingLayer = new ol.layer.Vector({
             source: this.parkingSource,
             style: (f) => this.getParkingStyle(f)
@@ -146,6 +155,7 @@ class SmartCityTrafficMap {
                 this.routeLayer,
                 this.junctionLayer,
                 this.signalLayer,
+                this.cameraLayer,
                 this.parkingLayer,
                 this.incidentLayer,
                 this.waterloggingLayer,
@@ -378,6 +388,68 @@ class SmartCityTrafficMap {
             feat = allFeats.find(f => {
                 const d = f.get('data');
                 return d && String(d.id) === String(sigId);
+            });
+        }
+
+        if (feat) {
+            feat.getGeometry().setCoordinates(coords);
+            const data = feat.get('data') || {};
+            data.latitude = latNum;
+            data.longitude = lonNum;
+            feat.set('data', data);
+        }
+    }
+
+    renderCameras(cameras) {
+        if (!this.cameraSource) return;
+        this.cameraSource.clear();
+        if (!cameras || !cameras.length) return;
+
+        cameras.forEach(cam => {
+            let lat = parseFloat(cam.latitude);
+            let lon = parseFloat(cam.longitude);
+
+            // If coordinates not set, calculate slight offset from assigned junction
+            if (isNaN(lat) || isNaN(lon)) {
+                if (cam.junction_id && window.allJunctions) {
+                    const j = window.allJunctions.find(jnc => String(jnc.id) === String(cam.junction_id));
+                    if (j && j.latitude && j.longitude) {
+                        const baseLat = parseFloat(j.latitude);
+                        const baseLon = parseFloat(j.longitude);
+                        const dir = (cam.direction || 'North').toLowerCase();
+                        const offset = 0.0008;
+                        lat = dir === 'north' ? baseLat + offset : (dir === 'south' ? baseLat - offset : baseLat);
+                        lon = dir === 'east' ? baseLon + offset : (dir === 'west' ? baseLon - offset : baseLon);
+                    }
+                }
+            }
+
+            if (isNaN(lat) || isNaN(lon)) return;
+
+            const feat = new ol.Feature({
+                geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat])),
+                type: 'camera',
+                data: cam
+            });
+            feat.setId(`cam-${cam.id}`);
+            this.cameraSource.addFeature(feat);
+        });
+    }
+
+    updateCameraPosition(camId, lat, lng) {
+        if (!this.cameraSource) return;
+        const lonNum = parseFloat(lng);
+        const latNum = parseFloat(lat);
+        if (isNaN(lonNum) || isNaN(latNum)) return;
+
+        const coords = ol.proj.fromLonLat([lonNum, latNum]);
+        let feat = this.cameraSource.getFeatureById(`cam-${camId}`);
+
+        if (!feat) {
+            const allFeats = this.cameraSource.getFeatures();
+            feat = allFeats.find(f => {
+                const d = f.get('data');
+                return d && String(d.id) === String(camId);
             });
         }
 
@@ -717,6 +789,29 @@ class SmartCityTrafficMap {
                 font: 'bold 10px Arial, sans-serif',
                 fill: new ol.style.Fill({ color: '#1e293b' }),
                 stroke: new ol.style.Stroke({ color: '#ffffff', width: 2 })
+            })
+        });
+    }
+
+    getCameraStyle(feature) {
+        const c = feature.get('data') || {};
+        const isOnline = c.status === 'Online';
+        const color = isOnline ? '#059669' : (c.status === 'Configured' ? '#d97706' : '#64748b');
+
+        return new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 11,
+                fill: new ol.style.Fill({ color }),
+                stroke: new ol.style.Stroke({ color: '#ffffff', width: 2.5 })
+            }),
+            text: new ol.style.Text({
+                text: `📹 ${c.camera_name ? c.camera_name.split(' - ')[0].substring(0, 16) : 'CAM'} (${c.direction || ''})`,
+                offsetY: -16,
+                font: 'bold 10px Arial, sans-serif',
+                fill: new ol.style.Fill({ color: '#0f172a' }),
+                stroke: new ol.style.Stroke({ color: '#ffffff', width: 2.5 }),
+                backgroundFill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.95)' }),
+                padding: [2, 5, 2, 5]
             })
         });
     }

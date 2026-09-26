@@ -4248,46 +4248,6 @@ async function submitDoctorLogin() {
 }
 
 /* =========================================================
-   WINDOW EXPORTS — every name here IS defined above, once.
-========================================================= */
-
-Object.assign(window, {
-    apiRequest, escapeHTML, escapeJS, openModal, closeModal, closeAllModals,
-
-    openPatientRegistration, generatePatientID, calculateAge, handleDobAutoAge, showPatientQR,
-    getPatientId, isPatientLoggedIn, showCurrentPatient, logoutPatient,
-    openPatientPrintCard, executePrintPatientCard,
-    openAbhaModal, confirmAbhaLink, unlinkAbha,
-    openQrScanModal, closeQrScanModal, startPatientCameraScanner, stopPatientCameraScanner, verifyQrFromInput, handleScannedQrResult,
-    openStaffPatientManager, debounceStaffPatientSearch, resetStaffPatientFilters, fetchStaffPatientsList, toggleStaffPatientStatus,
-
-    showHospitals, renderHospitals, selectHospital, viewHospital, searchHospitals,
-    onBookingHospitalChange, fetchDynamicSlots, confirmStrictBooking, filterAndSortHospitals,
-    openHospitalDashboardDirect, selectTimeSlot, switchHospitalDetailsTab, openDoctorFromHospital,
-    setDetailsTestCategory, openCitizenTestBookingModal, openCitizenHomeSampleModal,
-    handleCitizenTestBookingSubmit, cancelAppointment, openHospitalDetails, createHospitalDetailsModal,
-
-    openDoctorBooking, bookSpecificDoctor, bookDoctorSlot, printAppointment,
-    openDoctorFinder, loadDoctorFinder, searchDoctors, resetDoctorFilters,
-    viewDoctorDetails, closeDoctorDetails, loadDoctorSlots, selectDoctorSlot,
-    openMyAppointments, loadMyAppointments,
-
-    openEmergency, callEmergency,
-
-    trackAmbulance, showAmbulance, refreshAmbulance, selectAmbulance,
-    startEmergencyRequest, selectMatchHospital, selectMatchAmbulance,
-    confirmEmergencyAssignment, advanceAmbulanceStatus, refreshAmbulanceRoute,
-    resetAmbulanceTracking,
-
-    showBeds, loadBeds,
-
-    openPatientFile, searchPatientFile, loadMyPatientRecord, switchRecordTab, printPatientRecord,
-    renderRecordTab, toggleInlineForm,
-
-    openPrescriptionUpload,
-
-    showPharmacy, verifyPharmacyPatient, logoutPharmacyPatient,
-/* =========================================================
    AI HEALTHCARE & SURGE CAPACITY INTELLIGENCE (FastAPI ML)
 ========================================================= */
 

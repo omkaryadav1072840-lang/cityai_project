@@ -105,20 +105,20 @@ main {
 
 .hero {
     width: 92%;
-    max-width: 1400px;
+    max-width: 1440px;
 
     margin: 30px auto;
 
     display: grid;
 
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: 310px 1fr;
 
-    gap: 25px;
+    gap: 28px;
 }
 
 
 /* =========================================================
-   FEATURE PANEL
+   FEATURE PANEL - Modern, Human-crafted, Soft Card Grid
 ========================================================= */
 
 .features {
@@ -126,26 +126,26 @@ main {
 
     grid-template-columns: repeat(2, 1fr);
 
-    gap: 12px;
+    gap: 16px;
 
     align-content: start;
 }
 
 
-/* FEATURE */
+/* FEATURE CARD */
 
 .feature {
-    min-height: 105px;
+    min-height: 122px;
 
     background: #ffffff;
 
-    border: 1px solid #e5e7eb;
+    border: 1px solid rgba(226, 232, 240, 0.85);
 
-    border-radius: 15px;
+    border-radius: 22px;
 
     text-decoration: none;
 
-    color: #172033;
+    color: #1e293b;
 
     display: flex;
 
@@ -155,38 +155,68 @@ main {
 
     align-items: center;
 
-    transition: all 0.25s ease;
+    padding: 22px 14px;
 
-    box-shadow:
-        0 5px 18px rgba(15, 23, 42, 0.05);
+    transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+
+    position: relative;
+
+    user-select: none;
 }
 
 
 .feature:hover {
     transform: translateY(-4px);
 
-    border-color: #2563eb;
+    border-color: rgba(37, 99, 235, 0.35);
 
-    color: #2563eb;
+    color: #1d4ed8;
 
-    box-shadow:
-        0 10px 25px rgba(37, 99, 235, 0.12);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.1), 0 4px 10px rgba(15, 23, 42, 0.03);
+}
+
+.feature:active {
+    transform: translateY(-1px) scale(0.98);
 }
 
 
 .feature span {
-    font-size: 28px;
+    font-size: 34px;
 
-    margin-bottom: 8px;
+    line-height: 1;
+
+    margin-bottom: 12px;
+
+    display: inline-block;
+
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06));
+
+    transition: transform 0.25s ease;
+}
+
+.feature:hover span {
+    transform: scale(1.12);
 }
 
 
 .feature p {
-    font-size: 13px;
+    font-size: 14px;
 
     font-weight: 700;
 
     text-align: center;
+
+    margin: 0;
+
+    color: #1e293b;
+
+    letter-spacing: -0.01em;
+}
+
+.feature:hover p {
+    color: #1d4ed8;
 }
 
 

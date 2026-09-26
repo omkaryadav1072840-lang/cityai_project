@@ -433,6 +433,20 @@ async function loadSharedTrafficData() {
             trafficMap.renderSignals(allSignals);
         }
 
+        // 2B. Fetch CCTV Cameras & Render on Map
+        try {
+            const resCam = await fetch("/api/traffic/cameras");
+            const jsonCam = await resCam.json();
+            if (jsonCam.success && jsonCam.cameras) {
+                allCameras = jsonCam.cameras;
+                if (trafficMap && typeof trafficMap.renderCameras === "function") {
+                    trafficMap.renderCameras(allCameras);
+                }
+            }
+        } catch (e) {
+            console.warn("Could not fetch cameras for initial map render:", e);
+        }
+
         // 3. Fetch Connected Real Spot Parking Data (direct DB join from parking_lots + parking_slots)
         await loadConnectedParkingData();
 
@@ -1715,11 +1729,49 @@ function closeModal(id) {
     }
 }
 
-function openReportIncidentModal() { openModal("modal-incident"); }
+function openReportIncidentModal(incId = null) {
+    const editIdInput = document.getElementById("inc-edit-id");
+    const titleEl = document.getElementById("modal-inc-title");
+    const btnSave = document.getElementById("btn-save-incident");
+    const latInput = document.getElementById("inc-lat-input");
+    const lngInput = document.getElementById("inc-lng-input");
+    const catSelect = document.getElementById("inc-category");
+    const locInput = document.getElementById("inc-location");
+    const sevSelect = document.getElementById("inc-severity");
+    const descInput = document.getElementById("inc-description");
+
+    if (incId) {
+        let inc = allIncidents.find(i => String(i.id) === String(incId));
+        if (editIdInput) editIdInput.value = incId;
+        if (titleEl) titleEl.textContent = `🚨 Modify Traffic Incident (${incId})`;
+        if (btnSave) btnSave.textContent = "Save Changes & Relocate";
+        if (inc) {
+            if (catSelect) catSelect.value = inc.incident_type || "Accident";
+            if (locInput) locInput.value = inc.location_name || "";
+            if (sevSelect) sevSelect.value = inc.severity || "Moderate";
+            if (descInput) descInput.value = inc.description || "";
+            if (latInput) latInput.value = inc.latitude !== undefined && inc.latitude !== null ? Number(inc.latitude).toFixed(7) : "26.7588000";
+            if (lngInput) lngInput.value = inc.longitude !== undefined && inc.longitude !== null ? Number(inc.longitude).toFixed(7) : "83.3731000";
+        }
+    } else {
+        if (editIdInput) editIdInput.value = "";
+        if (titleEl) titleEl.textContent = "🚨 Report Traffic Incident / Hazard";
+        if (btnSave) btnSave.textContent = "Submit Report";
+        if (locInput) locInput.value = "";
+        if (descInput) descInput.value = "";
+        if (latInput) latInput.value = "26.7588000";
+        if (lngInput) lngInput.value = "83.3731000";
+    }
+
+    openModal("modal-incident");
+}
 
 // Admin / Staff Modals & Map Coordinate Pickers
 function openAddJunctionModal() {
     document.getElementById("modal-jnc-title").textContent = "🚦 Add Traffic Junction";
+    const editIdInput = document.getElementById("jnc-edit-id");
+    if (editIdInput) editIdInput.value = "";
+
     const idInput = document.getElementById("jnc-id-input");
     if (idInput) {
         idInput.value = `JNC-0${allJunctions.length + 1}`;
@@ -1732,13 +1784,58 @@ function openAddJunctionModal() {
     const landmarkInput = document.getElementById("jnc-landmark-input");
     if (landmarkInput) landmarkInput.value = "";
     const latInput = document.getElementById("jnc-lat-input");
-    if (latInput) latInput.value = "26.7588";
+    if (latInput) latInput.value = "26.7588000";
     const lngInput = document.getElementById("jnc-lng-input");
-    if (lngInput) lngInput.value = "83.3731";
+    if (lngInput) lngInput.value = "83.3731000";
     const officerInput = document.getElementById("jnc-officer-input");
     if (officerInput) officerInput.value = "Insp. R.K. Verma";
     const cycleInput = document.getElementById("jnc-cycle-input");
     if (cycleInput) cycleInput.value = "120";
+
+    openModal("modal-junction");
+}
+
+function openEditJunctionModal(jncId) {
+    if (!isStaffUser()) {
+        showToast("🔒 Access Denied: Only authorized traffic control staff can modify junctions.");
+        return;
+    }
+    const jnc = allJunctions.find(j => String(j.id) === String(jncId));
+    if (!jnc) {
+        showToast("Error: Junction not found.");
+        return;
+    }
+
+    document.getElementById("modal-jnc-title").textContent = `🚦 Edit Traffic Junction (${jnc.name})`;
+    const editIdInput = document.getElementById("jnc-edit-id");
+    if (editIdInput) editIdInput.value = jnc.id;
+
+    const idInput = document.getElementById("jnc-id-input");
+    if (idInput) {
+        idInput.value = jnc.id;
+        idInput.disabled = true;
+    }
+
+    const nameInput = document.getElementById("jnc-name-input");
+    if (nameInput) nameInput.value = jnc.name || "";
+
+    const zoneInput = document.getElementById("jnc-zone-input");
+    if (zoneInput) zoneInput.value = jnc.zone || "Urban Core";
+
+    const landmarkInput = document.getElementById("jnc-landmark-input");
+    if (landmarkInput) landmarkInput.value = jnc.landmark || "";
+
+    const latInput = document.getElementById("jnc-lat-input");
+    if (latInput) latInput.value = jnc.latitude !== undefined && jnc.latitude !== null ? Number(jnc.latitude).toFixed(7) : "26.7588000";
+
+    const lngInput = document.getElementById("jnc-lng-input");
+    if (lngInput) lngInput.value = jnc.longitude !== undefined && jnc.longitude !== null ? Number(jnc.longitude).toFixed(7) : "83.3731000";
+
+    const officerInput = document.getElementById("jnc-officer-input");
+    if (officerInput) officerInput.value = jnc.assigned_officer_name || "Insp. R.K. Verma";
+
+    const cycleInput = document.getElementById("jnc-cycle-input");
+    if (cycleInput) cycleInput.value = jnc.cycle_time || 120;
 
     openModal("modal-junction");
 }
@@ -1798,6 +1895,12 @@ function pickCoordsFor(target) {
     } else if (target === "sig") {
         const modal = document.getElementById("modal-signal");
         if (modal) modal.style.display = "none";
+    } else if (target === "cam") {
+        const modal = document.getElementById("modal-camera");
+        if (modal) modal.style.display = "none";
+    } else if (target === "inc") {
+        const modal = document.getElementById("modal-incident");
+        if (modal) modal.style.display = "none";
     }
 
     // Scroll smoothly to map card
@@ -1809,8 +1912,8 @@ function pickCoordsFor(target) {
     showToast("📍 Map Crosshair Active: Click any point on the map to set coordinates.");
 
     trafficMap.startCoordinatePickMode((lat, lng) => {
-        const latFixed = Number(lat).toFixed(5);
-        const lngFixed = Number(lng).toFixed(5);
+        const latFixed = Number(lat).toFixed(7);
+        const lngFixed = Number(lng).toFixed(7);
 
         if (activeCoordinateTarget === "jnc") {
             const latInput = document.getElementById("jnc-lat-input");
@@ -1828,8 +1931,24 @@ function pickCoordsFor(target) {
             const modal = document.getElementById("modal-signal");
             if (modal) modal.style.display = "";
             openModal("modal-signal");
+        } else if (activeCoordinateTarget === "cam") {
+            const latInput = document.getElementById("cam-lat-input");
+            const lngInput = document.getElementById("cam-lng-input");
+            if (latInput) latInput.value = latFixed;
+            if (lngInput) lngInput.value = lngFixed;
+            const modal = document.getElementById("modal-camera");
+            if (modal) modal.style.display = "";
+            openModal("modal-camera");
+        } else if (activeCoordinateTarget === "inc") {
+            const latInput = document.getElementById("inc-lat-input");
+            const lngInput = document.getElementById("inc-lng-input");
+            if (latInput) latInput.value = latFixed;
+            if (lngInput) lngInput.value = lngFixed;
+            const modal = document.getElementById("modal-incident");
+            if (modal) modal.style.display = "";
+            openModal("modal-incident");
         }
-        showToast(`📍 Coordinates Selected: (${latFixed}, ${lngFixed})`);
+        showToast(`📍 Selected Coordinates: (${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)})`);
         activeCoordinateTarget = null;
     });
 }
@@ -1844,6 +1963,14 @@ function cancelCoordinatePick() {
         const modal = document.getElementById("modal-signal");
         if (modal) modal.style.display = "";
         openModal("modal-signal");
+    } else if (activeCoordinateTarget === "cam") {
+        const modal = document.getElementById("modal-camera");
+        if (modal) modal.style.display = "";
+        openModal("modal-camera");
+    } else if (activeCoordinateTarget === "inc") {
+        const modal = document.getElementById("modal-incident");
+        if (modal) modal.style.display = "";
+        openModal("modal-incident");
     }
     activeCoordinateTarget = null;
 }
@@ -2022,11 +2149,16 @@ function openAddCameraModal() {
         `;
     }
 
+    const latInput = document.getElementById("cam-lat-input");
+    const lngInput = document.getElementById("cam-lng-input");
+    if (latInput) latInput.value = "26.7588000";
+    if (lngInput) lngInput.value = "83.3731000";
+
     openModal("modal-camera");
 }
 
 function openEditCameraModal(camId) {
-    const cam = allCameras.find(c => c.id === camId);
+    const cam = allCameras.find(c => String(c.id) === String(camId));
     if (!cam) return;
 
     document.getElementById("modal-cam-title").textContent = `Edit Camera (${cam.id})`;
@@ -2039,6 +2171,11 @@ function openEditCameraModal(camId) {
     document.getElementById("cam-playback-select").value = cam.playback_type || "auto";
     document.getElementById("cam-status-select").value = cam.status;
     document.getElementById("cam-res-select").value = cam.resolution;
+
+    const latInput = document.getElementById("cam-lat-input");
+    const lngInput = document.getElementById("cam-lng-input");
+    if (latInput) latInput.value = cam.latitude !== undefined && cam.latitude !== null ? Number(cam.latitude).toFixed(7) : "26.7588000";
+    if (lngInput) lngInput.value = cam.longitude !== undefined && cam.longitude !== null ? Number(cam.longitude).toFixed(7) : "83.3731000";
 
     handlePlaybackTypeChange();
 
@@ -2096,6 +2233,9 @@ async function submitCameraForm() {
             headers["Authorization"] = `Bearer ${token}`;
         }
 
+        const latVal = parseFloat(document.getElementById("cam-lat-input").value) || null;
+        const lngVal = parseFloat(document.getElementById("cam-lng-input").value) || null;
+
         const res = await fetch(url, {
             method,
             headers,
@@ -2108,6 +2248,8 @@ async function submitCameraForm() {
                 playback_type: playbackType,
                 status,
                 resolution: resVal,
+                latitude: latVal,
+                longitude: lngVal,
                 operator: operatorName
             })
         });
@@ -2126,6 +2268,9 @@ async function submitCameraForm() {
                     allCameras[existingIdx] = createdCam;
                 } else {
                     allCameras.push(createdCam);
+                }
+                if (trafficMap && typeof trafficMap.renderCameras === "function") {
+                    trafficMap.renderCameras(allCameras);
                 }
             }
 
@@ -2186,6 +2331,8 @@ async function deleteCamera(camId) {
 
 // Junction Form Submission
 async function submitJunctionForm() {
+    const editId = document.getElementById("jnc-edit-id") ? document.getElementById("jnc-edit-id").value.trim() : "";
+    const isEdit = Boolean(editId);
     const id = document.getElementById("jnc-id-input").value.trim();
     const name = document.getElementById("jnc-name-input").value.trim();
     const zone = document.getElementById("jnc-zone-input").value.trim();
@@ -2201,8 +2348,10 @@ async function submitJunctionForm() {
     }
 
     try {
-        const res = await fetch("/api/traffic/junctions", {
-            method: "POST",
+        const url = isEdit ? `/api/traffic/junctions/${editId}` : "/api/traffic/junctions";
+        const method = isEdit ? "PUT" : "POST";
+        const res = await fetch(url, {
+            method,
             headers: getAuthHeaders(),
             body: JSON.stringify({
                 id, name, zone, landmark, latitude: lat, longitude: lng,
@@ -2214,9 +2363,9 @@ async function submitJunctionForm() {
         const json = await res.json();
         if (json.success) {
             closeModal("modal-junction");
-            showToast(json.message);
-            loadSharedTrafficData();
-            loadAdminJunctionsTable();
+            showToast(isEdit ? `Junction ${name} updated successfully!` : json.message);
+            await loadSharedTrafficData();
+            if (typeof loadAdminJunctionsTable === "function") loadAdminJunctionsTable();
         }
     } catch (e) {
         showToast("Error saving junction.");
@@ -2362,12 +2511,16 @@ async function submitStaffForm() {
 
 // Incident Report Submission
 async function submitTrafficIncident() {
+    const editId = document.getElementById("inc-edit-id") ? document.getElementById("inc-edit-id").value.trim() : "";
+    const isEdit = Boolean(editId);
     const cat = document.getElementById("inc-category").value;
     const loc = document.getElementById("inc-location").value.trim();
     const sev = document.getElementById("inc-severity").value;
     const desc = document.getElementById("inc-description").value.trim();
     const name = document.getElementById("inc-name").value.trim();
     const phone = document.getElementById("inc-phone").value.trim();
+    const lat = parseFloat(document.getElementById("inc-lat-input").value) || 26.7588;
+    const lng = parseFloat(document.getElementById("inc-lng-input").value) || 83.3731;
 
     if (!loc || !desc) {
         alert("Please provide location and description.");
@@ -2375,29 +2528,32 @@ async function submitTrafficIncident() {
     }
 
     try {
-        const res = await fetch("/api/traffic/incidents", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+        const url = isEdit ? `/api/traffic/incidents/${editId}` : "/api/traffic/incidents";
+        const method = isEdit ? "PUT" : "POST";
+        const res = await fetch(url, {
+            method,
+            headers: getAuthHeaders(),
             body: JSON.stringify({
                 incident_type: cat,
                 location_name: loc,
-                latitude: 26.7588 + (Math.random() * 0.02 - 0.01),
-                longitude: 83.3731 + (Math.random() * 0.02 - 0.01),
+                latitude: lat,
+                longitude: lng,
                 description: desc,
                 severity: sev,
                 reporter_name: name || "Anonymous Citizen",
-                reporter_phone: phone
+                reporter_phone: phone,
+                operator: (window.SmartCityAuth && SmartCityAuth.getUser() && SmartCityAuth.getUser().name) || "Traffic Officer"
             })
         });
 
         const json = await res.json();
         if (json.success) {
             closeModal("modal-incident");
-            showToast("Incident report submitted to Traffic Control!");
+            showToast(isEdit ? `Incident ${editId} updated with location!` : "Incident report submitted to Traffic Control!");
             loadIncidentsData();
         }
     } catch (e) {
-        showToast("Error submitting incident.");
+        showToast("Error saving incident.");
     }
 }
 
@@ -2422,6 +2578,9 @@ function handleMapMarkerPopup(props, coord) {
                     <button class="btn-primary btn-sm" onclick="switchLayer('control'); selectControlJunction('${d.id}');" style="width:100%; font-size:11px;">
                         Control Junction →
                     </button>
+                    <button class="btn-secondary btn-sm" onclick="openEditJunctionModal('${d.id}')" style="width:100%; font-size:11px; margin-top:2px;">
+                        ✏️ Edit Junction & Move Location
+                    </button>
                 ` : `
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:4px 6px; font-size:10px; color:#64748b; text-align:center;">
                         <i class="fa-solid fa-lock"></i> Staff Login Required for Signal Override
@@ -2437,9 +2596,14 @@ function handleMapMarkerPopup(props, coord) {
             <div style="font-size:12px; margin-bottom:4px;">Position: <code style="font-size:11px; color:#475569;">${Number(d.latitude || 0).toFixed(5)}, ${Number(d.longitude || 0).toFixed(5)}</code></div>
             <div style="font-size:12px; margin-bottom:8px;">Type: <strong>${d.signal_type || 'Standard 3-Phase'}</strong></div>
             ${isStaffUser() ? `
-                <button class="btn-primary btn-sm" onclick="openModifySignalLocationModal('${d.id}')" style="width:100%; font-size:11px; background:#2563eb;">
-                    <i class="fa-solid fa-location-dot"></i> Modify / Move Signal Location
-                </button>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <button class="btn-primary btn-sm" onclick="openModifySignalLocationModal('${d.id}')" style="width:100%; font-size:11px; background:#2563eb;">
+                        <i class="fa-solid fa-location-dot"></i> Modify / Move Signal Location
+                    </button>
+                    <button class="btn-secondary btn-sm" onclick="openEditSignalModal('${d.id}')" style="width:100%; font-size:11px;">
+                        ✏️ Edit Signal Configuration
+                    </button>
+                </div>
             ` : `
                 <div style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; font-size:11px; color:#64748b; text-align:center;">
                     <i class="fa-solid fa-lock" style="color:#94a3b8;"></i> Staff Authorization Required to Move Signal
@@ -2457,11 +2621,39 @@ function handleMapMarkerPopup(props, coord) {
             </div>
             <div style="font-size:12px;">Rate: ₹${d.hourly_rate}/hr</div>
         `;
+    } else if (props.type === "camera") {
+        popupContent.innerHTML = `
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                <span style="font-size:20px;">📹</span>
+                <div>
+                    <h4 style="margin:0; font-size:13px;">${d.camera_name || d.id}</h4>
+                    <span class="badge ${d.status === 'Online' ? 'badge-online' : 'badge-warning'}" style="font-size:10px;">${d.status || 'Configured'}</span>
+                </div>
+            </div>
+            <div style="font-size:11px; color:#64748b; margin-bottom:3px;">Approach: <strong>${d.direction || 'Coverage'}</strong> • Res: <strong>${d.resolution || '1080p FHD'}</strong></div>
+            <div style="font-size:11px; color:#475569; margin-bottom:4px;">Position: <code>${Number(d.latitude || 26.7588).toFixed(5)}, ${Number(d.longitude || 83.3731).toFixed(5)}</code></div>
+            <div style="font-size:11px; margin-bottom:8px;">Live Telemetry: <strong>${d.vehicles_per_min || 35} veh/min</strong> (${d.avg_speed || 28} km/h)</div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <button class="btn-primary btn-sm" onclick="openAIVisionInspectionModal('${d.id}')" style="width:100%; font-size:11px;">
+                    👁️ Open AI Optical Vision
+                </button>
+                ${isStaffUser() ? `
+                    <button class="btn-secondary btn-sm" onclick="openEditCameraModal('${d.id}')" style="width:100%; font-size:11px;">
+                        ✏️ Edit Camera & Move Location
+                    </button>
+                ` : ''}
+            </div>
+        `;
     } else if (props.type === "incident") {
         popupContent.innerHTML = `
             <h4 style="color:#dc2626;">⚠️ ${d.incident_type}</h4>
             <p style="font-size:12px; margin-bottom:4px;">${d.location_name}</p>
             <p style="font-size:12px; color:#475569;">${d.description}</p>
+            ${isStaffUser() ? `
+                <button class="btn-secondary btn-sm" onclick="openReportIncidentModal('${d.id}')" style="width:100%; font-size:11px; margin-top:6px;">
+                    ✏️ Manage / Relocate Incident
+                </button>
+            ` : ''}
         `;
     } else if (props.type === "waterlogging") {
         popupContent.innerHTML = `

@@ -1032,10 +1032,11 @@
 <div id="modal-incident" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
-            <h3>🚨 Report Traffic Incident / Hazard</h3>
+            <h3 id="modal-inc-title">🚨 Report / Manage Traffic Incident</h3>
             <button class="modal-close-btn" onclick="closeModal('modal-incident')">&times;</button>
         </div>
         <div class="modal-body">
+            <input type="hidden" id="inc-edit-id">
             <div class="form-group">
                 <label>INCIDENT CATEGORY</label>
                 <select id="inc-category" class="form-control">
@@ -1051,6 +1052,19 @@
                 <label>LOCATION / LANDMARK IN GORAKHPUR</label>
                 <input type="text" id="inc-location" class="form-control" placeholder="e.g. Near Golghar City Mall Crossing">
             </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>LATITUDE</label>
+                    <input type="number" step="0.0000001" id="inc-lat-input" class="form-control" placeholder="26.7588000">
+                </div>
+                <div class="form-group">
+                    <label>LONGITUDE</label>
+                    <input type="number" step="0.0000001" id="inc-lng-input" class="form-control" placeholder="83.3731000">
+                </div>
+            </div>
+            <button type="button" class="btn-secondary btn-sm" onclick="pickCoordsFor('inc')" style="margin-bottom: 12px; width: 100%;">
+                📍 Pick Incident Location on Map
+            </button>
             <div class="form-group">
                 <label>SEVERITY LEVEL</label>
                 <select id="inc-severity" class="form-control">
@@ -1075,7 +1089,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="closeModal('modal-incident')">Cancel</button>
-            <button class="btn-danger" onclick="submitTrafficIncident()">Submit Report</button>
+            <button class="btn-danger" id="btn-save-incident" onclick="submitTrafficIncident()">Submit Report</button>
         </div>
     </div>
 </div>
@@ -1187,6 +1201,20 @@
                     </select>
                 </div>
             </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <div class="form-group">
+                    <label>CAMERA LATITUDE</label>
+                    <input type="number" step="0.0000001" id="cam-lat-input" class="form-control" placeholder="26.7588000">
+                </div>
+                <div class="form-group">
+                    <label>CAMERA LONGITUDE</label>
+                    <input type="number" step="0.0000001" id="cam-lng-input" class="form-control" placeholder="83.3731000">
+                </div>
+            </div>
+            <button type="button" class="btn-secondary btn-sm" onclick="pickCoordsFor('cam')" style="margin-bottom: 12px; width: 100%;">
+                📍 Pick Camera Location on Map
+            </button>
         </div>
         <div class="modal-footer">
             <button class="btn-secondary" onclick="closeModal('modal-camera')">Cancel</button>
@@ -1203,6 +1231,7 @@
             <button class="modal-close-btn" onclick="closeModal('modal-junction')">&times;</button>
         </div>
         <div class="modal-body">
+            <input type="hidden" id="jnc-edit-id">
             <div class="form-group">
                 <label>JUNCTION ID (e.g. JNC-09)</label>
                 <input type="text" id="jnc-id-input" class="form-control" placeholder="JNC-09">

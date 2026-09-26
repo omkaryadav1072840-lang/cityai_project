@@ -920,14 +920,25 @@ router.post("/api/traffic/cameras", requireStaffRole, async (req, res) => {
 
 router.post("/api/traffic/junctions/:id/cameras", requireStaffRole, async (req, res) => {
     req.body.junction_id = req.params.id;
-    const { junction_id, camera_name, direction, stream_url, resolution, fps, sensor_type, source_type, playback_type, status, operator, role } = req.body;
+    const { junction_id, camera_name, direction, stream_url, resolution, fps, sensor_type, source_type, playback_type, status, latitude, longitude, operator, role } = req.body;
 
     const camId = `CAM-${junction_id}-${direction.substring(0, 1).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
+    let finalLat = latitude ? parseFloat(latitude) : null;
+    let finalLng = longitude ? parseFloat(longitude) : null;
+
+    if (!finalLat || !finalLng) {
+        const [jnc] = await pool.promise().query("SELECT latitude, longitude FROM traffic_junctions WHERE id = ?", [junction_id]);
+        if (jnc && jnc.length > 0) {
+            finalLat = jnc[0].latitude;
+            finalLng = jnc[0].longitude;
+        }
+    }
+
     await pool.promise().query(
         `INSERT INTO traffic_cameras 
-         (id, junction_id, camera_name, direction, stream_url, resolution, fps, status, is_simulated, sensor_type, source_type, playback_type, vehicles_per_min, avg_speed)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 35, 28.0)`,
+         (id, junction_id, camera_name, direction, stream_url, resolution, fps, status, is_simulated, sensor_type, source_type, playback_type, vehicles_per_min, avg_speed, latitude, longitude)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 35, 28.0, ?, ?)`,
         [
             camId, 
             junction_id, 
@@ -939,24 +950,82 @@ router.post("/api/traffic/junctions/:id/cameras", requireStaffRole, async (req, 
             status || 'Configured', 
             sensor_type || 'AI Optical Vision + Radar Speed',
             source_type || 'phone_ip',
-            playback_type || 'auto'
+            playback_type || 'auto',
+            finalLat,
+            finalLng
         ]
     );
 
     const [rows] = await pool.promise().query(
         `SELECT c.*, j.name as junction_name, j.zone as junction_zone 
-         FROM traffic_cameras c JOIN traffic_junctions j ON c.junction_id = j.id WHERE c.id = ?`,
+         FROM traffic_cameras c LEFT JOIN traffic_junctions j ON c.junction_id = j.id WHERE c.id = ?`,
         [camId]
     );
+
+    if (req.app.get("io") && rows[0]) {
+        req.app.get("io").emit("traffic:camera_added", rows[0]);
+    }
 
     res.status(201).json({ success: true, message: `Camera ${camera_name} added successfully.`, cameraId: camId, camera: rows[0] });
 });
 
-// 2D. Edit CCTV Camera
+// Standalone Add Camera Endpoint (Direct from Map or Modal)
+router.post("/api/traffic/cameras", requireStaffRole, async (req, res) => {
+    try {
+        const { junction_id, camera_name, direction, stream_url, resolution, fps, sensor_type, source_type, playback_type, status, latitude, longitude } = req.body;
+        const jId = junction_id || 'JNC-01';
+        const dir = direction || 'North';
+        const camId = `CAM-${jId}-${dir.substring(0, 1).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+
+        let finalLat = latitude ? parseFloat(latitude) : 26.7588;
+        let finalLng = longitude ? parseFloat(longitude) : 83.3731;
+
+        await pool.promise().query(
+            `INSERT INTO traffic_cameras 
+             (id, junction_id, camera_name, direction, stream_url, resolution, fps, status, is_simulated, sensor_type, source_type, playback_type, vehicles_per_min, avg_speed, latitude, longitude)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 35, 28.0, ?, ?)`,
+            [
+                camId, 
+                jId, 
+                (camera_name || 'Traffic Camera').trim(), 
+                dir, 
+                stream_url ? stream_url.trim() : 'simulated_feed.mp4', 
+                resolution || '1080p FHD', 
+                fps || 30, 
+                status || 'Configured', 
+                sensor_type || 'AI Optical Vision + Radar Speed',
+                source_type || 'phone_ip',
+                playback_type || 'auto',
+                finalLat,
+                finalLng
+            ]
+        );
+
+        const [rows] = await pool.promise().query(
+            `SELECT c.*, j.name as junction_name, j.zone as junction_zone 
+             FROM traffic_cameras c LEFT JOIN traffic_junctions j ON c.junction_id = j.id WHERE c.id = ?`,
+            [camId]
+        );
+
+        if (req.app.get("io") && rows[0]) {
+            req.app.get("io").emit("traffic:camera_added", rows[0]);
+        }
+
+        res.status(201).json({ success: true, message: `Camera added successfully with coordinates.`, cameraId: camId, camera: rows[0] });
+    } catch (e) {
+        console.error("Add camera error:", e);
+        res.status(500).json({ error: "Failed to create camera: " + e.message });
+    }
+});
+
+// 2D. Edit CCTV Camera (With Map Coordinates Support)
 router.put("/api/traffic/cameras/:id", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
-        const { camera_name, direction, stream_url, resolution, fps, status, sensor_type, source_type, playback_type, operator } = req.body;
+        const { camera_name, direction, stream_url, resolution, fps, status, sensor_type, source_type, playback_type, latitude, longitude, operator } = req.body;
+
+        const latVal = latitude !== undefined && latitude !== null ? parseFloat(latitude) : null;
+        const lngVal = longitude !== undefined && longitude !== null ? parseFloat(longitude) : null;
 
         await pool.promise().query(
             `UPDATE traffic_cameras 
@@ -968,14 +1037,16 @@ router.put("/api/traffic/cameras/:id", requireStaffRole, async (req, res) => {
                  status = COALESCE(?, status),
                  sensor_type = COALESCE(?, sensor_type),
                  source_type = COALESCE(?, source_type),
-                 playback_type = COALESCE(?, playback_type)
+                 playback_type = COALESCE(?, playback_type),
+                 latitude = COALESCE(?, latitude),
+                 longitude = COALESCE(?, longitude)
              WHERE id = ?`,
-            [camera_name, direction, stream_url, resolution, fps, status, sensor_type, source_type, playback_type, id]
+            [camera_name, direction, stream_url, resolution, fps, status, sensor_type, source_type, playback_type, latVal, lngVal, id]
         );
 
         const [rows] = await pool.promise().query(
             `SELECT c.*, j.name as junction_name, j.zone as junction_zone 
-             FROM traffic_cameras c JOIN traffic_junctions j ON c.junction_id = j.id WHERE c.id = ?`,
+             FROM traffic_cameras c LEFT JOIN traffic_junctions j ON c.junction_id = j.id WHERE c.id = ?`,
             [id]
         );
 
@@ -987,14 +1058,14 @@ router.put("/api/traffic/cameras/:id", requireStaffRole, async (req, res) => {
             role: req.staffUser?.role || 'Staff',
             action: 'UPDATE_CCTV_CAMERA',
             target: `Camera ${id}`,
-            details: `Updated camera settings (${camera_name}). Status: ${status || 'preserved'}.`
+            details: `Updated camera settings (${camera_name}) and location (${latVal}, ${lngVal}). Status: ${status || 'preserved'}.`
         });
 
         if (req.app.get("io") && updatedCamera) {
             req.app.get("io").emit("traffic:camera_updated", updatedCamera);
         }
 
-        res.json({ success: true, message: `Camera ${id} updated.`, camera: updatedCamera });
+        res.json({ success: true, message: `Camera ${id} updated with new coordinates.`, camera: updatedCamera });
     } catch (err) {
         res.status(500).json({ error: "Failed to update camera: " + err.message });
     }
@@ -1747,6 +1818,46 @@ router.put("/api/traffic/incidents/:id/status", requireStaffRole, async (req, re
         res.json({ success: true, message: `Incident ${id} updated to ${status}.` });
     } catch (err) {
         res.status(500).json({ error: "Failed to update incident status" });
+    }
+});
+
+// Full Incident Modification & Relocation (Staff)
+router.put("/api/traffic/incidents/:id", requireStaffRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { incident_type, location_name, latitude, longitude, severity, description, status, assigned_officer, operator, role } = req.body;
+
+        const latVal = latitude !== undefined && latitude !== null ? parseFloat(latitude) : null;
+        const lngVal = longitude !== undefined && longitude !== null ? parseFloat(longitude) : null;
+
+        await pool.promise().query(
+            `UPDATE traffic_incidents 
+             SET incident_type = COALESCE(?, incident_type),
+                 location_name = COALESCE(?, location_name),
+                 latitude = COALESCE(?, latitude),
+                 longitude = COALESCE(?, longitude),
+                 severity = COALESCE(?, severity),
+                 description = COALESCE(?, description),
+                 status = COALESCE(?, status),
+                 assigned_officer = COALESCE(?, assigned_officer),
+                 resolved_at = CASE WHEN ? = 'Resolved' THEN NOW() ELSE resolved_at END
+             WHERE id = ?`,
+            [incident_type, location_name, latVal, lngVal, severity, description, status, assigned_officer, status, id]
+        );
+
+        await trafficEngine.logAudit({
+            userId: operator || 'STAFF',
+            userName: operator || 'Traffic Staff',
+            role: role || 'Staff',
+            action: 'MODIFY_INCIDENT',
+            target: `Incident ${id}`,
+            details: `Modified incident: ${incident_type || 'preserved'}, loc: ${location_name || 'preserved'} (${latVal}, ${lngVal}).`
+        });
+
+        res.json({ success: true, message: `Incident ${id} updated successfully.` });
+    } catch (err) {
+        console.error("Modify incident error:", err);
+        res.status(500).json({ error: "Failed to modify incident: " + err.message });
     }
 });
 
