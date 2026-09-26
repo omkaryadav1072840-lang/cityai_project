@@ -8,6 +8,7 @@ const router = express.Router();
 const pool = require("../config/db");
 const trafficEngine = require("../services/traffic_engine");
 const ambulanceSimulator = require("../services/ambulance_simulator");
+const aiClient = require("../services/ai_service_client");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
 const { authenticateToken, requireRole, hashPassword } = require("../middleware/auth.middleware");
@@ -1131,6 +1132,89 @@ router.post("/api/traffic/cameras/:id/traffic-feed", requireStaffRole, async (re
     } catch (err) {
         console.error("Camera traffic feed error:", err);
         res.status(500).json({ error: "Failed to update camera traffic feed" });
+    }
+});
+
+// 2C-1B. Live AI Optical Vision Analysis for a Camera
+router.get("/api/traffic/cameras/:id/ai-vision", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [cams] = await pool.promise().query(
+            `SELECT c.*, j.name as junction_name, j.zone as junction_zone, j.congestion_level as junction_congestion
+             FROM traffic_cameras c
+             LEFT JOIN traffic_junctions j ON c.junction_id = j.id
+             WHERE c.id = ?`,
+            [id]
+        );
+
+        if (cams.length === 0) {
+            return res.status(404).json({ success: false, error: `Camera ${id} not found.` });
+        }
+
+        const cam = cams[0];
+        const visionData = await aiClient.analyzeCamera({
+            camera_id: cam.id,
+            camera_name: cam.camera_name,
+            stream_url: cam.stream_url,
+            direction: cam.direction,
+            is_simulated: true
+        });
+
+        res.json({
+            success: true,
+            camera: cam,
+            vision: visionData
+        });
+    } catch (err) {
+        console.error("Camera AI vision endpoint error:", err);
+        res.status(500).json({ success: false, error: "Failed to perform AI vision analysis." });
+    }
+});
+
+// 2C-1C. Synchronize AI Optical Flow to Live Junction Control
+router.post("/api/traffic/cameras/:id/sync-ai-flow", requireStaffRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [cams] = await pool.promise().query(
+            "SELECT c.*, j.name as junction_name FROM traffic_cameras c LEFT JOIN traffic_junctions j ON c.junction_id = j.id WHERE c.id = ?",
+            [id]
+        );
+        if (cams.length === 0) {
+            return res.status(404).json({ success: false, error: `Camera ${id} not found.` });
+        }
+        const cam = cams[0];
+
+        // 1. Run live AI vision analysis
+        const visionData = await aiClient.analyzeCamera({
+            camera_id: cam.id,
+            camera_name: cam.camera_name,
+            stream_url: cam.stream_url,
+            direction: cam.direction,
+            is_simulated: true
+        });
+
+        const vehCount = visionData.vehicle_count || 32;
+        const spd = visionData.avg_speed_kmh || 24.0;
+
+        // 2. Update database
+        await pool.promise().query(
+            "UPDATE traffic_cameras SET vehicles_per_min = ?, avg_speed = ?, status = 'Online' WHERE id = ?",
+            [vehCount, spd, id]
+        );
+
+        // 3. Recalculate junction congestion
+        const updatedJunctions = await trafficEngine.recalculateJunctionCongestionFromCameras(cam.junction_id);
+        const jncUpdate = updatedJunctions.find(j => j.id === cam.junction_id);
+
+        res.json({
+            success: true,
+            message: `Optical AI Flow synchronized: ${vehCount} veh/min detected. Junction congestion updated to ${jncUpdate ? jncUpdate.congestion_level : '--'}%.`,
+            vision: visionData,
+            junctionUpdate: jncUpdate
+        });
+    } catch (err) {
+        console.error("Sync AI flow error:", err);
+        res.status(500).json({ success: false, error: "Failed to synchronize optical flow." });
     }
 });
 

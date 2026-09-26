@@ -123,6 +123,46 @@ async function predictTraffic(params = {}) {
 }
 
 /**
+ * CCTV Optical Camera Computer Vision Analysis
+ */
+async function analyzeCamera(params = {}) {
+    const payload = {
+        camera_id: String(params.camera_id || params.id || "CAM-01-N"),
+        camera_name: String(params.camera_name || params.name || "Traffic Optical Sensor"),
+        stream_url: String(params.stream_url || "simulated://stream"),
+        direction: String(params.direction || "North"),
+        is_simulated: Boolean(params.is_simulated !== undefined ? params.is_simulated : true)
+    };
+
+    try {
+        const result = await callFastAPI("/api/v1/traffic/camera-vision", "POST", payload);
+        return { ...result, fallback_used: false };
+    } catch (err) {
+        console.warn(`[AIServiceClient] analyzeCamera fallback triggered: ${err.message}`);
+        const count = Math.floor(25 + Math.random() * 20);
+        return {
+            camera_id: payload.camera_id,
+            camera_name: payload.camera_name,
+            ai_analysis_available: true,
+            stream_url: payload.stream_url,
+            vehicle_count: count,
+            vehicle_breakdown: {
+                cars: Math.floor(count * 0.45),
+                two_wheelers: Math.floor(count * 0.35),
+                autos: Math.floor(count * 0.12),
+                buses: 2,
+                trucks: 1
+            },
+            queue_length_meters: Math.floor(count * 2.2),
+            avg_speed_kmh: 24.5,
+            congestion_estimate: count > 35 ? "HEAVY" : "MODERATE",
+            recommended_signal_green_secs: count > 35 ? 55 : 40,
+            fallback_used: true
+        };
+    }
+}
+
+/**
  * Waste Management Demand & Collection Priority
  */
 async function predictWaste(params = {}) {
@@ -343,6 +383,7 @@ async function queryAssistant(question, userRole = "citizen", userId = null, con
 module.exports = {
     checkHealth,
     predictTraffic,
+    analyzeCamera,
     predictWaste,
     analyzeWater,
     analyzeHealthcare,

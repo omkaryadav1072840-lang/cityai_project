@@ -5561,11 +5561,13 @@ async function fetchCommandCenterData() {
                 const elAQI = document.getElementById("ccMetricAQI");
                 const elAQIStatus = document.getElementById("ccMetricAQIStatus");
                 const elICU = document.getElementById("ccMetricICUBeds");
+                const elCCTV = document.getElementById("ccMetricCCTV");
 
                 if (elActive) elActive.textContent = data.activeRequestsCount ?? "12";
                 if (elCrit) elCrit.textContent = data.criticalRequestsCount ?? "2";
                 if (elBreach) elBreach.textContent = data.slaBreachedCount ?? "0";
                 if (elLights) elLights.textContent = `${data.streetLightsUptimePct ?? 98}%`;
+                if (elCCTV) elCCTV.textContent = `${data.camerasCount ?? 10} Units`;
                 
                 const aqi = data.averageAQI ?? 124;
                 if (elAQI) elAQI.textContent = aqi;

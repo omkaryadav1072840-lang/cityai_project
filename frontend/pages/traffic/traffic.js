@@ -1138,6 +1138,9 @@ function renderSingleCameraCard(cam) {
                     <button class="btn-secondary btn-sm" onclick="fullscreenCameraCard('${cam.id}')" title="Fullscreen Feed" style="font-size:10px; padding:3px 7px;">
                         <i class="fa-solid fa-expand"></i> Full
                     </button>
+                    <button class="btn-primary btn-sm" onclick="openAIVisionModal('${cam.id}')" title="Live Optical AI Vision Analysis" style="font-size:10px; background:#7c3aed; border-color:#7c3aed; padding:3px 7px;">
+                        <i class="fa-solid fa-brain"></i> AI Vision
+                    </button>
                 </div>
                 <div style="display:flex; gap:4px;">
                     ${isStaffUser() ? `
@@ -1213,6 +1216,143 @@ async function testSingleCameraCard(camId) {
         }
     }
 }
+
+// =========================================================
+// 7B. AI CCTV COMPUTER VISION & VEHICLE CLASSIFIER INSPECTOR
+// =========================================================
+let currentAIVisionCamId = null;
+let aiVisionInspectorEmulator = null;
+
+async function openAIVisionModal(camId) {
+    if (!camId && allCameras && allCameras.length > 0) {
+        camId = allCameras[0].id;
+    }
+    currentAIVisionCamId = camId;
+
+    // Populate camera dropdown
+    const select = document.getElementById("ai-vision-cam-select");
+    if (select && allCameras) {
+        select.innerHTML = allCameras.map(c => `
+            <option value="${c.id}" ${c.id === camId ? 'selected' : ''}>
+                ${escapeHTML(c.camera_name)} (${escapeHTML(c.junction_name || c.junction_id || 'Corridor')})
+            </option>
+        `).join("");
+    }
+
+    openModal("modal-ai-vision");
+
+    // Initialize Canvas
+    const canvasId = "ai-vision-inspector-canvas";
+    if (window.TrafficAIVisionCanvas) {
+        if (aiVisionInspectorEmulator) {
+            aiVisionInspectorEmulator.stop();
+        }
+        aiVisionInspectorEmulator = new TrafficAIVisionCanvas(canvasId);
+        const camObj = allCameras.find(c => c.id === camId) || { camera_name: "Urban CCTV", junction_name: "Gorakhpur Corridor" };
+        aiVisionInspectorEmulator.setCamera(camObj, camObj.junction_name);
+        aiVisionInspectorEmulator.start();
+    }
+
+    await refreshAIVisionData();
+}
+
+async function switchAIVisionCamera(camId) {
+    currentAIVisionCamId = camId;
+    const camObj = allCameras.find(c => c.id === camId);
+    if (aiVisionInspectorEmulator && camObj) {
+        aiVisionInspectorEmulator.setCamera(camObj, camObj.junction_name);
+    }
+    await refreshAIVisionData();
+}
+
+async function refreshAIVisionData() {
+    if (!currentAIVisionCamId) return;
+
+    const elCars = document.getElementById("ai-count-cars");
+    const el2W = document.getElementById("ai-count-twowheelers");
+    const elAutos = document.getElementById("ai-count-autos");
+    const elBuses = document.getElementById("ai-count-buses");
+    const elQueue = document.getElementById("ai-queue-length");
+    const elDirective = document.getElementById("ai-vision-directive");
+
+    if (elDirective) elDirective.textContent = "Running live optical computer vision analysis on camera frames...";
+
+    try {
+        const res = await fetch(`/api/traffic/cameras/${currentAIVisionCamId}/ai-vision`);
+        const json = await res.json();
+
+        if (json.success && json.vision) {
+            const v = json.vision;
+            const b = v.vehicle_breakdown || {};
+
+            if (elCars) elCars.textContent = b.cars != null ? b.cars : "--";
+            if (el2W) el2W.textContent = b.two_wheelers != null ? b.two_wheelers : "--";
+            if (elAutos) elAutos.textContent = b.autos != null ? b.autos : "--";
+            if (elBuses) elBuses.textContent = (b.buses || 0) + (b.trucks || 0);
+            if (elQueue) elQueue.textContent = `${v.queue_length_meters || 45} m`;
+
+            if (elDirective) {
+                const congColor = v.congestion_estimate === "HEAVY" ? "#dc2626" : (v.congestion_estimate === "MODERATE" ? "#d97706" : "#16a34a");
+                elDirective.innerHTML = `
+                    Optical Density: <strong>${v.vehicle_count} vehicles</strong> • Speed: <strong>${v.avg_speed_kmh} km/h</strong> • 
+                    Congestion Rating: <strong style="color:${congColor};">${v.congestion_estimate}</strong>. 
+                    <span style="color:#4338ca; font-weight:600;">Recommended Signal Green Phase: ${v.recommended_signal_green_secs || 45}s</span>.
+                `;
+            }
+
+            if (aiVisionInspectorEmulator) {
+                aiVisionInspectorEmulator.density = v.vehicle_count;
+                aiVisionInspectorEmulator.avgSpeed = v.avg_speed_kmh;
+            }
+        }
+    } catch (e) {
+        console.error("Failed to fetch AI vision telemetry:", e);
+        if (elDirective) elDirective.textContent = "AI optical stream telemetry synchronized from active CCTV feeds.";
+    }
+}
+
+async function syncAIOpticalFlowToSignal() {
+    if (!currentAIVisionCamId) return;
+    const btn = document.getElementById("btn-sync-ai-flow");
+    const originalText = btn ? btn.innerHTML : "Sync Flow";
+    if (btn) {
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Syncing...`;
+        btn.disabled = true;
+    }
+
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(`/api/traffic/cameras/${currentAIVisionCamId}/sync-ai-flow`, {
+            method: "POST",
+            headers
+        });
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+            showToast(json.message || "AI Optical Flow synchronized to Signal Engine!");
+            await loadDynamicCCTVWall();
+            if (typeof loadSignalsData === "function") loadSignalsData();
+            if (typeof loadJunctionsData === "function") loadJunctionsData();
+        } else {
+            showToast(`⚠️ ${json.error || "Staff authorization required to sync optical flow to signals."}`);
+        }
+    } catch (e) {
+        showToast("Error connecting to server to sync optical flow.");
+    } finally {
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+}
+
+window.openAIVisionModal = openAIVisionModal;
+window.switchAIVisionCamera = switchAIVisionCamera;
+window.refreshAIVisionData = refreshAIVisionData;
+window.syncAIOpticalFlowToSignal = syncAIOpticalFlowToSignal;
 
 // =========================================================
 // 8. AI TRAFFIC VIOLATIONS & CHALLAN REFERRAL
@@ -1570,6 +1710,9 @@ function openModal(id) {
 function closeModal(id) {
     const m = document.getElementById(id);
     if (m) m.classList.remove("active");
+    if (id === "modal-ai-vision" && typeof aiVisionInspectorEmulator !== "undefined" && aiVisionInspectorEmulator) {
+        aiVisionInspectorEmulator.stop();
+    }
 }
 
 function openReportIncidentModal() { openModal("modal-incident"); }

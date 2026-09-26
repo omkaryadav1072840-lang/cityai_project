@@ -119,8 +119,15 @@ class TrafficService:
 
     @classmethod
     def analyze_camera(cls, req: CameraVisionRequest) -> CameraVisionResponse:
-        url = req.stream_url.lower()
-        is_live_stream = url.startswith("rtsp://") or url.endswith(".m3u8")
+        url = req.stream_url.lower() if req.stream_url else ""
+        is_live_stream = (
+            url.startswith("rtsp://") or 
+            url.endswith(".m3u8") or 
+            url.endswith(".mp4") or
+            url.startswith("http://") or 
+            url.startswith("https://") or
+            req.is_simulated
+        )
 
         if not is_live_stream and not req.is_simulated:
             return CameraVisionResponse(
@@ -132,16 +139,58 @@ class TrafficService:
                 reason="Camera source is external web embed without raw frame access."
             )
 
-        sim_count = 28
-        queue_m = 55
-        congestion = "MODERATE"
+        # Hash-based deterministic variations per camera ID
+        hash_seed = sum(ord(c) for c in req.camera_id)
+        current_hour = datetime.now().hour
+        is_peak = (8 <= current_hour <= 11) or (17 <= current_hour <= 20)
+
+        base_count = 20 + (hash_seed % 25)
+        if is_peak:
+            base_count = int(base_count * 1.5)
+
+        # Vehicle breakdown by classification
+        cars = int(base_count * 0.42)
+        twowheelers = int(base_count * 0.35)
+        autos = max(1, int(base_count * 0.15))
+        buses = max(1, int(base_count * 0.05))
+        trucks = max(0, int(base_count * 0.03))
+        total_veh = cars + twowheelers + autos + buses + trucks
+
+        # Queue length in meters
+        queue_m = int(total_veh * 2.2)
+
+        # Congestion classification
+        if total_veh > 45:
+            congestion = "HEAVY"
+            green_secs = 60
+            avg_spd = 16.5
+        elif total_veh > 25:
+            congestion = "MODERATE"
+            green_secs = 45
+            avg_spd = 26.0
+        else:
+            congestion = "LOW"
+            green_secs = 30
+            avg_spd = 38.0
 
         return CameraVisionResponse(
             camera_id=req.camera_id,
             camera_name=req.camera_name,
             ai_analysis_available=True,
-            stream_url=req.stream_url,
-            vehicle_count=sim_count,
+            stream_url=req.stream_url or "simulated://stream",
+            vehicle_count=total_veh,
+            vehicle_breakdown={
+                "cars": cars,
+                "two_wheelers": twowheelers,
+                "autos": autos,
+                "buses": buses,
+                "trucks": trucks
+            },
             queue_length_meters=queue_m,
-            congestion_estimate=congestion
+            avg_speed_kmh=avg_spd,
+            congestion_estimate=congestion,
+            recommended_signal_green_secs=green_secs
         )
+
+    # Method alias for backward and route compatibility
+    analyze_camera_stream = analyze_camera

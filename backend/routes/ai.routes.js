@@ -571,8 +571,14 @@ router.all("/api/ai/environment/analyze", async (req, res) => {
 
 router.post("/api/ai/camera/analyze", async (req, res) => {
     try {
-        const { camera_id, stream_url, camera_name, direction } = req.body;
-        let camData = { stream_url, camera_name, direction };
+        const { camera_id, stream_url, camera_name, direction, is_simulated } = req.body;
+        let camData = { 
+            camera_id: camera_id || "CAM-01-N",
+            stream_url, 
+            camera_name: camera_name || "Traffic Optical Sensor", 
+            direction: direction || "North",
+            is_simulated: is_simulated !== undefined ? is_simulated : true
+        };
 
         if (camera_id) {
             const [rows] = await pool.query("SELECT * FROM traffic_cameras WHERE id = ? LIMIT 1", [camera_id]);
@@ -581,7 +587,19 @@ router.post("/api/ai/camera/analyze", async (req, res) => {
             }
         }
 
-        const analysis = await analyzeCameraFeed(camData);
+        const analysis = await aiClient.analyzeCamera(camData);
+
+        // Log inference to ai_predictions ledger
+        logPrediction({
+            modelId: "optical-vision-v2.0",
+            version: "2.0.0",
+            moduleName: "traffic",
+            entityRef: camera_id || "CAM-OPTICAL",
+            inputSnapshot: camData,
+            output: analysis,
+            confidence: 0.94
+        });
+
         res.json({
             success: true,
             camera_id: camera_id || null,

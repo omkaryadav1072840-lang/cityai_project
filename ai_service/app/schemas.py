@@ -53,8 +53,11 @@ class CameraVisionResponse(BaseModel):
     ai_analysis_available: bool
     stream_url: str
     vehicle_count: Optional[int] = None
+    vehicle_breakdown: Optional[Dict[str, int]] = None
     queue_length_meters: Optional[int] = None
+    avg_speed_kmh: Optional[float] = None
     congestion_estimate: str
+    recommended_signal_green_secs: Optional[int] = None
     reason: Optional[str] = None
 
 
