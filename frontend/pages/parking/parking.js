@@ -3962,6 +3962,10 @@ window.openUserProfileModal = function () {
     const menu = document.getElementById("userDropdownMenu");
     if (menu) menu.style.display = "none";
 
+    if (window.SmartCityAuth && typeof window.SmartCityAuth.showProfileModal === "function") {
+        return window.SmartCityAuth.showProfileModal();
+    }
+
     let user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
     if (!user) {
         user = {
@@ -4589,7 +4593,209 @@ window.scrollToSlotGrid = function () {
 window.openCitizenQrPassModal = showCitizenQrPassModal;
 window.showCitizenQrPassModal = showCitizenQrPassModal;
 
-// Initialize user navbar on load
+/* =========================================================
+   AI SMART PARKING DEMAND & OCCUPANCY FORECAST (FastAPI ML)
+========================================================= */
+
+function onAIParkingLotChange(lotId) {
+    const select = document.getElementById("ai-park-lot-select");
+    if (!select) return;
+    const option = select.options[select.selectedIndex];
+    if (!option) return;
+
+    const total = option.getAttribute("data-total");
+    const occ = option.getAttribute("data-occ");
+
+    if (total && document.getElementById("ai-park-total")) document.getElementById("ai-park-total").value = total;
+    if (occ && document.getElementById("ai-park-occupied")) document.getElementById("ai-park-occupied").value = occ;
+}
+
+async function runAIParkingForecast() {
+    const lotSelect = document.getElementById("ai-park-lot-select");
+    const hourInput = document.getElementById("ai-park-hour");
+    const totalInput = document.getElementById("ai-park-total");
+    const occInput = document.getElementById("ai-park-occupied");
+    const resultBox = document.getElementById("ai-parking-result-box");
+
+    const lotId = lotSelect ? lotSelect.value : "GKP-PARK-01";
+    const hour = hourInput ? Number(hourInput.value) : new Date().getHours();
+    const totalSlots = totalInput ? Number(totalInput.value) : 120;
+    const occupied = occInput ? Number(occInput.value) : 88;
+
+    if (resultBox) {
+        resultBox.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b; font-size: 13px;">🔄 Calculating parking bay occupancy forecast via FastAPI ML...</div>`;
+    }
+
+    try {
+        const queryParams = new URLSearchParams({
+            lot_id: lotId,
+            total_slots: totalSlots,
+            current_occupied: occupied,
+            hour: hour
+        });
+
+        const res = await fetch(`/api/ai/parking/forecast?${queryParams.toString()}`);
+        const json = await res.json();
+
+        if (json.success && json.forecast) {
+            const f = json.forecast;
+            const occPct = f.projected_occupancy_pct || 0;
+            const availSlots = f.projected_available_slots != null ? f.projected_available_slots : Math.max(0, totalSlots - occupied);
+            const peakProb = Math.round((f.peak_probability || 0.5) * 100);
+
+            const badgeColor = occPct > 80 ? "#ef4444" : (occPct > 60 ? "#f59e0b" : "#10b981");
+
+            if (resultBox) {
+                resultBox.innerHTML = `
+                    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.04);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1e293b;">FACILITY FORECAST: <strong>${escapeHTML(f.lot_id)}</strong></span>
+                            <span style="background: ${badgeColor}; color: #ffffff; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 6px;">
+                                ${occPct > 80 ? "HIGH DEMAND" : (occPct > 60 ? "MODERATE OCCUPANCY" : "OPEN AVAILABILITY")}
+                            </span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">PROJECTED OCCUPANCY</div>
+                                <div style="font-size: 24px; font-weight: 900; color: ${badgeColor};">${occPct}%</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">At ${hour}:00 Hrs</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">ESTIMATED FREE BAYS</div>
+                                <div style="font-size: 24px; font-weight: 900; color: #2563eb;">${availSlots}</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Out of ${totalSlots} Bays</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">PEAK SURGE RISK</div>
+                                <div style="font-size: 24px; font-weight: 900; color: ${peakProb > 70 ? '#ea580c' : '#16a34a'};">${peakProb}%</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Congestion Probability</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                            <div style="width: ${Math.min(100, occPct)}%; height: 100%; background: ${badgeColor}; transition: width 0.4s ease;"></div>
+                        </div>
+
+                        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+                            <strong style="color: #15803d; font-size: 12px; display: block; margin-bottom: 2px;">💡 AI Operational Guidance:</strong>
+                            <span style="color: #166534; font-size: 12px;">${escapeHTML(f.recommendation || "Contactless reservation recommended before arriving.")}</span>
+                        </div>
+
+                        <div style="font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                            <span>Model: <code>${escapeHTML(f.model_version || "parking-occupancy-v2.0")}</code></span>
+                            <span>Engine: <strong>FastAPI Modular ML Layer</strong></span>
+                        </div>
+                    </div>
+                `;
+            }
+            loadAIParkingAuditTable();
+        }
+    } catch (err) {
+        if (resultBox) {
+            resultBox.innerHTML = `<div style="color: #ef4444; font-size: 12px; padding: 10px;">Failed to obtain parking forecast: ${escapeHTML(err.message)}</div>`;
+        }
+    }
+}
+
+async function loadAIParkingAuditTable() {
+    const tableBody = document.getElementById("ai-parking-tbody");
+    if (!tableBody) return;
+
+    try {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+            ? SmartCityAuth.getToken() 
+            : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch("/api/ai/predictions?module=parking&limit=8", { headers });
+        const json = await res.json();
+
+        if (json.success && json.predictions) {
+            if (json.predictions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">No parking demand forecasts logged yet. Run a forecast above to log an entry.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = json.predictions.map(pred => {
+                const out = typeof pred.prediction_output === "string" ? JSON.parse(pred.prediction_output) : (pred.prediction_output || {});
+                const statusBadge = pred.review_status === "ACCEPTED"
+                    ? `<span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">APPROVED</span>`
+                    : (pred.review_status === "REJECTED"
+                        ? `<span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">REJECTED</span>`
+                        : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">PENDING REVIEW</span>`);
+
+                const actions = pred.review_status === "PENDING"
+                    ? `<button class="btn-primary" style="padding: 3px 8px; font-size: 11px; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer;" onclick="submitAIParkingReview(${pred.id}, 'APPROVED')">✓ Approve</button>
+                       <button class="btn-secondary" style="padding: 3px 8px; font-size: 11px; color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; background: #fff; cursor: pointer; margin-left: 4px;" onclick="submitAIParkingReview(${pred.id}, 'REJECTED')">✕ Reject</button>`
+                    : `<span style="font-size: 11px; color: #64748b;">Reviewed #${pred.reviewed_by || 'Staff'}</span>`;
+
+                return `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 14px;"><strong>#${pred.id}</strong></td>
+                        <td style="padding: 10px 14px;">${escapeHTML(pred.entity_reference || 'Gorakhpur Lot')}</td>
+                        <td style="padding: 10px 14px;"><strong style="color: #1e293b;">${out.projected_occupancy_pct || '--'}%</strong></td>
+                        <td style="padding: 10px 14px;">${out.projected_available_slots != null ? out.projected_available_slots : '--'} Free</td>
+                        <td style="padding: 10px 14px;">${Math.round((out.peak_probability || 0.5) * 100)}%</td>
+                        <td style="padding: 10px 14px; font-size: 11px; color: #64748b;">${new Date(pred.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+                        <td style="padding: 10px 14px;">${statusBadge}</td>
+                        <td style="padding: 10px 14px;">${actions}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    } catch (e) {
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444; padding: 14px;">Log unavailable: Login as staff to view and approve entries.</td></tr>`;
+    }
+}
+
+async function submitAIParkingReview(predictionId, actionTaken) {
+    try {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+            ? SmartCityAuth.getToken() 
+            : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+        
+        if (!token) {
+            alert("Operator login required to record parking demand reviews.");
+            return;
+        }
+
+        const res = await fetch(`/api/ai/review/${predictionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action_taken: actionTaken,
+                comments: `Parking manager review: ${actionTaken} via Parking UI.`
+            })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+            alert(`Demand prediction #${predictionId} marked as ${actionTaken}.`);
+            loadAIParkingAuditTable();
+        } else {
+            alert(json.message || "Could not record review action.");
+        }
+    } catch (err) {
+        alert("Failed to submit review: " + err.message);
+    }
+}
+
+// Window exports
+window.onAIParkingLotChange = onAIParkingLotChange;
+window.runAIParkingForecast = runAIParkingForecast;
+window.loadAIParkingAuditTable = loadAIParkingAuditTable;
+window.submitAIParkingReview = submitAIParkingReview;
+
+// Initialize user navbar and AI audit on load
 document.addEventListener("DOMContentLoaded", function () {
     initNavUserProfile();
+    if (typeof loadAIParkingAuditTable === "function") {
+        loadAIParkingAuditTable();
+    }
 });

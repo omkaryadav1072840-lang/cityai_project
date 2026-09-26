@@ -4287,6 +4287,258 @@ Object.assign(window, {
     openPrescriptionUpload,
 
     showPharmacy, verifyPharmacyPatient, logoutPharmacyPatient,
+/* =========================================================
+   AI HEALTHCARE & SURGE CAPACITY INTELLIGENCE (FastAPI ML)
+========================================================= */
+
+function onAIHospitalChange(facilityId) {
+    const select = document.getElementById("ai-hosp-select");
+    if (!select) return;
+    const selectedOption = select.options[select.selectedIndex];
+    if (!selectedOption) return;
+
+    const total = selectedOption.getAttribute("data-total");
+    const occ = selectedOption.getAttribute("data-occ");
+    const icu = selectedOption.getAttribute("data-icu");
+    const icuo = selectedOption.getAttribute("data-icuo");
+
+    if (total && document.getElementById("ai-hosp-total")) document.getElementById("ai-hosp-total").value = total;
+    if (occ && document.getElementById("ai-hosp-occupied")) document.getElementById("ai-hosp-occupied").value = occ;
+    if (icu && document.getElementById("ai-hosp-icu")) document.getElementById("ai-hosp-icu").value = icu;
+    if (icuo && document.getElementById("ai-hosp-icuo")) document.getElementById("ai-hosp-icuo").value = icuo;
+}
+
+async function runAIHealthcareAnalysis() {
+    const hospSelect = document.getElementById("ai-hosp-select");
+    const totalInput = document.getElementById("ai-hosp-total");
+    const occInput = document.getElementById("ai-hosp-occupied");
+    const icuInput = document.getElementById("ai-hosp-icu");
+    const icuoInput = document.getElementById("ai-hosp-icuo");
+    const resultBox = document.getElementById("ai-healthcare-result-box");
+
+    const hospitalId = hospSelect ? hospSelect.value : "HOSP-AIIMS-01";
+    const totalBeds = totalInput ? Number(totalInput.value) : 500;
+    const occupiedBeds = occInput ? Number(occInput.value) : 410;
+    const icuBeds = icuInput ? Number(icuInput.value) : 60;
+    const occupiedIcu = icuoInput ? Number(icuoInput.value) : 45;
+
+    if (resultBox) {
+        resultBox.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b; font-size: 13px;">🔄 Evaluating real-time bed capacity via FastAPI ML Layer...</div>`;
+    }
+
+    try {
+        const queryParams = new URLSearchParams({
+            hospital_id: hospitalId,
+            total_beds: totalBeds,
+            occupied_beds: occupiedBeds,
+            icu_beds: icuBeds,
+            occupied_icu: occupiedIcu
+        });
+
+        const res = await fetch(`/api/ai/healthcare/analyze?${queryParams.toString()}`);
+        const json = await res.json();
+
+        if (json.success && json.analysis) {
+            const a = json.analysis;
+            const occPct = a.projected_bed_occupancy_pct || 0;
+            const isNearSat = a.is_near_saturation;
+            const icuStatus = a.critical_care_status || "ADEQUATE_ICU_CAPACITY";
+
+            const statusBadgeColor = isNearSat ? "#ef4444" : (occPct > 75 ? "#f59e0b" : "#10b981");
+            const icuBadgeColor = icuStatus === "CRITICAL_ICU_SHORTAGE" ? "#ef4444" : (icuStatus === "ELEVATED_ICU_LOAD" ? "#f59e0b" : "#10b981");
+
+            let triageAdvice = "Normal admissions workflow active. Maintain regular discharge cycle.";
+            if (isNearSat) {
+                triageAdvice = "CRITICAL ADVISORY: Prepare auxiliary triage bays. Coordinate non-critical diversions with BRD Medical / District Hospital.";
+            } else if (occPct > 75) {
+                triageAdvice = "ELEVATED LOAD: Prioritize pending morning discharges. Reserve remaining ICU suites for acute trauma.";
+            }
+
+            if (resultBox) {
+                resultBox.innerHTML = `
+                    <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.04);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1e293b;">FACILITY EVALUATION: <strong>${escapeHTML(a.hospital_id)}</strong></span>
+                            <div style="display: flex; gap: 8px;">
+                                <span style="background: ${statusBadgeColor}; color: #ffffff; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 6px;">
+                                    ${isNearSat ? "NEAR SATURATION" : "CAPACITY STABLE"}
+                                </span>
+                                <span style="background: ${icuBadgeColor}; color: #ffffff; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 6px;">
+                                    ${escapeHTML(icuStatus.replace(/_/g, " "))}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">OCCUPANCY RATE</div>
+                                <div style="font-size: 24px; font-weight: 900; color: ${statusBadgeColor};">${occPct}%</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${occupiedBeds}/${totalBeds} Beds</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">ICU OCCUPANCY</div>
+                                <div style="font-size: 24px; font-weight: 900; color: ${icuBadgeColor};">${Math.round((occupiedIcu / Math.max(1, icuBeds)) * 100)}%</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${occupiedIcu}/${icuBeds} ICU Beds</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">AVAILABLE BEDS</div>
+                                <div style="font-size: 24px; font-weight: 900; color: #2563eb;">${Math.max(0, totalBeds - occupiedBeds)}</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Immediate Intake</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                            <div style="width: ${Math.min(100, occPct)}%; height: 100%; background: ${statusBadgeColor}; transition: width 0.4s ease;"></div>
+                        </div>
+
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+                            <strong style="color: #1e40af; font-size: 12px; display: block; margin-bottom: 2px;">💡 AI Triage Protocol Recommendation:</strong>
+                            <span style="color: #1e3a8a; font-size: 12px;">${escapeHTML(triageAdvice)}</span>
+                        </div>
+
+                        <div style="font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                            <span>Model: <code>${escapeHTML(a.model_version || "hospital-capacity-v2.0")}</code></span>
+                            <span style="font-style: italic;">⚖️ ${escapeHTML(a.safety_disclaimer || "Clinical triage remains under medical superintendent authority.")}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            loadAIHealthcareAuditTable();
+        }
+    } catch (err) {
+        if (resultBox) {
+            resultBox.innerHTML = `<div style="color: #ef4444; font-size: 12px; padding: 10px;">Failed to obtain AI healthcare evaluation: ${escapeHTML(err.message)}</div>`;
+        }
+    }
+}
+
+async function loadAIHealthcareAuditTable() {
+    const tableBody = document.getElementById("ai-healthcare-tbody");
+    if (!tableBody) return;
+
+    try {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+            ? SmartCityAuth.getToken() 
+            : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch("/api/ai/predictions?module=healthcare&limit=8", { headers });
+        const json = await res.json();
+
+        if (json.success && json.predictions) {
+            if (json.predictions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No healthcare capacity predictions logged yet. Run an analysis above.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = json.predictions.map(pred => {
+                const out = typeof pred.prediction_output === "string" ? JSON.parse(pred.prediction_output) : (pred.prediction_output || {});
+                const statusBadge = pred.review_status === "ACCEPTED"
+                    ? `<span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">APPROVED</span>`
+                    : (pred.review_status === "REJECTED"
+                        ? `<span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">REJECTED</span>`
+                        : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">PENDING REVIEW</span>`);
+
+                const actions = pred.review_status === "PENDING"
+                    ? `<button class="primary-btn" style="padding: 3px 8px; font-size: 11px; cursor: pointer;" onclick="submitAIHealthcareReview(${pred.id}, 'APPROVED')">✓ Approve</button>
+                       <button class="secondary-btn" style="padding: 3px 8px; font-size: 11px; color: #ef4444; border-color: #ef4444; cursor: pointer; margin-left: 4px;" onclick="submitAIHealthcareReview(${pred.id}, 'REJECTED')">✕ Reject</button>`
+                    : `<span style="font-size: 11px; color: #64748b;">Reviewed #${pred.reviewed_by || 'Staff'}</span>`;
+
+                return `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 14px;"><strong>#${pred.id}</strong></td>
+                        <td style="padding: 10px 14px;">${escapeHTML(pred.entity_reference || 'Gorakhpur Facility')}</td>
+                        <td style="padding: 10px 14px;"><strong style="color: #1e293b;">${out.projected_bed_occupancy_pct || '--'}%</strong></td>
+                        <td style="padding: 10px 14px;"><span style="font-size: 11px; font-weight: 600;">${escapeHTML((out.critical_care_status || 'Adequate').replace(/_/g, " "))}</span></td>
+                        <td style="padding: 10px 14px; font-size: 11px; color: #64748b;">${new Date(pred.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+                        <td style="padding: 10px 14px;">${statusBadge}</td>
+                        <td style="padding: 10px 14px;">${actions}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    } catch (e) {
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ef4444; padding: 14px;">Log unavailable: Login as staff to view and approve entries.</td></tr>`;
+    }
+}
+
+async function submitAIHealthcareReview(predictionId, actionTaken) {
+    try {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+            ? SmartCityAuth.getToken() 
+            : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+        
+        if (!token) {
+            alert("Operator login required to record clinical capacity reviews.");
+            return;
+        }
+
+        const res = await fetch(`/api/ai/review/${predictionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action_taken: actionTaken,
+                comments: `Clinical superintendent review: ${actionTaken} via Hospital Portal UI.`
+            })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+            alert(`Capacity prediction #${predictionId} marked as ${actionTaken}.`);
+            loadAIHealthcareAuditTable();
+        } else {
+            alert(json.message || "Could not record review action.");
+        }
+    } catch (err) {
+        alert("Failed to submit review: " + err.message);
+    }
+}
+
+/* =========================================================
+   WINDOW EXPORTS — every name here IS defined above, once.
+========================================================= */
+
+Object.assign(window, {
+    apiRequest, escapeHTML, escapeJS, openModal, closeModal, closeAllModals,
+
+    openPatientRegistration, generatePatientID, calculateAge, handleDobAutoAge, showPatientQR,
+    getPatientId, isPatientLoggedIn, showCurrentPatient, logoutPatient,
+    openPatientPrintCard, executePrintPatientCard,
+    openAbhaModal, confirmAbhaLink, unlinkAbha,
+    openQrScanModal, closeQrScanModal, startPatientCameraScanner, stopPatientCameraScanner, verifyQrFromInput, handleScannedQrResult,
+    openStaffPatientManager, debounceStaffPatientSearch, resetStaffPatientFilters, fetchStaffPatientsList, toggleStaffPatientStatus,
+
+    showHospitals, renderHospitals, selectHospital, viewHospital, searchHospitals,
+    onBookingHospitalChange, fetchDynamicSlots, confirmStrictBooking, filterAndSortHospitals,
+    openHospitalDashboardDirect, selectTimeSlot, switchHospitalDetailsTab, openDoctorFromHospital,
+    setDetailsTestCategory, openCitizenTestBookingModal, openCitizenHomeSampleModal,
+    handleCitizenTestBookingSubmit, cancelAppointment, openHospitalDetails, createHospitalDetailsModal,
+
+    openDoctorBooking, bookSpecificDoctor, bookDoctorSlot, printAppointment,
+    openDoctorFinder, loadDoctorFinder, searchDoctors, resetDoctorFilters,
+    viewDoctorDetails, closeDoctorDetails, loadDoctorSlots, selectDoctorSlot,
+    openMyAppointments, loadMyAppointments,
+
+    openEmergency, callEmergency,
+
+    trackAmbulance, showAmbulance, refreshAmbulance, selectAmbulance,
+    startEmergencyRequest, selectMatchHospital, selectMatchAmbulance,
+    confirmEmergencyAssignment, advanceAmbulanceStatus, refreshAmbulanceRoute,
+    resetAmbulanceTracking,
+
+    showBeds, loadBeds,
+
+    openPatientFile, searchPatientFile, loadMyPatientRecord, switchRecordTab, printPatientRecord,
+    renderRecordTab, toggleInlineForm,
+
+    openPrescriptionUpload,
+
+    showPharmacy, verifyPharmacyPatient, logoutPharmacyPatient,
     loadMedicines, searchMedicines, viewMedicine, addToCart,
     openCart, changeCartQuantity, removeFromCart, checkoutMedicineCart,
     openPaymentModal, showPaymentFields, processPayment, printReceipt,
@@ -4297,7 +4549,13 @@ Object.assign(window, {
     fillDoctorLogin, submitDoctorLogin,
 
     globalSearch,
-    showNotification, showLoading, showError, showSuccess
+    showNotification, showLoading, showError, showSuccess,
+
+    // AI Healthcare Intelligence exports
+    onAIHospitalChange,
+    runAIHealthcareAnalysis,
+    loadAIHealthcareAuditTable,
+    submitAIHealthcareReview
 });
 
 console.log("✅ hospital.js loaded successfully.");

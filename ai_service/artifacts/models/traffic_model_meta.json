@@ -1,0 +1,22 @@
+{
+  "model_identifier": "traffic-baseline-v2.0",
+  "framework": "scikit-learn (RandomForestRegressor)",
+  "features": [
+    "hour",
+    "day_of_week",
+    "is_weekend",
+    "is_peak_hour",
+    "aqi",
+    "active_incidents"
+  ],
+  "trained_samples": 960,
+  "test_samples": 240,
+  "metrics": {
+    "mae": 3.3411,
+    "rmse": 4.1205,
+    "r2_score": 0.9619,
+    "cv_mae": 3.6178
+  },
+  "evaluation_timestamp": "2026-09-24T17:08:10.707168",
+  "limitations": "Model trained on calibrated Gorakhpur corridor baselines; subject to continuous retraining upon gathering live inductive loop sensor logs."
+}

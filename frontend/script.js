@@ -2532,11 +2532,16 @@ async function sendAIMessage() {
     const typingId = showAITypingIndicator();
 
     try {
+        const token = window.SmartCityAuth && SmartCityAuth.getToken();
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
         const res = await fetch(`${BACKEND_URL}/api/ai/chat`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: headers,
             body: JSON.stringify({
                 message: message,
+                question: message,
                 history: aiConversationHistory
             })
         });
@@ -2547,12 +2552,14 @@ async function sendAIMessage() {
         const data = await res.json();
 
         // 3. Render AI Response Bubble
-        appendChatMessage("bot", data.reply, data.actions);
-        aiConversationHistory.push({ sender: "bot", text: data.reply });
+        const botReply = data.reply || data.answer || "I processed your request.";
+        const botActions = data.suggested_actions || data.actions || [];
+        appendChatMessage("bot", botReply, botActions);
+        aiConversationHistory.push({ sender: "bot", text: botReply });
 
         // Speak response aloud if speaker enabled
         if (typeof speakAIText === "function" && isVoiceSpeakerEnabled) {
-            speakAIText(data.reply);
+            speakAIText(botReply);
         }
 
         // Play soft chime on response
@@ -2617,12 +2624,16 @@ function appendChatMessage(sender, text, actions = []) {
     if (Array.isArray(actions) && actions.length > 0) {
         actionsHtml = `<div class="ai-actions-row">` +
             actions.map(act => {
-                if (act.action === "trigger_sos") {
+                const actionUrl = act.url || act.action || "";
+                if (actionUrl === "trigger_sos") {
                     return `<button class="ai-action-btn danger" onclick="triggerQuickSOSFromChat()">🚨 Emergency SOS Dispatch</button>`;
-                } else if (act.action === "call") {
-                    return `<a class="ai-action-btn primary" href="tel:${act.value || '108'}">📞 Call ${act.value || '108'}</a>`;
-                } else if (act.url) {
-                    return `<a class="ai-action-btn ${act.type || 'primary'}" href="${act.url}">${act.label || 'View Details'}</a>`;
+                } else if (act.action === "call" || (typeof actionUrl === "string" && actionUrl.startsWith("tel:"))) {
+                    const phone = act.value || (typeof actionUrl === "string" ? actionUrl.replace("tel:", "") : "108");
+                    return `<a class="ai-action-btn primary" href="tel:${phone}">📞 Call ${phone}</a>`;
+                } else if (typeof actionUrl === "string" && actionUrl.startsWith("javascript:")) {
+                    return `<button class="ai-action-btn primary" onclick="${actionUrl.replace('javascript:', '')}">${act.label || 'Action'}</button>`;
+                } else if (actionUrl) {
+                    return `<a class="ai-action-btn ${act.type || 'primary'}" href="${actionUrl}">${act.label || 'View Details'}</a>`;
                 }
                 return "";
             }).join("") +
@@ -5538,77 +5549,237 @@ async function fetchCommandCenterData() {
         const headers = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        const res = await fetch(`${BACKEND_URL}/api/admin/command-center`, { headers });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
+        // 1. Fetch municipal admin KPI telemetry (if authorized or fallback)
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/admin/command-center`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                const elActive = document.getElementById("ccMetricActiveReqs");
+                const elCrit = document.getElementById("ccMetricCritical");
+                const elBreach = document.getElementById("ccMetricBreached");
+                const elLights = document.getElementById("ccMetricLights");
+                const elAQI = document.getElementById("ccMetricAQI");
+                const elAQIStatus = document.getElementById("ccMetricAQIStatus");
+                const elICU = document.getElementById("ccMetricICUBeds");
 
-        // Update KPI tiles
-        const elActive = document.getElementById("ccMetricActiveReqs");
-        const elCrit = document.getElementById("ccMetricCritical");
-        const elBreach = document.getElementById("ccMetricBreached");
-        const elLights = document.getElementById("ccMetricLights");
-        const elAQI = document.getElementById("ccMetricAQI");
-        const elAQIStatus = document.getElementById("ccMetricAQIStatus");
-        const elICU = document.getElementById("ccMetricICUBeds");
+                if (elActive) elActive.textContent = data.activeRequestsCount ?? "12";
+                if (elCrit) elCrit.textContent = data.criticalRequestsCount ?? "2";
+                if (elBreach) elBreach.textContent = data.slaBreachedCount ?? "0";
+                if (elLights) elLights.textContent = `${data.streetLightsUptimePct ?? 98}%`;
+                
+                const aqi = data.averageAQI ?? 124;
+                if (elAQI) elAQI.textContent = aqi;
+                if (elAQIStatus) {
+                    elAQIStatus.textContent = aqi > 200 ? "Poor / Unhealthy" : (aqi > 100 ? "Moderate" : "Good");
+                    elAQIStatus.style.color = aqi > 200 ? "#f87171" : (aqi > 100 ? "#fbbf24" : "#34d399");
+                }
 
-        if (elActive) elActive.textContent = data.activeRequestsCount ?? "12";
-        if (elCrit) elCrit.textContent = data.criticalRequestsCount ?? "2";
-        if (elBreach) elBreach.textContent = data.slaBreachedCount ?? "0";
-        if (elLights) elLights.textContent = `${data.streetLightsUptimePct ?? 98}%`;
-        
-        const aqi = data.averageAQI ?? 124;
-        if (elAQI) elAQI.textContent = aqi;
-        if (elAQIStatus) {
-            elAQIStatus.textContent = aqi > 200 ? "Poor / Unhealthy" : (aqi > 100 ? "Moderate" : "Good");
-            elAQIStatus.style.color = aqi > 200 ? "#f87171" : (aqi > 100 ? "#fbbf24" : "#34d399");
+                if (elICU) elICU.textContent = `${data.availableICUBeds ?? 28} Free`;
+
+                // Update SLA Escalation Queue
+                const escContainer = document.getElementById("ccEscalationList");
+                if (escContainer && data.urgentGrievances) {
+                    escContainer.innerHTML = data.urgentGrievances.map(e => `
+                        <div class="sc-feed-item">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                <b style="color:#38bdf8; font-size:11px;">#${escapeHTML(e.tracking_id || e.id)} • ${escapeHTML(e.category || e.dept)}</b>
+                                <span style="font-size:10px; font-weight:700; color:${e.status === 'CRITICAL' ? '#f87171' : '#fbbf24'}">${e.status}</span>
+                            </div>
+                            <div style="color:#94a3b8; font-size:11px;">Department: ${escapeHTML(e.dept || e.department)} | Window: ${e.sla_hours || 6}h SLA</div>
+                        </div>
+                    `).join("");
+                }
+            }
+        } catch (e) {
+            console.warn("Municipal telemetry fallback:", e.message);
         }
 
-        if (elICU) elICU.textContent = `${data.availableICUBeds ?? 28} Free`;
+        // 2. Fetch Live AI Status and Registered Model Governance
+        try {
+            const aiStatusRes = await fetch(`${BACKEND_URL}/api/ai/status`);
+            if (aiStatusRes.ok) {
+                const aiStatus = await aiStatusRes.json();
+                const healthBadge = document.getElementById("ccAIHealthBadge");
+                const modelsGrid = document.getElementById("ccAIModelsGrid");
 
-        // Update Anomaly Stream
-        const anomalyContainer = document.getElementById("ccAnomalyList");
-        if (anomalyContainer) {
-            const anomalies = data.aiAnomalies || [
-                { type: "TRAFFIC", message: "Asuran Chowk: Signal cycle delay detected (+14m queue)", severity: "HIGH" },
-                { type: "ENVIRONMENT", message: "Golghar Commercial: PM2.5 surge (112 µg/m³)", severity: "MEDIUM" },
-                { type: "WASTE", message: "Medical College Ward 4: Bin #22 fill-level reached 94%", severity: "HIGH" }
-            ];
+                if (healthBadge) {
+                    const isHealthy = aiStatus.python_service && aiStatus.python_service.status === "healthy";
+                    healthBadge.textContent = isHealthy ? "FASTAPI ML ACTIVE" : "DEGRADED";
+                    healthBadge.style.background = isHealthy ? "#065f46" : "#7f1d1d";
+                    healthBadge.style.color = isHealthy ? "#34d399" : "#fca5a5";
+                }
 
-            anomalyContainer.innerHTML = anomalies.map(a => `
-                <div class="sc-feed-item">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-                        <b style="color:${a.severity === 'HIGH' ? '#f87171' : '#fbbf24'}; font-size:11px;">⚠️ ${escapeHTML(a.type || 'ANOMALY')}</b>
-                        <span style="font-size:10px; color:#94a3b8;">${a.severity || 'ALERT'}</span>
-                    </div>
-                    <div style="color:#e2e8f0;">${escapeHTML(a.message || a.description || '')}</div>
-                </div>
-            `).join("");
+                if (modelsGrid && Array.isArray(aiStatus.registered_models)) {
+                    modelsGrid.innerHTML = aiStatus.registered_models.map(m => `
+                        <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <strong style="color: #f8fafc; font-size: 11px;">${escapeHTML(m.module.toUpperCase())}</strong>
+                                <span style="background: ${m.status === 'active' ? '#065f46' : '#1e3a8a'}; color: ${m.status === 'active' ? '#34d399' : '#93c5fd'}; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
+                                    ${escapeHTML(m.status.toUpperCase())}
+                                </span>
+                            </div>
+                            <div style="color: #38bdf8; font-family: monospace; font-size: 11px; margin-bottom: 2px;">${escapeHTML(m.model_identifier)}</div>
+                            <div style="color: #64748b; font-size: 10px;">Framework: ${escapeHTML(m.framework)}</div>
+                        </div>
+                    `).join("");
+                }
+            }
+        } catch (e) {
+            console.warn("AI Status radar error:", e.message);
         }
 
-        // Update SLA Escalation Queue
-        const escContainer = document.getElementById("ccEscalationList");
-        if (escContainer) {
-            const escalations = data.urgentGrievances || [
-                { id: "REQ-9021", dept: "waste", category: "Hospital Biohazard Overflow", sla_hours: 2, status: "CRITICAL" },
-                { id: "REQ-8843", dept: "traffic", category: "Mohaddipur Red Light Failure", sla_hours: 4, status: "HIGH" },
-                { id: "REQ-7612", dept: "water", category: "Town Hall Pipeline Burst", sla_hours: 6, status: "HIGH" }
-            ];
+        // 3. Fetch Live Cross-Department AI Anomaly Stream
+        try {
+            const anomalyRes = await fetch(`${BACKEND_URL}/api/ai/anomalies`);
+            const anomalyContainer = document.getElementById("ccAnomalyList");
+            if (anomalyRes.ok && anomalyContainer) {
+                const anomalyJson = await anomalyRes.json();
+                const report = anomalyJson.report || {};
+                const anomalies = report.anomalies || [];
 
-            escContainer.innerHTML = escalations.map(e => `
-                <div class="sc-feed-item">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-                        <b style="color:#38bdf8; font-size:11px;">#${escapeHTML(e.tracking_id || e.id)} • ${escapeHTML(e.category || e.dept)}</b>
-                        <span style="font-size:10px; font-weight:700; color:${e.status === 'CRITICAL' ? '#f87171' : '#fbbf24'}">${e.status}</span>
-                    </div>
-                    <div style="color:#94a3b8; font-size:11px;">Department: ${escapeHTML(e.dept || e.department)} | Window: ${e.sla_hours || 6}h SLA</div>
-                </div>
-            `).join("");
+                if (anomalies.length === 0) {
+                    anomalyContainer.innerHTML = `
+                        <div class="sc-feed-item" style="border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.05);">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                <b style="color:#34d399; font-size:11px;">🟢 NORMAL BASELINE</b>
+                                <span style="font-size:10px; color:#94a3b8;">ALL SYSTEMS NOMINAL</span>
+                            </div>
+                            <div style="color:#e2e8f0; font-size:12px;">No multi-department anomalies detected across traffic, waste, healthcare, or water infrastructure.</div>
+                            <div style="font-size:10px; color:#64748b; margin-top:4px;">Engine: ${escapeHTML(report.engine || 'Statistical Z-Score & Threshold Baseline')}</div>
+                        </div>
+                    `;
+                } else {
+                    anomalyContainer.innerHTML = anomalies.map(a => `
+                        <div class="sc-feed-item" style="border-left: 3px solid ${a.severity === 'HIGH' ? '#f87171' : '#fbbf24'};">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                <b style="color:${a.severity === 'HIGH' ? '#f87171' : '#fbbf24'}; font-size:11px;">⚠️ ${escapeHTML(a.type || 'ANOMALY')}</b>
+                                <span style="font-size:10px; color:#94a3b8;">${escapeHTML(a.severity || 'ALERT')}</span>
+                            </div>
+                        </div>
+                    `).join("");
+                }
+            }
+        } catch (e) {
+            console.warn("AI Anomaly radar error:", e.message);
+        }
+
+        // 4. Fetch Live AI Predictions Audit Ledger
+        try {
+            await fetchAIPredictionsLedger();
+        } catch (e) {
+            console.warn("AI Predictions ledger fetch error:", e.message);
         }
 
     } catch (err) {
         console.warn("Command center data fetch fallback:", err);
     }
 }
+
+async function fetchAIPredictionsLedger() {
+    const tbody = document.getElementById("ccAIPredictionsTableBody");
+    if (!tbody) return;
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(`${BACKEND_URL}/api/ai/predictions?limit=10`, { headers });
+        if (!res.ok) {
+            tbody.innerHTML = `<tr><td colspan="7" style="padding: 12px; text-align: center; color: #94a3b8;">No predictions recorded yet in governance ledger.</td></tr>`;
+            return;
+        }
+        const data = await res.json();
+        const predictions = data.predictions || [];
+        if (predictions.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" style="padding: 12px; text-align: center; color: #94a3b8;">No inferences logged yet. Predictions will stream here in real-time.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = predictions.map(p => {
+            let parsedOutput = p.prediction_output;
+            if (typeof parsedOutput === "string") {
+                try { parsedOutput = JSON.parse(parsedOutput); } catch (e) {}
+            }
+            let summary = "";
+            if (parsedOutput) {
+                if (parsedOutput.predicted_congestion) summary = `Congestion: ${parsedOutput.predicted_congestion} (Score: ${parsedOutput.severity_score != null ? parsedOutput.severity_score : '--'})`;
+                else if (parsedOutput.priority_rank) summary = `Fill: ${parsedOutput.estimated_fill_pct}% (${parsedOutput.priority_rank})`;
+                else if (parsedOutput.risk_level) summary = `Risk: ${parsedOutput.risk_level}`;
+                else if (parsedOutput.projected_bed_occupancy_pct != null) summary = `Bed Demand: ${parsedOutput.projected_bed_occupancy_pct}%`;
+                else if (parsedOutput.projected_occupancy_pct != null) summary = `Occupancy: ${parsedOutput.projected_occupancy_pct}%`;
+                else if (parsedOutput.estimated_travel_minutes != null) summary = `ETA: ${parsedOutput.estimated_travel_minutes} min`;
+                else summary = JSON.stringify(parsedOutput).slice(0, 45) + "...";
+            } else {
+                summary = "Recorded inference";
+            }
+
+            const status = p.review_status || "PENDING";
+            let statusBadge = `<span style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">${escapeHTML(status)}</span>`;
+            if (status === "APPROVED") statusBadge = `<span style="background: #065f46; color: #34d399; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">APPROVED</span>`;
+            else if (status === "FLAGGED") statusBadge = `<span style="background: #78350f; color: #fde047; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">FLAGGED</span>`;
+            else if (status === "REJECTED") statusBadge = `<span style="background: #7f1d1d; color: #fca5a5; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">REJECTED</span>`;
+
+            const conf = p.confidence_score != null ? `${Math.round(p.confidence_score * 100)}%` : "--";
+
+            return `
+                <tr style="border-bottom: 1px solid rgba(51, 65, 85, 0.5);">
+                    <td style="padding: 8px 10px; font-family: monospace; color: #64748b;">#${escapeHTML(String(p.id))}</td>
+                    <td style="padding: 8px 10px;"><strong style="color: #38bdf8; text-transform: uppercase;">${escapeHTML(p.module || '')}</strong></td>
+                    <td style="padding: 8px 10px; color: #cbd5e1; font-family: monospace; font-size: 11px;">${escapeHTML(p.model_identifier || '')}</td>
+                    <td style="padding: 8px 10px; color: #f8fafc;">${escapeHTML(summary)}</td>
+                    <td style="padding: 8px 10px; color: #a78bfa; font-weight: 600;">${conf}</td>
+                    <td style="padding: 8px 10px;">${statusBadge}</td>
+                    <td style="padding: 8px 10px; text-align: right; white-space: nowrap;">
+                        <button onclick="submitAIReview(${p.id}, 'APPROVED')" title="Approve Recommendation" style="background: #065f46; color: #34d399; border: none; padding: 3px 7px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-right: 4px;">✓</button>
+                        <button onclick="submitAIReview(${p.id}, 'FLAGGED')" title="Flag for Secondary Review" style="background: #78350f; color: #fde047; border: none; padding: 3px 7px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-right: 4px;">⚑</button>
+                        <button onclick="submitAIReview(${p.id}, 'REJECTED')" title="Reject Output" style="background: #7f1d1d; color: #fca5a5; border: none; padding: 3px 7px; border-radius: 4px; cursor: pointer; font-size: 11px;">✕</button>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding: 12px; text-align: center; color: #f87171;">Failed to load AI predictions ledger.</td></tr>`;
+    }
+}
+
+async function submitAIReview(predictionId, action) {
+    try {
+        const token = (typeof SmartCityAuth !== "undefined") ? SmartCityAuth.getToken() : localStorage.getItem("sc_token");
+        if (!token) {
+            if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.openLoginModal) {
+                SmartCityAuth.openLoginModal();
+            } else {
+                alert("Please log in as Municipal Staff or Admin to submit AI reviews.");
+            }
+            return;
+        }
+
+        const res = await fetch(`${BACKEND_URL}/api/ai/review/${predictionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action_taken: action,
+                comments: `Operator one-click review: ${action} from Command Center console.`
+            })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            fetchAIPredictionsLedger();
+        } else {
+            alert(data.message || "Failed to submit operator review.");
+        }
+    } catch (e) {
+        console.error("AI review submit error:", e);
+        alert("Error connecting to server to submit AI review.");
+    }
+}
+
+window.fetchAIPredictionsLedger = fetchAIPredictionsLedger;
+window.submitAIReview = submitAIReview;
 
 // --------------------------------------------------------------------------
 // 4. SIMULATED SMS / WHATSAPP DISPATCH ALERT PREVIEWS

@@ -1,27 +1,82 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db").promise();
+const aiClient = require("../services/ai_service_client");
 const {
     predictTraffic,
     detectAnomalies,
     analyzeCameraFeed,
     predictWasteDemand
 } = require("../services/python_ai_bridge");
+const {
+    authenticateToken,
+    optionalToken,
+    requireRole
+} = require("../middleware/auth.middleware");
+
+/**
+ * Helper to record prediction inference into ai_predictions table
+ * without failing the user's primary request if logging encounters an issue.
+ */
+async function logPrediction({ modelId, version, moduleName, entityRef, inputSnapshot, output, confidence }) {
+    try {
+        await pool.query(
+            `INSERT INTO ai_predictions 
+             (model_identifier, model_version, module, entity_reference, input_snapshot, prediction_output, confidence_score)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                modelId || "unknown-model",
+                version || "2.0.0",
+                moduleName || "general",
+                entityRef || null,
+                inputSnapshot ? JSON.stringify(inputSnapshot) : null,
+                JSON.stringify(output),
+                confidence != null ? Number(confidence) : null
+            ]
+        );
+    } catch (err) {
+        console.warn("[AILogger] Warning: Could not log prediction:", err.message);
+    }
+}
 
 // =========================================================
-// 1. AI CITY ASSISTANT (NLP Intent + Live DB Query)
+// 1. AI STATUS & SYSTEM HEALTH
 // =========================================================
 
-router.get("/api/ai/status", (req, res) => {
-    res.json({
-        success: true,
-        geminiKeyConfigured: !!process.env.GEMINI_API_KEY,
-        engine: "Python ML + Deterministic Rule Engine",
-        status: "Online"
-    });
+router.get("/api/ai/status", async (req, res) => {
+    try {
+        const pythonHealth = await aiClient.checkHealth();
+        const [models] = await pool.query("SELECT model_identifier, module, status, framework FROM ai_models WHERE status IN ('active', 'baseline')");
+
+        res.json({
+            success: true,
+            status: "Online",
+            architecture: "FastAPI ML Layer (Port 8000) + Node.js Application Gateway (Port 5000)",
+            python_service: pythonHealth,
+            registered_models: models,
+            geminiKeyConfigured: !!process.env.GEMINI_API_KEY
+        });
+    } catch (err) {
+        console.error("AI Status error:", err);
+        res.status(500).json({ success: false, message: "Error checking AI status", error: err.message });
+    }
 });
 
-router.post(["/api/ai/assistant", "/api/ai/chat"], async (req, res) => {
+router.get("/api/ai/models", async (req, res) => {
+    try {
+        const [models] = await pool.query("SELECT * FROM ai_models ORDER BY module ASC");
+        res.json({ success: true, count: models.length, models });
+    } catch (err) {
+        console.error("AI models query error:", err);
+        res.status(500).json({ success: false, message: "Error fetching AI models" });
+    }
+});
+
+// =========================================================
+// 2. GROUNDED SMARTCITY AI ASSISTANT (Allowlisted Tools)
+// =========================================================
+
+router.post(["/api/ai/assistant", "/api/ai/chat"], optionalToken, async (req, res) => {
     try {
         const question = req.body.question || req.body.message;
         if (!question || !question.trim()) {
@@ -29,14 +84,16 @@ router.post(["/api/ai/assistant", "/api/ai/chat"], async (req, res) => {
         }
 
         const q = question.toLowerCase().trim();
+        const userRole = (req.user && req.user.role) ? req.user.role : "citizen";
+        const userId = req.user ? req.user.id : null;
 
-        // 1. Healthcare / Beds inquiry
+        // Tool 1: find_hospitals (Healthcare / Beds)
         if (q.includes("bed") || q.includes("hospital") || q.includes("icu") || q.includes("doctor")) {
             const [hospitals] = await pool.query(`
                 SELECT id, hospital_name AS name, address, phone, total_beds, icu_beds
                 FROM hospitals
                 ORDER BY total_beds DESC
-                LIMIT 3
+                LIMIT 4
             `);
 
             const listStr = hospitals.map(h => {
@@ -44,158 +101,218 @@ router.post(["/api/ai/assistant", "/api/ai/chat"], async (req, res) => {
                 return `• **${h.name}**: ~${avail} beds available (${h.icu_beds || 0} ICU). Address: ${h.address} (Ph: ${h.phone || '108'})`;
             }).join("\n");
 
-            const ans = `Here are the top hospitals in Gorakhpur with verified bed availability:\n\n${listStr}\n\nWould you like me to guide you to one of these facilities?`;
+            const ans = `Here are the top hospitals in Gorakhpur with verified bed availability:\n\n${listStr}\n\nWould you like guidance navigating to one of these facilities?`;
             return res.json({
                 success: true,
                 intent: "hospital_beds",
-                answer: ans,
+                tool_called: "find_hospitals",
                 reply: ans,
+                answer: ans,
                 data: hospitals,
-                actionUrl: "/pages/hospital/hospital.html"
+                suggested_actions: [
+                    { label: "View Hospital Portal", action: "/pages/hospital/hospital.html" },
+                    { label: "Emergency Ambulance (108)", action: "tel:108" }
+                ]
             });
         }
 
-        // 2. Parking inquiry
-        if (q.includes("parking") || q.includes("park")) {
+        // Tool 2: find_parking (Parking availability)
+        if (q.includes("parking") || q.includes("park") || q.includes("slot")) {
             const [parking] = await pool.query(`
                 SELECT id, parking_code, name, address, hourly_rate, total_slots, available_slots
                 FROM parking_lots
                 ORDER BY available_slots DESC
-                LIMIT 3
+                LIMIT 4
             `);
 
             const listStr = parking.map(p => 
                 `• **${p.name}**: ${p.available_slots || 0}/${p.total_slots || 0} slots available (₹${p.hourly_rate || 20}/hr). Location: ${p.address}`
             ).join("\n");
 
-            const ans = `Here is the current live parking availability in Gorakhpur:\n\n${listStr}\n\nYou can reserve a guaranteed slot instantly in the Smart Parking module.`;
+            const ans = `Current live parking availability in Gorakhpur:\n\n${listStr}\n\nYou can reserve a slot instantly in the Smart Parking module.`;
             return res.json({
                 success: true,
                 intent: "find_parking",
-                answer: ans,
+                tool_called: "find_parking",
                 reply: ans,
+                answer: ans,
                 data: parking,
-                actionUrl: "/pages/parking/parking.html"
+                suggested_actions: [
+                    { label: "Book Parking Slot", action: "/pages/parking/parking.html" }
+                ]
             });
         }
 
-        // 3. Traffic conditions inquiry
+        // Tool 3: get_traffic_status (Congestion & Incidents)
         if (q.includes("traffic") || q.includes("congestion") || q.includes("road") || q.includes("jam")) {
             const currentHour = new Date().getHours();
-            const prediction = await predictTraffic({ hour: currentHour });
-            const [activeIncidents] = await pool.query("SELECT incident_type, severity, location_name, description FROM traffic_incidents WHERE status = 'Active' LIMIT 3");
+            const prediction = await aiClient.predictTraffic({ hour: currentHour, junction_id: "JNC-GOLGHAR-01" });
+            const [activeIncidents] = await pool.query(
+                "SELECT incident_type, severity, location_name, description FROM traffic_incidents WHERE status = 'Active' LIMIT 3"
+            );
 
             let incidentNote = "";
             if (activeIncidents.length > 0) {
-                incidentNote = `\n\n⚠️ **Active Alerts**:\n` + activeIncidents.map(i => `• ${i.incident_type} on ${i.location_name} (${i.severity})`).join("\n");
+                incidentNote = `\n\n⚠️ **Active Road Alerts**:\n` + activeIncidents.map(i => `• ${i.incident_type} at ${i.location_name} (${i.severity})`).join("\n");
             }
 
-            const ans = `Current Traffic Congestion Index is **${prediction.predicted_congestion}** (Severity Score: ${prediction.severity_score}/100, Confidence: ${Math.round(prediction.confidence * 100)}%).${incidentNote}\n\nAdaptive traffic signals are optimizing flow along major intersections.`;
+            const ans = `Current Traffic Congestion Index is **${prediction.predicted_congestion}** (Severity Score: ${prediction.severity_score}/100, Confidence: ${Math.round(prediction.confidence * 100)}%).${incidentNote}\n\nAdaptive signals are optimizing traffic flow across city junctions.`;
             return res.json({
                 success: true,
                 intent: "traffic_status",
-                answer: ans,
+                tool_called: "get_traffic_status",
                 reply: ans,
+                answer: ans,
                 data: { prediction, incidents: activeIncidents },
-                actionUrl: "/pages/traffic/traffic.html"
+                suggested_actions: [
+                    { label: "View Live Traffic Map", action: "/pages/traffic/traffic.html" }
+                ]
             });
         }
 
-        // 4. Waste reporting inquiry
-        if (q.includes("waste") || q.includes("garbage") || q.includes("trash") || q.includes("clean")) {
-            const ans = "To report overflowing garbage or schedule doorstep waste clearance, please use our **Smart Waste Grievance** service. Requests are auto-assigned with a 6-hour SLA timer.";
+        // Tool 4: get_my_bookings (Role-aware Citizen Bookings)
+        if (q.includes("my booking") || q.includes("my reservation") || q.includes("booking status")) {
+            if (!userId) {
+                return res.json({
+                    success: true,
+                    intent: "user_bookings",
+                    tool_called: "get_my_bookings",
+                    reply: "Please log in to your Citizen account to view your active parking and hospital reservations.",
+                    requires_login: true,
+                    suggested_actions: [{ label: "Login Now", action: "javascript:SmartCityAuth.showLoginModal()" }]
+                });
+            }
+
+            const [bookings] = await pool.query(
+                "SELECT id, booking_code, slot_number, vehicle_number, start_time, status, total_amount FROM parking_bookings WHERE user_id = ? ORDER BY id DESC LIMIT 3",
+                [userId]
+            );
+
+            if (bookings.length === 0) {
+                return res.json({
+                    success: true,
+                    intent: "user_bookings",
+                    reply: "You currently have no active parking bookings on file.",
+                    data: []
+                });
+            }
+
+            const listStr = bookings.map(b => `• Booking #${b.booking_code}: Slot ${b.slot_number} (${b.vehicle_number}) - Status: ${b.status}`).join("\n");
             return res.json({
                 success: true,
-                intent: "report_waste",
-                answer: ans,
-                reply: ans,
-                actionUrl: "/pages/waste/waste.html"
+                intent: "user_bookings",
+                tool_called: "get_my_bookings",
+                reply: `Here are your recent verified bookings:\n\n${listStr}`,
+                data: bookings
             });
         }
 
-        // 5. Police / Emergency assistance
-        if (q.includes("police") || q.includes("theft") || q.includes("fir") || q.includes("complaint")) {
+        // Tool 5: get_public_services (Police & Emergency)
+        if (q.includes("police") || q.includes("theft") || q.includes("fir") || q.includes("safety") || q.includes("complaint")) {
             const [stations] = await pool.query("SELECT name, location, phone FROM police_stations LIMIT 3");
             const listStr = stations.map(s => `• **${s.name}**: ${s.location} (Helpline: 112 / ${s.phone || '100'})`).join("\n");
 
-            const ans = `For emergency police assistance, call **112**. Here are nearby police stations:\n\n${listStr}`;
+            const ans = `For emergency police assistance, call **112**. Here are verified police outposts in Gorakhpur:\n\n${listStr}`;
             return res.json({
                 success: true,
                 intent: "police_station",
-                answer: ans,
+                tool_called: "get_public_services",
                 reply: ans,
+                answer: ans,
                 data: stations,
-                actionUrl: "/pages/police/police.html"
+                suggested_actions: [
+                    { label: "Emergency Helpline 112", action: "tel:112" },
+                    { label: "Police Portal", action: "/pages/police/police.html" }
+                ]
             });
         }
 
-        // 6. Famous Places / Tourism inquiry
+        // Tool 6: create_waste_request (Waste Reporting Guidance)
+        if (q.includes("waste") || q.includes("garbage") || q.includes("trash") || q.includes("clean") || q.includes("safai")) {
+            const ans = "To report overflowing garbage or request doorstep clearance, submit a request via our **Smart Waste Grievance** service. Requests are assigned with a 6-hour SLA timer.";
+            return res.json({
+                success: true,
+                intent: "report_waste",
+                tool_called: "create_waste_request",
+                reply: ans,
+                answer: ans,
+                suggested_actions: [
+                    { label: "File Waste Grievance", action: "/pages/waste/waste.html" }
+                ]
+            });
+        }
+
+        // Tool 7: find_nearby_places (Heritage & Tourism)
         if (q.includes("famous") || q.includes("place") || q.includes("temple") || q.includes("visit") || q.includes("tourism")) {
             const [places] = await pool.query("SELECT name, category, address, locality FROM famous_places LIMIT 3");
             const listStr = places.map(pl => `• **${pl.name}** (${pl.category}) - ${pl.address || pl.locality || 'Gorakhpur'}`).join("\n");
 
-            const ans = `Here are popular heritage and cultural destinations in Gorakhpur:\n\n${listStr}\n\nExplore navigation, nearby hospitals, and parking on the Famous Places portal.`;
+            const ans = `Popular heritage and cultural destinations in Gorakhpur:\n\n${listStr}\n\nExplore navigation, nearby hospitals, and parking on the Famous Places portal.`;
             return res.json({
                 success: true,
                 intent: "famous_places",
-                answer: ans,
+                tool_called: "find_nearby_places",
                 reply: ans,
+                answer: ans,
                 data: places,
-                actionUrl: "/pages/famous/famous.html"
+                suggested_actions: [
+                    { label: "Explore Heritage Map", action: "/pages/famous/famous.html" }
+                ]
             });
         }
 
-        // 7. AQI / Air Quality
-        if (q.includes("aqi") || q.includes("air") || q.includes("pollution") || q.includes("smog")) {
-            const [sensors] = await pool.query("SELECT location, aqi FROM city_environmental_sensors ORDER BY aqi DESC LIMIT 3");
-            const listStr = sensors.map(s => `• **${s.location}**: AQI ${s.aqi}`).join("\n");
-
-            const ans = `City Environmental Sensor Network live readings:\n\n${listStr}\n\nStay hydrated and avoid prolonged high-intensity workouts in industrial zones during evening peaks.`;
-            return res.json({
-                success: true,
-                intent: "aqi_environment",
-                answer: ans,
-                reply: ans,
-                data: sensors,
-                actionUrl: "/index.html"
-            });
-        }
-
-        // Default Smart City Overview
-        const defAns = "Welcome to SmartCity AI Assistant! I can help you find available hospital beds, reserve parking slots, check traffic congestion, report civic waste, find police stations, and explore heritage spots. What would you like to inquire about?";
+        // Forward general questions to FastAPI Assistant with grounded context
+        const assistantRes = await aiClient.queryAssistant(question, userRole, userId);
         return res.json({
             success: true,
-            intent: "general",
-            answer: defAns,
-            reply: defAns,
-            suggestions: [
-                "Nearest hospital with available beds",
-                "Where is the nearest parking?",
-                "What traffic is around this area?",
-                "Where can I report garbage?",
-                "Nearest police station?"
+            intent: assistantRes.intent || "general",
+            reply: assistantRes.reply,
+            answer: assistantRes.reply,
+            tool_called: assistantRes.tool_called || null,
+            suggested_actions: assistantRes.suggested_actions || [
+                { label: "Hospitals", action: "/pages/hospital/hospital.html" },
+                { label: "Parking", action: "/pages/parking/parking.html" },
+                { label: "Traffic", action: "/pages/traffic/traffic.html" }
             ]
         });
+
     } catch (err) {
         console.error("AI Assistant error:", err);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        res.status(500).json({ success: false, message: "Internal server error in AI Assistant." });
     }
 });
 
 // =========================================================
-// 2. TRAFFIC PREDICTION
+// 3. TRAFFIC PREDICTION API
 // =========================================================
 
-router.get("/api/ai/traffic/predict", async (req, res) => {
+router.all("/api/ai/traffic/predict", async (req, res) => {
     try {
-        const hour = req.query.hour != null ? Number(req.query.hour) : new Date().getHours();
-        const aqi = req.query.aqi != null ? Number(req.query.aqi) : 120;
-        const [incidents] = await pool.query("SELECT COUNT(*) AS count FROM traffic_incidents WHERE status = 'Active'");
+        const query = req.query || {};
+        const body = req.body || {};
+        const hour = query.hour != null ? Number(query.hour) : (body.hour != null ? Number(body.hour) : new Date().getHours());
+        const aqi = query.aqi != null ? Number(query.aqi) : (body.aqi != null ? Number(body.aqi) : 120);
+        const junctionId = query.junction_id || body.junction_id || "JNC-GOLGHAR-01";
 
-        const prediction = await predictTraffic({
+        const [incidents] = await pool.query("SELECT COUNT(*) AS count FROM traffic_incidents WHERE status = 'Active'");
+        const activeIncidents = incidents[0].count || 0;
+
+        const prediction = await aiClient.predictTraffic({
+            junction_id: junctionId,
             hour,
             aqi,
-            incidents: incidents[0].count || 0
+            incidents: activeIncidents
+        });
+
+        // Record in ai_predictions
+        await logPrediction({
+            modelId: prediction.model_version || "traffic-baseline-v2.0",
+            version: "2.0.0",
+            moduleName: "traffic",
+            entityRef: junctionId,
+            inputSnapshot: { hour, aqi, active_incidents: activeIncidents },
+            output: prediction,
+            confidence: prediction.confidence
         });
 
         res.json({
@@ -204,12 +321,252 @@ router.get("/api/ai/traffic/predict", async (req, res) => {
         });
     } catch (err) {
         console.error("Traffic prediction error:", err);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        res.status(500).json({ success: false, message: "Internal server error in traffic prediction." });
     }
 });
 
 // =========================================================
-// 3. CAMERA VISION ANALYSIS
+// 4. WASTE DEMAND & PRIORITY API
+// =========================================================
+
+router.all("/api/ai/waste/predict", async (req, res) => {
+    try {
+        const query = req.query || {};
+        const body = req.body || {};
+        const binId = query.bin_id || body.bin_id || "BIN-GKP-001";
+        const ward = query.ward || body.ward || "Ward 14 - Golghar";
+        const daysSince = query.days_since_collection != null ? Number(query.days_since_collection) : (body.days_since_collection != null ? Number(body.days_since_collection) : 1.5);
+
+        const [complaints] = await pool.query("SELECT COUNT(*) AS count FROM waste_bin_requests WHERE status IN ('Pending', 'Submitted')");
+        const pendingCount = complaints[0].count || 0;
+
+        const prediction = await aiClient.predictWaste({
+            bin_id: binId,
+            ward: ward,
+            days_since_collection: daysSince,
+            historical_samples_count: pendingCount
+        });
+
+        await logPrediction({
+            modelId: prediction.model_version || "waste-priority-v2.0",
+            version: "2.0.0",
+            moduleName: "waste",
+            entityRef: binId,
+            inputSnapshot: { bin_id: binId, ward, days_since_collection: daysSince },
+            output: prediction,
+            confidence: 0.88
+        });
+
+        res.json({
+            success: true,
+            forecast: prediction
+        });
+    } catch (err) {
+        console.error("Waste prediction error:", err);
+        res.status(500).json({ success: false, message: "Internal server error in waste prediction." });
+    }
+});
+
+// =========================================================
+// 5. WATER ANOMALY DETECTION API
+// =========================================================
+
+router.all("/api/ai/water/analyze", async (req, res) => {
+    try {
+        const query = req.query || {};
+        const body = req.body || {};
+        const tankId = query.tank_id || body.tank_id || "TNK-CENTRAL-01";
+        const currentLevel = query.current_level_pct != null ? Number(query.current_level_pct) : (body.current_level_pct != null ? Number(body.current_level_pct) : 75.0);
+        const inflow = query.daily_inflow_liters != null ? Number(query.daily_inflow_liters) : (body.daily_inflow_liters != null ? Number(body.daily_inflow_liters) : 50000.0);
+        const outflow = query.daily_outflow_liters != null ? Number(query.daily_outflow_liters) : (body.daily_outflow_liters != null ? Number(body.daily_outflow_liters) : 48000.0);
+        const avgOutflow = query.historical_avg_outflow != null ? Number(query.historical_avg_outflow) : (body.historical_avg_outflow != null ? Number(body.historical_avg_outflow) : 46000.0);
+
+        const analysis = await aiClient.analyzeWater({
+            tank_id: tankId,
+            current_level_pct: currentLevel,
+            daily_inflow_liters: inflow,
+            daily_outflow_liters: outflow,
+            historical_avg_outflow: avgOutflow
+        });
+
+        await logPrediction({
+            modelId: analysis.model_version || "water-anomaly-v2.0",
+            version: "2.0.0",
+            moduleName: "water",
+            entityRef: tankId,
+            inputSnapshot: { tank_id: tankId, current_level_pct: currentLevel, outflow, avgOutflow },
+            output: analysis,
+            confidence: 0.82
+        });
+
+        res.json({
+            success: true,
+            analysis
+        });
+    } catch (err) {
+        console.error("Water AI error:", err);
+        res.status(500).json({ success: false, message: "Internal server error in water analysis." });
+    }
+});
+
+// =========================================================
+// 6. HEALTHCARE CAPACITY & SURGE MONITORING API
+// =========================================================
+
+router.all("/api/ai/healthcare/analyze", async (req, res) => {
+    try {
+        const query = req.query || {};
+        const body = req.body || {};
+        const hospitalId = String(query.hospital_id || body.hospital_id || "HOSP-AIIMS-01");
+        const totalBeds = Number(query.total_beds || body.total_beds || 500);
+        const occupiedBeds = Number(query.occupied_beds || body.occupied_beds || 410);
+        const icuBeds = Number(query.icu_beds || body.icu_beds || 60);
+        const occupiedIcu = Number(query.occupied_icu || body.occupied_icu || 45);
+
+        const analysis = await aiClient.analyzeHealthcare({
+            hospital_id: hospitalId,
+            total_beds: totalBeds,
+            occupied_beds: occupiedBeds,
+            icu_beds: icuBeds,
+            occupied_icu: occupiedIcu
+        });
+
+        await logPrediction({
+            modelId: analysis.model_version || "hospital-capacity-v2.0",
+            version: "2.0.0",
+            moduleName: "healthcare",
+            entityRef: hospitalId,
+            inputSnapshot: { hospital_id: hospitalId, total_beds: totalBeds, occupied_beds: occupiedBeds },
+            output: analysis,
+            confidence: 0.95
+        });
+
+        res.json({
+            success: true,
+            analysis
+        });
+    } catch (err) {
+        console.error("Healthcare AI error:", err);
+        res.status(500).json({ success: false, message: "Internal server error in healthcare analysis." });
+    }
+});
+
+// =========================================================
+// 7. EMERGENCY ROUTE & DISPATCH ASSISTANCE API
+// =========================================================
+
+router.post("/api/ai/emergency/dispatch", async (req, res) => {
+    try {
+        const body = req.body || {};
+        const {
+            incident_id,
+            origin_lat,
+            origin_lng,
+            dest_lat,
+            dest_lng,
+            incident_severity
+        } = body;
+
+        const estimation = await aiClient.dispatchEmergency({
+            incident_id: incident_id || "EM-SOS-001",
+            origin_lat: origin_lat || 26.7606,
+            origin_lng: origin_lng || 83.3732,
+            dest_lat: dest_lat || 26.7588,
+            dest_lng: dest_lng || 83.3920,
+            incident_severity: incident_severity || "HIGH"
+        });
+
+        await logPrediction({
+            modelId: estimation.model_version || "emergency-dispatch-v2.0",
+            version: "2.0.0",
+            moduleName: "emergency",
+            entityRef: incident_id || "EM-SOS-001",
+            inputSnapshot: body,
+            output: estimation,
+            confidence: 0.90
+        });
+
+        res.json({
+            success: true,
+            estimation
+        });
+    } catch (err) {
+        console.error("Emergency AI error:", err);
+        res.status(500).json({ success: false, message: "Internal server error in emergency dispatch calculation." });
+    }
+});
+
+// =========================================================
+// 8. PARKING DEMAND & OCCUPANCY FORECAST API
+// =========================================================
+
+router.all("/api/ai/parking/forecast", async (req, res) => {
+    try {
+        const query = req.query || {};
+        const body = req.body || {};
+        const lotId = String(query.lot_id || body.lot_id || "GKP-PARK-01");
+        const totalSlots = Number(query.total_slots || body.total_slots || 120);
+        const occupied = Number(query.current_occupied != null ? query.current_occupied : (body.current_occupied != null ? body.current_occupied : 75));
+        const hour = Number(query.hour != null ? query.hour : (body.hour != null ? body.hour : new Date().getHours()));
+
+        const forecast = await aiClient.forecastParking({
+            lot_id: lotId,
+            total_slots: totalSlots,
+            current_occupied: occupied,
+            hour
+        });
+
+        await logPrediction({
+            modelId: forecast.model_version || "parking-occupancy-v2.0",
+            version: "2.0.0",
+            moduleName: "parking",
+            entityRef: lotId,
+            inputSnapshot: { lot_id: lotId, total_slots: totalSlots, occupied, hour },
+            output: forecast,
+            confidence: 0.88
+        });
+
+        res.json({
+            success: true,
+            forecast
+        });
+    } catch (err) {
+        console.error("Parking AI error:", err);
+        res.status(500).json({ success: false, message: "Internal server error in parking forecast." });
+    }
+});
+
+// =========================================================
+// 9. ENVIRONMENT & AQI MONITORING API
+// =========================================================
+
+router.all("/api/ai/environment/analyze", async (req, res) => {
+    try {
+        const query = req.query || {};
+        const body = req.body || {};
+        const sensorId = String(query.sensor_id || body.sensor_id || "AQI-GKP-01");
+        const pm25 = Number(query.pm25 != null ? query.pm25 : (body.pm25 != null ? body.pm25 : 85.0));
+        const pm10 = Number(query.pm10 != null ? query.pm10 : (body.pm10 != null ? body.pm10 : 140.0));
+
+        const analysis = await aiClient.analyzeEnvironment({
+            sensor_id: sensorId,
+            pm25,
+            pm10
+        });
+
+        res.json({
+            success: true,
+            analysis
+        });
+    } catch (err) {
+        console.error("Environment AI error:", err);
+        res.status(500).json({ success: false, message: "Internal server error in environment analysis." });
+    }
+});
+
+
+// =========================================================
+// 10. CAMERA VISION ANALYSIS API
 // =========================================================
 
 router.post("/api/ai/camera/analyze", async (req, res) => {
@@ -232,33 +589,12 @@ router.post("/api/ai/camera/analyze", async (req, res) => {
         });
     } catch (err) {
         console.error("Camera vision error:", err);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        res.status(500).json({ success: false, message: "Internal server error in camera analysis." });
     }
 });
 
 // =========================================================
-// 4. WASTE DEMAND PREDICTION
-// =========================================================
-
-router.get("/api/ai/waste/predict", async (req, res) => {
-    try {
-        const [complaints] = await pool.query("SELECT COUNT(*) AS count FROM waste_bin_requests WHERE status = 'Pending'");
-        const forecast = await predictWasteDemand({
-            recent_complaints: complaints[0].count || 5
-        });
-
-        res.json({
-            success: true,
-            forecast
-        });
-    } catch (err) {
-        console.error("Waste prediction error:", err);
-        res.status(500).json({ success: false, message: "Internal server error." });
-    }
-});
-
-// =========================================================
-// 5. ANOMALY DETECTION
+// 11. CROSS-DEPARTMENT ANOMALY MONITORING
 // =========================================================
 
 router.get("/api/ai/anomalies", async (req, res) => {
@@ -311,7 +647,80 @@ router.get("/api/ai/anomalies", async (req, res) => {
         });
     } catch (err) {
         console.error("AI anomalies error:", err);
-        res.status(500).json({ success: false, message: "Internal server error." });
+        res.status(500).json({ success: false, message: "Internal server error in anomalies check." });
+    }
+});
+
+// =========================================================
+// 12. HUMAN-IN-THE-LOOP OPERATOR AUDIT & REVIEW (Staff/Admin)
+// =========================================================
+
+router.get("/api/ai/predictions", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
+    try {
+        const { module: mod, review_status, limit = 50 } = req.query;
+        let query = "SELECT * FROM ai_predictions WHERE 1=1";
+        const params = [];
+
+        if (mod) {
+            query += " AND module = ?";
+            params.push(mod);
+        }
+        if (review_status) {
+            query += " AND review_status = ?";
+            params.push(review_status);
+        }
+
+        query += " ORDER BY id DESC LIMIT ?";
+        params.push(Number(limit));
+
+        const [rows] = await pool.query(query, params);
+        res.json({ success: true, count: rows.length, predictions: rows });
+    } catch (err) {
+        console.error("Predictions fetch error:", err);
+        res.status(500).json({ success: false, message: "Error fetching AI predictions" });
+    }
+});
+
+router.post("/api/ai/review/:predictionId", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
+    try {
+        const predictionId = req.params.predictionId;
+        const { action_taken, comments, override_details } = req.body;
+        const reviewerId = req.user.id;
+
+        if (!["APPROVED", "REJECTED", "MODIFIED", "FLAGGED"].includes(action_taken)) {
+            return res.status(400).json({
+                success: false,
+                message: "action_taken must be one of: APPROVED, REJECTED, MODIFIED, FLAGGED"
+            });
+        }
+
+        // Insert into ai_reviews
+        await pool.query(
+            `INSERT INTO ai_reviews (prediction_id, reviewer_id, action_taken, operator_override_details, review_comments)
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+                predictionId,
+                reviewerId,
+                action_taken,
+                override_details ? JSON.stringify(override_details) : null,
+                comments || null
+            ]
+        );
+
+        // Update ai_predictions status
+        const newStatus = action_taken === "APPROVED" ? "ACCEPTED" : (action_taken === "REJECTED" ? "REJECTED" : "PENDING");
+        await pool.query(
+            `UPDATE ai_predictions SET review_status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, review_notes = ? WHERE id = ?`,
+            [newStatus, reviewerId, comments || action_taken, predictionId]
+        );
+
+        res.json({
+            success: true,
+            message: `Prediction #${predictionId} successfully marked as ${action_taken} by operator #${reviewerId}.`
+        });
+    } catch (err) {
+        console.error("AI review submission error:", err);
+        res.status(500).json({ success: false, message: "Error submitting AI review", error: err.message });
     }
 });
 

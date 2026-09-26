@@ -320,4 +320,77 @@ router.get("/api/auth/me", authenticateToken, (req, res) => {
     });
 });
 
+// =========================================================
+// UPDATE USER PROFILE (/api/auth/profile)
+// =========================================================
+
+router.put("/api/auth/profile", authenticateToken, (req, res) => {
+    const {
+        name,
+        email,
+        mobile,
+        vehicleNumber,
+        ward,
+        bloodGroup,
+        emergencyContactName,
+        emergencyContactPhone
+    } = req.body;
+
+    const userId = req.user.id;
+    const userRole = (req.user.role || "").toLowerCase();
+
+    // If citizen and we have DB connection, update core fields
+    if (userRole === "citizen" && userId) {
+        const updateSql = `
+            UPDATE users 
+            SET name = COALESCE(?, name),
+                email = COALESCE(?, email)
+            WHERE id = ? OR mobile = ?
+        `;
+        db.query(updateSql, [name || null, email || null, userId, req.user.mobile || ''], (err) => {
+            if (err) {
+                console.error("Profile update error:", err);
+            }
+
+            const updatedUser = {
+                ...req.user,
+                name: name || req.user.name,
+                email: email || req.user.email,
+                mobile: mobile || req.user.mobile,
+                vehicleNumber: vehicleNumber || req.user.vehicleNumber,
+                ward: ward || req.user.ward,
+                bloodGroup: bloodGroup || req.user.bloodGroup,
+                emergencyContactName: emergencyContactName || req.user.emergencyContactName,
+                emergencyContactPhone: emergencyContactPhone || req.user.emergencyContactPhone
+            };
+
+            return res.json({
+                success: true,
+                message: "Profile updated successfully.",
+                user: updatedUser
+            });
+        });
+    } else {
+        // Staff or admin profile updates
+        const updatedUser = {
+            ...req.user,
+            name: name || req.user.name,
+            email: email || req.user.email,
+            mobile: mobile || req.user.mobile,
+            vehicleNumber: vehicleNumber || req.user.vehicleNumber,
+            ward: ward || req.user.ward,
+            bloodGroup: bloodGroup || req.user.bloodGroup,
+            emergencyContactName: emergencyContactName || req.user.emergencyContactName,
+            emergencyContactPhone: emergencyContactPhone || req.user.emergencyContactPhone
+        };
+
+        return res.json({
+            success: true,
+            message: "Profile updated successfully.",
+            user: updatedUser
+        });
+    }
+});
+
 module.exports = router;
+

@@ -21,6 +21,7 @@ services:
       # Auto-executes upon initial volume creation in alphanumeric order
       - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./backend/database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+      - ./backend/database/migrations/20260924_create_ai_intelligence_tables.sql:/docker-entrypoint-initdb.d/03_ai_schema.sql:ro
     ports:
       - "3306:3306"
     healthcheck:
@@ -33,7 +34,31 @@ services:
       - smartcity-net
 
   # -------------------------------------------------------
-  # 2. BACKEND API: Node.js 20 Express + Socket.IO Server
+  # 2. AI INTELLIGENCE SERVICE: Python FastAPI ML Engine
+  # -------------------------------------------------------
+  ai-service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: smartcity-ai-service
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      ENVIRONMENT: production
+      INTERNAL_API_KEY: ${AI_SERVICE_KEY:-smartcity_ai_internal_token_gorakhpur_2026}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 10s
+    networks:
+      - smartcity-net
+
+  # -------------------------------------------------------
+  # 3. BACKEND API: Node.js 20 Express + Socket.IO Server
   # -------------------------------------------------------
   backend:
     build:
@@ -44,6 +69,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      ai-service:
+        condition: service_started
     environment:
       NODE_ENV: production
       PORT: 5000
@@ -59,6 +86,8 @@ services:
       SIMULATE_AMBULANCES: "true"
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-1.5-flash}
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_SERVICE_KEY: ${AI_SERVICE_KEY:-smartcity_ai_internal_token_gorakhpur_2026}
       CORS_ORIGIN: "*"
     ports:
       - "5000:5000"
@@ -68,7 +97,7 @@ services:
       - smartcity-net
 
   # -------------------------------------------------------
-  # 3. FRONTEND & REVERSE PROXY: Nginx High-Performance Web Server
+  # 4. FRONTEND & REVERSE PROXY: Nginx Web Server
   # -------------------------------------------------------
   frontend:
     build:

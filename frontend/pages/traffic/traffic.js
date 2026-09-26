@@ -258,6 +258,7 @@ function switchLayer(layer) {
         loadDynamicCCTVWall();
         loadViolationsData();
         loadMovementRules();
+        loadAIPredictionsAuditTable();
     } else if (layer === "admin") {
         loadAdminJunctionsTable();
         loadAdminSignalsTable();
@@ -3732,5 +3733,148 @@ async function promptCameraTrafficSurge(camId, camName) {
         }
     } catch (e) {
         showToast("Network error submitting camera traffic feed.");
+    }
+}
+
+// =========================================================
+// AI INTELLIGENCE & PREDICTIVE ANALYTICS SUITE (FastAPI ML)
+// =========================================================
+
+async function runAITrafficInference() {
+    const jncSelect = document.getElementById("ai-infer-junction-select");
+    const hourInput = document.getElementById("ai-infer-hour");
+    const resultBox = document.getElementById("ai-infer-result-box");
+    
+    const jncId = jncSelect ? jncSelect.value : "JNC-GOLGHAR-01";
+    const hour = hourInput ? Number(hourInput.value) : new Date().getHours();
+
+    if (resultBox) {
+        resultBox.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Running Scikit-Learn Model Inference via FastAPI...</div>`;
+    }
+
+    try {
+        const res = await fetch(`/api/ai/traffic/predict?junction_id=${encodeURIComponent(jncId)}&hour=${hour}`);
+        const json = await res.json();
+
+        if (json.success && json.prediction) {
+            const p = json.prediction;
+            const badgeColor = p.predicted_congestion === 'CRITICAL' ? '#ef4444' : (p.predicted_congestion === 'HIGH' ? '#f97316' : (p.predicted_congestion === 'MEDIUM' ? '#eab308' : '#10b981'));
+            
+            if (resultBox) {
+                resultBox.innerHTML = `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <span style="font-size: 13px; font-weight: 700; color: #475569;">INFERENCE RESULT: <strong>${p.junction_id}</strong></span>
+                            <span style="background: ${badgeColor}; color: #ffffff; font-weight: 800; font-size: 12px; padding: 4px 10px; border-radius: 6px;">${p.predicted_congestion} CONGESTION</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">SEVERITY SCORE</div>
+                                <div style="font-size: 22px; font-weight: 900; color: ${badgeColor};">${p.severity_score}/100</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">CONFIDENCE</div>
+                                <div style="font-size: 22px; font-weight: 900; color: #2563eb;">${Math.round(p.confidence * 100)}%</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">PEAK STATUS</div>
+                                <div style="font-size: 14px; font-weight: 800; color: ${p.is_peak_hour ? '#dc2626' : '#16a34a'}; margin-top: 6px;">${p.is_peak_hour ? 'PEAK HOURS' : 'OFF-PEAK'}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; display: flex; justify-content: space-between;">
+                            <span>Model: <code>${p.model_version}</code></span>
+                            <span>Engine: <strong>${p.data_source_mode || 'FastAPI ML'}</strong></span>
+                        </div>
+                    </div>
+                `;
+            }
+            loadAIPredictionsAuditTable();
+        }
+    } catch (err) {
+        if (resultBox) {
+            resultBox.innerHTML = `<div style="color: #ef4444; font-size: 12px;">Failed to obtain AI inference: ${err.message}</div>`;
+        }
+    }
+}
+
+async function loadAIPredictionsAuditTable() {
+    const tableBody = document.getElementById("ai-predictions-tbody");
+    if (!tableBody) return;
+
+    try {
+        const token = window.SmartCityAuth && SmartCityAuth.getToken();
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch("/api/ai/predictions?module=traffic&limit=8", { headers });
+        const json = await res.json();
+
+        if (json.success && json.predictions) {
+            if (json.predictions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No AI traffic predictions logged yet. Run an inference above to log a new audit entry.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = json.predictions.map(pred => {
+                const out = typeof pred.prediction_output === "string" ? JSON.parse(pred.prediction_output) : pred.prediction_output;
+                const statusBadge = pred.review_status === "ACCEPTED" 
+                    ? `<span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">APPROVED</span>`
+                    : (pred.review_status === "REJECTED"
+                        ? `<span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">REJECTED</span>`
+                        : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">PENDING REVIEW</span>`);
+
+                const actions = pred.review_status === "PENDING"
+                    ? `<button class="btn-primary btn-sm" style="padding: 2px 8px; font-size: 11px;" onclick="submitAIOperatorReview(${pred.id}, 'APPROVED')"><i class="fa-solid fa-check"></i> Approve</button>
+                       <button class="btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; color: #ef4444;" onclick="submitAIOperatorReview(${pred.id}, 'REJECTED')"><i class="fa-solid fa-xmark"></i> Reject</button>`
+                    : `<span style="font-size: 11px; color: #64748b;"><i class="fa-solid fa-user-check"></i> Reviewed #${pred.reviewed_by || 'Staff'}</span>`;
+
+                return `
+                    <tr>
+                        <td><strong>#${pred.id}</strong></td>
+                        <td>${pred.entity_reference || 'Gorakhpur Corridor'}</td>
+                        <td><span style="font-weight: 700; color: #1e293b;">${out.predicted_congestion || 'N/A'}</span> (Score: ${out.severity_score || '--'})</td>
+                        <td>${Math.round((pred.confidence_score || 0.85) * 100)}%</td>
+                        <td>${new Date(pred.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actions}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    } catch (err) {
+        console.warn("Failed to load AI predictions audit table:", err.message);
+    }
+}
+
+async function submitAIOperatorReview(predictionId, action) {
+    const token = window.SmartCityAuth && SmartCityAuth.getToken();
+    if (!token) {
+        showToast("🔒 Please log in as Staff/Admin to submit operator review.");
+        if (window.SmartCityAuth) SmartCityAuth.showLoginModal();
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/ai/review/${predictionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action_taken: action,
+                comments: `Operator verified via Traffic Control Dashboard.`
+            })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+            showToast(`✅ ${json.message}`);
+            loadAIPredictionsAuditTable();
+        } else {
+            showToast(`❌ Error: ${json.message}`);
+        }
+    } catch (err) {
+        showToast(`❌ Review submission error: ${err.message}`);
     }
 }

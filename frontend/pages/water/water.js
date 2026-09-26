@@ -1219,6 +1219,9 @@
     // 11. PROFILE & AUTH UI HELPERS
     // -------------------------------------------------------
     function toggleProfile() {
+        if (window.SmartCityAuth && typeof SmartCityAuth.showProfileModal === "function") {
+            return SmartCityAuth.showProfileModal();
+        }
         const menu = document.getElementById("profileMenu");
         if (menu) menu.style.display = (menu.style.display === "block") ? "none" : "block";
     }
@@ -1365,6 +1368,206 @@
     }
 
     // -------------------------------------------------------
+    // AI SCADA WATER LEAK & ANOMALY DETECTION (FastAPI ML)
+    // -------------------------------------------------------
+    function onAIWaterTankChange(tankId) {
+        const select = document.getElementById("ai-water-tank-select");
+        if (!select) return;
+        const option = select.options[select.selectedIndex];
+        if (!option) return;
+
+        const lvl = option.getAttribute("data-lvl");
+        const inf = option.getAttribute("data-in");
+        const out = option.getAttribute("data-out");
+        const avg = option.getAttribute("data-avg");
+
+        if (lvl && document.getElementById("ai-water-lvl")) document.getElementById("ai-water-lvl").value = lvl;
+        if (inf && document.getElementById("ai-water-inflow")) document.getElementById("ai-water-inflow").value = inf;
+        if (out && document.getElementById("ai-water-outflow")) document.getElementById("ai-water-outflow").value = out;
+        if (avg && document.getElementById("ai-water-avg")) document.getElementById("ai-water-avg").value = avg;
+    }
+
+    async function runAIWaterAnomalyDetection() {
+        const tankSelect = document.getElementById("ai-water-tank-select");
+        const lvlInput = document.getElementById("ai-water-lvl");
+        const infInput = document.getElementById("ai-water-inflow");
+        const outInput = document.getElementById("ai-water-outflow");
+        const avgInput = document.getElementById("ai-water-avg");
+        const resultBox = document.getElementById("ai-water-result-box");
+
+        const tankId = tankSelect ? tankSelect.value : "TNK-CENTRAL-01";
+        const lvl = lvlInput ? Number(lvlInput.value) : 75;
+        const inflow = infInput ? Number(infInput.value) : 50000;
+        const outflow = outInput ? Number(outInput.value) : 68000;
+        const avg = avgInput ? Number(avgInput.value) : 46000;
+
+        if (resultBox) {
+            resultBox.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b; font-size: 13px;">🔄 Evaluating SCADA outflow telemetry & Z-score distribution via FastAPI ML...</div>`;
+        }
+
+        try {
+            const queryParams = new URLSearchParams({
+                tank_id: tankId,
+                current_level_pct: lvl,
+                daily_inflow_liters: inflow,
+                daily_outflow_liters: outflow,
+                historical_avg_outflow: avg
+            });
+
+            const res = await fetch(`/api/ai/water/analyze?${queryParams.toString()}`);
+            const json = await res.json();
+
+            if (json.success && json.analysis) {
+                const a = json.analysis;
+                const isAnomaly = a.is_anomaly;
+                const leakRisk = a.leak_risk_indicator || "NORMAL_FLOW";
+                const excessLiters = a.excess_outflow_liters || Math.max(0, outflow - avg);
+
+                const badgeColor = isAnomaly ? "#ef4444" : "#10b981";
+
+                if (resultBox) {
+                    resultBox.innerHTML = `
+                        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.04);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                                <span style="font-size: 14px; font-weight: 700; color: #1e293b;">RESERVOIR TELEMETRY SCAN: <strong>${escapeHTML(a.tank_id)}</strong></span>
+                                <span style="background: ${badgeColor}; color: #ffffff; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 6px;">
+                                    ${isAnomaly ? "⚠️ SUSPECTED LEAK / BURST" : "🟢 NOMINAL DISTRIBUTION"}
+                                </span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 11px; color: #64748b; font-weight: 700;">DAILY OUTFLOW</div>
+                                    <div style="font-size: 24px; font-weight: 900; color: ${isAnomaly ? '#ea580c' : '#0284c7'};">${outflow.toLocaleString()} L</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Avg: ${avg.toLocaleString()} L</div>
+                                </div>
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 11px; color: #64748b; font-weight: 700;">EXCESS LOSS RATE</div>
+                                    <div style="font-size: 24px; font-weight: 900; color: ${excessLiters > 5000 ? '#ef4444' : '#16a34a'};">+${excessLiters.toLocaleString()} L</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Unaccounted Variance</div>
+                                </div>
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 11px; color: #64748b; font-weight: 700;">RISK CLASSIFICATION</div>
+                                    <div style="font-size: 13px; font-weight: 900; color: ${badgeColor}; margin-top: 6px;">${escapeHTML(leakRisk.replace(/_/g, " "))}</div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Z-Score > 2.0 Sigma</div>
+                                </div>
+                            </div>
+
+                            <div style="background: ${isAnomaly ? '#fff5f5' : '#f0fdf4'}; border: 1px solid ${isAnomaly ? '#fecaca' : '#bbf7d0'}; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+                                <strong style="color: ${isAnomaly ? '#991b1b' : '#15803d'}; font-size: 12px; display: block; margin-bottom: 2px;">💡 AI Operational Action Directive:</strong>
+                                <span style="color: ${isAnomaly ? '#b91c1c' : '#166534'}; font-size: 12px;">${escapeHTML(a.recommended_action || "Maintain regular pressure valve schedules.")}</span>
+                            </div>
+
+                            <div style="font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                                <span>Model: <code>${escapeHTML(a.model_version || "water-anomaly-v2.0")}</code></span>
+                                <span>Engine: <strong>FastAPI Statistical Anomaly Layer</strong></span>
+                            </div>
+                        </div>
+                    `;
+                }
+                loadAIWaterAuditTable();
+            }
+        } catch (err) {
+            if (resultBox) {
+                resultBox.innerHTML = `<div style="color: #ef4444; font-size: 12px; padding: 10px;">Failed to obtain water anomaly scan: ${escapeHTML(err.message)}</div>`;
+            }
+        }
+    }
+
+    async function loadAIWaterAuditTable() {
+        const tableBody = document.getElementById("ai-water-tbody");
+        if (!tableBody) return;
+
+        try {
+            const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+                ? SmartCityAuth.getToken() 
+                : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+            const headers = {};
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+
+            const res = await fetch("/api/ai/predictions?module=water&limit=8", { headers });
+            const json = await res.json();
+
+            if (json.success && json.predictions) {
+                if (json.predictions.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">No water anomaly logs registered yet. Run a scan above to log an entry.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = json.predictions.map(pred => {
+                    const out = typeof pred.prediction_output === "string" ? JSON.parse(pred.prediction_output) : (pred.prediction_output || {});
+                    const statusBadge = pred.review_status === "ACCEPTED"
+                        ? `<span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">APPROVED</span>`
+                        : (pred.review_status === "REJECTED"
+                            ? `<span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">REJECTED</span>`
+                            : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">PENDING REVIEW</span>`);
+
+                    const actions = pred.review_status === "PENDING"
+                        ? `<button class="action-btn-sm btn-blue" style="padding: 3px 8px; font-size: 11px; cursor: pointer;" onclick="submitAIWaterReview(${pred.id}, 'APPROVED')">✓ Confirm</button>
+                           <button class="action-btn-sm" style="padding: 3px 8px; font-size: 11px; color: #ef4444; border: 1px solid #ef4444; cursor: pointer; margin-left: 4px;" onclick="submitAIWaterReview(${pred.id}, 'REJECTED')">✕ False Alarm</button>`
+                        : `<span style="font-size: 11px; color: #64748b;">Reviewed #${pred.reviewed_by || 'Staff'}</span>`;
+
+                    return `
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 10px 14px;"><strong>#${pred.id}</strong></td>
+                            <td style="padding: 10px 14px;">${escapeHTML(pred.entity_reference || 'TNK-GKP')}</td>
+                            <td style="padding: 10px 14px;"><span style="font-weight: 600; color: ${out.is_anomaly ? '#dc2626' : '#16a34a'};">${escapeHTML((out.leak_risk_indicator || 'NORMAL').replace(/_/g, " "))}</span></td>
+                            <td style="padding: 10px 14px;">${out.is_anomaly ? '⚠️ YES' : 'NOMINAL'}</td>
+                            <td style="padding: 10px 14px;">${out.excess_outflow_liters ? '+' + out.excess_outflow_liters.toLocaleString() + ' L' : '0 L'}</td>
+                            <td style="padding: 10px 14px; font-size: 11px; color: #64748b;">${new Date(pred.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+                            <td style="padding: 10px 14px;">${statusBadge}</td>
+                            <td style="padding: 10px 14px;">${actions}</td>
+                        </tr>
+                    `;
+                }).join("");
+            }
+        } catch (e) {
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444; padding: 14px;">Log unavailable: Login as staff to view and approve entries.</td></tr>`;
+        }
+    }
+
+    async function submitAIWaterReview(predictionId, actionTaken) {
+        try {
+            const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+                ? SmartCityAuth.getToken() 
+                : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+            
+            if (!token) {
+                alert("Operator login required to record SCADA review actions.");
+                return;
+            }
+
+            const res = await fetch(`/api/ai/review/${predictionId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    action_taken: actionTaken,
+                    comments: `Water SCADA engineer review: ${actionTaken} via Water UI.`
+                })
+            });
+
+            const json = await res.json();
+            if (json.success) {
+                alert(`Anomaly prediction #${predictionId} marked as ${actionTaken}.`);
+                loadAIWaterAuditTable();
+            } else {
+                alert(json.message || "Could not record review action.");
+            }
+        } catch (err) {
+            alert("Failed to submit review: " + err.message);
+        }
+    }
+
+    // Attach to window
+    window.onAIWaterTankChange = onAIWaterTankChange;
+    window.runAIWaterAnomalyDetection = runAIWaterAnomalyDetection;
+    window.loadAIWaterAuditTable = loadAIWaterAuditTable;
+    window.submitAIWaterReview = submitAIWaterReview;
+
+    // -------------------------------------------------------
     // 12. INITIALIZATION ON DOM READY
     // -------------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
@@ -1372,6 +1575,9 @@
         applyRoleUI();
         fetchAllWaterData();
         initRealtime();
+        if (typeof loadAIWaterAuditTable === "function") {
+            loadAIWaterAuditTable();
+        }
 
         // Listen for global auth changes from frontend/auth.js
         window.addEventListener("smartcity:auth-changed", () => {

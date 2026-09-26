@@ -496,6 +496,80 @@
             </div>
         </div>
 
+        <!-- ================= AI INTELLIGENCE & CONGESTION PREDICTION PANEL (FastAPI ML) ================= -->
+        <div class="content-card" style="margin-bottom: 24px; border-left: 4px solid #2563eb; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h3 style="margin: 0; color: #0f172a;"><i class="fa-solid fa-brain" style="color: #2563eb;"></i> AI Congestion Predictor & Model Governance</h3>
+                        <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">FASTAPI ML ACTIVE</span>
+                    </div>
+                    <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">
+                        Scikit-Learn Random Forest Regressor (<code>traffic-baseline-v2.0</code>) • <strong>MAE: 3.34 pts</strong> • <strong>R²: 0.962</strong> • Held-out TimeSeriesSplit Validated
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary btn-sm" onclick="loadAIPredictionsAuditTable()" style="font-size: 12px;">
+                        <i class="fa-solid fa-rotate"></i> Refresh Audit Log
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interactive Predictor Controls -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">SELECT CORRIDOR / JUNCTION:</label>
+                    <select id="ai-infer-junction-select" class="form-control">
+                        <option value="JNC-GOLGHAR-01">Golghar Central Crossing (JNC-01)</option>
+                        <option value="JNC-SHASTRI-02">Shastri Chowk (JNC-02)</option>
+                        <option value="JNC-MOHADDIPUR-03">Mohaddipur Crossing (JNC-03)</option>
+                        <option value="JNC-ASURAN-04">Asuran Chowk (JNC-04)</option>
+                        <option value="JNC-DHARAMSHALA-05">Dharamshala Bazar Crossing (JNC-05)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">FORECAST TIME (HOUR):</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="range" id="ai-infer-hour" min="0" max="23" value="18" class="form-control" style="flex: 1;" oninput="document.getElementById('ai-infer-hour-val').innerText = this.value + ':00'">
+                        <span id="ai-infer-hour-val" style="font-weight: 800; font-size: 14px; color: #2563eb; width: 50px;">18:00</span>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button class="btn-primary" style="width: 100%; height: 42px; font-weight: 700;" onclick="runAITrafficInference()">
+                        <i class="fa-solid fa-bolt"></i> Run AI Inference
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inference Results Placeholder -->
+            <div id="ai-infer-result-box" style="margin-bottom: 20px;"></div>
+
+            <!-- Prediction Audit & Operator Review Table -->
+            <div style="margin-top: 14px;">
+                <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">
+                    <i class="fa-solid fa-list-check" style="color: #64748b;"></i> Live Prediction Audit Stream & Operator Approvals (Human-in-the-Loop)
+                </h4>
+                <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+                    <table class="data-table" style="width: 100%; font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th>ID</th>
+                                <th>Corridor / Junction</th>
+                                <th>Predicted Level</th>
+                                <th>Confidence</th>
+                                <th>Timestamp</th>
+                                <th>Review Status</th>
+                                <th>Human Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ai-predictions-tbody">
+                            <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Loading AI predictions log...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Selected Junction Signal Configurator & Manual Override -->
         <div class="content-card" style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">

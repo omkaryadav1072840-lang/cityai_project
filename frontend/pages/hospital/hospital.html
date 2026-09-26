@@ -299,11 +299,91 @@
 
 
 <!-- =====================================================
-     MAIN
-===================================================== -->
-
+     AI CLINICAL BED CAPACITY & SURGE INTELLIGENCE
+====================================================== -->
 <main class="hospital-container">
 
+    <section class="ai-healthcare-panel" style="background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%); border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; border-radius: 14px; padding: 24px; margin-bottom: 30px; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h2 style="margin: 0; font-size: 20px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <span>🏥</span> AI Clinical Bed Capacity & Surge Intelligence
+                    </h2>
+                    <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px;">FASTAPI ML ACTIVE</span>
+                </div>
+                <p style="font-size: 13px; color: #64748b; margin: 6px 0 0;">
+                    Decision-support capacity forecast (<code>hospital-capacity-v2.0</code>) • Real-time ICU saturation monitoring • Human-in-the-loop review
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="secondary-btn" onclick="loadAIHealthcareAuditTable()" style="font-size: 12px; padding: 8px 14px; cursor: pointer;">
+                    🔄 Refresh Audit Stream
+                </button>
+            </div>
+        </div>
+
+        <!-- Predictive Capacity Parameters -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">HOSPITAL FACILITY:</label>
+                <select id="ai-hosp-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" onchange="onAIHospitalChange(this.value)">
+                    <option value="HOSP-AIIMS-01" data-total="500" data-occ="410" data-icu="60" data-icuo="45">AIIMS Gorakhpur (500 Beds)</option>
+                    <option value="HOSP-BRD-02" data-total="750" data-occ="690" data-icu="80" data-icuo="74">BRD Medical College (750 Beds)</option>
+                    <option value="HOSP-DIST-03" data-total="280" data-occ="195" data-icu="30" data-icuo="18">District Hospital Gorakhpur (280 Beds)</option>
+                    <option value="HOSP-FATIMA-04" data-total="220" data-occ="160" data-icu="25" data-icuo="14">Fatima Hospital (220 Beds)</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">TOTAL GENERAL BEDS:</label>
+                <input type="number" id="ai-hosp-total" value="500" min="10" max="2000" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">OCCUPIED BEDS:</label>
+                <input type="number" id="ai-hosp-occupied" value="410" min="0" max="2000" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">ICU BEDS (TOTAL / OCCUPIED):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="ai-hosp-icu" value="60" min="1" max="500" style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" title="Total ICU">
+                    <input type="number" id="ai-hosp-icuo" value="45" min="0" max="500" style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" title="Occupied ICU">
+                </div>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button type="button" class="primary-btn" style="width: 100%; height: 42px; font-weight: 700; cursor: pointer;" onclick="runAIHealthcareAnalysis()">
+                    ⚡ Run AI Surge Analysis
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Output Cards Grid -->
+        <div id="ai-healthcare-result-box" style="margin-bottom: 18px;"></div>
+
+        <!-- Audit & Review Stream -->
+        <div style="margin-top: 14px;">
+            <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">
+                📋 Clinical Decision Support Audit Stream & Human Approvals
+            </h4>
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow-x: auto; max-height: 250px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                            <th style="padding: 10px 14px;">ID</th>
+                            <th style="padding: 10px 14px;">Hospital Facility</th>
+                            <th style="padding: 10px 14px;">Projected Occupancy</th>
+                            <th style="padding: 10px 14px;">Critical Care Status</th>
+                            <th style="padding: 10px 14px;">Timestamp</th>
+                            <th style="padding: 10px 14px;">Operator Review</th>
+                            <th style="padding: 10px 14px;">Clinical Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ai-healthcare-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Click "Refresh Audit Stream" or run an analysis to view log.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 
     <!-- =================================================
          SERVICES
@@ -2952,6 +3032,13 @@
     src="hospital.js"
 ></script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof loadAIHealthcareAuditTable === "function") {
+            loadAIHealthcareAuditTable();
+        }
+    });
+</script>
 
 </body>
 </html>

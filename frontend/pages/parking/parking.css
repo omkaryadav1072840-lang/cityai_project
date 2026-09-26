@@ -123,17 +123,19 @@ body {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    width: 280px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
+    width: 290px;
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.98) 0%, rgba(8, 14, 28, 0.99) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     padding: 8px 0;
     z-index: 1000;
-    animation: dropdownFadeIn 0.18s ease-out;
+    animation: scDropdownFadeIn 0.18s ease-out;
 }
 
-@keyframes dropdownFadeIn {
+@keyframes scDropdownFadeIn {
     from { opacity: 0; transform: translateY(-6px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -143,19 +145,23 @@ body {
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
+    background: rgba(30, 41, 59, 0.5);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    margin-bottom: 6px;
 }
 
 .user-dh-avatar {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    background: linear-gradient(135deg, #2563eb, #0284c7);
     color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     font-weight: 800;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .user-dh-meta {
@@ -167,17 +173,19 @@ body {
 
 .user-dh-meta strong {
     font-size: 14px;
-    color: #0f172a;
+    color: #f8fafc;
+    font-weight: 700;
 }
 
 .user-dh-meta span {
     font-size: 11px;
-    color: #64748b;
+    color: #38bdf8;
+    font-weight: 600;
 }
 
 .dropdown-separator {
     height: 1px;
-    background: #f1f5f9;
+    background: rgba(255, 255, 255, 0.08);
     margin: 6px 0;
 }
 
@@ -187,12 +195,18 @@ body {
     gap: 12px;
     padding: 10px 16px;
     text-decoration: none !important;
-    color: #1e293b !important;
-    transition: background 0.15s ease;
+    color: #cbd5e1 !important;
+    transition: all 0.15s ease;
+    cursor: pointer;
 }
 
 .dropdown-option-item:hover {
-    background: #f8fafc;
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8 !important;
+}
+
+.dropdown-option-item:hover .dd-info strong {
+    color: #38bdf8;
 }
 
 .dd-icon {
@@ -209,12 +223,13 @@ body {
 
 .dd-info strong {
     font-size: 13px;
-    color: #1e293b;
+    color: #e2e8f0;
+    transition: color 0.15s ease;
 }
 
 .dd-info small {
     font-size: 11px;
-    color: #64748b;
+    color: #94a3b8;
 }
 
 .dd-badge-count {
@@ -228,7 +243,7 @@ body {
 }
 
 .dd-logout:hover {
-    background: #fef2f2;
+    background: rgba(239, 68, 68, 0.12);
 }
 
 .dd-logout:hover strong, .dd-logout:hover small {

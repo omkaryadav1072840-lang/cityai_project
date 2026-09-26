@@ -264,6 +264,93 @@
 </section>
 
 
+<!-- =====================================================
+     AI PARKING DEMAND & OCCUPANCY FORECAST
+====================================================== -->
+<section class="ai-parking-panel" style="max-width: min(1400px, 94%); margin: 24px auto 30px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); border: 1px solid #cbd5e1; border-left: 5px solid #2563eb; border-radius: 14px; padding: 24px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <h2 style="margin: 0; font-size: 20px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <span>🅿️</span> AI Parking Demand & Occupancy Forecast
+                </h2>
+                <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px;">FASTAPI ML ACTIVE</span>
+            </div>
+            <p style="font-size: 13px; color: #64748b; margin: 6px 0 0;">
+                Predictive bay saturation & peak load advisory (<code>parking-occupancy-v2.0</code>) • Real-time sensor integration • Human-in-the-loop audit
+            </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn-secondary" onclick="loadAIParkingAuditTable()" style="font-size: 12px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; cursor: pointer; font-weight: 600;">
+                🔄 Refresh Audit Stream
+            </button>
+        </div>
+    </div>
+
+    <!-- Predictive Parameters Form -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">PARKING FACILITY:</label>
+            <select id="ai-park-lot-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" onchange="onAIParkingLotChange(this.value)">
+                <option value="GKP-PARK-01" data-total="120" data-occ="88">Golghar Multi-Level Car Park (120 Bays)</option>
+                <option value="GKP-PARK-02" data-total="80" data-occ="64">Gorakhpur Junction Station Parking (80 Bays)</option>
+                <option value="GKP-PARK-03" data-total="150" data-occ="95">City Mall Surface Lot (150 Bays)</option>
+                <option value="GKP-PARK-04" data-total="60" data-occ="28">Medical College Gate 2 Parking (60 Bays)</option>
+            </select>
+        </div>
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">FORECAST TIME (HOUR):</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="range" id="ai-park-hour" min="0" max="23" value="18" style="flex: 1;" oninput="document.getElementById('ai-park-hour-val').innerText = this.value + ':00'">
+                <span id="ai-park-hour-val" style="font-weight: 800; font-size: 14px; color: #2563eb; width: 50px;">18:00</span>
+            </div>
+        </div>
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">TOTAL CAPACITY (BAYS):</label>
+            <input type="number" id="ai-park-total" value="120" min="10" max="1000" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
+        </div>
+        <div>
+            <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">CURRENT OCCUPIED BAYS:</label>
+            <input type="number" id="ai-park-occupied" value="88" min="0" max="1000" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
+        </div>
+        <div style="display: flex; align-items: flex-end;">
+            <button type="button" class="btn-primary" style="width: 100%; height: 42px; font-weight: 700; background: #2563eb; color: #ffffff; border: none; border-radius: 8px; cursor: pointer;" onclick="runAIParkingForecast()">
+                ⚡ Forecast Demand
+            </button>
+        </div>
+    </div>
+
+    <!-- AI Results Output -->
+    <div id="ai-parking-result-box" style="margin-bottom: 18px;"></div>
+
+    <!-- Audit & Review Stream -->
+    <div style="margin-top: 14px;">
+        <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">
+            📋 Smart Parking Forecast Audit Log & Human Approvals
+        </h4>
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow-x: auto; max-height: 250px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                        <th style="padding: 10px 14px;">ID</th>
+                        <th style="padding: 10px 14px;">Facility Reference</th>
+                        <th style="padding: 10px 14px;">Projected Occupancy</th>
+                        <th style="padding: 10px 14px;">Free Bays Forecast</th>
+                        <th style="padding: 10px 14px;">Peak Probability</th>
+                        <th style="padding: 10px 14px;">Timestamp</th>
+                        <th style="padding: 10px 14px;">Review Status</th>
+                        <th style="padding: 10px 14px;">Operator Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ai-parking-tbody">
+                    <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 14px;">Click "Refresh Audit Stream" or run a forecast to view log.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+
 <!-- ================= PARKING AREAS ================= -->
 
 <section

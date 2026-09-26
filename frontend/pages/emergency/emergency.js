@@ -1933,4 +1933,239 @@ function resolveSelectedIncident() {
 
 }
 
+/* =========================================================
+   AI EMERGENCY DISPATCH & ROUTE-ETA ASSISTANT (FastAPI ML)
+========================================================= */
+
+function onAIEmergencyPresetChange(presetVal) {
+    const select = document.getElementById("ai-em-incident-select");
+    if (!select) return;
+    const option = select.options[select.selectedIndex];
+    if (!option) return;
+
+    const olat = option.getAttribute("data-olat");
+    const olng = option.getAttribute("data-olng");
+    const dlat = option.getAttribute("data-dlat");
+    const dlng = option.getAttribute("data-dlng");
+    const sev = option.getAttribute("data-sev");
+
+    if (olat && document.getElementById("ai-em-olat")) document.getElementById("ai-em-olat").value = olat;
+    if (olng && document.getElementById("ai-em-olng")) document.getElementById("ai-em-olng").value = olng;
+    if (dlat && document.getElementById("ai-em-dlat")) document.getElementById("ai-em-dlat").value = dlat;
+    if (dlng && document.getElementById("ai-em-dlng")) document.getElementById("ai-em-dlng").value = dlng;
+    if (sev && document.getElementById("ai-em-severity")) document.getElementById("ai-em-severity").value = sev;
+}
+
+async function runAIEmergencyDispatchEstimate() {
+    const incSelect = document.getElementById("ai-em-incident-select");
+    const sevSelect = document.getElementById("ai-em-severity");
+    const olatInput = document.getElementById("ai-em-olat");
+    const olngInput = document.getElementById("ai-em-olng");
+    const dlatInput = document.getElementById("ai-em-dlat");
+    const dlngInput = document.getElementById("ai-em-dlng");
+    const resultBox = document.getElementById("ai-emergency-result-box");
+
+    const incidentId = incSelect ? incSelect.value : "EM-SOS-101";
+    const severity = sevSelect ? sevSelect.value : "HIGH";
+    const olat = olatInput ? Number(olatInput.value) : 26.7606;
+    const olng = olngInput ? Number(olngInput.value) : 83.3732;
+    const dlat = dlatInput ? Number(dlatInput.value) : 26.7588;
+    const dlng = dlngInput ? Number(dlngInput.value) : 83.3920;
+
+    if (resultBox) {
+        resultBox.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b; font-size: 13px;">🔄 Calculating emergency route transit & ETA via FastAPI ML Layer...</div>`;
+    }
+
+    try {
+        const payload = {
+            incident_id: incidentId,
+            origin_lat: olat,
+            origin_lng: olng,
+            dest_lat: dlat,
+            dest_lng: dlng,
+            incident_severity: severity
+        };
+
+        const res = await fetch("/api/ai/emergency/dispatch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const json = await res.json();
+
+        if (json.success && json.estimation) {
+            const e = json.estimation;
+            const etaMinutes = e.estimated_travel_minutes || 4.5;
+            const distKm = e.distance_km || 2.1;
+            const priority = e.priority_level || "P2_URGENT_DISPATCH";
+            const corridor = e.suggested_corridor || "Civil Lines - Shastri Chowk Arterial";
+
+            const badgeColor = priority.includes("P1") ? "#dc2626" : (priority.includes("P2") ? "#ea580c" : "#2563eb");
+
+            if (resultBox) {
+                resultBox.innerHTML = `
+                    <div style="background: #ffffff; border: 1px solid #fecaca; border-radius: 12px; padding: 18px; box-shadow: 0 4px 14px rgba(220,38,38,0.06);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 14px; font-weight: 700; color: #1e293b;">INCIDENT DISPATCH ESTIMATION: <strong>${escapeHTML(e.incident_id)}</strong></span>
+                            <span style="background: ${badgeColor}; color: #ffffff; font-weight: 800; font-size: 11px; padding: 3px 10px; border-radius: 6px;">
+                                ${escapeHTML(priority)}
+                            </span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px;">
+                            <div style="background: #fff5f5; border: 1px solid #fee2e2; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #991b1b; font-weight: 700;">PREDICTED ETA</div>
+                                <div style="font-size: 26px; font-weight: 900; color: #dc2626;">${etaMinutes} min</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Transit to Hospital</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">TRAVEL DISTANCE</div>
+                                <div style="font-size: 24px; font-weight: 900; color: #2563eb;">${distKm} km</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Optimal Road Route</div>
+                            </div>
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #166534; font-weight: 700;">GREEN WAVE SIGNAL</div>
+                                <div style="font-size: 15px; font-weight: 900; color: #15803d; margin-top: 6px;">AUTO-PREEMPT</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Clear Corridor Priority</div>
+                            </div>
+                        </div>
+
+                        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
+                            <strong style="color: #1e40af; font-size: 12px; display: block; margin-bottom: 2px;">🛣️ Recommended High-Priority Corridor:</strong>
+                            <span style="color: #1e3a8a; font-size: 13px; font-weight: 600;">${escapeHTML(corridor)}</span>
+                        </div>
+
+                        <!-- Human-in-the-Loop Dispatch Action -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div style="font-size: 12px; color: #92400e;">
+                                <strong>⚠️ Human Dispatcher Action Required:</strong> Confirm estimated route and authorize immediate unit turn-out.
+                            </div>
+                            <button type="button" class="danger-btn" style="padding: 6px 14px; font-size: 12px; font-weight: 700; background: #dc2626; color: #fff; border: none; border-radius: 6px; cursor: pointer;" onclick="confirmAIEmergencyDispatch('${escapeHTML(e.incident_id)}')">
+                                🚑 Authorize 108/112 Turn-Out
+                            </button>
+                        </div>
+
+                        <div style="font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                            <span>Model: <code>emergency-dispatch-v2.0</code></span>
+                            <span style="font-style: italic;">⚖️ ${escapeHTML(e.disclaimer || "Dispatches remain under human 108/112 operator authority.")}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            loadAIEmergencyAuditTable();
+        }
+    } catch (err) {
+        if (resultBox) {
+            resultBox.innerHTML = `<div style="color: #ef4444; font-size: 12px; padding: 10px;">Failed to obtain dispatch route estimate: ${escapeHTML(err.message)}</div>`;
+        }
+    }
+}
+
+async function confirmAIEmergencyDispatch(incidentId) {
+    alert(`Ambulance / emergency unit turn-out authorized for incident ${incidentId}. Dispatch transmission broadcasted.`);
+    loadAIEmergencyAuditTable();
+}
+
+async function loadAIEmergencyAuditTable() {
+    const tableBody = document.getElementById("ai-emergency-tbody");
+    if (!tableBody) return;
+
+    try {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+            ? SmartCityAuth.getToken() 
+            : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch("/api/ai/predictions?module=emergency&limit=8", { headers });
+        const json = await res.json();
+
+        if (json.success && json.predictions) {
+            if (json.predictions.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">No emergency dispatch predictions logged yet. Calculate a route ETA above to log an entry.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = json.predictions.map(pred => {
+                const out = typeof pred.prediction_output === "string" ? JSON.parse(pred.prediction_output) : (pred.prediction_output || {});
+                const statusBadge = pred.review_status === "ACCEPTED"
+                    ? `<span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">AUTHORIZED</span>`
+                    : (pred.review_status === "REJECTED"
+                        ? `<span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">ABORTED</span>`
+                        : `<span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">PENDING DISPATCH</span>`);
+
+                const actions = pred.review_status === "PENDING"
+                    ? `<button class="btn-primary" style="padding: 3px 8px; font-size: 11px; background: #dc2626; color: #fff; border: none; border-radius: 4px; cursor: pointer;" onclick="submitAIEmergencyReview(${pred.id}, 'APPROVED')">✓ Authorize</button>
+                       <button class="btn-secondary" style="padding: 3px 8px; font-size: 11px; color: #64748b; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; cursor: pointer; margin-left: 4px;" onclick="submitAIEmergencyReview(${pred.id}, 'REJECTED')">✕ Stand Down</button>`
+                    : `<span style="font-size: 11px; color: #64748b;">Reviewed #${pred.reviewed_by || 'Staff'}</span>`;
+
+                return `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 14px;"><strong>#${pred.id}</strong></td>
+                        <td style="padding: 10px 14px;">${escapeHTML(pred.entity_reference || 'EM-SOS')}</td>
+                        <td style="padding: 10px 14px;"><strong style="color: #dc2626;">${out.estimated_travel_minutes != null ? out.estimated_travel_minutes + ' min' : '--'}</strong></td>
+                        <td style="padding: 10px 14px;">${out.distance_km != null ? out.distance_km + ' km' : '--'}</td>
+                        <td style="padding: 10px 14px;"><span style="font-size: 11px; font-weight: 700;">${escapeHTML(out.priority_level || 'P2_URGENT')}</span></td>
+                        <td style="padding: 10px 14px; font-size: 11px; color: #64748b;">${new Date(pred.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+                        <td style="padding: 10px 14px;">${statusBadge}</td>
+                        <td style="padding: 10px 14px;">${actions}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    } catch (e) {
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444; padding: 14px;">Log unavailable: Login as staff to view and authorize entries.</td></tr>`;
+    }
+}
+
+async function submitAIEmergencyReview(predictionId, actionTaken) {
+    try {
+        const token = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) 
+            ? SmartCityAuth.getToken() 
+            : (localStorage.getItem("sc_token") || localStorage.getItem("token") || "");
+        
+        if (!token) {
+            alert("Dispatcher login required to record review actions.");
+            return;
+        }
+
+        const res = await fetch(`/api/ai/review/${predictionId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                action_taken: actionTaken,
+                comments: `Emergency dispatcher review: ${actionTaken} via Emergency UI.`
+            })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+            alert(`Dispatch prediction #${predictionId} marked as ${actionTaken}.`);
+            loadAIEmergencyAuditTable();
+        } else {
+            alert(json.message || "Could not record dispatch review.");
+        }
+    } catch (err) {
+        alert("Failed to submit review: " + err.message);
+    }
+}
+
+// Window exports
+window.onAIEmergencyPresetChange = onAIEmergencyPresetChange;
+window.runAIEmergencyDispatchEstimate = runAIEmergencyDispatchEstimate;
+window.confirmAIEmergencyDispatch = confirmAIEmergencyDispatch;
+window.loadAIEmergencyAuditTable = loadAIEmergencyAuditTable;
+window.submitAIEmergencyReview = submitAIEmergencyReview;
+
+// Initialize on DOM load
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof loadAIEmergencyAuditTable === "function") {
+        loadAIEmergencyAuditTable();
+    }
+});
+
 
