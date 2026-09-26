@@ -4640,11 +4640,33 @@ if (typeof document !== "undefined") {
     }
 }
 
+function filterServiceCards(category, btn) {
+    if (typeof document === "undefined") return;
+    if (btn) {
+        document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    const cards = document.querySelectorAll('.service-grid .service-card');
+    cards.forEach(card => {
+        const cat = card.getAttribute('data-service-cat');
+        if (category === 'all' || cat === category) {
+            card.style.display = 'flex';
+            card.classList.remove('fade-in');
+            void card.offsetWidth;
+            card.classList.add('fade-in');
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+window.filterServiceCards = filterServiceCards;
+
 /* =========================================================
    WINDOW EXPORTS — every name here IS defined above, once.
 ========================================================= */
 
 Object.assign(window, {
+    filterServiceCards,
     apiRequest, escapeHTML, escapeJS, openModal, closeModal, closeAllModals,
 
     openPatientRegistration, generatePatientID, calculateAge, handleDobAutoAge, showPatientQR,

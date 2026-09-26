@@ -2,7 +2,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 
@@ -579,143 +580,387 @@ body {
 
 
 /* =====================================================
-   SERVICE GRID
+   HUMAN-CRAFTED SERVICE OVERVIEW & BENTO GRID
 ===================================================== */
 
+.services-overview-section {
+    margin-top: 36px;
+    margin-bottom: 40px;
+    scroll-margin-top: 140px;
+}
+
+.section-heading-humanized {
+    margin-bottom: 24px;
+}
+
+.section-pill-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    padding: 5px 14px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #0284c7;
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7);
+    animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(2, 132, 199, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+}
+
+.section-main-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    margin: 0 0 6px 0;
+}
+
+.section-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    max-width: 750px;
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* Category Filter Pills */
+.service-category-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    color: #475569;
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.cat-pill:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.cat-pill.active {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+}
+
+.cat-pill .pill-badge {
+    background: rgba(15, 23, 42, 0.08);
+    color: inherit;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.cat-pill.active .pill-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* Bento Service Grid */
 .service-grid {
-
     display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    gap: 16px;
-
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
 }
 
+@media (max-width: 1200px) {
+    .service-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
 
+@media (max-width: 900px) {
+    .service-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .service-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Service Card Design */
 .service-card {
-
-    background: white;
-
-    border: 1px solid #e5eaf1;
-
-    border-radius: 15px;
-
-    padding: 22px;
-
-    transition: .25s;
-
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px -3px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
 }
 
+.service-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #38bdf8, #0284c7);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
 
 .service-card:hover {
-
     transform: translateY(-5px);
-
-    box-shadow:
-        0 15px 35px
-        rgba(15,23,42,.09);
-
-    border-color: #bfdbfe;
-
+    box-shadow: 0 20px 35px -8px rgba(15, 23, 42, 0.1), 0 6px 14px -2px rgba(15, 23, 42, 0.04);
+    border-color: #93c5fd;
 }
 
+.service-card:hover::before {
+    opacity: 1;
+}
 
-.service-icon {
-
-    width: 48px;
-
-    height: 48px;
-
-    border-radius: 13px;
-
+/* Card Header */
+.service-card-header {
     display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
 
+.service-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
     align-items: center;
-
     justify-content: center;
-
-    font-size: 23px;
-
-    margin-bottom: 17px;
-
+    font-size: 25px;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
-
-.blue {
-    background: #eff6ff;
+.service-card:hover .service-icon-wrap {
+    transform: scale(1.1) rotate(2deg);
 }
 
-.green {
-    background: #f0fdf4;
-}
+/* Themed Icon Backdrops */
+.blue-icon { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe; }
+.green-icon { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0; }
+.purple-icon { background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border: 1px solid #e9d5ff; }
+.red-icon { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1px solid #fecaca; }
+.cyan-icon { background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%); border: 1px solid #a5f3fc; }
+.orange-icon { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 1px solid #fed7aa; }
+.teal-icon { background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border: 1px solid #99f6e4; }
+.pink-icon { background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); border: 1px solid #fbcfe8; }
 
-.purple {
-    background: #faf5ff;
-}
-
-.red {
-    background: #fef2f2;
-}
-
-.cyan {
-    background: #ecfeff;
-}
-
-.orange {
-    background: #fff7ed;
-}
-
-.teal {
-    background: #f0fdfa;
-}
-
-.pink {
-    background: #fdf2f8;
-}
-
-
-.service-card h3 {
-
-    font-size: 15px;
-
-    margin-bottom: 8px;
-
-}
-
-
-.service-card p {
-
-    color: #64748b;
-
+/* Status Chips */
+.service-status-chip {
     font-size: 11px;
-
-    line-height: 1.6;
-
-    min-height: 53px;
-
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
+.chip-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.chip-green { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.chip-purple { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+.chip-red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.chip-cyan { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+.chip-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.chip-teal { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+.chip-pink { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
 
-.service-card button {
+.live-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.live-pulse::before {
+    content: "●";
+    color: #ef4444;
+    animation: liveBlink 1.4s infinite;
+}
+@keyframes liveBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+}
 
-    border: none;
+/* Card Body */
+.service-card-body {
+    flex-grow: 1;
+}
 
-    background: transparent;
-
-    color: #2563eb;
-
-    font-size: 10px;
-
+.service-card-body h3 {
+    font-size: 17px;
     font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.3px;
+    line-height: 1.35;
+}
 
+.service-card-body p {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0 0 20px 0;
+    min-height: 58px;
+}
+
+/* Interactive Action Buttons */
+.service-card-footer {
+    margin-top: auto;
+}
+
+.service-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
     cursor: pointer;
+    transition: all 0.22s ease;
+    text-decoration: none;
+    box-sizing: border-box;
+}
 
-    padding: 0;
+.service-action-btn .btn-arrow {
+    color: #0284c7;
+    font-size: 15px;
+    font-weight: 800;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
 
-    margin-top: 17px;
+.service-card:hover .service-action-btn,
+.service-action-btn:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+}
 
+.service-card:hover .service-action-btn .btn-arrow,
+.service-action-btn:hover .btn-arrow {
+    color: #ffffff;
+    transform: translateX(4px);
+}
+
+/* Secondary Button for Dual-action Cards (like Pharmacy) */
+.dual-action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.service-sub-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    background: #fdf2f8;
+    border: 1px solid #fbcfe8;
+    color: #be185d;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.service-sub-btn:hover {
+    background: #f43f5e;
+    border-color: #f43f5e;
+    color: #ffffff;
+}
+
+/* Spotlight Card: Doctor Clinical Portal */
+.service-card.spotlight-card {
+    background: linear-gradient(155deg, #ffffff 0%, #eff6ff 100%);
+    border: 1.5px solid #bfdbfe;
+    box-shadow: 0 4px 22px rgba(37, 99, 235, 0.08);
+}
+
+.service-card.spotlight-card::before {
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    opacity: 1;
+}
+
+.service-card.spotlight-card .service-action-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border-color: #1d4ed8;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.service-card.spotlight-card .service-action-btn .btn-arrow {
+    color: #ffffff;
+}
+
+.service-card.spotlight-card:hover .service-action-btn {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+/* Card Filtering Animation */
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.service-card.fade-in {
+    animation: cardFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 

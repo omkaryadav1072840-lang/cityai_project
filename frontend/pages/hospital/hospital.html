@@ -16,6 +16,9 @@
      so the script tag was moved to just before hospital.js at the
      bottom of this file. Loading it here (before L exists) was a bug
      that silently broke all route drawing. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <link rel="stylesheet" href="hospital.css">
 
@@ -414,85 +417,86 @@
          SERVICES
     ================================================= -->
 
-    <section>
+    <section class="services-overview-section">
 
-        <div class="section-heading">
-
+        <div class="section-heading-humanized">
             <div>
-
-                <span>
-                    HEALTHCARE SERVICES
+                <span class="section-pill-tag">
+                    <span class="pulse-dot"></span> SmartCity Healthcare Directory
                 </span>
-
-                <h2>
-                    Everything You Need
+                <h2 class="section-main-title">
+                    Patient & Citizen Healthcare Hub
                 </h2>
-
-                <p>
-                    Manage your healthcare needs from one place.
+                <p class="section-subtitle">
+                    Gorakhpur district health network: Find verified hospitals, consult specialist doctors, book instant OPD passes, and monitor live critical care resources.
                 </p>
-
             </div>
 
+            <!-- Quick Category Filter Pills -->
+            <div class="service-category-pills" id="serviceCategoryPills">
+                <button type="button" class="cat-pill active" onclick="filterServiceCards('all', this)">
+                    🌟 All Services <span class="pill-badge">12</span>
+                </button>
+                <button type="button" class="cat-pill" onclick="filterServiceCards('clinical', this)">
+                    🩺 Doctors & OPD <span class="pill-badge">4</span>
+                </button>
+                <button type="button" class="cat-pill" onclick="filterServiceCards('emergency', this)">
+                    🚨 Emergency & Beds <span class="pill-badge">2</span>
+                </button>
+                <button type="button" class="cat-pill" onclick="filterServiceCards('records', this)">
+                    🪪 Digital Health & ID <span class="pill-badge">3</span>
+                </button>
+                <button type="button" class="cat-pill" onclick="filterServiceCards('pharmacy', this)">
+                    💊 Tests & Pharmacy <span class="pill-badge">3</span>
+                </button>
+            </div>
         </div>
-
-
 
         <div class="service-grid">
 
-            <!-- HOSPITALS (Main Discovery & Hospital Dashboard Portal) -->
-            <div class="service-card" id="hospitalsServiceCard">
-
-                <div class="service-icon blue">
-                    🏥
+            <!-- 1. HOSPITALS (Main Discovery & Hospital Dashboard Portal) -->
+            <div class="service-card" data-service-cat="clinical" id="hospitalsServiceCard" onclick="showHospitals()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap blue-icon">
+                        🏥
+                    </div>
+                    <span class="service-status-chip chip-blue">AIIMS & BRD</span>
                 </div>
-
-                <h3>
-                    Hospitals
-                </h3>
-
-                <p>
-                    Browse hospitals, specialized departments, diagnostics catalog, bed availability, and hospital management dashboards.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="showHospitals()"
-                >
-                    Hospitals →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Hospitals Directory</h3>
+                    <p>
+                        Browse verified district civil hospitals, private clinics, specialized departments, and emergency trauma facilities.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); showHospitals()">
+                        <span>Explore Hospitals</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-<!-- =================================================
-     FIND DOCTORS
-================================================= -->
-
-<div class="service-card">
-
-    <div class="service-icon green">
-        👨‍⚕️
-    </div>
-
-    <h3>
-        Find Doctors
-    </h3>
-
-    <p>
-        Find doctors by department, specialization,
-        availability and appointment schedule.
-    </p>
-
-    <button
-        type="button"
-        onclick="openDoctorFinder()"
-    >
-        👨‍⚕️ Find Doctors →
-    </button>
-
-</div>
+            <!-- 2. FIND DOCTORS -->
+            <div class="service-card" data-service-cat="clinical" onclick="openDoctorFinder()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap green-icon">
+                        👨‍⚕️
+                    </div>
+                    <span class="service-status-chip chip-green">Verified MDs</span>
+                </div>
+                <div class="service-card-body">
+                    <h3>Find Doctors</h3>
+                    <p>
+                        Search top physicians by department, clinical specialization, OPD timings, patient rating, and availability.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openDoctorFinder()">
+                        <span>Find Specialist</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
+            </div>
 <!-- =====================================================
      DOCTOR FINDER MODAL
 ===================================================== -->
@@ -659,295 +663,229 @@
 </div>
 
 
-            <!-- APPOINTMENT -->
-
-            <div class="service-card">
-
-                <div class="service-icon purple">
-                    📅
+            <!-- 3. DOCTOR APPOINTMENT -->
+            <div class="service-card" data-service-cat="clinical" onclick="openDoctorBooking()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap purple-icon">
+                        📅
+                    </div>
+                    <span class="service-status-chip chip-purple">Instant Slot</span>
                 </div>
-
-                <h3>
-                    Doctor Appointment
-                </h3>
-
-                <p>
-                    Select a doctor, date and time
-                    and book your appointment online.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="openDoctorBooking()"
-                >
-                    Book Appointment →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Doctor Appointment</h3>
+                    <p>
+                        Select a preferred doctor, choose date and time slot, and secure your OPD consultation confirmation.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openDoctorBooking()">
+                        <span>Book Appointment</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- MY APPOINTMENTS -->
-
-            <div class="service-card">
-
-                <div class="service-icon purple">
-                    📅
+            <!-- 4. MY APPOINTMENTS -->
+            <div class="service-card" data-service-cat="clinical" onclick="openMyAppointments()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap purple-icon">
+                        🎫
+                    </div>
+                    <span class="service-status-chip chip-purple">QR Pass</span>
                 </div>
-
-                <h3>
-                    My Appointments
-                </h3>
-
-                <p>
-                    View your booked appointments,
-                    doctor, date, time and status.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="openMyAppointments()"
-                >
-                    My Appointments →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>My Appointments</h3>
+                    <p>
+                        View your active bookings, consultation tokens, doctor prescriptions, and appointment status history.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openMyAppointments()">
+                        <span>View Appointments</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- AMBULANCE -->
-
-            <div class="service-card">
-
-                <div class="service-icon red">
-                    🚑
+            <!-- 5. AMBULANCE TRACKING -->
+            <div class="service-card" data-service-cat="emergency" onclick="trackAmbulance()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap red-icon">
+                        🚑
+                    </div>
+                    <span class="service-status-chip chip-red live-pulse">24/7 Live GPS</span>
                 </div>
-
-                <h3>
-                    Ambulance Tracking
-                </h3>
-
-                <p>
-                    Request an ambulance and track
-                    its current location and status.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="trackAmbulance()"
-                >
-                    Track Ambulance →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Ambulance Tracking</h3>
+                    <p>
+                        Request emergency ambulance dispatch with automatic traffic green-wave priority and live ETA tracking.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); trackAmbulance()">
+                        <span>Track Ambulance</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- PATIENT ID -->
-
-            <div class="service-card">
-
-                <div class="service-icon cyan">
-                    🪪
+            <!-- 6. PATIENT ID & ABHA -->
+            <div class="service-card" data-service-cat="records" onclick="openPatientRegistration()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap cyan-icon">
+                        🪪
+                    </div>
+                    <span class="service-status-chip chip-cyan">ABHA Linked</span>
                 </div>
-
-                <h3>
-                    Patient ID
-                </h3>
-
-                <p>
-                    Create a unique patient ID and
-                    generate a QR code for medical records.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="openPatientRegistration()"
-                >
-                    Create Patient ID →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Smart Patient ID</h3>
+                    <p>
+                        Generate a verified digital health identity with instant QR badge for hospital check-in and medical file access.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openPatientRegistration()">
+                        <span>Create Patient ID</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- PATIENT RECORD -->
-
-            <div class="service-card">
-
-                <div class="service-icon orange">
-                    📋
+            <!-- 7. PATIENT RECORDS & EHR -->
+            <div class="service-card" data-service-cat="records" onclick="openPatientFile()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap orange-icon">
+                        📋
+                    </div>
+                    <span class="service-status-chip chip-orange">Encrypted EHR</span>
                 </div>
-
-                <h3>
-                    Patient Records
-                </h3>
-
-                <p>
-                    Access appointments, prescriptions,
-                    reports and medical history.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="openPatientFile()"
-                >
-                    Open Patient File →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Patient Records</h3>
+                    <p>
+                        Access digitized medical records, past doctor summaries, diagnostic lab reports, and vitals timeline.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openPatientFile()">
+                        <span>Open Patient File</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- DIAGNOSTICS & LAB TESTS -->
-
-            <div class="service-card">
-
-                <div class="service-icon purple">
-                    🔬
+            <!-- 8. DIAGNOSTICS & LAB TESTS -->
+            <div class="service-card" data-service-cat="pharmacy" onclick="openCitizenTestBookingModal()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap purple-icon">
+                        🔬
+                    </div>
+                    <span class="service-status-chip chip-purple">Home Collection</span>
                 </div>
-
-                <h3>
-                    Diagnostics & Lab Tests
-                </h3>
-
-                <p>
-                    Book Blood Tests, CBC, MRI, CT Scan,
-                    X-Ray, Ultrasound & Home Sample Collection.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="openCitizenTestBookingModal()"
-                >
-                    Book Lab Test →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Diagnostics & Lab Tests</h3>
+                    <p>
+                        Book Blood Tests, CBC, MRI, CT Scan, X-Ray, Pathology, and doorstep phlebotomist sample collection.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openCitizenTestBookingModal()">
+                        <span>Book Lab Test</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- DOCTOR CLINICAL PORTAL -->
-
-            <div class="service-card" style="border: 2px solid #bfdbfe; background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);">
-
-                <div class="service-icon blue">
-                    👨‍⚕️
+            <!-- 9. DOCTOR CLINICAL PORTAL (SPOTLIGHT) -->
+            <div class="service-card spotlight-card" data-service-cat="clinical" id="doctorPortalCard" onclick="window.location.href='doctor_dashboard.html'">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap blue-icon">
+                        👨‍⚕️
+                    </div>
+                    <span class="service-status-chip chip-blue">Doctor Console</span>
                 </div>
-
-                <h3>
-                    Doctor Clinical Portal
-                </h3>
-
-                <p>
-                    OPD workstation: live queue, patient
-                    QR code scanner, lab reports & prescription pad.
-                </p>
-
-                <button
-                    type="button"
-                    style="background: #1d4ed8; color: #ffffff;"
-                    onclick="window.location.href='doctor_dashboard.html'"
-                >
-                    Open Doctor Portal →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Doctor Clinical Portal</h3>
+                    <p>
+                        OPD physician workstation: live token queue, patient QR scanner, EHR dossier inspector, and digital prescription pad.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); window.location.href='doctor_dashboard.html'">
+                        <span>Launch OPD Console</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- BEDS -->
-
-            <div class="service-card">
-
-                <div class="service-icon teal">
-                    🛏️
+            <!-- 10. BED AVAILABILITY -->
+            <div class="service-card" data-service-cat="emergency" onclick="showBeds()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap teal-icon">
+                        🛏️
+                    </div>
+                    <span class="service-status-chip chip-teal">ICU & O2 Live</span>
                 </div>
-
-                <h3>
-                    Bed Availability
-                </h3>
-
-                <p>
-                    Check available ICU, emergency
-                    and general hospital beds.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="showBeds()"
-                >
-                    Check Beds →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Bed Availability</h3>
+                    <p>
+                        Real-time citywide inventory of ventilator ICUs, oxygen beds, pediatric wards, and general hospital quotas.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); showBeds()">
+                        <span>Check Live Beds</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
-
-
-            <!-- =================================================
-                 PHARMACY
-            ================================================= -->
-
-            <div class="service-card">
-
-                <div class="service-icon pink">
-                    💊
+            <!-- 11. PHARMACY -->
+            <div class="service-card" data-service-cat="pharmacy" onclick="showPharmacy()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap pink-icon">
+                        💊
+                    </div>
+                    <span class="service-status-chip chip-pink">Fast Delivery</span>
                 </div>
-
-                <h3>
-                    Pharmacy
-                </h3>
-
-                <p>
-                    Search medicines, check availability
-                    and upload your prescription.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="showPharmacy()"
-                >
-                    Open Pharmacy →
-                </button>
-
-                <button
-                    type="button"
-                    class="prescription-btn"
-                    onclick="openPrescriptionUpload()"
-                >
-                    📤 Upload Prescription
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Jan Aushadhi Pharmacy</h3>
+                    <p>
+                        Search affordable generic and branded medicines, verify local chemist stock, and enjoy same-day home delivery.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <div class="dual-action-row">
+                        <button type="button" class="service-action-btn" style="padding: 10px 10px; font-size: 12px;" onclick="event.stopPropagation(); showPharmacy()">
+                            <span>Store</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                        <button type="button" class="service-sub-btn" onclick="event.stopPropagation(); openPrescriptionUpload()">
+                            <span>📤 Upload Rx</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-
-
-            <!-- =================================================
-                 UPLOAD PRESCRIPTION
-            ================================================= -->
-
-            <div class="service-card">
-
-                <div class="service-icon orange">
-                    📄
+            <!-- 12. UPLOAD PRESCRIPTION -->
+            <div class="service-card" data-service-cat="pharmacy" onclick="openPrescriptionUpload()">
+                <div class="service-card-header">
+                    <div class="service-icon-wrap orange-icon">
+                        📄
+                    </div>
+                    <span class="service-status-chip chip-orange">AI Rx Scan</span>
                 </div>
-
-                <h3>
-                    Upload Prescription
-                </h3>
-
-                <p>
-                    Upload a prescription using your
-                    Patient ID for pharmacy processing.
-                </p>
-
-                <button
-                    type="button"
-                    onclick="openPrescriptionUpload()"
-                >
-                    Upload Prescription →
-                </button>
-
+                <div class="service-card-body">
+                    <h3>Upload Prescription</h3>
+                    <p>
+                        Upload doctor's prescription slip for automated medicine extraction, dosage reminders, and pharmacist fulfillment.
+                    </p>
+                </div>
+                <div class="service-card-footer">
+                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openPrescriptionUpload()">
+                        <span>Upload Slip</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
             </div>
 
         </div>
