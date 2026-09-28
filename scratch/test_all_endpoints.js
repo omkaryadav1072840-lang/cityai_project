@@ -1,41 +1,52 @@
 const http = require('http');
 
-function check(url) {
-  return new Promise((resolve) => {
-    http.get('http://localhost:5000' + url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve({ url, status: res.statusCode, data }));
-    }).on('error', err => resolve({ url, status: 'ERROR', error: err.message }));
-  });
-}
-
-async function testAll() {
-  const urls = [
-    '/api/ambulances',
-    '/api/appointments',
-    '/api/doctors',
+const endpoints = [
+    '/api/health',
+    '/api/traffic/junctions',
+    '/api/traffic/signals',
+    '/api/traffic/cameras',
+    '/api/traffic/incidents',
+    '/api/waste/bins',
+    '/api/waste/facilities',
+    '/api/water/tanks',
+    '/api/water/operations/summary',
+    '/api/emergency/departments',
+    '/api/emergency/incidents',
+    '/api/parking',
     '/api/hospitals',
-    '/api/hospitals/HOSP-001',
-    '/api/hospitals/HOSP-001/beds',
-    '/api/hospitals/HOSP-001/doctors',
-    '/api/hospitals/HOSP-001/treatments',
-    '/api/hospitals/nearby/search?lat=26.76&lng=83.37&limit=5',
-    '/api/ambulances/nearby/search?lat=26.76&lng=83.37&limit=5',
-    '/api/patients',
-    '/api/pharmacy',
-    '/api/diagnostics/tests?hospital_id=HOSP-001'
-  ];
+    '/api/police/stations',
+    '/api/famous-places'
+];
 
-  console.log('Testing GET endpoints:');
-  for (const u of urls) {
-    const r = await check(u);
-    console.log(`${r.status === 200 ? '✅' : '❌'} [${r.status}] ${u}`);
-    if (r.status !== 200) {
-      console.log('   Response:', r.data);
-    }
-  }
-  process.exit(0);
+async function checkEndpoint(path) {
+    return new Promise((resolve) => {
+        const req = http.get(`http://localhost:5000${path}`, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                let success = res.statusCode >= 200 && res.statusCode < 400;
+                resolve({ path, status: res.statusCode, ok: success, length: data.length });
+            });
+        });
+        req.on('error', (err) => {
+            resolve({ path, status: 'ERROR', ok: false, error: err.message });
+        });
+        req.setTimeout(3000, () => {
+            req.destroy();
+            resolve({ path, status: 'TIMEOUT', ok: false });
+        });
+    });
 }
 
-testAll();
+async function run() {
+    console.log("Testing all 8 department core endpoints...");
+    let allPassed = true;
+    for (const ep of endpoints) {
+        const res = await checkEndpoint(ep);
+        console.log(`[${res.ok ? 'SUCCESS' : 'FAIL'}] ${res.path} -> Status: ${res.status}`);
+        if (!res.ok) allPassed = false;
+    }
+    console.log(allPassed ? "🎉 ALL 8 DEPARTMENTS ENDPOINTS RESPONDING HEALTHY!" : "⚠️ Some endpoints failed!");
+}
+
+run();

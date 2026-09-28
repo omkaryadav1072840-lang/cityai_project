@@ -749,3 +749,15 @@ function initSocketConnection() {
         console.warn('Socket connection error:', err);
     }
 }
+
+function handleDoctorProfileClick() {
+    if (window.SmartCityAuth) {
+        if (SmartCityAuth.isAuthenticated()) {
+            SmartCityAuth.showProfileModal();
+        } else {
+            SmartCityAuth.showLoginModal('staff');
+        }
+    }
+}
+window.handleDoctorProfileClick = handleDoctorProfileClick;
+

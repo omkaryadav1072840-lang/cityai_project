@@ -22,7 +22,7 @@ function requireAdmin(req, res, next) {
 // 1. CITY COMMAND CENTER AGGREGATION
 // =========================================================
 
-router.get("/api/admin/command-center", authenticateToken, requireAdmin, async (req, res) => {
+router.get(["/api/admin/command-center", "/api/admin/stats"], authenticateToken, requireAdmin, async (req, res) => {
     try {
         // Query real statistics across all departments in parallel
         const [
@@ -182,7 +182,7 @@ router.get("/api/admin/audit-logs", authenticateToken, requireAdmin, async (req,
 // 3. USER MANAGEMENT (Admin Only)
 // =========================================================
 
-router.get("/api/admin/users", authenticateToken, requireAdmin, async (req, res) => {
+router.get(["/api/admin/users", "/api/admin/staff"], authenticateToken, requireAdmin, async (req, res) => {
     try {
         const [users] = await pool.query(
             "SELECT id, name, mobile, email, role, department, created_at FROM users ORDER BY created_at DESC"

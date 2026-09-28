@@ -1,0 +1,59 @@
+{
+  "issues": [],
+  "warnings": [
+    {
+      "category": "DOM_ID",
+      "file": "frontend/script.js",
+      "html": "frontend/index.html",
+      "message": "33 getElementById target(s) missing from HTML: temperatureValue, hospitalValue, patientForm, patientName, patientDOB, patientGender, patientPhone, generatedPatientId, patientResult, patientQRCode ... and more"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/auth.js",
+      "html": "frontend/index.html",
+      "message": "11 getElementById target(s) missing from HTML: profileButton, userBadgeBtn, navUserName, profileName, profileNavName, profCardName, navLoginBtn, userProfileMenuContainer, profileMenu, roleBadge ... and more"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/realtime.js",
+      "html": "frontend/index.html",
+      "message": "1 getElementById target(s) missing from HTML: chatMessages"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/pages/emergency/emergency.js",
+      "html": "frontend/pages/emergency/emergency.html",
+      "message": "4 getElementById target(s) missing from HTML: emergencyList, updateIncidentBtn, dispatchBtn, closeIncidentBtn"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/pages/hospital/hospital.js",
+      "html": "frontend/pages/hospital/hospital.html",
+      "message": "2 getElementById target(s) missing from HTML: appointmentTime, pageLoader"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/pages/hospital/hospital_dashboard.js",
+      "html": "frontend/pages/hospital/hospital_dashboard.html",
+      "message": "5 getElementById target(s) missing from HTML: navUserBadge, btnStaffLogout, userDisplayName, userRoleBadge, userAvatar"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/pages/police/police.js",
+      "html": "frontend/pages/police/police.html",
+      "message": "1 getElementById target(s) missing from HTML: navUserName"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/pages/waste/waste.js",
+      "html": "frontend/pages/waste/waste.html",
+      "message": "2 getElementById target(s) missing from HTML: profileName, profileButton"
+    },
+    {
+      "category": "DOM_ID",
+      "file": "frontend/pages/water/water.js",
+      "html": "frontend/pages/water/water.html",
+      "message": "5 getElementById target(s) missing from HTML: profileName, profileNavName, profileRole, roleBadge, profileMenu"
+    }
+  ]
+}

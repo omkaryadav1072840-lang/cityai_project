@@ -161,21 +161,34 @@ document.addEventListener("click", () => {
     if (menu) menu.style.display = "none";
 });
 
-function switchRoleProfile(role) {
+async function switchRoleProfile(role) {
     const menu = document.getElementById("userDropdownMenu");
     if (menu) menu.style.display = "none";
 
     if (role === "citizen") {
-        if (isStaffUser()) {
-            showToast("🚗 Switching to Citizen / Public map view.");
+        if (window.SmartCityAuth && typeof SmartCityAuth.quickLoginPersona === "function") {
+            await SmartCityAuth.quickLoginPersona("citizen");
+        } else {
+            localStorage.removeItem("smartCityJWT");
+            localStorage.setItem("smartCityCurrentUser", JSON.stringify({ name: "Omkar Yadav", role: "citizen", department: "citizen" }));
+            initUserSession();
+            switchLayer("citizen");
         }
-        switchLayer("citizen");
     } else if (role === "officer") {
-        switchLayer("control");
+        if (!isStaffUser()) {
+            await quickLoginTrafficStaff();
+        } else {
+            switchLayer("control");
+        }
     } else if (role === "admin") {
-        switchLayer("admin");
+        if (!isAdminUser()) {
+            await quickLoginTrafficAdmin();
+        } else {
+            switchLayer("admin");
+        }
     }
 }
+window.switchRoleProfile = switchRoleProfile;
 
 function handleUserLogout() {
     if (window.SmartCityAuth) SmartCityAuth.logout();
@@ -189,6 +202,7 @@ function handleUserLogout() {
 function switchLayer(layer) {
     const isStaff = isStaffUser();
     const isAdmin = isAdminUser();
+    const hasStaffAccess = isStaff || isAdmin;
 
     document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
     const activeTab = document.getElementById(`tab-btn-${layer}`);
@@ -206,8 +220,8 @@ function switchLayer(layer) {
     const staffGatekeeper = document.getElementById("staffGatekeeper");
     const staffMain = document.getElementById("staffOperationsMain");
     if (staffGatekeeper && staffMain) {
-        staffGatekeeper.style.display = isStaff ? "none" : "block";
-        staffMain.style.display = isStaff ? "block" : "none";
+        staffGatekeeper.style.display = hasStaffAccess ? "none" : "block";
+        staffMain.style.display = hasStaffAccess ? "block" : "none";
     }
 
     const adminGatekeeper = document.getElementById("adminGatekeeper");
@@ -217,7 +231,7 @@ function switchLayer(layer) {
         adminMain.style.display = isAdmin ? "block" : "none";
     }
 
-    if (layer === "control" && isStaff) {
+    if (layer === "control" && hasStaffAccess) {
         selectControlJunction(selectedJunctionId);
         loadDynamicCCTVWall();
         loadViolationsData();
@@ -279,17 +293,73 @@ function applyRoleUI() {
 }
 window.applyRoleUI = applyRoleUI;
 
+// 1-Click Fast Instant Login for Traffic Staff (TR-VERMA)
+async function quickLoginTrafficStaff() {
+    try {
+        if (typeof showToast === "function") showToast("Authenticating Insp. Verma (Traffic Staff)...");
+        const res = await fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId: "TR-VERMA", password: "verma123" })
+        });
+        const data = await res.json();
+        if (data.token) {
+            localStorage.setItem("smartCityJWT", data.token);
+            localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+            if (window.SmartCityAuth && typeof SmartCityAuth.setSession === "function") {
+                SmartCityAuth.setSession(data.token, data.user);
+            }
+            if (typeof showToast === "function") showToast("Welcome Officer Insp. R.K. Verma!", "success");
+            initUserSession();
+            switchLayer("control");
+        } else {
+            alert(data.message || "Login failed");
+        }
+    } catch (e) {
+        alert("Connection error: " + e.message);
+    }
+}
+window.quickLoginTrafficStaff = quickLoginTrafficStaff;
+
+// 1-Click Fast Instant Login for System Admin (TR-ADMIN)
+async function quickLoginTrafficAdmin() {
+    try {
+        if (typeof showToast === "function") showToast("Authenticating ICCC Traffic Admin...");
+        const res = await fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId: "TR-ADMIN", password: "admin123" })
+        });
+        const data = await res.json();
+        if (data.token) {
+            localStorage.setItem("smartCityJWT", data.token);
+            localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+            if (window.SmartCityAuth && typeof SmartCityAuth.setSession === "function") {
+                SmartCityAuth.setSession(data.token, data.user);
+            }
+            if (typeof showToast === "function") showToast("Welcome ICCC Director (Admin)!", "success");
+            initUserSession();
+            switchLayer("admin");
+        } else {
+            alert(data.message || "Login failed");
+        }
+    } catch (e) {
+        alert("Connection error: " + e.message);
+    }
+}
+window.quickLoginTrafficAdmin = quickLoginTrafficAdmin;
+
 function promptTrafficStaffLogin() {
     if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
         SmartCityAuth.showLoginModal("staff", {
             prefillStaffId: "TR-VERMA",
             department: "traffic",
-            message: "🔒 Enter Traffic Staff ID and Password to access Traffic Control Room."
+            message: "🔒 Enter Traffic Staff ID (TR-VERMA) & Password (verma123) to access Traffic Control Room."
         });
         return;
     }
     const staffId = prompt("Enter Traffic Staff ID (Default: TR-VERMA):", "TR-VERMA");
-    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    const pass = prompt("Enter Password (Default: verma123):", "verma123");
     if (staffId && pass) {
         fetch("/api/staff-login", {
             method: "POST",
@@ -313,12 +383,12 @@ function promptTrafficAdminLogin() {
         SmartCityAuth.showLoginModal("staff", {
             prefillStaffId: "TR-ADMIN",
             department: "traffic",
-            message: "🔒 Enter Admin ID and Password to access System Admin Console."
+            message: "🔒 Enter Admin ID (TR-ADMIN) & Password (admin123) to access System Admin Console."
         });
         return;
     }
     const staffId = prompt("Enter Admin ID (Default: TR-ADMIN):", "TR-ADMIN");
-    const pass = prompt("Enter Password (Default: staff123):", "staff123");
+    const pass = prompt("Enter Password (Default: admin123):", "admin123");
     if (staffId && pass) {
         fetch("/api/staff-login", {
             method: "POST",

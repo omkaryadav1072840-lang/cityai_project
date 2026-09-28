@@ -36,7 +36,7 @@
     </div>
 
     <div class="doc-nav-right">
-        <div class="doc-profile-chip" id="docProfileChip" style="cursor:pointer;" onclick="if(window.SmartCityAuth){ if(SmartCityAuth.isAuthenticated()) SmartCityAuth.showProfileModal(); else SmartCityAuth.showLoginModal('staff'); }" title="Click to view Official Medical Dossier">
+        <div class="doc-profile-chip" id="docProfileChip" style="cursor:pointer;" onclick="handleDoctorProfileClick()" title="Click to view Official Medical Dossier">
             <span class="doc-avatar">👨‍⚕️</span>
             <div>
                 <strong id="docDisplayName">Dr. Doctor</strong>

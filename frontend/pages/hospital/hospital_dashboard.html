@@ -1000,68 +1000,6 @@
     </div>
 </div>
 
-<!-- 7. MODAL: OFFLINE DIAGNOSTIC TEST BOOKING -->
-<div class="hd-modal" id="modalOfflineBooking">
-    <div class="hd-modal-box">
-        <button class="hd-modal-close" onclick="closeHdModal('modalOfflineBooking')">✕</button>
-        <h3 style="margin-bottom: 6px;">📋 Reception Desk - Offline Test Booking</h3>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Book diagnostic tests at hospital reception counter with instant token slip.</p>
-
-        <form id="offlineBookingForm" onsubmit="handleOfflineBookingSubmit(event)">
-            <div class="hd-form-group">
-                <label>Patient Full Name *</label>
-                <input type="text" id="offlinePatientName" class="hd-input" required placeholder="e.g. Meera Devi">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="hd-form-group">
-                    <label>Patient ID (Optional)</label>
-                    <input type="text" id="offlinePatientId" class="hd-input" placeholder="e.g. PAT-5931984821">
-                </div>
-                <div class="hd-form-group">
-                    <label>Mobile Number *</label>
-                    <input type="tel" id="offlinePatientMobile" class="hd-input" required pattern="[0-9]{10}" placeholder="10-digit mobile number">
-                </div>
-            </div>
-
-            <div class="hd-form-group">
-                <label>Select Diagnostic Test *</label>
-                <select id="offlineTestSelect" class="hd-select" required onchange="updateOfflineTestFee(this)">
-                    <!-- Populated by JavaScript -->
-                </select>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="hd-form-group">
-                    <label>Time Slot *</label>
-                    <select id="offlineBookingSlot" class="hd-select" required>
-                        <option value="Morning (08:00 AM - 11:00 AM)">Morning (08:00 AM - 11:00 AM)</option>
-                        <option value="Afternoon (12:00 PM - 03:00 PM)">Afternoon (12:00 PM - 03:00 PM)</option>
-                        <option value="Evening (04:00 PM - 07:00 PM)">Evening (04:00 PM - 07:00 PM)</option>
-                    </select>
-                </div>
-                <div class="hd-form-group">
-                    <label>Payment Method</label>
-                    <select id="offlinePaymentMethod" class="hd-select">
-                        <option value="Cash">Cash (Counter Paid)</option>
-                        <option value="UPI">UPI / QR Code</option>
-                        <option value="Card">Debit / Credit Card</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="offlineFeeDisplay" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin: 12px 0; font-size:13px; font-weight:700; color:#1e293b;">
-                Fee: ₹0
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalOfflineBooking')">Cancel</button>
-                <button type="submit" class="hd-btn hd-btn-success">Issue Diagnostic Token & Slip</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 </div> <!-- /#dashboardMainContent -->
 
 <script src="../../auth.js"></script>

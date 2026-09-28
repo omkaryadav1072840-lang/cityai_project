@@ -1,0 +1,70 @@
+{
+  "notFound": [
+    {
+      "endpoint": "/api/hospitals/1",
+      "method": "GET",
+      "callers": [
+        "frontend\\pages\\hospital\\hospital.js"
+      ],
+      "response": "{\"message\":\"Hospital not found.\"}"
+    },
+    {
+      "endpoint": "/api/parking/bookings/1/cancel",
+      "method": "POST",
+      "callers": [
+        "frontend\\pages\\parking\\parking.js"
+      ],
+      "response": "{\"success\":false,\"message\":\"Booking pass not found.\"}"
+    },
+    {
+      "endpoint": "/api/traffic/junctions/1",
+      "method": "GET",
+      "callers": [
+        "frontend\\pages\\traffic\\traffic.js"
+      ],
+      "response": "{\"error\":\"Junction not found\"}"
+    },
+    {
+      "endpoint": "/api/traffic/cameras/1/ai-vision",
+      "method": "GET",
+      "callers": [
+        "frontend\\pages\\traffic\\traffic.js"
+      ],
+      "response": "{\"success\":false,\"error\":\"Camera 1 not found.\"}"
+    },
+    {
+      "endpoint": "/api/traffic/violations/1/pay",
+      "method": "POST",
+      "callers": [
+        "frontend\\pages\\traffic\\traffic.js"
+      ],
+      "response": "{\"error\":\"Violation record / Challan not found.\"}"
+    },
+    {
+      "endpoint": "/api/traffic/junctions/1/webster-timing",
+      "method": "GET",
+      "callers": [
+        "frontend\\pages\\traffic\\traffic.js"
+      ],
+      "response": "{\"error\":\"Junction not found\"}"
+    },
+    {
+      "endpoint": "/api/traffic/violations/1/evidence",
+      "method": "GET",
+      "callers": [
+        "frontend\\pages\\traffic\\traffic.js"
+      ],
+      "response": "{\"error\":\"Violation not found\"}"
+    },
+    {
+      "endpoint": "/api/traffic/junctions/1/camera-traffic-summary",
+      "method": "GET",
+      "callers": [
+        "frontend\\pages\\traffic\\traffic.js"
+      ],
+      "response": "{\"error\":\"Junction not found\"}"
+    }
+  ],
+  "serverErrors": [],
+  "okCount": 183
+}

@@ -1415,3 +1415,118 @@ CREATE TABLE IF NOT EXISTS `water_technicians` (
   UNIQUE KEY `emp_code` (`emp_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+
+-- ====================================================================
+-- EXTENDED MUNICIPAL SUBSYSTEMS & REAL-TIME MODULE TABLES
+-- (Consolidated from migrations: traffic, hospital management, diagnostics,
+--  famous places, tourism, parking slots, sensors, and audit ledgers)
+-- ====================================================================
+
+-- Table: ai_data_sources
+CREATE TABLE IF NOT EXISTS `ai_data_sources` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `source_code` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `module` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_type` enum('mysql_table','iot_sensor','api_stream','manual_feed') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_verified` tinyint(1) DEFAULT '1',
+  `verification_notes` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `last_synced_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `source_code` (`source_code`),
+  KEY `idx_ai_sources_module` (`module`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table: ai_jobs
+CREATE TABLE IF NOT EXISTS `ai_jobs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `job_type` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `module` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('QUEUED','RUNNING','COMPLETED','FAILED') COLLATE utf8mb4_unicode_ci DEFAULT 'QUEUED',
+  `payload` json DEFAULT NULL,
+  `result` json DEFAULT NULL,
+  `error_message` text COLLATE utf8mb4_unicode_ci,
+  `started_at` timestamp NULL DEFAULT NULL,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_jobs_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table: ai_model_metrics
+CREATE TABLE IF NOT EXISTS `ai_model_metrics` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `model_identifier` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dataset_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mae` decimal(10,4) DEFAULT NULL,
+  `rmse` decimal(10,4) DEFAULT NULL,
+  `r2_score` decimal(6,4) DEFAULT NULL,
+  `precision_score` decimal(6,4) DEFAULT NULL,
+  `recall_score` decimal(6,4) DEFAULT NULL,
+  `f1_score` decimal(6,4) DEFAULT NULL,
+  `data_readiness_status` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'BASELINE_READY',
+  `evaluation_notes` text COLLATE utf8mb4_unicode_ci,
+  `evaluated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_metrics_model` (`model_identifier`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table: ai_models
+CREATE TABLE IF NOT EXISTS `ai_models` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `model_identifier` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `module` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `model_version` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `framework` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'scikit-learn',
+  `status` enum('active','training','deprecated','baseline') COLLATE utf8mb4_unicode_ci DEFAULT 'active',
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `metrics` json DEFAULT NULL,
+  `artifact_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `model_identifier` (`model_identifier`),
+  KEY `idx_ai_models_module` (`module`),
+  KEY `idx_ai_models_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table: ai_predictions
+CREATE TABLE IF NOT EXISTS `ai_predictions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `model_identifier` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `model_version` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `module` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `entity_reference` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `input_snapshot` json DEFAULT NULL,
+  `prediction_output` json NOT NULL,
+  `confidence_score` decimal(5,4) DEFAULT NULL,
+  `review_status` enum('PENDING','ACCEPTED','REJECTED','SUPERSEDED') COLLATE utf8mb4_unicode_ci DEFAULT 'PENDING',
+  `reviewed_by` int DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `review_notes` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_pred_module_entity` (`module`,`entity_reference`),
+  KEY `idx_ai_pred_created_at` (`created_at`),
+  KEY `idx_ai_pred_review` (`review_status`),
+  KEY `fk_ai_pred_reviewed_by` (`reviewed_by`),
+  CONSTRAINT `fk_ai_pred_reviewed_by` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table: ai_reviews
+CREATE TABLE IF NOT EXISTS `ai_reviews` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `prediction_id` bigint NOT NULL,
+  `reviewer_id` int NOT NULL,
+  `action_taken` enum('APPROVED','REJECTED','MODIFIED','FLAGGED') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `operator_override_details` json DEFAULT NULL,
+  `review_comments` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ai_reviews_pred` (`prediction_id`),
+  KEY `fk_ai_reviews_user` (`reviewer_id`),
+  CONSTRAINT `fk_ai_reviews_pred` FOREIGN KEY (`prediction_id`) REFERENCES `ai_predictions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ai_reviews_user` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

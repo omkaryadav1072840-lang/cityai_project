@@ -1,0 +1,1318 @@
+{
+  "admin.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/admin/command-center"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/audit-logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/users"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/users/:id/role"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/analytics"
+    }
+  ],
+  "ai.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/ai/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai/models"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/tool-call"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/emergency/dispatch"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/camera/analyze"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai/anomalies"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai/predictions"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/review/:predictionId"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai/predictions/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/predictions/:id/feedback"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ai/metrics"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/ai-command-center"
+    },
+    {
+      "method": "POST",
+      "path": "/api/cv/violations/:id/verify"
+    }
+  ],
+  "ambulance.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/ambulances"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ambulances/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/ambulances/:id/location"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ambulances"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/ambulances/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/ambulances/:id/status"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/ambulances/:id/assign"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/ambulances/:id/reset"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ambulances/nearby/search"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/ambulances/:id"
+    }
+  ],
+  "appointment.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/appointments/availability"
+    },
+    {
+      "method": "POST",
+      "path": "/api/appointments/book-strict"
+    },
+    {
+      "method": "POST",
+      "path": "/api/appointments"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/appointments/:id/cancel"
+    },
+    {
+      "method": "GET",
+      "path": "/api/appointments"
+    },
+    {
+      "method": "GET",
+      "path": "/api/appointments/:patientId"
+    }
+  ],
+  "auth.routes.js": [
+    {
+      "method": "POST",
+      "path": "/api/register"
+    },
+    {
+      "method": "POST",
+      "path": "/api/login"
+    },
+    {
+      "method": "POST",
+      "path": "/api/staff-login"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/auth/profile"
+    }
+  ],
+  "city.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/city-status"
+    }
+  ],
+  "diagnostics.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/categories"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/categories"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/tests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/hospitals/:hospitalId/tests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/tests/:testId"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/tests"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/diagnostics/tests/:testId"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/bookings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/diagnostics/bookings/:bookingId/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/queue"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/queue/call-next"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/samples"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/samples"
+    },
+    {
+      "method": "POST",
+      "path": "/api/diagnostics/reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/reports/:reportId"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/reports/verify/:qrToken"
+    },
+    {
+      "method": "GET",
+      "path": "/api/diagnostics/home-collections"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/diagnostics/home-collections/:bookingId/assign"
+    }
+  ],
+  "doctor.routes.js": [
+    {
+      "method": "POST",
+      "path": "/api/doctor/login"
+    },
+    {
+      "method": "GET",
+      "path": "/api/doctors"
+    },
+    {
+      "method": "POST",
+      "path": "/api/doctors"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/doctors/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/doctors/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/doctor-slots"
+    },
+    {
+      "method": "GET",
+      "path": "/api/doctors/:doctorId/slots"
+    },
+    {
+      "method": "POST",
+      "path": "/api/doctor-slots"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/doctor-slots/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/doctor/:doctorId/appointments"
+    },
+    {
+      "method": "GET",
+      "path": "/api/doctor/patient-history/:patientId"
+    },
+    {
+      "method": "POST",
+      "path": "/api/doctor/consultation"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/appointments/:id/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/doctor/order-tests"
+    }
+  ],
+  "emergency.routes.js": [
+    {
+      "method": "POST",
+      "path": "/api/emergency-departments"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/emergency-departments/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/emergency/incidents"
+    },
+    {
+      "method": "POST",
+      "path": "/api/emergency/incidents"
+    },
+    {
+      "method": "POST",
+      "path": "/api/emergency/sos"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/emergency/incidents/:id/resolve"
+    }
+  ],
+  "environment.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/environment/aqi"
+    },
+    {
+      "method": "GET",
+      "path": "/api/environment/stations"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/environment/sensors/:id"
+    }
+  ],
+  "famous_places.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/famous-places"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/categories"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/:identifier"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/:id/nearby-services"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/:id/nearby-atms"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/:id/nearby-food"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/:id/traffic-analysis"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/:id/reviews"
+    },
+    {
+      "method": "POST",
+      "path": "/api/famous-places/:id/reviews"
+    },
+    {
+      "method": "POST",
+      "path": "/api/famous-places/:id/issues"
+    },
+    {
+      "method": "GET",
+      "path": "/api/famous-places/user/favorites"
+    },
+    {
+      "method": "POST",
+      "path": "/api/famous-places/:id/favorite"
+    },
+    {
+      "method": "POST",
+      "path": "/api/famous-places/trip-planner"
+    },
+    {
+      "method": "POST",
+      "path": "/api/famous-places/ai-assistant"
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/famous-places/issues"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/admin/famous-places/issues/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/famous-places"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/admin/famous-places/:id/reviews/:reviewId"
+    }
+  ],
+  "hospital.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/hospital/beds"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/hospital/beds/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/nearby/search"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/beds"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/treatments"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/doctors"
+    },
+    {
+      "method": "POST",
+      "path": "/api/hospitals"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/hospitals/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/dashboard"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/appointments"
+    },
+    {
+      "method": "POST",
+      "path": "/api/hospitals/:hospitalId/appointments"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/hospitals/:hospitalId/appointments/:id/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/wards"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/ward-beds"
+    },
+    {
+      "method": "POST",
+      "path": "/api/hospitals/:hospitalId/ward-beds/assign"
+    },
+    {
+      "method": "POST",
+      "path": "/api/hospitals/:hospitalId/ward-beds/release"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/invoices"
+    },
+    {
+      "method": "POST",
+      "path": "/api/hospitals/:hospitalId/invoices"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/staff"
+    },
+    {
+      "method": "GET",
+      "path": "/api/hospitals/:hospitalId/notifications"
+    }
+  ],
+  "map.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/map/incidents"
+    }
+  ],
+  "notifications.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/notifications"
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications/unread-count"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/notifications/:id/read"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/notifications/read-all"
+    }
+  ],
+  "parking.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/parking"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/stats"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/users/search"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/my-bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/parking/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/staff-book"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/:id/book"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/:id/release"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/:id/slots"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/:id/book-slot"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/bookings/:bookingId/cancel"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/verify-qr"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/parking/slots/:slotId/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/gate-action"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/anpr-scan"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/operations/summary"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/staff/overstays"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/emergency-barrier-override"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/admin/pricing"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/parking/lots/:id/pricing"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/admin/anpr-logs"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/resolve-overstay-penalty"
+    },
+    {
+      "method": "POST",
+      "path": "/api/parking/send-overstay-alert"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/parking/slots/:slotId/staff-override"
+    },
+    {
+      "method": "GET",
+      "path": "/api/parking/staff/shift-summary"
+    }
+  ],
+  "patient.routes.js": [
+    {
+      "method": "POST",
+      "path": "/api/patients"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/:patientId"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/patients/:patientId"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/:patientId/qr"
+    },
+    {
+      "method": "POST",
+      "path": "/api/patients/verify-qr"
+    },
+    {
+      "method": "POST",
+      "path": "/api/patients/:patientId/link-abha"
+    },
+    {
+      "method": "POST",
+      "path": "/api/patients/:patientId/unlink-abha"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/patients/:patientId/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/:patientId/appointments"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/:patientId/prescriptions"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/:patientId/records"
+    },
+    {
+      "method": "POST",
+      "path": "/api/patients/:patientId/records"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/:patientId/reports"
+    },
+    {
+      "method": "POST",
+      "path": "/api/patients/:patientId/reports"
+    },
+    {
+      "method": "GET",
+      "path": "/api/patients/search/:patientId"
+    }
+  ],
+  "pharmacy.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/pharmacy"
+    },
+    {
+      "method": "GET",
+      "path": "/api/pharmacy/search/:medicine"
+    },
+    {
+      "method": "POST",
+      "path": "/api/pharmacy"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/pharmacy/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/pharmacy/prescriptions"
+    },
+    {
+      "method": "POST",
+      "path": "/api/pharmacy/cart"
+    },
+    {
+      "method": "GET",
+      "path": "/api/pharmacy/cart/:patientId"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/pharmacy/cart/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/pharmacy/checkout"
+    },
+    {
+      "method": "GET",
+      "path": "/api/pharmacy/bills/:patientId"
+    },
+    {
+      "method": "GET",
+      "path": "/api/prescriptions/:patientId"
+    },
+    {
+      "method": "POST",
+      "path": "/api/prescriptions/upload"
+    },
+    {
+      "method": "POST",
+      "path": "/api/pharmacy/payment"
+    }
+  ],
+  "police.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/police/stations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/police/stats"
+    },
+    {
+      "method": "POST",
+      "path": "/api/police/complaint"
+    },
+    {
+      "method": "GET",
+      "path": "/api/police/complaints"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/police/complaints/:id/status"
+    }
+  ],
+  "requests.routes.js": [
+    {
+      "method": "POST",
+      "path": "/api/requests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/requests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/requests/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/requests/:id/assign"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/requests/:id/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/staff/my-tasks"
+    },
+    {
+      "method": "POST",
+      "path": "/api/requests/:id/feedback"
+    }
+  ],
+  "search.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/search"
+    }
+  ],
+  "street_lights.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/street-lights"
+    },
+    {
+      "method": "GET",
+      "path": "/api/street-lights/faults"
+    },
+    {
+      "method": "POST",
+      "path": "/api/street-lights"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/street-lights/:id/status"
+    }
+  ],
+  "traffic.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/traffic/junctions"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/junctions/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/junctions/:id/webster-timing"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/junctions"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/junctions/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/traffic/junctions/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/signals"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/signals"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/signals/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/signals/:id/location"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/traffic/signals/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/junctions/:id/signals"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/junctions/:id/override"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/junctions/:id/override"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/cameras"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/junctions/:id/cameras"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/cameras/test-connection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/cameras"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/junctions/:id/cameras"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/cameras"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/cameras/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/traffic/cameras/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/cameras/:id/telemetry"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/cameras/:id/traffic-feed"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/cameras/:id/ai-vision"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/cameras/:id/sync-ai-flow"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/junctions/:id/camera-traffic-summary"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/violations/search"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/violations/:id/pay"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/violations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/violations/:id/evidence"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/violations"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/violations/:id/review"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/movement-rules"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/movement-rules"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/movement-rules/:id/toggle"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/incidents"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/incidents"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/incidents/:id/status"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/incidents/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/traffic/incidents/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/corridors"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/corridors/dispatch"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/corridors/:id/deactivate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/alternative-routes"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/parking-lots"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/ai-insights"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/ai-recommendation/apply"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/admin/users"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/admin/users"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/admin/audit-logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/admin/ai-settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/traffic/admin/ai-settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/analytics/summary"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/analytics/historical"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/waterlogging"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/reports/export-csv"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/vms-boards"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/vms-boards/:id/message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/commute-alerts/subscribe"
+    },
+    {
+      "method": "GET",
+      "path": "/api/traffic/ambulances/live"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/ambulances/:id/critical-dispatch"
+    },
+    {
+      "method": "POST",
+      "path": "/api/traffic/ambulances/:id/clear-critical"
+    }
+  ],
+  "waste.routes.js": [
+    {
+      "method": "POST",
+      "path": "/api/waste/upload-evidence"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/bins"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/reports"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/pickups"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/my-requests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/facilities"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/bin-requests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/bin-requests"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/bin-requests/:requestCode/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/requests"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/requests/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/requests/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/requests/:id/reopen"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/operations/summary"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/bins"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/bins/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/waste/bins/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/bins/:id/fill"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/vehicles"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/vehicles"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/vehicles/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/waste/vehicles/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/workers"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/workers"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/workers/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/waste/workers/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/routes"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/routes"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/waste/routes/:id"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/waste/routes/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/analytics"
+    },
+    {
+      "method": "GET",
+      "path": "/api/waste/hotspots"
+    },
+    {
+      "method": "POST",
+      "path": "/api/waste/smart-priority"
+    }
+  ],
+  "water.routes.js": [
+    {
+      "method": "GET",
+      "path": "/api/water/operations/summary"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/tanks"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/tanks/:id"
+    },
+    {
+      "method": "POST",
+      "path": "/api/water/tanks"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/tanks/:id"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/tanks/:id/pump"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/water/tanks/:id"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/reports"
+    },
+    {
+      "method": "POST",
+      "path": "/api/water/reports"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/reports/:id/assign"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/reports/:id/status"
+    },
+    {
+      "method": "POST",
+      "path": "/api/water/tanker-bookings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/tanker-bookings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/tanker-bookings/:id/dispatch"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/tanker-bookings/:id/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/pipelines"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/technicians"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/quality"
+    },
+    {
+      "method": "POST",
+      "path": "/api/water/quality"
+    },
+    {
+      "method": "GET",
+      "path": "/api/water/schedules"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/water/schedules/:id"
+    }
+  ]
+}

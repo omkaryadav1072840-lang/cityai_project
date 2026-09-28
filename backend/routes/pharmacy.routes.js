@@ -10,7 +10,7 @@ const { authenticateToken, requireRole, optionalToken } = require("../middleware
 // PHARMACY - GET ALL MEDICINES
 // =========================================================
 
-router.get("/api/pharmacy", (req, res) => {
+router.get(["/api/pharmacy", "/api/pharmacy/medicines"], (req, res) => {
     const sql = `
         SELECT
             id,

@@ -313,7 +313,7 @@ router.post("/api/staff-login", (req, res) => {
 // GET CURRENT USER PROFILE (/api/auth/me)
 // =========================================================
 
-router.get("/api/auth/me", authenticateToken, (req, res) => {
+router.get(["/api/auth/me", "/api/user/profile"], authenticateToken, (req, res) => {
     res.json({
         success: true,
         user: req.user

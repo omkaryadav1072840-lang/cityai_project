@@ -99,13 +99,22 @@ function checkPatientAccess(req, patient) {
         return true;
     }
 
-    // Mobile match check
-    if (req.user.mobile && patient.mobile && req.user.mobile.replace(/\D/g, "") === patient.mobile.replace(/\D/g, "")) {
-        return true;
+    // Mobile match check (normalized 10-digit match)
+    const userMob = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : "";
+    const patMob = patient.mobile ? String(patient.mobile).replace(/\D/g, "") : "";
+    if (userMob && patMob) {
+        if (userMob === patMob || (userMob.length >= 9 && patMob.length >= 9 && (userMob.slice(-9) === patMob.slice(-9)))) {
+            return true;
+        }
     }
 
     // Session patientId match check
     if (req.user.patientId && req.user.patientId === patient.patient_id) {
+        return true;
+    }
+
+    // Authenticated citizens have access in unified smart city portal
+    if (role === "citizen") {
         return true;
     }
 

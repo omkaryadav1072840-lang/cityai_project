@@ -1,0 +1,57 @@
+[
+  {
+    "file": "index.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 45)"
+  },
+  {
+    "file": "pages/emergency/emergency.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 29)"
+  },
+  {
+    "file": "pages/famous/famous.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 27)"
+  },
+  {
+    "file": "pages/hospital/hospital.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 35)"
+  },
+  {
+    "file": "pages/hospital/hospital_dashboard.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 30)"
+  },
+  {
+    "file": "pages/hospital/doctor_dashboard.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 25)"
+  },
+  {
+    "file": "pages/parking/parking.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, profileName, profileNavName (Total: 20)"
+  },
+  {
+    "file": "pages/police/police.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 25)"
+  },
+  {
+    "file": "pages/traffic/traffic.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, profileName, profileNavName (Total: 14)"
+  },
+  {
+    "file": "pages/waste/waste.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 25)"
+  },
+  {
+    "file": "pages/water/water.html",
+    "type": "MISSING_DOM_IDS",
+    "detail": "JS looks for getElementById that does not exist in HTML: scGlobalToastContainer, smartcity-auth-system-styles, scGlobalNotifDrawer, scActivityCenterModal, scGlobalLoginModal, scGlobalProfileModal, scGlobalHeaderControls, profileButton, userBadgeBtn, navUserName (Total: 26)"
+  }
+]

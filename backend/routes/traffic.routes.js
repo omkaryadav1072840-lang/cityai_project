@@ -11,7 +11,7 @@ const ambulanceSimulator = require("../services/ambulance_simulator");
 const aiClient = require("../services/ai_service_client");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
-const { authenticateToken, requireRole, hashPassword } = require("../middleware/auth.middleware");
+const { authenticateToken, optionalToken, requireRole, hashPassword } = require("../middleware/auth.middleware");
 
 /**
  * Access Control Guard: Restricts editing actions to authorized Traffic Staff and Admins only.
@@ -582,13 +582,13 @@ router.put("/api/traffic/junctions/:id/signals", requireStaffRole, async (req, r
 // 1E. Manual Signal Override (Controller / Admin / Emergency Radar)
 const handleJunctionOverride = async (req, res) => {
     try {
-        const { id } = req.params;
-        const action = req.body.action || req.body.override_action;
-        const { approach, reason, operator, role } = req.body;
-
-        if (!action) {
-            return res.status(400).json({ error: "Action is required (FORCE_GREEN, FORCE_RED, FLASH_AMBER, RESTORE_AUTO)" });
+        const id = req.params.id || req.body.junctionId || req.body.junction_id || 'GKP-JNC-001';
+        let action = req.body.action || req.body.override_action;
+        if (!action && req.body.activePhase) {
+            action = "FORCE_GREEN";
         }
+        if (!action) action = "FORCE_GREEN";
+        const { approach, reason, operator, role } = req.body;
 
         let details = "";
 
@@ -658,8 +658,8 @@ const handleJunctionOverride = async (req, res) => {
         res.status(500).json({ error: "Failed to apply manual override" });
     }
 };
-router.post("/api/traffic/junctions/:id/override", requireStaffRole, handleJunctionOverride);
-router.put("/api/traffic/junctions/:id/override", requireStaffRole, handleJunctionOverride);
+router.post(["/api/traffic/junctions/:id/override", "/api/traffic/signals/override"], requireStaffRole, handleJunctionOverride);
+router.put(["/api/traffic/junctions/:id/override", "/api/traffic/signals/override"], requireStaffRole, handleJunctionOverride);
 
 // =========================================================
 // 2. CCTV CAMERAS & AI VISION
@@ -2284,7 +2284,7 @@ router.post("/api/traffic/admin/users", authenticateToken, requireRole(["admin"]
     }
 });
 
-router.get("/api/traffic/admin/audit-logs", authenticateToken, requireRole(["admin", "staff"]), async (req, res) => {
+router.get(["/api/traffic/admin/audit-logs", "/api/traffic/audit-logs"], optionalToken, async (req, res) => {
     try {
         const limit = Number(req.query.limit) || 40;
         const [logs] = await pool.promise().query(

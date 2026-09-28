@@ -1,0 +1,320 @@
+{
+  "/api/ai/chat": [
+    "frontend\\components\\ai_widget.js",
+    "frontend\\realtime.js"
+  ],
+  "/api/staff-login": [
+    "frontend\\pages\\emergency\\emergency.js",
+    "frontend\\pages\\famous\\famous.js",
+    "frontend\\pages\\hospital\\hospital.js",
+    "frontend\\pages\\parking\\parking.js",
+    "frontend\\pages\\police\\police.js",
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/ai/emergency/dispatch": [
+    "frontend\\pages\\emergency\\emergency.js"
+  ],
+  "/api/ai/review/${predictionId}": [
+    "frontend\\pages\\emergency\\emergency.js",
+    "frontend\\pages\\hospital\\hospital.js",
+    "frontend\\pages\\parking\\parking.js",
+    "frontend\\pages\\traffic\\traffic.js",
+    "frontend\\pages\\waste\\waste.js",
+    "frontend\\pages\\water\\water.js"
+  ],
+  "/api/famous-places/${placeId}/nearby-services": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/hospitals": [
+    "frontend\\pages\\famous\\famous.js",
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/police/stations": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/parking": [
+    "frontend\\pages\\famous\\famous.js",
+    "frontend\\pages\\parking\\parking.js",
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/famous-places/${placeId}/nearby-atms": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${placeId}/nearby-food": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${placeId}/traffic-analysis": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/categories": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/user/favorites": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${id}/nearby-services": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${placeId}/reviews": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${placeId}": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${placeId}/favorite": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/trip-planner": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/${placeId}/issues": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/famous-places/ai-assistant": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/admin/famous-places/issues": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/admin/famous-places/issues/${issueId}": [
+    "frontend\\pages\\famous\\famous.js"
+  ],
+  "/api/patients": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/hospitals/${hospitalId}/doctors": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/appointments/book-strict": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/diagnostics/bookings": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/doctors": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/appointments": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/ambulances": [
+    "frontend\\pages\\hospital\\hospital.js",
+    "frontend\\script.js"
+  ],
+  "/api/ambulances/${emergencySelectedAmbulanceId}/assign": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/hospitals/${hospitalId}": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/ambulances/${ambulanceId}/status": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/ambulances/${ambulanceId}": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/ambulances/${ambulanceId}/reset": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/patients/verify-qr": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/pharmacy": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/pharmacy/cart": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/pharmacy/payment": [
+    "frontend\\pages\\hospital\\hospital.js"
+  ],
+  "/api/parking/operations/summary": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/staff/overstays": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/resolve-overstay-penalty": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/send-overstay-alert": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/slots/${slotNumber}/staff-override": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/staff/shift-summary": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/emergency-barrier-override": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/admin/pricing": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/lots/${lotId}/pricing": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/admin/anpr-logs": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/${lotId}/slots": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/${activeSlotLotId}/book-slot": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/slots/${slotId}/status": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/gate-action": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/anpr-scan": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/${chosenLot}/slots": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/staff-book": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/${code}": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/my-bookings": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/bookings/${bookingId}/cancel": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/parking/verify-qr": [
+    "frontend\\pages\\parking\\parking.js"
+  ],
+  "/api/traffic/junctions": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/signals": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/parking-lots": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/incidents": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/analytics/summary": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${jncId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${selectedJunctionId}/signals": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${selectedJunctionId}/override": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras/test-connection": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras/${currentAIVisionCamId}/ai-vision": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras/${currentAIVisionCamId}/sync-ai-flow": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/violations": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/violations/${vioId}/review": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/corridors/dispatch": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/corridors/${corrId}/deactivate": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/movement-rules": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/movement-rules/${id}/toggle": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/admin/users": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/admin/ai-settings": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/admin/audit-logs": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras/${editId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras/${camId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${editId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${id}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/signals/${editId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/signals/${sigId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/incidents/${editId}": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/waterlogging": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/reports/export-csv": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/vms-boards": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/vms-boards/${boardId}/message": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/commute-alerts/subscribe": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${jncId}/webster-timing": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/JNC-01/override": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/violations/${violationId}/evidence": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/ambulances/live": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/ambulances/${ambId}/critical-dispatch": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/ambulances/${ambId}/clear-critical": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/junctions/${jncId}/camera-traffic-summary": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ],
+  "/api/traffic/cameras/${camId}/traffic-feed": [
+    "frontend\\pages\\traffic\\traffic.js"
+  ]
+}

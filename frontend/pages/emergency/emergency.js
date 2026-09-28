@@ -707,7 +707,7 @@ async function loadSavedEmergencies() {
         emergencies = JSON.parse(localStorage.getItem("smartCityEmergencies")) || [];
     }
 
-    const listEl = document.getElementById("emergencyList");
+    const listEl = document.getElementById("incidentList") || document.getElementById("emergencyList");
     if (listEl) listEl.innerHTML = "";
 
     emergencies.forEach(emergency => {

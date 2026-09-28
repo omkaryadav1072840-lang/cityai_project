@@ -13,7 +13,7 @@ const ENTRY_GRACE_PERIOD_MINUTES = 120; // Can enter during stay or up to 2 hour
 // GET ALL PARKING LOTS
 // =========================================================
 
-router.get("/api/parking", (req, res) => {
+router.get(["/api/parking", "/api/parking/lots"], (req, res) => {
     const lotsSql = `
         SELECT
             id, parking_code, name, address, area,
@@ -121,6 +121,40 @@ router.get("/api/parking/stats", (req, res) => {
     });
 });
 
+// =========================================================
+// PARKING STAFF OVERVIEW & ACTIVE ENTRIES
+// =========================================================
+
+router.get(["/api/parking/staff/overview", "/api/parking/active-entries"], optionalToken, async (req, res) => {
+    try {
+        const [[stats]] = await db.promise().query(`
+            SELECT 
+                COUNT(*) AS total_lots,
+                COALESCE(SUM(total_slots), 0) AS total_slots,
+                COALESCE(SUM(available_slots), 0) AS available_slots,
+                COALESCE(SUM(occupied_slots), 0) AS occupied_slots
+            FROM parking_lots
+            WHERE active = 1
+        `);
+        const [activeBookings] = await db.promise().query(`
+            SELECT b.*, l.name AS lot_name
+            FROM parking_bookings b
+            LEFT JOIN parking_lots l ON b.lot_id = l.parking_code
+            WHERE b.status = 'Active'
+            ORDER BY b.id DESC LIMIT 50
+        `);
+        res.json({
+            success: true,
+            overview: stats,
+            activeCount: activeBookings.length,
+            activeEntries: activeBookings,
+            bookings: activeBookings
+        });
+    } catch (err) {
+        console.error("Staff parking overview error:", err);
+        res.status(500).json({ success: false, message: "Database error." });
+    }
+});
 
 // Helper to safely query lot by either numeric id or varchar parking_code
 function parseLotIdentifier(id) {
@@ -233,6 +267,40 @@ router.get("/api/parking/my-bookings", optionalToken, async (req, res) => {
     } catch (err) {
         console.error("[MY BOOKINGS ERROR]", err);
         res.status(500).json({ success: false, message: "Failed to fetch citizen bookings." });
+    }
+});
+
+// =========================================================
+// GET ALL PARKING SLOTS
+// =========================================================
+
+router.get("/api/parking/slots", optionalToken, async (req, res) => {
+    try {
+        const { status, lot_id } = req.query;
+        let query = `
+            SELECT s.*, l.name AS lot_name, l.hourly_rate
+            FROM parking_slots s
+            LEFT JOIN parking_lots l ON s.lot_id = l.parking_code
+        `;
+        const params = [];
+        const conds = [];
+        if (status) {
+            conds.push("s.status = ?");
+            params.push(status);
+        }
+        if (lot_id) {
+            conds.push("s.lot_id = ?");
+            params.push(lot_id);
+        }
+        if (conds.length) {
+            query += " WHERE " + conds.join(" AND ");
+        }
+        query += " ORDER BY s.id ASC LIMIT 200";
+        const [rows] = await db.promise().query(query, params);
+        res.json({ success: true, count: rows.length, slots: rows });
+    } catch (err) {
+        console.error("Get all slots error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching slots." });
     }
 });
 
@@ -538,8 +606,8 @@ function broadcastLotState(idOrCode) {
 // BOOK A PARKING SLOT (Decrements available_slots atomically)
 // =========================================================
 
-router.post("/api/parking/:id/book", (req, res) => {
-    const id = req.params.id;
+router.post(["/api/parking/book", "/api/parking/:id/book"], (req, res) => {
+    const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || "LOT-001";
     const { userId, vehicleNumber, durationHours } = req.body;
 
     if (!vehicleNumber) {
@@ -1004,9 +1072,10 @@ router.post("/api/parking/bookings/:bookingId/cancel", optionalToken, async (req
     const userRole = req.user ? (req.user.role || req.user.type || "").toLowerCase() : null;
 
     try {
+        const numericId = !isNaN(bookingId) ? Number(bookingId) : 0;
         const [bookings] = await db.promise().query(
-            "SELECT * FROM parking_bookings WHERE booking_id = ? LIMIT 1",
-            [bookingId]
+            "SELECT * FROM parking_bookings WHERE booking_id = ? OR id = ? LIMIT 1",
+            [bookingId, numericId]
         );
 
         if (!bookings.length) {
@@ -1014,18 +1083,26 @@ router.post("/api/parking/bookings/:bookingId/cancel", optionalToken, async (req
         }
         const b = bookings[0];
 
-        // Verify authorization (staff/admin, authenticated owner, or verified QR token for guest)
+        // Verify authorization (staff/admin, authenticated owner, matching phone/userId, or verified QR token for guest)
         if (userRole !== "admin" && userRole !== "staff") {
             let isOwner = false;
+            const bmobile = b.customer_phone ? String(b.customer_phone).replace(/\D/g, "") : null;
             if (req.user) {
                 const uid = req.user.id || req.user.userId;
                 const umobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
-                const bmobile = b.customer_phone ? String(b.customer_phone).replace(/\D/g, "") : null;
                 if (uid && b.user_id && b.user_id !== "guest-citizen" && String(b.user_id) === String(uid)) {
                     isOwner = true;
                 } else if (umobile && bmobile && umobile === bmobile) {
                     isOwner = true;
                 }
+            }
+            // Allow matching phone or userId passed in body (e.g. from local storage session)
+            const bodyPhone = (req.body.phone || req.body.customerPhone || "").replace(/\D/g, "");
+            const bodyUserId = req.body.userId || req.body.user_id;
+            if (bodyPhone && bmobile && bodyPhone === bmobile) {
+                isOwner = true;
+            } else if (bodyUserId && b.user_id && String(bodyUserId) === String(b.user_id)) {
+                isOwner = true;
             }
 
             const hasValidQrToken = providedQrToken && b.qr_token && String(providedQrToken) === String(b.qr_token);

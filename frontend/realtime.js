@@ -372,7 +372,7 @@
             if (document.getElementById("scGlobalAIFloatingBtn")) return;
 
             // Don't mount floating widget if the page already has the full-page embedded chat
-            const hasEmbeddedChat = document.getElementById("userInput") && document.getElementById("chatMessages");
+            const hasEmbeddedChat = document.getElementById("aiChatMessages") || (document.getElementById("userInput") && document.getElementById("chatMessages"));
             if (hasEmbeddedChat && !options.force) {
                 return;
             }
@@ -700,17 +700,17 @@
                     </div>
                 </div>
                 <div class="sc-ai-suggestions" id="scWidgetSuggestions">
-                    <span class="sc-ai-chip" data-query="Find emergency ICU beds">🏥 ICU Beds</span>
-                    <span class="sc-ai-chip" data-query="Check Golghar parking">🅿️ Parking Lots</span>
-                    <span class="sc-ai-chip" data-query="Track live ambulance">🚑 Ambulance</span>
-                    <span class="sc-ai-chip" data-query="Check water tank level">💧 Water Tanks</span>
-                    <span class="sc-ai-chip" data-query="Emergency help">🚨 SOS Alert</span>
-                    <span class="sc-ai-chip" data-query="Tell me about Gorakhpur attractions">🏛️ Attractions</span>
+                    <span class="sc-ai-chip" data-query="Golghar ke paas parking kaha hai?">🅿️ Golghar Parking</span>
+                    <span class="sc-ai-chip" data-query="Which hospital has ICU beds available?">🏥 ICU Beds Live</span>
+                    <span class="sc-ai-chip" data-query="आज Gorakhpur में traffic कहाँ ज्यादा है?">🚦 Traffic Update</span>
+                    <span class="sc-ai-chip" data-query="Nearest police station and helpline?">👮 Police & SOS (112)</span>
+                    <span class="sc-ai-chip" data-query="Ramgarh Tal ke liye one-day trip batao">🏛️ Ramgarh Tal Tour</span>
+                    <span class="sc-ai-chip" data-query="What happens if Golghar crossing is closed?">🔮 What-If Traffic Sim</span>
                 </div>
                 <div class="sc-ai-messages" id="scWidgetMessages">
                     <div class="sc-ai-bubble sc-ai-bubble-bot">
-                        👋 Namaste! I am your <strong>Gorakhpur Smart City AI Assistant</strong>.<br><br>
-                        I have real-time live grounding with city parking slots, hospital trauma beds, ambulance GPS positions, water reservoirs, and civic services. How can I assist you right now?
+                        👋 नमस्ते! I am your <strong>Gorakhpur Smart City AI Assistant</strong>.<br><br>
+                        I have real-time live grounding with city parking lots, hospital trauma beds, ambulance GPS positions, water reservoirs, and municipal civic services. Ask me in Hindi, English, or Hinglish!
                     </div>
                 </div>
                 <div class="sc-ai-footer">
@@ -844,6 +844,22 @@
                     const botBubble = document.createElement("div");
                     botBubble.className = "sc-ai-bubble sc-ai-bubble-bot";
                     let contentHtml = formatMarkdown(data.reply);
+
+                    let chipsHtml = "";
+                    if (data.tool_called) {
+                        chipsHtml += `<span style="display:inline-block; margin-top:6px; margin-right:4px; font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(139,92,246,0.15); color:#c4b5fd; border:1px solid rgba(139,92,246,0.3);">⚡ ${data.tool_called}</span>`;
+                    }
+                    if (data.data_source === "REAL") {
+                        chipsHtml += `<span style="display:inline-block; margin-top:6px; margin-right:4px; font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.3);">🟢 Real DB Facts</span>`;
+                    } else if (data.data_source === "PREDICTED") {
+                        chipsHtml += `<span style="display:inline-block; margin-top:6px; margin-right:4px; font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3);">🔮 AI Forecast</span>`;
+                    } else if (data.data_source === "SIMULATED") {
+                        chipsHtml += `<span style="display:inline-block; margin-top:6px; margin-right:4px; font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(245,158,11,0.15); color:#fcd34d; border:1px solid rgba(245,158,11,0.3);">🧪 Simulation</span>`;
+                    }
+
+                    if (chipsHtml) {
+                        contentHtml += `<div style="display:flex; flex-wrap:wrap; margin-top:6px;">${chipsHtml}</div>`;
+                    }
 
                     if (Array.isArray(data.actions) && data.actions.length > 0) {
                         contentHtml += '<div class="sc-ai-actions">';

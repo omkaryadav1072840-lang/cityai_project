@@ -2126,3 +2126,127 @@ function openAI() {
 function goToMainApp() {
     window.location.href = "../../index.html";
 }
+
+/* =========================================================
+   FIELD & TOURIST ISSUE REPORTING
+========================================================= */
+function openReportIssueModal(preselectedPlaceId = null) {
+    const modal = document.getElementById("reportIssueModal");
+    if (!modal) return;
+
+    const select = document.getElementById("fieldIssuePlaceSelect") || document.getElementById("issuePlaceSelect");
+    if (select && Array.isArray(placesData)) {
+        select.innerHTML = `<option value="">-- Choose Tourist / Heritage Destination --</option>` +
+            placesData.map(p => `<option value="${p.id}">${escapeHTML(p.name)} (${p.locality || 'Gorakhpur'})</option>`).join('');
+    }
+
+    if (preselectedPlaceId && select) {
+        select.value = preselectedPlaceId;
+    } else if (currentSelectedPlace && select) {
+        select.value = currentSelectedPlace.id;
+    }
+
+    // Autofill user credentials if logged in
+    const currentUser = (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getUser) ? SmartCityAuth.getUser() : null;
+    const nameInput = document.getElementById("fieldIssueCitizenName") || document.getElementById("issueCitizenName");
+    const mobileInput = document.getElementById("fieldIssueCitizenMobile") || document.getElementById("issueCitizenMobile");
+
+    if (currentUser) {
+        if (nameInput && !nameInput.value) nameInput.value = currentUser.name || "";
+        if (mobileInput && !mobileInput.value) mobileInput.value = currentUser.mobile || currentUser.phone || "";
+    }
+
+    modal.style.display = "flex";
+}
+
+function closeReportIssueModal() {
+    const modal = document.getElementById("reportIssueModal");
+    if (modal) modal.style.display = "none";
+}
+
+async function submitFieldIssue(event) {
+    if (event) event.preventDefault();
+
+    const placeSelect = document.getElementById("fieldIssuePlaceSelect") || document.getElementById("issuePlaceSelect");
+    const placeId = placeSelect ? placeSelect.value : null;
+    const category = (document.getElementById("fieldIssueCategorySelect") || document.getElementById("issueCategorySelect"))?.value;
+    const citizen_mobile = (document.getElementById("fieldIssueCitizenMobile") || document.getElementById("issueCitizenMobile"))?.value?.trim();
+    const citizen_name = (document.getElementById("fieldIssueCitizenName") || document.getElementById("issueCitizenName"))?.value?.trim();
+    const description = (document.getElementById("fieldIssueDescription") || document.getElementById("issueDescription"))?.value?.trim();
+    const submitBtn = document.getElementById("btnSubmitIssue");
+
+    if (!placeId) {
+        alert("Please select a tourist destination.");
+        return;
+    }
+    if (!category) {
+        alert("Please choose an issue category.");
+        return;
+    }
+    if (!citizen_mobile || citizen_mobile.length !== 10) {
+        alert("Please enter a valid 10-digit mobile number.");
+        return;
+    }
+    if (!description || description.length < 10) {
+        alert("Please enter at least 10 characters describing the issue.");
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
+    }
+
+    try {
+        const payload = {
+            category,
+            citizen_name,
+            citizen_mobile,
+            description
+        };
+
+        let res;
+        if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.fetch) {
+            res = await SmartCityAuth.fetch(`/api/famous-places/${placeId}/issues`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+        } else {
+            const token = localStorage.getItem("smartCityJWT") || localStorage.getItem("token");
+            res = await fetch(`/api/famous-places/${placeId}/issues`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            showToast(`✅ ${data.message || 'Civic issue submitted successfully!'}`);
+            closeReportIssueModal();
+            const form = document.getElementById("fieldIssueForm");
+            if (form) form.reset();
+            if (typeof loadAdminIssues === "function") {
+                loadAdminIssues();
+            }
+        } else {
+            alert(`Error: ${data.message || 'Could not submit issue.'}`);
+        }
+    } catch (err) {
+        console.error("Issue submit error:", err);
+        alert("Failed to submit issue. Please check your connection.");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Submit Report 🚀";
+        }
+    }
+}
+
+window.openReportIssueModal = openReportIssueModal;
+window.closeReportIssueModal = closeReportIssueModal;
+window.submitFieldIssue = submitFieldIssue;

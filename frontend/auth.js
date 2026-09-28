@@ -1791,6 +1791,17 @@ const SmartCityAuth = (() => {
             });
         }
 
+        if (options && options.prefillStaffId) {
+            const staffInput = modal.querySelector("#scStaffId");
+            if (staffInput) staffInput.value = options.prefillStaffId;
+            const staffPass = modal.querySelector("#scStaffPassword");
+            if (staffPass) {
+                if (options.prefillStaffId === "TR-VERMA") staffPass.value = "verma123";
+                else if (options.prefillStaffId === "TR-ADMIN") staffPass.value = "admin123";
+                else if (options.prefillStaffId === "STAFF-001") staffPass.value = "admin123";
+            }
+        }
+
         if (options && options.message && msgEl) {
             msgEl.textContent = options.message;
             msgEl.style.color = "#38bdf8";
@@ -2072,7 +2083,7 @@ const SmartCityAuth = (() => {
                                     <div>
                                         <div style="font-weight:700; font-size:14px; color:#ffffff;">${_escapeHtml(a.doctor_name || 'Dr. Specialist')}</div>
                                         <div style="font-size:12px; color:#94a3b8; margin-top:2px;">🏥 ${_escapeHtml(a.hospital_name || 'Gorakhpur Health Hub')} • ${_escapeHtml(a.specialization || 'General')}</div>
-                                        <div style="font-size:11.5px; color:#38bdf8; font-weight:600; margin-top:4px;">📅 Date: ${_escapeHtml(a.appointment_date || 'Upcoming')} • ⏰ Slot: ${_escapeHtml(a.slot_time || '10:00 AM')}</div>
+                                        <div style="font-size:11.5px; color:#38bdf8; font-weight:600; margin-top:4px;">📅 Date: ${_escapeHtml(a.appointment_date ? (new Date(a.appointment_date).toLocaleDateString()) : 'Upcoming')} • ⏰ Slot: ${_escapeHtml(a.appointment_time || a.slot_time || '10:00 AM')}</div>
                                     </div>
                                     <div style="text-align:right;">
                                         <span style="font-size:10px; font-weight:800; padding:4px 9px; border-radius:999px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.35);">CONFIRMED</span>

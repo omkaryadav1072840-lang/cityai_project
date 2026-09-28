@@ -319,7 +319,6 @@
     <!-- =========================================================
          LAYER 1: CITIZEN / USER LAYER
     ========================================================= -->
-    <div id="layer-citizen-content">
         <div class="two-column-grid">
             <!-- 1. Alternative Route Navigation -->
             <div class="content-card">
@@ -497,9 +496,14 @@
             <p>
                 This layer is reserved for traffic police officers, junction operators, and ICCC signals personnel.
             </p>
-            <button class="primary-btn" onclick="promptTrafficStaffLogin()">
-                ⚡ Log in as Traffic Staff (TR-VERMA)
-            </button>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px;">
+                <button class="primary-btn" onclick="quickLoginTrafficStaff()">
+                    ⚡ 1-Click Login: Insp. Verma (Traffic Staff)
+                </button>
+                <button class="btn-secondary" onclick="promptTrafficStaffLogin()" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                    🔑 Manual Login Dialog
+                </button>
+            </div>
         </div>
 
         <!-- STAFF OPERATIONS MAIN CONTAINER -->
@@ -715,6 +719,9 @@
                         <button class="btn-secondary btn-sm" onclick="applyManualOverride('RESTORE_AUTO')" style="color: #16a34a; font-weight: 700;">
                             🔄 Restore Auto
                         </button>
+                    </div>
+                </div>
+            </div>
             <!-- ================= WEBSTER'S OPTIMUM SIGNAL TIMING ENGINE ================= -->
             <div class="webster-card" style="margin-top: 18px; border: 1px solid #bfdbfe; background: #eff6ff;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
@@ -955,9 +962,14 @@
             <p>
                 Asset commissioning, junction geometry modifications, and municipal infrastructure telemetry require ICCC Administrator credentials.
             </p>
-            <button class="primary-btn" onclick="promptTrafficAdminLogin()">
-                ⚡ Log in as System Admin (TR-ADMIN)
-            </button>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px;">
+                <button class="primary-btn" onclick="quickLoginTrafficAdmin()">
+                    ⚡ 1-Click Login: ICCC Director (Admin)
+                </button>
+                <button class="btn-secondary" onclick="promptTrafficAdminLogin()" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                    🔑 Manual Login Dialog
+                </button>
+            </div>
         </div>
 
         <!-- ADMIN MAIN ASSETS CONTAINER -->
@@ -1480,6 +1492,8 @@
             </button>
         </div>
     </div>
+</div>
+
 <!-- 7. ANPR Optical Evidence Inspection Modal -->
 <div id="modal-anpr-evidence" class="modal-overlay">
     <div class="modal-box" style="max-width: 680px;">

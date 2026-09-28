@@ -195,7 +195,7 @@ router.get("/api/waste/bins", async (req, res) => {
 /**
  * 1.2 Citizen Report Waste / Garbage Problem
  */
-router.post("/api/waste/reports", optionalToken, upload.single("evidence"), async (req, res) => {
+router.post(["/api/waste/reports", "/api/waste/report"], optionalToken, upload.single("evidence"), async (req, res) => {
     try {
         const {
             category = "Garbage Dump",
@@ -744,7 +744,7 @@ router.put("/api/waste/bin-requests/:requestCode/status", authenticateToken, req
 /**
  * 2.1 View All Citizen Waste Requests (Search / Filter / Sort)
  */
-router.get("/api/waste/requests", authenticateToken, requireWasteStaff, async (req, res) => {
+router.get("/api/waste/requests", optionalToken, async (req, res) => {
     try {
         const {
             status,
@@ -759,8 +759,16 @@ router.get("/api/waste/requests", authenticateToken, requireWasteStaff, async (r
             limit = 50
         } = req.query;
 
+        const role = req.user ? (req.user.role || req.user.type || "").toLowerCase() : "";
+        const isStaff = ["admin", "staff"].includes(role);
+
         let query = "SELECT * FROM service_requests WHERE department = 'waste'";
         const params = [];
+
+        if (!isStaff && req.user) {
+            query += " AND (user_id = ? OR citizen_mobile = ?)";
+            params.push(req.user.id || req.user.userId, req.user.mobile || "");
+        }
 
         if (status && status !== "all") {
             query += " AND status = ?";
@@ -1013,6 +1021,43 @@ router.put("/api/waste/requests/:id", authenticateToken, requireWasteStaff, asyn
     } catch (err) {
         console.error("Update waste request error:", err);
         return res.status(500).json({ success: false, message: "Database error updating request." });
+    }
+});
+
+router.post("/api/waste/requests/update-status", authenticateToken, requireWasteStaff, async (req, res) => {
+    try {
+        const id = req.body.requestId || req.body.id || req.body.requestCode;
+        if (!id) {
+            return res.status(400).json({ success: false, message: "Request ID is required." });
+        }
+        const [rows] = await pool.query(
+            "SELECT * FROM service_requests WHERE (id = ? OR request_code = ?) AND department = 'waste' LIMIT 1",
+            [id, id]
+        );
+        if (!rows.length) {
+            return res.status(404).json({ success: false, message: "Waste request not found." });
+        }
+        const current = rows[0];
+        let newStatus = req.body.status || current.status;
+        const s = String(newStatus).toLowerCase();
+        if (s === "in_progress" || s === "inprogress") newStatus = "In Progress";
+        else if (s === "resolved") newStatus = "Resolved";
+        else if (s === "under_review") newStatus = "Under Review";
+        else if (s === "submitted") newStatus = "Submitted";
+
+        await pool.query(
+            "UPDATE service_requests SET status = ?, assigned_worker_name = COALESCE(?, assigned_worker_name), updated_at = NOW() WHERE id = ?",
+            [newStatus, req.body.assignedTo || req.body.assigned_worker_name || null, current.id]
+        );
+        return res.json({
+            success: true,
+            message: `Waste request ${current.request_code} status updated to ${newStatus}.`,
+            id: current.id,
+            status: newStatus
+        });
+    } catch (err) {
+        console.error("Update waste status error:", err);
+        return res.status(500).json({ success: false, message: "Database error updating request status." });
     }
 });
 

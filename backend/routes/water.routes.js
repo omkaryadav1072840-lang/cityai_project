@@ -541,18 +541,19 @@ router.put("/api/water/reports/:id/status", authenticateToken, requireWaterStaff
 // =========================================================
 // 12. WATER TANKER BOOKING — BOOK (Citizen)
 // =========================================================
-router.post("/api/water/tanker-bookings", optionalToken, async (req, res) => {
-    const { userId, citizenName, mobile, deliveryAddress, capacity, bookingDate, deliverySlot } = req.body;
+router.post(["/api/water/tanker-bookings", "/api/water/book-tanker"], optionalToken, async (req, res) => {
+    const { userId, citizenName, name, mobile, deliveryAddress, address, capacity, capacityLiters, bookingDate, deliverySlot } = req.body;
 
-    if (!deliveryAddress) {
+    const finalAddress = deliveryAddress || address;
+    if (!finalAddress) {
         return res.status(400).json({ success: false, message: "Delivery address is required." });
     }
 
-    const cName = citizenName || (req.user && req.user.name) || "Citizen";
-    const cMobile = mobile || (req.user && req.user.phone) || "9876543210";
+    const cName = citizenName || name || (req.user && req.user.name) || "Citizen";
+    const cMobile = mobile || (req.user && req.user.phone) || (req.user && req.user.mobile) || "9876543210";
     const bookingId = "TKB-" + Date.now().toString(36).toUpperCase();
     const date = bookingDate || new Date().toISOString().split("T")[0];
-    const cap = capacity || "5000 Litres";
+    const cap = capacity || (capacityLiters ? `${capacityLiters} Litres` : "5000 Litres");
     const slot = deliverySlot || "Morning (08:00 AM - 12:00 PM)";
 
     try {
@@ -560,7 +561,7 @@ router.post("/api/water/tanker-bookings", optionalToken, async (req, res) => {
             INSERT INTO water_tanker_bookings
             (booking_id, user_id, citizen_name, mobile, delivery_address, capacity, booking_date, delivery_slot, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
-        `, [bookingId, userId || (req.user && req.user.id) || null, cName, cMobile, deliveryAddress, cap, date, slot]);
+        `, [bookingId, userId || (req.user && req.user.id) || null, cName, cMobile, finalAddress, cap, date, slot]);
 
         const [created] = await pool.query("SELECT * FROM water_tanker_bookings WHERE id = ?", [result.insertId]);
 
@@ -799,7 +800,7 @@ router.post("/api/water/quality", authenticateToken, requireWaterStaff, async (r
 // =========================================================
 // 19. WATER SUPPLY SCHEDULES — GET & UPDATE (Ward Distribution)
 // =========================================================
-router.get("/api/water/schedules", async (req, res) => {
+router.get(["/api/water/schedules", "/api/water/supply-schedules"], async (req, res) => {
     try {
         const [results] = await pool.query("SELECT * FROM water_supply_schedules ORDER BY id ASC");
         res.json({ success: true, schedules: results });
@@ -832,6 +833,33 @@ router.put("/api/water/schedules/:id", authenticateToken, requireWaterStaff, asy
     } catch (err) {
         console.error("Update supply schedule error:", err);
         res.status(500).json({ success: false, message: "Database error." });
+    }
+});
+
+// =========================================================
+// 20. WATER SCADA ANOMALIES & SENSOR LEAK DETECTION
+// =========================================================
+router.get("/api/water/anomalies", async (req, res) => {
+    try {
+        const [pipes] = await pool.query(`
+            SELECT id, 'Pipeline Pressure Drop' AS anomaly_type, pipeline_code AS asset_code,
+                   zone AS location, status, pressure_bar, 'Pressure below critical threshold (1.2 bar)' AS description,
+                   created_at AS updated_at
+            FROM water_pipelines
+            WHERE status LIKE '%Leak%' OR pressure_bar < 1.5
+        `);
+        const [tanks] = await pool.query(`
+            SELECT id, 'Tank Low Level Alert' AS anomaly_type, tank_id AS asset_code,
+                   zone AS location, status, current_level_percent AS pressure_bar, 'Water storage depleted below 20%' AS description,
+                   updated_at
+            FROM water_tanks
+            WHERE current_level_percent < 20
+        `);
+        const anomalies = [...pipes, ...tanks];
+        res.json({ success: true, count: anomalies.length, anomalies });
+    } catch (err) {
+        console.error("Water anomalies error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching anomalies." });
     }
 });
 

@@ -121,8 +121,28 @@ router.get("/api/appointments/availability", (req, res) => {
 // STRICT APPOINTMENT BOOKING API (With Validation & Double Booking Prevention)
 // =========================================================
 
-router.post("/api/appointments/book-strict", (req, res) => {
-    const { patientId, hospitalId, doctorId, appointmentDate, appointmentTime } = req.body;
+router.post("/api/appointments/book-strict", optionalToken, async (req, res) => {
+    let { patientId, hospitalId, doctorId, appointmentDate, appointmentTime, patientName, patientMobile } = req.body;
+    patientId = patientId || req.body.patient_id;
+    appointmentDate = appointmentDate || req.body.date;
+    appointmentTime = appointmentTime || req.body.timeSlot || req.body.time;
+
+    // Auto-resolve patient if not provided but user is logged in
+    if (!patientId && req.user) {
+        try {
+            const userId = req.user.id || req.user.userId;
+            const mobile = (req.user.mobile || patientMobile || "").replace(/\D/g, "");
+            const [pRows] = await db.promise().query(
+                "SELECT patient_id FROM patients WHERE user_id = ? OR mobile = ? OR RIGHT(mobile, 10) = RIGHT(?, 10) LIMIT 1",
+                [userId || 0, mobile || "", mobile || ""]
+            );
+            if (pRows.length > 0) {
+                patientId = pRows[0].patient_id;
+            }
+        } catch (e) {
+            console.warn("Patient auto-resolve warning:", e.message);
+        }
+    }
 
     if (!patientId || !hospitalId || !doctorId || !appointmentDate || !appointmentTime) {
         return res.status(400).json({
@@ -132,7 +152,7 @@ router.post("/api/appointments/book-strict", (req, res) => {
     }
 
     // 1. Validate Patient ID
-    db.query("SELECT id, name FROM patients WHERE patient_id = ?", [patientId], (pErr, pRows) => {
+    db.query("SELECT id, name FROM patients WHERE patient_id = ? OR id = ?", [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)], (pErr, pRows) => {
         if (pErr) return res.status(500).json({ success: false, message: "Database error." });
         if (!pRows || !pRows.length) {
             return res.status(404).json({
@@ -141,19 +161,21 @@ router.post("/api/appointments/book-strict", (req, res) => {
             });
         }
 
-        // 2. Fetch Doctor and Hospital Name for reference
+        // 2. Fetch Doctor and Hospital Name with flexible ID support
         const docSql = `
-            SELECT d.name AS doctor_name, h.hospital_name 
+            SELECT d.doctor_id, d.name AS doctor_name, COALESCE(h.hospital_name, 'Gorakhpur Medical Hub') AS hospital_name,
+                   COALESCE(h.hospital_id, d.hospital_id) AS resolved_hosp_id
             FROM doctors d 
-            JOIN hospitals h ON h.hospital_id = ? 
-            WHERE d.doctor_id = ?
+            LEFT JOIN hospitals h ON (h.hospital_id = ? OR h.id = ? OR d.hospital_id = h.hospital_id)
+            WHERE (d.doctor_id = ? OR d.id = ?)
+            LIMIT 1
         `;
-        db.query(docSql, [hospitalId, doctorId], (dErr, dRows) => {
+        db.query(docSql, [hospitalId, isNaN(hospitalId) ? -1 : parseInt(hospitalId, 10), doctorId, isNaN(doctorId) ? -1 : parseInt(doctorId, 10)], (dErr, dRows) => {
             if (dErr || !dRows.length) {
                 return res.status(404).json({ success: false, message: "Doctor or Hospital mapping not found." });
             }
 
-            const { doctor_name, hospital_name } = dRows[0];
+            const { doctor_id, doctor_name, hospital_name, resolved_hosp_id } = dRows[0];
 
             // 3. Insert Appointment with Duplicate Catch
             const insertSql = `
@@ -162,13 +184,32 @@ router.post("/api/appointments/book-strict", (req, res) => {
                 VALUES (?, ?, ?, ?, ?, ?, 'Confirmed')
             `;
 
-            db.query(insertSql, [patientId, hospitalId, doctorId, doctor_name, appointmentDate, appointmentTime], (insErr, insRes) => {
+            db.query(insertSql, [patientId, resolved_hosp_id || hospitalId, doctor_id || doctorId, doctor_name, appointmentDate, appointmentTime], (insErr, insRes) => {
                 if (insErr) {
                     if (insErr.code === 'ER_DUP_ENTRY') {
-                        return res.status(409).json({
-                            success: false,
-                            message: "This appointment slot has already been booked."
-                        });
+                        db.query("SELECT id FROM appointments WHERE patient_id = ? AND appointment_date = ? AND appointment_time = ? LIMIT 1",
+                            [patientId, appointmentDate, appointmentTime], (sameErr, sameRows) => {
+                                if (!sameErr && sameRows && sameRows.length > 0) {
+                                    return res.status(200).json({
+                                        success: true,
+                                        message: "Appointment already confirmed for this patient.",
+                                        appointment: {
+                                            appointmentId: `APT-${100000 + sameRows[0].id}`,
+                                            patientId,
+                                            hospitalName: hospital_name,
+                                            doctorName: doctor_name,
+                                            date: appointmentDate,
+                                            time: appointmentTime
+                                        }
+                                    });
+                                }
+                                return res.status(409).json({
+                                    success: false,
+                                    message: "This appointment slot has already been booked."
+                                });
+                            }
+                        );
+                        return;
                     }
                     console.error("[BOOKING INSERT ERROR]", insErr);
                     return res.status(500).json({ success: false, message: "Appointment booking failed." });
@@ -546,7 +587,7 @@ router.put("/api/appointments/:id/cancel", optionalToken, (req, res) => {
 // GET ALL APPOINTMENTS (General / Admin / Staff query)
 // =========================================================
 
-router.get("/api/appointments", authenticateToken, (req, res) => {
+router.get(["/api/appointments", "/api/appointments/my-appointments"], authenticateToken, (req, res) => {
     const { hospital_id, doctor_id, date, status } = req.query;
     const role = (req.user.role || req.user.type || "").toLowerCase();
 
