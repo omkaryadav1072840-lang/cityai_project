@@ -5,11 +5,26 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node backend/server.js",
+    "dev": "node scripts/dev.js",
+    "dev:backend": "node backend/server.js",
+    "dev:frontend": "node scripts/serve_frontend.js",
     "test": "node scratch/test_master_backend_routes.js",
+    "test:all": "node scripts/run_all_tests.js",
+    "docker:up": "docker compose up --build",
+    "docker:dev": "docker compose up",
+    "docker:down": "docker compose down",
+    "docker:test": "docker compose exec backend npm test",
     "init-db": "node backend/database/init_db.js"
   },
-  "keywords": ["smartcity", "iot", "ai", "gorakhpur"],
+  "keywords": [
+    "smartcity",
+    "iot",
+    "ai",
+    "gorakhpur",
+    "docker",
+    "fastapi",
+    "express"
+  ],
   "author": "SmartCity AI Team",
   "license": "ISC"
 }

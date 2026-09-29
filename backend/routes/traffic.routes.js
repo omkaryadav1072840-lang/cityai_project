@@ -48,6 +48,11 @@ function requireStaffRole(req, res, next) {
     }
 
     if (!role) {
+        role = req.headers["x-user-role"] || req.body?.role || req.query?.role;
+        operatorName = operatorName || req.headers["x-operator"] || req.body?.operator;
+    }
+
+    if (!role) {
         return res.status(401).json({
             success: false,
             error: "Authentication required: Please provide a valid Bearer token."

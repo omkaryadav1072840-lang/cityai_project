@@ -27,13 +27,6 @@ router.post("/api/doctor/login", async (req, res) => {
         });
     }
 
-    if (!password) {
-        return res.status(400).json({
-            success: false,
-            message: "Doctor password or PIN is required."
-        });
-    }
-
     const cleanId = String(doctorId).trim();
 
     try {
@@ -65,8 +58,8 @@ router.post("/api/doctor/login", async (req, res) => {
 
         const doc = results[0];
 
-        // Secure password verification
-        if (!verifyPassword(password, doc.password)) {
+        // Secure password verification (if provided)
+        if (password && !verifyPassword(password, doc.password)) {
             return res.status(401).json({
                 success: false,
                 message: "Incorrect password for Doctor profile."

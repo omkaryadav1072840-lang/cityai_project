@@ -80,9 +80,15 @@ async function runTests() {
         }
     });
 
+    const jwt = require('jsonwebtoken');
+    require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+    const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+    const staffToken = jwt.sign({ id: "STAFF-TR-01", staffId: "TR-VERMA", role: "staff", department: "traffic" }, JWT_SECRET);
+    const authHeaders = { 'Authorization': `Bearer ${staffToken}` };
+
     // 4. Signal Timing Update
     await test('PUT /api/traffic/junctions/JNC-01/signals updates green timing', async () => {
-        const res = await request('http://localhost:5000/api/traffic/junctions/JNC-01/signals', { method: 'PUT' }, {
+        const res = await request('http://localhost:5000/api/traffic/junctions/JNC-01/signals', { method: 'PUT', headers: authHeaders }, {
             cycle_time: 125,
             signals: [{ id: 'SIG-JNC-01-NORTH', green_time: 48, yellow_time: 4, red_time: 73, pedestrian_walk: 1 }]
         });
@@ -93,7 +99,7 @@ async function runTests() {
 
     // 5. Manual Override
     await test('POST /api/traffic/junctions/JNC-01/override applies Force Green and Restores Auto', async () => {
-        const forceRes = await request('http://localhost:5000/api/traffic/junctions/JNC-01/override', { method: 'POST' }, {
+        const forceRes = await request('http://localhost:5000/api/traffic/junctions/JNC-01/override', { method: 'POST', headers: authHeaders }, {
             action: 'FORCE_GREEN',
             approach: 'North',
             reason: 'Test Emergency Clearance'
@@ -102,7 +108,7 @@ async function runTests() {
             throw new Error(`Force green override failed`);
         }
 
-        const restoreRes = await request('http://localhost:5000/api/traffic/junctions/JNC-01/override', { method: 'POST' }, {
+        const restoreRes = await request('http://localhost:5000/api/traffic/junctions/JNC-01/override', { method: 'POST', headers: authHeaders }, {
             action: 'RESTORE_AUTO'
         });
         if (restoreRes.status !== 200 || !restoreRes.body.success) {
@@ -120,7 +126,7 @@ async function runTests() {
 
     // 7. Emergency Green Corridor Dispatch & Deactivation
     await test('POST /api/traffic/corridors/dispatch and deactivate', async () => {
-        const dispatchRes = await request('http://localhost:5000/api/traffic/corridors/dispatch', { method: 'POST' }, {
+        const dispatchRes = await request('http://localhost:5000/api/traffic/corridors/dispatch', { method: 'POST', headers: authHeaders }, {
             corridor_id: 'CORR-01',
             operator: 'Test Controller'
         });
@@ -128,7 +134,7 @@ async function runTests() {
             throw new Error(`Corridor dispatch failed`);
         }
 
-        const deactRes = await request('http://localhost:5000/api/traffic/corridors/CORR-01/deactivate', { method: 'POST' }, {
+        const deactRes = await request('http://localhost:5000/api/traffic/corridors/CORR-01/deactivate', { method: 'POST', headers: authHeaders }, {
             operator: 'Test Controller'
         });
         if (deactRes.status !== 200 || !deactRes.body.success) {

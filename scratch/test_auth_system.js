@@ -40,7 +40,7 @@ async function testServer() {
             path: '/api/login',
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
-        }, { loginId: '6306880179', password: 'password123' });
+        }, { loginId: '6306880179', password: 'omkar123' });
 
         console.log(`Citizen Login status: ${citRes.statusCode}, Token returned: ${!!citRes.data.token}, User: ${citRes.data.user?.name}`);
 

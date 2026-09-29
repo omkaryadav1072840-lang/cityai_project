@@ -48,6 +48,8 @@ services:
       INTERNAL_API_KEY: ${AI_SERVICE_KEY:-smartcity_ai_internal_token_gorakhpur_2026}
     ports:
       - "8000:8000"
+    volumes:
+      - ./ai_service:/app
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
       interval: 15s
@@ -92,6 +94,9 @@ services:
     ports:
       - "5000:5000"
     volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./frontend:/frontend:ro
       - backend_uploads:/app/uploads
     networks:
       - smartcity-net
@@ -110,6 +115,8 @@ services:
     ports:
       - "80:80"
       - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
     networks:
       - smartcity-net
 

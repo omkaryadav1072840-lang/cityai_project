@@ -4,7 +4,12 @@
 
 const http = require("http");
 
-function apiRequest(method, path, data = null) {
+const jwt = require("jsonwebtoken");
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+const staffToken = jwt.sign({ id: "STAFF-TR-01", staffId: "TR-VERMA", role: "staff", department: "traffic" }, JWT_SECRET);
+
+function apiRequest(method, path, data = null, customHeaders = {}) {
     return new Promise((resolve, reject) => {
         const payload = data ? JSON.stringify(data) : null;
         const req = http.request({
@@ -14,7 +19,8 @@ function apiRequest(method, path, data = null) {
             method: method,
             headers: {
                 "Content-Type": "application/json",
-                ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {})
+                ...(payload ? { "Content-Length": Buffer.byteLength(payload) } : {}),
+                ...customHeaders
             }
         }, (res) => {
             let body = "";
@@ -93,7 +99,7 @@ async function runTests() {
         const critDispatchRes = await apiRequest("POST", `/api/traffic/ambulances/${testAmb.id}/critical-dispatch`, {
             destinationHospital: "BRD Medical College",
             reason: "Acute Cardiac Emergency"
-        });
+        }, { "Authorization": `Bearer ${staffToken}` });
         assert("POST /api/traffic/ambulances/:id/critical-dispatch HTTP 200", critDispatchRes.status === 200);
         assert("Ambulance status marked as 'Critical Transit'", critDispatchRes.data.ambulance.status === "Critical Transit");
         assert("Preempted junctions returned", Array.isArray(critDispatchRes.data.preemptedJunctions) && critDispatchRes.data.preemptedJunctions.length > 0);
@@ -109,7 +115,7 @@ async function runTests() {
 
         // 5. Test Clear Critical Corridor
         console.log("\n--- 5. Testing Clear Critical Corridor ---");
-        const clearRes = await apiRequest("POST", `/api/traffic/ambulances/${testAmb.id}/clear-critical`);
+        const clearRes = await apiRequest("POST", `/api/traffic/ambulances/${testAmb.id}/clear-critical`, {}, { "Authorization": `Bearer ${staffToken}` });
         assert("POST /api/traffic/ambulances/:id/clear-critical HTTP 200", clearRes.status === 200);
         assert("Ambulance restored to normal status", clearRes.data.ambulance.status === "On Duty" && !clearRes.data.ambulance.isCritical);
 

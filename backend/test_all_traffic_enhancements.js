@@ -20,14 +20,19 @@ function get(path) {
     });
 }
 
-function post(path, body) {
+const jwt = require('jsonwebtoken');
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+
+function post(path, body, customHeaders = {}) {
     return new Promise((resolve, reject) => {
         const payload = JSON.stringify(body);
         const req = http.request(`http://localhost:5000${path}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(payload)
+                'Content-Length': Buffer.byteLength(payload),
+                ...customHeaders
             }
         }, (res) => {
             let data = '';
@@ -143,6 +148,7 @@ async function runTests() {
         assert("Mohaddipur and Dharamshala VMS boards exist", vmsRes.body.boards.some(b => b.id === "VMS-01") && vmsRes.body.boards.some(b => b.id === "VMS-03"));
 
         // 11. Test VMS Roadside Broadcast Update
+        const testStaffToken = jwt.sign({ id: "STAFF-TR-01", name: "Test Controller", role: "staff", department: "traffic" }, JWT_SECRET);
         const vmsUpdateRes = await post("/api/traffic/vms-boards/VMS-01/message", {
             line1: "TEST BROADCAST: HEAVY CONGESTION",
             line2: "DIVERT TO BYPASS ROAD",
@@ -150,7 +156,7 @@ async function runTests() {
             status: "ONLINE",
             ledColor: "#ffb703",
             operator: "Test Controller"
-        });
+        }, { 'Authorization': `Bearer ${testStaffToken}` });
         assert("VMS Message Broadcast updated successfully", vmsUpdateRes.status === 200 && vmsUpdateRes.body.success && vmsUpdateRes.body.board.line1.includes("TEST BROADCAST"));
 
         // 12. Test Citizen Daily Commute Route Alert Subscription

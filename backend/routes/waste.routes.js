@@ -744,7 +744,7 @@ router.put("/api/waste/bin-requests/:requestCode/status", authenticateToken, req
 /**
  * 2.1 View All Citizen Waste Requests (Search / Filter / Sort)
  */
-router.get("/api/waste/requests", optionalToken, async (req, res) => {
+router.get("/api/waste/requests", authenticateToken, requireWasteStaff, async (req, res) => {
     try {
         const {
             status,

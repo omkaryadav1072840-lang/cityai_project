@@ -168,7 +168,7 @@ class AIOrchestrator {
         switch (intentObj.intent) {
             case "hospital_beds": {
                 const beds = rawToolData.beds_summary || [];
-                const list = beds.map(b => `• **${b.hospital_name}**: ${b.available_beds || 0} General Beds, ${b.available_icu || 0} ICU Beds available (Ph: ${b.phone || '108'})`).join("\n");
+                const list = beds.map(b => `• **${b.hospital_name}**: ${b.available_beds || 0} General beds available, ${b.available_icu || 0} ICU beds available (Ph: ${b.phone || '108'})`).join("\n");
                 reply = isHindi
                     ? `गोरखपुर के प्रमुख अस्पतालों में लाइव बेड स्थिति:\n\n${list}\n\nक्या आप इनमें से किसी अस्पताल के लिए नेविगेशन या एम्बुलेंस चाहते हैं?`
                     : `Current verified hospital bed capacity in Gorakhpur:\n\n${list}\n\nAll bed numbers are grounded directly from the hospital ward telemetry.`;

@@ -69,11 +69,11 @@ async function runTests() {
             headers: { 'Content-Type': 'application/json' }
         }, JSON.stringify({ latitude: 26.7599, longitude: 83.3739 }));
 
-        console.log(`Anonymous Status: ${anonRes.status} (Expected: 403)`);
-        if (anonRes.status !== 403) {
+        console.log(`Anonymous Status: ${anonRes.status} (Expected: 401 or 403)`);
+        if (anonRes.status !== 403 && anonRes.status !== 401) {
             throw new Error(`Security Failure! Anonymous edit was not blocked. Status: ${anonRes.status}`);
         }
-        console.log("✅ Anonymous edit correctly BLOCKED with 403 Forbidden!");
+        console.log("✅ Anonymous edit correctly BLOCKED with 401/403!");
 
         // TEST 3: Staff attempt -> MUST SUCCEED with 200
         console.log("\n[3] Testing Authorized Staff PUT /api/traffic/signals/:id/location...");

@@ -57,9 +57,17 @@ async function runTests() {
             role: "Senior Traffic Controller"
         });
 
+const jwt = require('jsonwebtoken');
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+const staffToken = jwt.sign({ id: "STAFF-TR-01", staffId: "TR-VERMA", role: "staff", department: "traffic" }, JWT_SECRET);
+
         const putRes = await request(`http://localhost:5000/api/traffic/signals/${encodeURIComponent(targetSignal.id)}/location`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${staffToken}`
+            }
         }, updatePayload);
 
         console.log(`[2] PUT /api/traffic/signals/${targetSignal.id}/location -> Status ${putRes.status}`);

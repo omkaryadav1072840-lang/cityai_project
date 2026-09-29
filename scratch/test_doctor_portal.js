@@ -45,15 +45,24 @@ async function runTests() {
     // 2. Doctor Appointments Queue
     const testDoc = doctorsList[0] || {};
     const testDocId = testDoc.doctor_id || testDoc.doctorId || testDoc.id || 'DOC-101';
+    
+    // Log in as doctor to get JWT token
+    const loginRes = await request('http://localhost:5000/api/doctor/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    }, { doctorId: testDocId });
+    const docToken = loginRes.data?.token;
+    const authHeaders = docToken ? { 'Authorization': `Bearer ${docToken}` } : {};
+
     console.log(`\n2. Testing GET /api/doctor/${testDocId}/appointments...`);
-    const apptRes = await request(`http://localhost:5000/api/doctor/${testDocId}/appointments`);
+    const apptRes = await request(`http://localhost:5000/api/doctor/${testDocId}/appointments`, { headers: authHeaders });
     const queueList = apptRes.data?.appointments || (Array.isArray(apptRes.data) ? apptRes.data : []);
     console.log(`   Status: ${apptRes.status}, Queue length: ${queueList.length}`);
 
     // 3. Patient History ("Kahan Kahan Dawa Karwaya")
     const testPatientId = 'PAT-5931984821';
     console.log(`\n3. Testing GET /api/doctor/patient-history/${testPatientId}...`);
-    const histRes = await request(`http://localhost:5000/api/doctor/patient-history/${testPatientId}`);
+    const histRes = await request(`http://localhost:5000/api/doctor/patient-history/${testPatientId}`, { headers: authHeaders });
     console.log(`   Status: ${histRes.status}`);
     console.log(`   Patient Name: ${histRes.data.patient?.name}`);
     console.log(`   Past Clinical Consultations ("Kahan Dawa Karwaya"): ${histRes.data.records?.length || 0}`);
@@ -72,13 +81,13 @@ async function runTests() {
     };
     const consultRes = await request('http://localhost:5000/api/doctor/consultation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', ...authHeaders }
     }, consultPayload);
     console.log(`   Status: ${consultRes.status}, Result:`, consultRes.data);
 
     // 5. Verify history updated with new clinical record
     console.log(`\n5. Verifying history update for ${testPatientId}...`);
-    const verifyHist = await request(`http://localhost:5000/api/doctor/patient-history/${testPatientId}`);
+    const verifyHist = await request(`http://localhost:5000/api/doctor/patient-history/${testPatientId}`, { headers: authHeaders });
     const latestRec = verifyHist.data.records?.[0];
     console.log(`   Total records now: ${verifyHist.data.records?.length}`);
     console.log(`   Latest Record Diagnosis: "${latestRec?.diagnosis}" by Dr. ${latestRec?.doctorName}`);
