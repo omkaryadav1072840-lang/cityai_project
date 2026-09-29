@@ -1425,7 +1425,7 @@ async function openSavedPlacesModal() {
         list.innerHTML = favs.map(f => `
             <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#f8fafc; border:1px solid var(--border); border-radius:8px;">
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <img src="${f.image_url || ''}" style="width:48px; height:48px; object-fit:cover; border-radius:6px;">
+                    <img src="${f.image_url || ''}" alt="${f.name || 'Saved Landmark'}" loading="lazy" style="width:48px; height:48px; object-fit:cover; border-radius:6px;">
                     <div>
                         <strong style="font-size:14px; color:#0f172a; display:block;">${f.name}</strong>
                         <small style="color:#64748b;">📍 ${f.locality || 'Gorakhpur'}</small>

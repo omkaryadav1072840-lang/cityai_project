@@ -63,6 +63,10 @@ const server = http.createServer((req, res) => {
     let reqPath = decodeURIComponent(new URL(req.url, `http://localhost:${PORT}`).pathname);
     if (reqPath === '/' || reqPath === '') {
         reqPath = '/index.html';
+    } else if (reqPath === '/privacy-policy') {
+        reqPath = '/pages/privacy-policy.html';
+    } else if (reqPath === '/terms-and-conditions') {
+        reqPath = '/pages/terms-and-conditions.html';
     }
 
     const filePath = path.join(FRONTEND_DIR, reqPath);
@@ -89,11 +93,17 @@ const server = http.createServer((req, res) => {
                 return fs.createReadStream(dirIndex).pipe(res);
             }
 
-            // SPA Fallback to index.html if not an asset request
+            // SPA Fallback to index.html if not an asset request and no extension
             if (!path.extname(reqPath)) {
                 const fallback = path.join(FRONTEND_DIR, 'index.html');
                 res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
                 return fs.createReadStream(fallback).pipe(res);
+            }
+
+            const err404 = path.join(FRONTEND_DIR, '404.html');
+            if (fs.existsSync(err404)) {
+                res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+                return fs.createReadStream(err404).pipe(res);
             }
 
             res.writeHead(404, { 'Content-Type': 'text/plain' });

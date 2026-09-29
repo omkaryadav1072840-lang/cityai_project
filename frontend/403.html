@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Access Restricted | SmartCity AI</title>
+    <meta name="description" content="Access to this restricted municipal section requires elevated staff or administrative credentials.">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
+    <style>
+        .error-container {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: radial-gradient(circle at top right, rgba(220, 38, 38, 0.08), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.08), transparent 40%),
+                        #f8fafc;
+        }
+        .error-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.06);
+            max-width: 580px;
+            width: 100%;
+            padding: 48px 40px;
+            text-align: center;
+        }
+        .error-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: #fef2f2;
+            color: #dc2626;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 9999px;
+            margin-bottom: 20px;
+            border: 1px solid #fecaca;
+        }
+        .error-code {
+            font-size: 80px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        .error-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+        .error-desc {
+            font-size: 15px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .error-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        @media (max-width: 640px) {
+            .error-card { padding: 32px 20px; }
+            .error-code { font-size: 64px; }
+            .error-title { font-size: 20px; }
+            .error-actions { flex-direction: column; width: 100%; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar" role="banner">
+        <div class="logo">
+            <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 26px;">🏙️</span>
+                <span>SmartCity <strong style="color: #2563eb;">AI</strong></span>
+            </a>
+        </div>
+        <nav role="navigation" aria-label="Main Navigation">
+            <a href="/" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Home</a>
+            <a href="/pages/hospital/hospital.html" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Hospitals</a>
+            <a href="/pages/traffic/traffic.html" class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Live Traffic</a>
+        </nav>
+    </header>
+
+    <main class="error-container" role="main">
+        <article class="error-card">
+            <div class="error-badge" aria-label="Status: 403 Forbidden">
+                <span>🔒</span> Role-Based Access Control (RBAC)
+            </div>
+            <h1 class="error-code">403</h1>
+            <h2 class="error-title">Restricted Municipal Area</h2>
+            <p class="error-desc">
+                Your current account permissions do not grant authorization to view or execute operations in this administrative or staff department.
+            </p>
+            <div class="error-actions">
+                <a href="/" class="btn-primary" id="btnReturnHome">
+                    <span>🏠</span> Return to Citizen Home
+                </a>
+                <a href="/index.html?openAuth=staff" class="btn-secondary">
+                    <span>🔑</span> Staff Verification Login
+                </a>
+            </div>
+        </article>
+    </main>
+</body>
+</html>

@@ -1075,30 +1075,12 @@ const SmartCityAuth = (() => {
     // -------------------------------------------------------
 
     async function quickLoginPersona(roleKey) {
-        let endpoint = `${_getApiBase()}/api/login`;
-        let payload = {};
-
-        if (roleKey === "citizen") {
-            payload = { loginId: "6306880179", password: "password123" };
-        } else if (roleKey === "citizen2") {
-            payload = { loginId: "9876543210", password: "citizen123" };
-        } else if (roleKey === "traffic") {
-            endpoint = `${_getApiBase()}/api/staff-login`;
-            payload = { staffId: "TR-VERMA", password: "verma123" };
-        } else if (roleKey === "hospital") {
-            endpoint = `${_getApiBase()}/api/staff-login`;
-            payload = { staffId: "STAFF-001", password: "admin123" };
-        } else if (roleKey === "admin") {
-            endpoint = `${_getApiBase()}/api/staff-login`;
-            payload = { staffId: "TR-ADMIN", password: "admin123" };
-        }
-
         try {
             showToast("Authenticating persona...", "info");
-            const res = await fetch(endpoint, {
+            const res = await fetch(`${_getApiBase()}/api/auth/demo-login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ persona: roleKey })
             });
             const data = await res.json();
             if (data.token) {
@@ -1113,10 +1095,10 @@ const SmartCityAuth = (() => {
                 showToast(`Welcome back, ${data.user.name || 'User'}!`, "success");
                 setTimeout(() => window.location.reload(), 300);
             } else {
-                alert("Login failed: " + (data.message || "Invalid credentials"));
+                showToast(data.message || "Login failed.", "error");
             }
-        } catch (e) {
-            alert("Connection error: " + e.message);
+        } catch (err) {
+            showToast("Error authenticating persona: " + err.message, "error");
         }
     }
 
@@ -1794,12 +1776,6 @@ const SmartCityAuth = (() => {
         if (options && options.prefillStaffId) {
             const staffInput = modal.querySelector("#scStaffId");
             if (staffInput) staffInput.value = options.prefillStaffId;
-            const staffPass = modal.querySelector("#scStaffPassword");
-            if (staffPass) {
-                if (options.prefillStaffId === "TR-VERMA") staffPass.value = "verma123";
-                else if (options.prefillStaffId === "TR-ADMIN") staffPass.value = "admin123";
-                else if (options.prefillStaffId === "STAFF-001") staffPass.value = "admin123";
-            }
         }
 
         if (options && options.message && msgEl) {

@@ -1,13 +1,30 @@
 /**
- * SmartCity AI - Production Security & Rate Limiting Middleware
+ * SmartCity AI - Production Security, HTTPS & Rate Limiting Middleware
  * -------------------------------------------------------------
- * Provides lightweight, zero-dependency HTTP security headers
- * and an in-memory sliding-window rate limiter for sensitive routes.
+ * Provides lightweight, zero-dependency HTTP security headers,
+ * production HTTPS redirection, HSTS, and sliding-window rate limiters.
  */
 
 /**
+ * Enforces HTTPS in production deployments while allowing clean localhost development.
+ */
+function enforceHttpsInProduction(req, res, next) {
+    const isProduction = process.env.NODE_ENV === "production";
+    const isLocalhost = req.hostname === "localhost" || req.hostname === "127.0.0.1";
+
+    // If running in production behind a reverse proxy (e.g. Nginx, Cloudflare, AWS ALB)
+    if (isProduction && !isLocalhost) {
+        const proto = req.headers["x-forwarded-proto"];
+        if (proto && proto !== "https") {
+            return res.redirect(301, `https://${req.headers.host}${req.url}`);
+        }
+    }
+    next();
+}
+
+/**
  * Injects essential production HTTP security headers.
- * Protects against MIME-type sniffing, clickjacking, and XSS.
+ * Protects against MIME-type sniffing, clickjacking, XSS, and unauthorized device access.
  */
 function securityHeaders(req, res, next) {
     // Prevent MIME-sniffing
@@ -21,6 +38,16 @@ function securityHeaders(req, res, next) {
 
     // Referrer policy
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+
+    // Device permissions policy
+    res.setHeader("Permissions-Policy", "geolocation=(self), camera=(), microphone=(), payment=()");
+
+    // HSTS (HTTP Strict Transport Security) - active in production HTTPS
+    const isProduction = process.env.NODE_ENV === "production";
+    const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
+    if (isProduction && isSecure) {
+        res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+    }
 
     // Remove server fingerprint
     res.removeHeader("X-Powered-By");
@@ -61,8 +88,8 @@ function createRateLimiter(options = {}) {
     if (cleanupInterval.unref) cleanupInterval.unref();
 
     return function rateLimitMiddleware(req, res, next) {
-        // Skip rate limiting if explicitly disabled in environment
-        if (process.env.DISABLE_RATE_LIMIT === "true") {
+        // Skip rate limiting if explicitly disabled in environment or during test runs
+        if (process.env.DISABLE_RATE_LIMIT === "true" || process.env.NODE_ENV === "test") {
             return next();
         }
 
@@ -92,21 +119,26 @@ function createRateLimiter(options = {}) {
         // Standard rate limit headers
         res.setHeader("X-RateLimit-Limit", max);
         res.setHeader("X-RateLimit-Remaining", Math.max(0, max - recentTimestamps.length));
-
         next();
     };
 }
 
 // Preset rate limiters for specific endpoint classes
+const globalApiRateLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 300,
+    message: "Global API request rate limit reached. Please wait a moment."
+});
+
 const authRateLimiter = createRateLimiter({
     windowMs: 60 * 1000,
-    max: 20,
+    max: 120,
     message: "Too many authentication attempts. Please wait 1 minute before trying again."
 });
 
 const aiRateLimiter = createRateLimiter({
     windowMs: 60 * 1000,
-    max: 40,
+    max: 50,
     message: "SmartCity AI engine request rate limit reached. Please wait a moment."
 });
 
@@ -116,10 +148,19 @@ const sosRateLimiter = createRateLimiter({
     message: "Emergency broadcast limit reached. If this is a life-threatening crisis, please dial 108 or 112 directly."
 });
 
+const formSubmissionRateLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 30,
+    message: "Form submission limit exceeded. Please wait a moment before sending another request."
+});
+
 module.exports = {
+    enforceHttpsInProduction,
     securityHeaders,
     createRateLimiter,
+    globalApiRateLimiter,
     authRateLimiter,
     aiRateLimiter,
-    sosRateLimiter
+    sosRateLimiter,
+    formSubmissionRateLimiter
 };

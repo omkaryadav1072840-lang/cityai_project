@@ -293,14 +293,14 @@ function applyRoleUI() {
 }
 window.applyRoleUI = applyRoleUI;
 
-// 1-Click Fast Instant Login for Traffic Staff (TR-VERMA)
+// 1-Click Fast Instant Login for Traffic Staff
 async function quickLoginTrafficStaff() {
     try {
-        if (typeof showToast === "function") showToast("Authenticating Insp. Verma (Traffic Staff)...");
-        const res = await fetch("/api/staff-login", {
+        if (typeof showToast === "function") showToast("Authenticating Traffic Staff...");
+        const res = await fetch("/api/auth/demo-login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ staffId: "TR-VERMA", password: "verma123" })
+            body: JSON.stringify({ persona: "traffic" })
         });
         const data = await res.json();
         if (data.token) {
@@ -309,7 +309,7 @@ async function quickLoginTrafficStaff() {
             if (window.SmartCityAuth && typeof SmartCityAuth.setSession === "function") {
                 SmartCityAuth.setSession(data.token, data.user);
             }
-            if (typeof showToast === "function") showToast("Welcome Officer Insp. R.K. Verma!", "success");
+            if (typeof showToast === "function") showToast(`Welcome Officer ${data.user.name || ''}!`, "success");
             initUserSession();
             switchLayer("control");
         } else {
@@ -321,14 +321,14 @@ async function quickLoginTrafficStaff() {
 }
 window.quickLoginTrafficStaff = quickLoginTrafficStaff;
 
-// 1-Click Fast Instant Login for System Admin (TR-ADMIN)
+// 1-Click Fast Instant Login for System Admin
 async function quickLoginTrafficAdmin() {
     try {
         if (typeof showToast === "function") showToast("Authenticating ICCC Traffic Admin...");
-        const res = await fetch("/api/staff-login", {
+        const res = await fetch("/api/auth/demo-login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ staffId: "TR-ADMIN", password: "admin123" })
+            body: JSON.stringify({ persona: "admin" })
         });
         const data = await res.json();
         if (data.token) {
@@ -354,12 +354,12 @@ function promptTrafficStaffLogin() {
         SmartCityAuth.showLoginModal("staff", {
             prefillStaffId: "TR-VERMA",
             department: "traffic",
-            message: "🔒 Enter Traffic Staff ID (TR-VERMA) & Password (verma123) to access Traffic Control Room."
+            message: "🔒 Sign in to access the Traffic Control Room."
         });
         return;
     }
-    const staffId = prompt("Enter Traffic Staff ID (Default: TR-VERMA):", "TR-VERMA");
-    const pass = prompt("Enter Password (Default: verma123):", "verma123");
+    const staffId = prompt("Enter Traffic Staff ID:");
+    const pass = prompt("Enter Password:");
     if (staffId && pass) {
         fetch("/api/staff-login", {
             method: "POST",
@@ -383,12 +383,12 @@ function promptTrafficAdminLogin() {
         SmartCityAuth.showLoginModal("staff", {
             prefillStaffId: "TR-ADMIN",
             department: "traffic",
-            message: "🔒 Enter Admin ID (TR-ADMIN) & Password (admin123) to access System Admin Console."
+            message: "🔒 Sign in to access the System Admin Console."
         });
         return;
     }
-    const staffId = prompt("Enter Admin ID (Default: TR-ADMIN):", "TR-ADMIN");
-    const pass = prompt("Enter Password (Default: admin123):", "admin123");
+    const staffId = prompt("Enter Admin ID:");
+    const pass = prompt("Enter Password:");
     if (staffId && pass) {
         fetch("/api/staff-login", {
             method: "POST",

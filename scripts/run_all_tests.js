@@ -24,7 +24,8 @@ const TEST_SUITES = [
     { name: "Doctor Authentication & UI Verification", file: "scratch/test_doctor_login.js" },
     { name: "Doctor Clinical Portal & Consultation EHR", file: "scratch/test_doctor_portal.js" },
     { name: "Waste Management & Staff RBAC", file: "scratch/test_waste_module.js" },
-    { name: "Citizen & Staff Auth & Profiles", file: "scratch/test_auth_system.js" }
+    { name: "Citizen & Staff Auth & Profiles", file: "scratch/test_auth_system.js" },
+    { name: "Production Hardening, SEO & Legal Compliance", file: "scratch/test_hardening_and_compliance.js" }
 ];
 
 async function runSingleTest(suite) {

@@ -146,9 +146,28 @@ async function handleDashboardStaffLogin(e) {
 }
 
 async function quickDemoStaffLogin() {
-    document.getElementById("gateStaffId").value = "STAFF-001";
-    document.getElementById("gatePassword").value = "admin123";
-    await handleDashboardStaffLogin();
+    try {
+        const res = await fetch(`${API_BASE}/api/auth/demo-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ persona: "hospital" })
+        });
+        const data = await res.json();
+        if (data.token) {
+            localStorage.setItem("smartCityJWT", data.token);
+            localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+            if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.setSession) {
+                SmartCityAuth.setSession(data.token, data.user);
+            }
+            const modal = document.getElementById("staffAuthModal");
+            if (modal) modal.style.display = "none";
+            await refreshDashboardData();
+        } else {
+            alert(data.message || "Demo login failed");
+        }
+    } catch (e) {
+        alert("Demo authentication error: " + e.message);
+    }
 }
 
 function handleStaffLogout() {
@@ -385,10 +404,10 @@ async function refreshDashboardData() {
 
         // Fallback for seamless demo evaluation
         if (!authHeader) {
-            const demoLogin = await fetch(`${API_BASE}/api/staff-login`, {
+            const demoLogin = await fetch(`${API_BASE}/api/auth/demo-login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ staffId: "STAFF-001", password: "admin123" })
+                body: JSON.stringify({ persona: "hospital" })
             }).then(r => r.json()).catch(() => ({}));
 
             if (demoLogin.token) {

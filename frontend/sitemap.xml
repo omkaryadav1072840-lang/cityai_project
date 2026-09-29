@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage & Core Civic Hub -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Healthcare & Hospital Services -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/hospital/hospital.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Live Traffic & Congestion Monitoring -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/traffic/traffic.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Smart Parking Reservations -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/parking/parking.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Emergency Dispatch & SOS Protocols -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/emergency/emergency.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Municipal Waste Management -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/waste/waste.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- City Water Supply & Infrastructure -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/water/water.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Police & Civic Safety -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/police/police.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Tourism & Famous Historical Landmarks -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/pages/famous/famous.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Legal & Transparency Documents -->
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/privacy-policy</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://smartcity.gorakhpur.gov.in/terms-and-conditions</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+</urlset>

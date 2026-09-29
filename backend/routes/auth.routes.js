@@ -391,6 +391,253 @@ router.put("/api/auth/profile", authenticateToken, (req, res) => {
         });
     }
 });
+// =========================================================
+// DEMO PERSONA LOGIN (/api/auth/demo-login)
+// Allows quick role switching for testing/demos without exposing
+// plaintext credentials in frontend client source code.
+// =========================================================
+
+router.post("/api/auth/demo-login", async (req, res) => {
+    try {
+        if (process.env.ALLOW_DEMO_LOGIN === "false") {
+            return res.status(403).json({
+                success: false,
+                message: "Demo login is disabled in this environment."
+            });
+        }
+
+        const persona = String(req.body.persona || req.body.role || "citizen").toLowerCase();
+
+        const permissions = {
+            traffic: ["traffic"],
+            waste: ["waste"],
+            water: ["water"],
+            emergency: ["emergency"],
+            parking: ["parking"],
+            healthcare: ["hospital", "healthcare"],
+            hospital: ["hospital", "healthcare"],
+            pharmacy: ["pharmacy"],
+            police: ["police"],
+            places: ["places"],
+            street_lights: ["street_lights"],
+            environment: ["environment"],
+            admin: [
+                "traffic", "waste", "water", "emergency", "parking",
+                "hospital", "healthcare", "pharmacy", "police",
+                "places", "street_lights", "environment", "requests", "admin"
+            ]
+        };
+
+        if (persona === "doctor") {
+            const [docs] = await db.promise().query(`
+                SELECT d.id, d.doctor_id, d.name, d.specialization, d.department, d.hospital_id, d.email, d.mobile, h.hospital_name
+                FROM doctors d
+                LEFT JOIN hospitals h ON d.hospital_id = h.hospital_id
+                LIMIT 1
+            `);
+            if (docs.length > 0) {
+                const doc = docs[0];
+                const doctorData = {
+                    id: doc.id,
+                    userId: doc.id,
+                    name: doc.name,
+                    staffId: doc.doctor_id,
+                    doctorId: doc.doctor_id,
+                    specialization: doc.specialization,
+                    department: doc.department || "healthcare",
+                    role: "doctor",
+                    type: "doctor",
+                    hospitalId: doc.hospital_id,
+                    hospitalRole: "doctor",
+                    hospitalName: doc.hospital_name || "Civil Hospital Gorakhpur",
+                    email: doc.email
+                };
+                const token = generateToken(doctorData, "doctor");
+                return res.json({
+                    success: true,
+                    message: "Demo Doctor authenticated.",
+                    user: doctorData,
+                    token
+                });
+            }
+        }
+
+        if (persona === "admin" || persona.includes("admin")) {
+            const [admins] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email, hospital_id, hospital_role
+                FROM staff
+                WHERE role = 'admin' OR department = 'admin' OR staff_id IN ('TR-ADMIN', 'STAFF-001')
+                LIMIT 1
+            `);
+            if (admins.length > 0) {
+                const adm = admins[0];
+                const adminData = {
+                    id: adm.id,
+                    userId: adm.id,
+                    name: adm.name,
+                    staffId: adm.staff_id,
+                    email: adm.email,
+                    department: adm.department || "admin",
+                    role: "admin",
+                    hospitalId: adm.hospital_id,
+                    hospitalRole: "hospital_admin",
+                    type: "staff",
+                    editable: permissions.admin
+                };
+                const token = generateToken(adminData, "admin");
+                return res.json({
+                    success: true,
+                    message: "Demo Admin authenticated.",
+                    user: adminData,
+                    token
+                });
+            }
+        }
+
+        if (persona === "traffic" || persona === "traffic_staff") {
+            const [staffRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email
+                FROM staff
+                WHERE department = 'traffic' OR staff_id LIKE 'TR-%'
+                LIMIT 1
+            `);
+            if (staffRows.length > 0) {
+                const st = staffRows[0];
+                const staffData = {
+                    id: st.id,
+                    userId: st.id,
+                    name: st.name,
+                    staffId: st.staff_id,
+                    email: st.email,
+                    department: "traffic",
+                    role: "staff",
+                    type: "staff",
+                    editable: permissions.traffic
+                };
+                const token = generateToken(staffData, "staff");
+                return res.json({
+                    success: true,
+                    message: "Demo Traffic Officer authenticated.",
+                    user: staffData,
+                    token
+                });
+            }
+        }
+
+        if (persona === "hospital" || persona === "hospital_staff" || persona === "receptionist") {
+            const [hospStaff] = await db.promise().query(`
+                SELECT s.id, s.name, s.staff_id, s.department, s.role, s.email, s.hospital_id, s.hospital_role, h.hospital_name
+                FROM staff s
+                LEFT JOIN hospitals h ON s.hospital_id = h.hospital_id
+                WHERE s.department IN ('hospital', 'healthcare') OR s.hospital_id IS NOT NULL
+                LIMIT 1
+            `);
+            if (hospStaff.length > 0) {
+                const hs = hospStaff[0];
+                const staffData = {
+                    id: hs.id,
+                    userId: hs.id,
+                    name: hs.name,
+                    staffId: hs.staff_id,
+                    email: hs.email,
+                    department: hs.department || "hospital",
+                    role: "staff",
+                    hospitalId: hs.hospital_id || 1,
+                    hospitalRole: hs.hospital_role || "receptionist",
+                    hospitalName: hs.hospital_name || "AIIMS Gorakhpur",
+                    type: "staff",
+                    editable: permissions.healthcare
+                };
+                const token = generateToken(staffData, "staff");
+                return res.json({
+                    success: true,
+                    message: "Demo Hospital Staff authenticated.",
+                    user: staffData,
+                    token
+                });
+            }
+        }
+
+        if (persona === "waste" || persona === "waste_staff") {
+            const [wasteRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email
+                FROM staff
+                WHERE department = 'waste' OR staff_id LIKE 'WST%'
+                LIMIT 1
+            `);
+            if (wasteRows.length > 0) {
+                const ws = wasteRows[0];
+                const staffData = {
+                    id: ws.id,
+                    userId: ws.id,
+                    name: ws.name,
+                    staffId: ws.staff_id,
+                    email: ws.email,
+                    department: "waste",
+                    role: "staff",
+                    type: "staff",
+                    editable: permissions.waste
+                };
+                const token = generateToken(staffData, "staff");
+                return res.json({
+                    success: true,
+                    message: "Demo Waste Officer authenticated.",
+                    user: staffData,
+                    token
+                });
+            }
+        }
+
+        // Default: Citizen persona
+        const [users] = await db.promise().query(`
+            SELECT id, name, mobile, email, role, department
+            FROM users
+            ORDER BY id ASC
+            LIMIT 1
+        `);
+
+        let citizenUser = null;
+        if (users.length > 0) {
+            citizenUser = users[0];
+        } else {
+            // Fallback demo user
+            citizenUser = {
+                id: 1,
+                name: "Rahul Sharma",
+                mobile: "9876543210",
+                email: "rahul.sharma@example.com",
+                role: "citizen",
+                department: null
+            };
+        }
+
+        const citizenData = {
+            id: citizenUser.id,
+            userId: citizenUser.id,
+            name: citizenUser.name,
+            mobile: citizenUser.mobile,
+            email: citizenUser.email,
+            role: "citizen",
+            department: null,
+            type: "citizen"
+        };
+        const token = generateToken(citizenData, "citizen");
+
+        return res.json({
+            success: true,
+            message: "Demo Citizen authenticated.",
+            user: citizenData,
+            token
+        });
+    } catch (err) {
+        console.error("Demo login error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error processing demo login: " + err.message
+        });
+    }
+});
 
 module.exports = router;
+
 

@@ -4,48 +4,43 @@
 <head>
 
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <title>SmartCity AI — Integrated Urban Operations & Citizen Platform</title>
+    <meta name="description" content="Official SmartCity AI platform for Gorakhpur. Real-time hospital bed status, live traffic routing, IoT parking reservations, water supply telemetry, waste dispatch, and grounded AI civic assistant.">
+    <meta name="keywords" content="SmartCity AI, Gorakhpur Smart City, civic management, live traffic, hospital bed availability, smart parking, municipal emergency, AI assistant">
+    <link rel="canonical" href="https://smartcity.gorakhpur.gov.in/">
 
-    <title>Smart City AI</title>
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
 
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://smartcity.gorakhpur.gov.in/">
+    <meta property="og:title" content="SmartCity AI — Integrated Urban Operations & Citizen Platform">
+    <meta property="og:description" content="Live urban operations: Traffic heatmaps, emergency dispatch, hospital beds, and smart parking powered by grounded AI.">
+    <meta property="og:image" content="/smartcity-og-preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="675">
 
-    <!-- =====================================================
-         LEAFLET CSS
-    ====================================================== -->
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://smartcity.gorakhpur.gov.in/">
+    <meta name="twitter:title" content="SmartCity AI — Integrated Urban Operations & Citizen Platform">
+    <meta name="twitter:description" content="Live urban operations: Traffic heatmaps, emergency dispatch, hospital beds, and smart parking powered by grounded AI.">
+    <meta name="twitter:image" content="/smartcity-og-preview.png">
 
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-
-
-    <!-- =====================================================
-         LEAFLET ROUTING MACHINE CSS
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
-    >
-
-
-    <!-- =====================================================
-         GOOGLE FONTS (Plus Jakarta Sans)
-    ====================================================== -->
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- =====================================================
-         YOUR CSS
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="index.css"
-    >
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="components/cookie_consent.css">
 
 </head>
 
@@ -1534,49 +1529,66 @@
 
 </main>
 
-
+<!-- =====================================================
+     MUNICIPAL FOOTER (Legal, Navigation & Accessibility)
+===================================================== -->
+<footer class="sc-main-footer" role="contentinfo" style="background: #0f172a; color: #94a3b8; padding: 48px 5% 32px; border-top: 1px solid #1e293b; font-family: 'Plus Jakarta Sans', sans-serif;">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px;">
+        <div>
+            <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <span>🏙️</span> SmartCity <span style="color: #38bdf8;">AI</span>
+            </div>
+            <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                Gorakhpur Smart City Mission. Integrated Command and Control Center (ICCC) platform delivering live traffic routing, IoT parking, healthcare queues, and civic services.
+            </p>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Civic Portals</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                <li><a href="pages/hospital/hospital.html" style="color: #94a3b8; text-decoration: none;">🏥 Hospital & Healthcare</a></li>
+                <li><a href="pages/traffic/traffic.html" style="color: #94a3b8; text-decoration: none;">🚦 Live Traffic Grid</a></li>
+                <li><a href="pages/parking/parking.html" style="color: #94a3b8; text-decoration: none;">🅿️ Smart Parking</a></li>
+                <li><a href="pages/emergency/emergency.html" style="color: #94a3b8; text-decoration: none;">🚨 Emergency SOS</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Transparency & Legal</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                <li><a href="/privacy-policy" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🔒 Privacy Policy</a></li>
+                <li><a href="/terms-and-conditions" style="color: #38bdf8; text-decoration: none; font-weight: 600;">📜 Terms & Conditions</a></li>
+                <li><a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #94a3b8; text-decoration: none;">📋 Citizen Grievances</a></li>
+                <li><a href="/sitemap.xml" style="color: #94a3b8; text-decoration: none;">🗺️ Site Directory</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Emergency Helplines</h4>
+            <p style="font-size: 13px; line-height: 1.8; color: #cbd5e1; margin: 0;">
+                🚨 <strong>National Emergency:</strong> 112<br>
+                🚑 <strong>State Ambulance:</strong> 108<br>
+                🚒 <strong>Fire Service:</strong> 101<br>
+                📞 <strong>Municipal Toll-Free:</strong> 1800-180-2026
+            </p>
+        </div>
+    </div>
+    <div style="border-top: 1px solid #1e293b; padding-top: 24px; text-align: center; font-size: 12px; color: #64748b;">
+        © 2026 SmartCity AI Municipal Directorate. Grounded AI urban telemetry and civic management system. All rights reserved.
+    </div>
+</footer>
 
 <!-- =====================================================
      LEAFLET JAVASCRIPT
 ===================================================== -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
-
-
-
-<!-- =====================================================
-     LEAFLET ROUTING MACHINE
-===================================================== -->
-
-<script
-    src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js">
-</script>
-
-
-
-<!-- =====================================================
-     QR CODE LIBRARY
-===================================================== -->
-
-<script
-    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
-</script>
-
-
-
-<!-- =====================================================
-     YOUR JAVASCRIPT
-===================================================== -->
-
-<!-- Auth helper & Real-Time Client must load BEFORE script.js -->
+<!-- SmartCity AI Core Scripts -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="components/cookie_consent.js"></script>
+<script src="components/analytics.js"></script>
 <script src="auth.js"></script>
 <script src="realtime.js"></script>
 <script src="script.js"></script>
 
-
 </body>
-
 </html>

@@ -1,0 +1,26 @@
+# SmartCity AI - Robots.txt
+# Public Urban Management Platform
+User-agent: *
+Allow: /
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Allow: /pages/hospital/hospital.html
+Allow: /pages/traffic/traffic.html
+Allow: /pages/waste/waste.html
+Allow: /pages/water/water.html
+Allow: /pages/parking/parking.html
+Allow: /pages/emergency/emergency.html
+Allow: /pages/police/police.html
+Allow: /pages/famous/famous.html
+
+# Disallow private dashboards, patient clinical records, and staff management
+Disallow: /api/
+Disallow: /uploads/prescriptions/
+Disallow: /uploads/reports/
+Disallow: /pages/hospital/hospital_dashboard.html
+Disallow: /pages/hospital/doctor_console.html
+Disallow: /pages/hospital/patient_portal.html
+Disallow: /pages/traffic/traffic_staff.html
+Disallow: /pages/admin/
+
+Sitemap: https://smartcity.gorakhpur.gov.in/sitemap.xml

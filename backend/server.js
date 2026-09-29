@@ -38,6 +38,7 @@ const environmentRoutes = require("./routes/environment.routes");
 const adminRoutes = require("./routes/admin.routes");
 const searchRoutes = require("./routes/search.routes");
 const mapRoutes = require("./routes/map.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
 const trafficEngine = require("./services/traffic_engine");
 const slaEngine = require("./services/sla_engine");
 
@@ -46,15 +47,20 @@ const slaEngine = require("./services/sla_engine");
 const {
     multerErrorHandler,
     notFoundHandler,
-    generalErrorHandler
+    generalErrorHandler,
+    serveHtmlErrorPage
 } = require("./middleware/error.middleware");
 
 const {
     securityHeaders,
     authRateLimiter,
     aiRateLimiter,
-    sosRateLimiter
+    sosRateLimiter,
+    globalApiRateLimiter,
+    enforceHttpsInProduction
 } = require("./middleware/security.middleware");
+
+const { inputSanitizer } = require("./middleware/validation.middleware");
 
 // =========================================================
 // APP & SERVER INITIALIZATION
@@ -77,15 +83,21 @@ app.set("io", io);
 // BASIC & SECURITY MIDDLEWARES
 // =========================================================
 
-// HTTP Security Headers (anti-sniff, anti-clickjack, XSS filter)
+// Enforce HTTPS in production deployment (keeps HTTP on localhost/dev)
+app.use(enforceHttpsInProduction);
+
+// HTTP Security Headers (anti-sniff, anti-clickjack, XSS filter, HSTS in prod)
 app.use(securityHeaders);
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN || "*",
     credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// XSS and script injection sanitizer
+app.use(inputSanitizer);
 
 // Medical uploads security guard (Prescriptions & Diagnostic Reports)
 app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
@@ -211,9 +223,33 @@ app.post("/api/simulation/stop", (req, res) => {
 // RATE LIMITERS FOR SENSITIVE ENDPOINTS
 // =========================================================
 
-app.use(["/api/login", "/api/register", "/api/staff-login"], authRateLimiter);
+// Global API rate limiter (protects all API endpoints against DoS)
+app.use("/api/", globalApiRateLimiter);
+
+// Specific rate limiters
+app.use(["/api/login", "/api/register", "/api/staff-login", "/api/auth/demo-login"], authRateLimiter);
 app.use(["/api/ai/chat", "/api/ai/assistant"], aiRateLimiter);
 app.use("/api/emergency/sos", sosRateLimiter);
+
+// =========================================================
+// PUBLIC LEGAL & SEO STATIC ROUTES
+// =========================================================
+
+app.get("/privacy-policy", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "frontend", "pages", "privacy-policy.html"));
+});
+
+app.get("/terms-and-conditions", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "frontend", "pages", "terms-and-conditions.html"));
+});
+
+app.get("/robots.txt", (req, res) => {
+    res.type("text/plain").sendFile(path.join(__dirname, "..", "frontend", "robots.txt"));
+});
+
+app.get("/sitemap.xml", (req, res) => {
+    res.type("application/xml").sendFile(path.join(__dirname, "..", "frontend", "sitemap.xml"));
+});
 
 // =========================================================
 // API ROUTES
@@ -243,6 +279,7 @@ app.use(environmentRoutes);
 app.use(adminRoutes);
 app.use(searchRoutes);
 app.use(mapRoutes);
+app.use(analyticsRoutes);
 
 
 // =========================================================
@@ -250,6 +287,7 @@ app.use(mapRoutes);
 // =========================================================
 
 app.use(multerErrorHandler);
+app.use(serveHtmlErrorPage);
 app.use(notFoundHandler);
 app.use(generalErrorHandler);
 
