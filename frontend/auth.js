@@ -1112,7 +1112,6 @@ const SmartCityAuth = (() => {
                 if (profModal) profModal.remove();
                 renderUserHeader();
                 showToast(`Welcome back, ${data.user.name || 'User'}!`, "success");
-                setTimeout(() => window.location.reload(), 300);
             } else {
                 showToast(data.message || "Login failed.", "error");
             }
@@ -1946,15 +1945,30 @@ const SmartCityAuth = (() => {
             msgEl.style.color = "#38bdf8";
         }
 
-        // Close on background click or ✕
-        modal.querySelector("#scModalCloseBtn").addEventListener("click", () => modal.remove());
+        // Close on ✕ button
+        modal.querySelector("#scModalCloseBtn").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            modal.remove();
+        });
+
+        // Close ONLY when clicking the dark backdrop itself
         modal.addEventListener("click", (e) => {
             if (e.target === modal) modal.remove();
         });
 
+        // Stop clicks inside card from bubbling to backdrop
+        const card = modal.querySelector(".sc-dialog-card");
+        if (card) {
+            card.addEventListener("click", (e) => {
+                e.stopPropagation();
+            });
+        }
+
         // Citizen Login Handler
         forms.citizen.addEventListener("submit", async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             msgEl.style.color = "#38bdf8";
             msgEl.textContent = "Authenticating citizen credentials...";
             try {
@@ -1970,16 +1984,15 @@ const SmartCityAuth = (() => {
                 if (res.ok && data.token) {
                     setSession(data.token, data.user);
                     msgEl.style.color = "#34d399";
-                    msgEl.textContent = "Login successful!";
+                    msgEl.textContent = `✅ Welcome ${data.user.name || 'Citizen'}! Login successful.`;
                     showToast(`Signed in as ${data.user.name || 'Citizen'}`, "success");
+                    renderUserHeader();
                     setTimeout(() => {
                         modal.remove();
                         if (options && typeof options.onSuccess === "function") {
                             options.onSuccess(data.user, data.token);
-                        } else {
-                            window.location.reload();
                         }
-                    }, 350);
+                    }, 650);
                 } else {
                     msgEl.style.color = "#f87171";
                     msgEl.textContent = data.message || "Invalid mobile number or password.";
@@ -1993,6 +2006,7 @@ const SmartCityAuth = (() => {
         // Staff Login Handler
         forms.staff.addEventListener("submit", async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             msgEl.style.color = "#38bdf8";
             msgEl.textContent = "Authenticating official staff credentials...";
             try {
@@ -2008,16 +2022,15 @@ const SmartCityAuth = (() => {
                 if (res.ok && data.token) {
                     setSession(data.token, data.user);
                     msgEl.style.color = "#34d399";
-                    msgEl.textContent = `Welcome ${data.user.name} (${data.user.department})!`;
+                    msgEl.textContent = `✅ Welcome ${data.user.name} (${data.user.department})!`;
                     showToast(`Welcome Officer ${data.user.name}`, "success");
+                    renderUserHeader();
                     setTimeout(() => {
                         modal.remove();
                         if (options && typeof options.onSuccess === "function") {
                             options.onSuccess(data.user, data.token);
-                        } else {
-                            window.location.reload();
                         }
-                    }, 350);
+                    }, 650);
                 } else {
                     msgEl.style.color = "#f87171";
                     msgEl.textContent = data.message || "Invalid staff ID or password.";
@@ -2031,6 +2044,7 @@ const SmartCityAuth = (() => {
         // Register Handler
         forms.register.addEventListener("submit", async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             msgEl.style.color = "#38bdf8";
             msgEl.textContent = "Creating citizen account in municipal registry...";
             try {
@@ -2048,12 +2062,15 @@ const SmartCityAuth = (() => {
                 if (res.ok && data.token) {
                     setSession(data.token, data.user);
                     msgEl.style.color = "#34d399";
-                    msgEl.textContent = "Account created successfully!";
+                    msgEl.textContent = "✅ Account created successfully!";
                     showToast("Citizen account registered successfully!", "success");
+                    renderUserHeader();
                     setTimeout(() => {
                         modal.remove();
-                        window.location.reload();
-                    }, 350);
+                        if (options && typeof options.onSuccess === "function") {
+                            options.onSuccess(data.user, data.token);
+                        }
+                    }, 650);
                 } else {
                     msgEl.style.color = "#f87171";
                     msgEl.textContent = data.message || "Registration failed.";
@@ -2617,19 +2634,24 @@ const SmartCityAuth = (() => {
                 <span>🔑</span>
                 <span>Sign In</span>
             `;
-            badge.addEventListener("click", () => showLoginModal("citizen"));
+            badge.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showLoginModal("citizen");
+            });
         }
 
         container.appendChild(notifBtn);
         container.appendChild(badge);
 
         const targets = [
-            document.querySelector(".header-right"),
-            document.querySelector(".nav-links"),
-            document.querySelector(".nav-actions"),
-            document.querySelector(".user-area"),
+            document.querySelector("#navUserHeaderContainer"),
             document.querySelector(".nav-right"),
+            document.querySelector(".header-right"),
+            document.querySelector(".user-area"),
+            document.querySelector(".nav-actions"),
             document.querySelector(".doc-nav-right"),
+            document.querySelector(".nav-links"),
             document.querySelector(".top-bar"),
             document.querySelector(".navbar"),
             document.querySelector("header"),
