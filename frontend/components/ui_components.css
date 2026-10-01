@@ -279,7 +279,7 @@
 /* =========================================================
    5. REUSABLE MODAL DIALOG
    ========================================================= */
-.sc-modal-backdrop {
+.sc-modal-backdrop:not(.sc-modal-active):not(#scGlobalLoginModal):not(#scGlobalProfileModal):not(#scActivityCenterModal) {
     position: fixed;
     top: 0;
     left: 0;
@@ -298,9 +298,12 @@
     transition: var(--sc-transition);
 }
 
-.sc-modal-backdrop.sc-modal-active {
-    opacity: 1;
-    pointer-events: auto;
+.sc-modal-backdrop.sc-modal-active,
+#scGlobalLoginModal,
+#scGlobalProfileModal,
+#scActivityCenterModal {
+    opacity: 1 !important;
+    pointer-events: auto !important;
 }
 
 .sc-modal-dialog {

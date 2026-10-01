@@ -322,7 +322,7 @@ async function checkBackend() {
 
         const response =
             await fetch(
-                `${BACKEND_URL}/`
+                `${BACKEND_URL}/api/city-status`
             );
 
 

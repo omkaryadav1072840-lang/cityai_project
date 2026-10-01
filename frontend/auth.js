@@ -125,7 +125,9 @@ const SmartCityAuth = (() => {
                 justify-content: center;
                 padding: 16px;
                 font-family: var(--sc-auth-font);
-                animation: scFadeIn 0.22s ease-out;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                animation: scFadeIn 0.22s ease-out forwards;
             }
 
             @keyframes scFadeIn {
@@ -590,6 +592,11 @@ const SmartCityAuth = (() => {
             }
 
             @media (max-width: 640px) {
+                .sc-dialog-card {
+                    width: 100% !important;
+                    max-width: calc(100vw - 32px) !important;
+                    margin: 0 auto;
+                }
                 .sc-profile-grid {
                     grid-template-columns: 1fr;
                 }
@@ -1152,7 +1159,7 @@ const SmartCityAuth = (() => {
 
         const modal = document.createElement("div");
         modal.id = "scGlobalProfileModal";
-        modal.className = "sc-modal-backdrop";
+        modal.className = "sc-modal-backdrop sc-modal-active";
 
         modal.innerHTML = `
             <div class="sc-dialog-card sc-card-wide" role="dialog" aria-modal="true">
@@ -1753,7 +1760,7 @@ const SmartCityAuth = (() => {
 
         const modal = document.createElement("div");
         modal.id = "scGlobalLoginModal";
-        modal.className = "sc-modal-backdrop";
+        modal.className = "sc-modal-backdrop sc-modal-active";
 
         modal.innerHTML = `
             <div class="sc-dialog-card" role="dialog" aria-modal="true">
@@ -2101,7 +2108,7 @@ const SmartCityAuth = (() => {
         const isStaffUser = isStaff();
         const modal = document.createElement("div");
         modal.id = "scActivityCenterModal";
-        modal.className = "sc-modal-backdrop";
+        modal.className = "sc-modal-backdrop sc-modal-active";
 
         modal.innerHTML = `
             <div class="sc-dialog-card sc-card-wide" role="dialog" aria-modal="true">
