@@ -235,14 +235,15 @@ async function runModulesAudit() {
         // Attempting to book the exact same doctor slot twice must prevent double-booking
         const testDate = "2026-12-25";
         const testTime = "11:30:00";
-        const docId = 1;
+        const docId = 2;
+        const hospId = 6;
 
         const apt1Res = await request("/api/appointments/book-strict", {
             method: "POST",
             headers: { Authorization: `Bearer ${citizenToken}` },
             body: {
                 patientId: "PAT-5666149977",
-                hospitalId: 1,
+                hospitalId: hospId,
                 doctorId: docId,
                 date: testDate,
                 time: testTime
@@ -252,9 +253,10 @@ async function runModulesAudit() {
         // Try booking same slot with a DIFFERENT patient
         const apt2Res = await request("/api/appointments/book-strict", {
             method: "POST",
+            headers: { Authorization: `Bearer ${citizenToken}` },
             body: {
                 patientId: "PAT-5931984821",
-                hospitalId: 1,
+                hospitalId: hospId,
                 doctorId: docId,
                 date: testDate,
                 time: testTime

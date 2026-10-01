@@ -1,0 +1,3845 @@
+[
+  {
+    "file": "403.html",
+    "buttonsCount": 0,
+    "buttons": [],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "404.html",
+    "buttonsCount": 0,
+    "buttons": [],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "500.html",
+    "buttonsCount": 1,
+    "buttons": [
+      {
+        "id": null,
+        "text": "🔄 Retry Request",
+        "onclick": "window.location.reload()",
+        "className": "btn-secondary"
+      }
+    ],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "index.html",
+    "buttonsCount": 37,
+    "buttons": [
+      {
+        "id": null,
+        "text": "📋 Lodge Grievance",
+        "onclick": "openGrievanceModal()",
+        "className": "sc-btn-hero-secondary"
+      },
+      {
+        "id": null,
+        "text": "🚨 Dispatch Municipal Emergency",
+        "onclick": "window.location.href=",
+        "className": "sc-btn-hero-primary"
+      },
+      {
+        "id": "clearChatBtn",
+        "text": "🗑️",
+        "onclick": null,
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🅿️ Parking at Golghar",
+        "onclick": "handleQuickPrompt(",
+        "className": "ai-chip"
+      },
+      {
+        "id": null,
+        "text": "🚨 Emergency 108",
+        "onclick": "handleQuickPrompt(",
+        "className": "ai-chip"
+      },
+      {
+        "id": null,
+        "text": "🏥 Hospital Beds",
+        "onclick": "handleQuickPrompt(",
+        "className": "ai-chip"
+      },
+      {
+        "id": null,
+        "text": "💧 Water Timings",
+        "onclick": "handleQuickPrompt(",
+        "className": "ai-chip"
+      },
+      {
+        "id": "aiVoiceBtn",
+        "text": "🎤",
+        "onclick": null,
+        "className": "ai-voice-btn"
+      },
+      {
+        "id": "aiSpeakerBtn",
+        "text": "🔊",
+        "onclick": null,
+        "className": "ai-speaker-btn"
+      },
+      {
+        "id": "sendButton",
+        "text": "Send ➔",
+        "onclick": null,
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🔍 Search",
+        "onclick": "searchLocation()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "📍 My Location",
+        "onclick": "getMyLocation()",
+        "className": "location-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh",
+        "onclick": "refreshMapData()",
+        "className": "refresh-btn"
+      },
+      {
+        "id": null,
+        "text": "🗺️ All",
+        "onclick": "showFeature(",
+        "className": "map-filter active"
+      },
+      {
+        "id": null,
+        "text": "🚦 Traffic",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "🗑️ Waste",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "🏥 Hospital",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "👮 Police",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "🚒 Fire",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "🅿️ Parking",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "💧 Water",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "⭐ Famous Places",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "💡 Street Lights",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "🌱 AQI Sensors",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "🚨 Emergency SOS",
+        "onclick": "showFeature(",
+        "className": "map-filter"
+      },
+      {
+        "id": null,
+        "text": "📋 Register Citizen Grievance",
+        "onclick": "openGrievanceModal()",
+        "className": "sc-btn-hero-primary"
+      },
+      {
+        "id": null,
+        "text": "💳 How do I pay traffic e-Challan online?",
+        "onclick": "handleQuickPrompt(",
+        "className": "sc-btn-hero-secondary"
+      },
+      {
+        "id": null,
+        "text": "💧 How do I request an emergency water tanker?",
+        "onclick": "handleQuickPrompt(",
+        "className": "sc-btn-hero-secondary"
+      },
+      {
+        "id": null,
+        "text": "🏥 How to get an OPD token for AIIMS Gorakhpur?",
+        "onclick": "handleQuickPrompt(",
+        "className": "sc-btn-hero-secondary"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeGrievanceModal()",
+        "className": "sc-modal-close"
+      },
+      {
+        "id": "tabBtnLodge",
+        "text": "✍️ Lodge Complaint",
+        "onclick": "switchGrievanceTab(",
+        "className": "sc-tab-btn active"
+      },
+      {
+        "id": "tabBtnTrack",
+        "text": "⏱️ Track Grievances & Live SLA",
+        "onclick": "switchGrievanceTab(",
+        "className": "sc-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "📍",
+        "onclick": "fillCurrentLocationForGrievance()",
+        "className": null
+      },
+      {
+        "id": "grievanceSubmitBtn",
+        "text": "🚀 Submit Grievance with Instant SLA",
+        "onclick": null,
+        "className": "sc-submit-btn"
+      },
+      {
+        "id": null,
+        "text": "🔍 Track",
+        "onclick": "loadMyGrievances()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Live",
+        "onclick": "fetchCommandCenterData()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeCommandCenterModal()",
+        "className": "sc-modal-close"
+      }
+    ],
+    "formsCount": 1,
+    "forms": [
+      {
+        "id": "scGrievanceForm",
+        "onsubmit": "handleGrievanceSubmit(event)",
+        "action": null
+      }
+    ],
+    "linksCount": 14,
+    "interactiveLinks": [
+      {
+        "id": null,
+        "text": "Home",
+        "onclick": null,
+        "href": "#hero"
+      },
+      {
+        "id": null,
+        "text": "Services",
+        "onclick": null,
+        "href": "#services"
+      },
+      {
+        "id": null,
+        "text": "AI Assistant",
+        "onclick": null,
+        "href": "#aiAssistant"
+      },
+      {
+        "id": null,
+        "text": "Live Map",
+        "onclick": null,
+        "href": "#map"
+      },
+      {
+        "id": null,
+        "text": "Reports",
+        "onclick": null,
+        "href": "#cityReports"
+      },
+      {
+        "id": null,
+        "text": "How It Works",
+        "onclick": null,
+        "href": "#howItWorks"
+      },
+      {
+        "id": null,
+        "text": "About",
+        "onclick": null,
+        "href": "#about"
+      },
+      {
+        "id": null,
+        "text": "Emergency",
+        "onclick": null,
+        "href": "#emergencyHelplines"
+      },
+      {
+        "id": null,
+        "text": "📋 Grievances",
+        "onclick": "openGrievanceModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "🏛️ Command Center",
+        "onclick": "openCommandCenterModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "🚀 Explore City Services",
+        "onclick": null,
+        "href": "#services"
+      },
+      {
+        "id": null,
+        "text": "🗺️ Live Navigation Map",
+        "onclick": null,
+        "href": "#map"
+      },
+      {
+        "id": null,
+        "text": "🤖 Ask Civic AI",
+        "onclick": null,
+        "href": "#aiAssistant"
+      },
+      {
+        "id": null,
+        "text": "📋 Citizen Grievances",
+        "onclick": "openGrievanceModal()",
+        "href": "javascript:void(0)"
+      }
+    ]
+  },
+  {
+    "file": "pages\\emergency\\emergency.html",
+    "buttonsCount": 29,
+    "buttons": [
+      {
+        "id": "tab-btn-citizen",
+        "text": "🚨 1. Citizen Emergency Helplines & SOS",
+        "onclick": "switchEmergencyLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. First Responder & Dispatch Operations",
+        "onclick": "switchEmergencyLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. Disaster Management Admin & Fleet",
+        "onclick": "switchEmergencyLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Report Emergency",
+        "onclick": "openEmergencyModal()",
+        "className": "danger-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Share Location",
+        "onclick": "getCurrentLocation()",
+        "className": "location-btn"
+      },
+      {
+        "id": null,
+        "text": "📞 Call",
+        "onclick": "callEmergency(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "📞 Call",
+        "onclick": "callEmergency(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "📞 Call",
+        "onclick": "callEmergency(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "📞 Call",
+        "onclick": "callEmergency(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Request Ambulance",
+        "onclick": "requestAmbulance()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Request Police",
+        "onclick": "openEmergencyWithType(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Report Fire",
+        "onclick": "openEmergencyWithType(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Report Accident",
+        "onclick": "openEmergencyWithType(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Report Disaster",
+        "onclick": "openEmergencyWithType(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Report Missing Person",
+        "onclick": "openEmergencyWithType(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🗺️ All",
+        "onclick": "showMapFilter(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "👮 Police",
+        "onclick": "showMapFilter(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🚑 Ambulance",
+        "onclick": "showMapFilter(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🚒 Fire",
+        "onclick": "showMapFilter(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "📍 My Location",
+        "onclick": "getCurrentLocation()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Emergency Responder (EMG001)",
+        "onclick": "promptEmergencyStaffLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Use My Location",
+        "onclick": "useIncidentLocation()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✓ Resolve / Close",
+        "onclick": "resolveSelectedIncident()",
+        "className": "resolve-btn"
+      },
+      {
+        "id": null,
+        "text": "💾 Save Incident Changes",
+        "onclick": "saveIncidentControls()",
+        "className": "save-control-btn"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Emergency Admin",
+        "onclick": "promptEmergencyAdminLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Dispatch Log",
+        "onclick": "loadAIEmergencyAuditTable()",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "⚡ Calculate Route & ETA",
+        "onclick": "runAIEmergencyDispatchEstimate()",
+        "className": "danger-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeEmergencyModal()",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Submit Emergency",
+        "onclick": "submitEmergency()",
+        "className": "submit-danger"
+      }
+    ],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 3,
+    "interactiveLinks": [
+      {
+        "id": null,
+        "text": "Emergency",
+        "onclick": null,
+        "href": "#emergency"
+      },
+      {
+        "id": null,
+        "text": "Services",
+        "onclick": null,
+        "href": "#services"
+      },
+      {
+        "id": null,
+        "text": "Live Map",
+        "onclick": null,
+        "href": "#map"
+      }
+    ]
+  },
+  {
+    "file": "pages\\famous\\famous.html",
+    "buttonsCount": 62,
+    "buttons": [
+      {
+        "id": null,
+        "text": "⭐ Saved Places",
+        "onclick": "openSavedPlacesModal()",
+        "className": "nav-action-btn"
+      },
+      {
+        "id": "adminPortalBtn",
+        "text": "🛡️ Staff Portal",
+        "onclick": "openAdminModal()",
+        "className": "nav-action-btn"
+      },
+      {
+        "id": "tab-btn-citizen",
+        "text": "🏛️ 1. Tourist & Heritage Explorer",
+        "onclick": "switchFamousLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. Tourism Officer & Field Duty",
+        "onclick": "switchFamousLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. Tourism Board & Heritage Analytics",
+        "onclick": "switchFamousLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "🧭 Explore Interactive Map",
+        "onclick": "scrollToMap()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "✨ Plan My Trip",
+        "onclick": "openTripPlannerModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "🤖 AI Tourist Guide",
+        "onclick": "openAIDrawer()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": "clearFiltersBtn",
+        "text": "✕ Clear Filters",
+        "onclick": "resetFilters()",
+        "className": "clear-filter-btn"
+      },
+      {
+        "id": "countAll",
+        "text": "🌟 All Places 14",
+        "onclick": "selectCategory(",
+        "className": "cat-chip active"
+      },
+      {
+        "id": "countReligious",
+        "text": "🕉️ Religious 4",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "countHistorical",
+        "text": "📜 Historical 2",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "countCultural",
+        "text": "🎨 Cultural 2",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "countNature",
+        "text": "🌿 Nature & Lakes 2",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "countEducational",
+        "text": "🔭 Educational 2",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "countFamily",
+        "text": "🎡 Family & Fun 1",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "countHeritage",
+        "text": "🏛️ Heritage 1",
+        "onclick": "selectCategory(",
+        "className": "cat-chip"
+      },
+      {
+        "id": "layerHospitalsBtn",
+        "text": "🏥 Hospitals",
+        "onclick": "toggleMapLayer(",
+        "className": "map-layer-btn"
+      },
+      {
+        "id": "layerPoliceBtn",
+        "text": "🚔 Police",
+        "onclick": "toggleMapLayer(",
+        "className": "map-layer-btn"
+      },
+      {
+        "id": "layerParkingBtn",
+        "text": "🅿️ Smart Parking",
+        "onclick": "toggleMapLayer(",
+        "className": "map-layer-btn"
+      },
+      {
+        "id": "layerAtmsBtn",
+        "text": "🏧 ATMs",
+        "onclick": "toggleMapLayer(",
+        "className": "map-layer-btn"
+      },
+      {
+        "id": "layerFoodBtn",
+        "text": "🍴 Food & Dining",
+        "onclick": "toggleMapLayer(",
+        "className": "map-layer-btn"
+      },
+      {
+        "id": null,
+        "text": "🎯 Center Gorakhpur",
+        "onclick": "centerGorakhpur()",
+        "className": "map-action-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 My Location",
+        "onclick": "getUserCurrentLocation()",
+        "className": "map-action-btn"
+      },
+      {
+        "id": null,
+        "text": "🗺️ Fit All Places",
+        "onclick": "fitAllPlaces()",
+        "className": "map-action-btn"
+      },
+      {
+        "id": "routeNavExternalBtn",
+        "text": "🧭 Google Maps",
+        "onclick": null,
+        "className": "primary-small"
+      },
+      {
+        "id": null,
+        "text": "✕ Clear",
+        "onclick": "clearServiceRoute()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Inspect Place Details",
+        "onclick": "openSelectedPlaceModal()",
+        "className": "full-btn"
+      },
+      {
+        "id": null,
+        "text": "🧭 Navigate Here",
+        "onclick": "getDirections()",
+        "className": "dir-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Emergency Helpline 112",
+        "onclick": "callEmergency(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🚑 Ambulance 108",
+        "onclick": "callEmergency(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🚔 Police Assistance",
+        "onclick": "findNearby(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🆘 Open SOS Center",
+        "onclick": "window.location.href=",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "+ Write a Review",
+        "onclick": "openWriteReviewModal()",
+        "className": "primary-small"
+      },
+      {
+        "id": null,
+        "text": "Chat with Tourist AI →",
+        "onclick": "openAIDrawer()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Tourism Staff (PLC001)",
+        "onclick": "promptFamousStaffLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Report Field Issue",
+        "onclick": "openReportIssueModal()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Field Queue",
+        "onclick": "loadAdminIssues()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Tourism Admin (TOUR-ADMIN)",
+        "onclick": "promptFamousAdminLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "📑 Export Board Dossier",
+        "onclick": "alert(",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": "modalDirectionsBtn",
+        "text": "🧭 Navigate Here",
+        "onclick": "navigateCurrentModalPlace()",
+        "className": "primary-btn"
+      },
+      {
+        "id": "modalFavBtn",
+        "text": "❤️ Save to Favorites",
+        "onclick": "toggleFavoriteFromModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔗 Share Place",
+        "onclick": "shareCurrentPlace()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "📝 Report Civic Issue",
+        "onclick": "reportIssueFromModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "✨ Generate Optimized Route",
+        "onclick": "generateTripPlan()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "📤 Submit Civic Report",
+        "onclick": "submitCivicIssue()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Publish Review",
+        "onclick": "submitPlaceReview()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Live Google Traffic ↗",
+        "onclick": "openGoogleTraffic()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeAIDrawer()",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Send",
+        "onclick": "sendAIChatMessage()",
+        "className": null
+      },
+      {
+        "id": "floatingAIBtn",
+        "text": "🤖 Ask Tourist AI",
+        "onclick": "openAIDrawer()",
+        "className": "floating-ai-btn"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeReportIssueModal()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeReportIssueModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": "btnSubmitIssue",
+        "text": "Submit Report 🚀",
+        "onclick": null,
+        "className": "primary-btn"
+      }
+    ],
+    "formsCount": 1,
+    "forms": [
+      {
+        "id": "fieldIssueForm",
+        "onsubmit": "submitFieldIssue(event)",
+        "action": null
+      }
+    ],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\hospital\\doctor_dashboard.html",
+    "buttonsCount": 8,
+    "buttons": [
+      {
+        "id": null,
+        "text": "All",
+        "onclick": "filterQueue(",
+        "className": "filter-chip active"
+      },
+      {
+        "id": null,
+        "text": "Waiting",
+        "onclick": "filterQueue(",
+        "className": "filter-chip"
+      },
+      {
+        "id": null,
+        "text": "In Progress",
+        "onclick": "filterQueue(",
+        "className": "filter-chip"
+      },
+      {
+        "id": null,
+        "text": "Done",
+        "onclick": "filterQueue(",
+        "className": "filter-chip"
+      },
+      {
+        "id": "btnStartCamera",
+        "text": "📹 Start Camera Scan",
+        "onclick": "startCameraScanner()",
+        "className": "btn btn-primary"
+      },
+      {
+        "id": "btnStopCamera",
+        "text": "⏹️ Stop Camera",
+        "onclick": "stopCameraScanner()",
+        "className": "btn btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "🔍 Open Dossier",
+        "onclick": "lookupPatientFromInput()",
+        "className": "btn btn-primary"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeDossierModal()",
+        "className": "modal-close"
+      }
+    ],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\hospital\\hospital.html",
+    "buttonsCount": 95,
+    "buttons": [
+      {
+        "id": "tab-btn-citizen",
+        "text": "🏥 1. Citizen Healthcare & Patient Services",
+        "onclick": "switchHospitalLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. Medical Staff & Ward Operations",
+        "onclick": "switchHospitalLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. Hospital Administration & Bed Inventory",
+        "onclick": "switchHospitalLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "📅 Book Doctor",
+        "onclick": "openDoctorBooking()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Emergency",
+        "onclick": "openEmergency()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "👨‍⚕️ Doctor Portal",
+        "onclick": "openDoctorLoginModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Audit Stream",
+        "onclick": "loadAIHealthcareAuditTable()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "⚡ Run AI Surge Analysis",
+        "onclick": "runAIHealthcareAnalysis()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🌟 All Services 12",
+        "onclick": "filterServiceCards(",
+        "className": "cat-pill active"
+      },
+      {
+        "id": null,
+        "text": "🩺 Doctors & OPD 4",
+        "onclick": "filterServiceCards(",
+        "className": "cat-pill"
+      },
+      {
+        "id": null,
+        "text": "🚨 Emergency & Beds 2",
+        "onclick": "filterServiceCards(",
+        "className": "cat-pill"
+      },
+      {
+        "id": null,
+        "text": "🪪 Digital Health & ID 3",
+        "onclick": "filterServiceCards(",
+        "className": "cat-pill"
+      },
+      {
+        "id": null,
+        "text": "💊 Tests & Pharmacy 3",
+        "onclick": "filterServiceCards(",
+        "className": "cat-pill"
+      },
+      {
+        "id": null,
+        "text": "Explore Hospitals\r\n                        →",
+        "onclick": "event.stopPropagation(); showHospitals()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Find Specialist\r\n                        →",
+        "onclick": "event.stopPropagation(); openDoctorFinder()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🔍 Search",
+        "onclick": "searchDoctors()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "← Back to Doctors",
+        "onclick": "closeDoctorDetails()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "Book Appointment\r\n                        →",
+        "onclick": "event.stopPropagation(); openDoctorBooking()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "View Appointments\r\n                        →",
+        "onclick": "event.stopPropagation(); openMyAppointments()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Track Ambulance\r\n                        →",
+        "onclick": "event.stopPropagation(); trackAmbulance()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Create Patient ID\r\n                        →",
+        "onclick": "event.stopPropagation(); openPatientRegistration()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Open Patient File\r\n                        →",
+        "onclick": "event.stopPropagation(); openPatientFile()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Book Lab Test\r\n                        →",
+        "onclick": "event.stopPropagation(); openCitizenTestBookingModal()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Launch OPD Console\r\n                        →",
+        "onclick": "event.stopPropagation(); window.location.href=",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Check Live Beds\r\n                        →",
+        "onclick": "event.stopPropagation(); showBeds()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "Store\r\n                            →",
+        "onclick": "event.stopPropagation(); showPharmacy()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "📤 Upload Rx",
+        "onclick": "event.stopPropagation(); openPrescriptionUpload()",
+        "className": "service-sub-btn"
+      },
+      {
+        "id": null,
+        "text": "Upload Slip\r\n                        →",
+        "onclick": "event.stopPropagation(); openPrescriptionUpload()",
+        "className": "service-action-btn"
+      },
+      {
+        "id": null,
+        "text": "View All",
+        "onclick": "showHospitals()",
+        "className": "outline-btn"
+      },
+      {
+        "id": null,
+        "text": "View",
+        "onclick": "viewHospital(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "View",
+        "onclick": "viewHospital(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "View",
+        "onclick": "viewHospital(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookSpecificDoctor(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookSpecificDoctor(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookSpecificDoctor(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🚨 GET EMERGENCY HELP",
+        "onclick": "openEmergency()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": "btnSubmitPatient",
+        "text": "CREATE PATIENT ID →",
+        "onclick": null,
+        "className": "primary-btn full"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "CONFIRM APPOINTMENT",
+        "onclick": "confirmStrictBooking()",
+        "className": "primary-btn full-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🔍 VIEW APPOINTMENTS",
+        "onclick": "loadMyAppointments()",
+        "className": "primary-btn full"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Request Emergency Ambulance",
+        "onclick": "startEmergencyRequest()",
+        "className": "emergency-request-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh",
+        "onclick": "refreshAmbulance()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 Emergency",
+        "onclick": "openEmergency()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🔐 Verify",
+        "onclick": "verifyPharmacyPatient()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🛒 View Cart",
+        "onclick": "openCart()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "📤 Upload Prescription",
+        "onclick": "openPrescriptionUpload()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🖨️ Print Receipt",
+        "onclick": "printReceipt()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeModal(",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "📤 UPLOAD PRESCRIPTION",
+        "onclick": null,
+        "className": "primary-btn full"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "📞 CALL 112",
+        "onclick": "callEmergency()",
+        "className": "emergency-call-btn"
+      },
+      {
+        "id": null,
+        "text": "🚑 Track Ambulance",
+        "onclick": "trackAmbulance()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🔍 Search",
+        "onclick": "searchPatientFile()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "👤 My Record",
+        "onclick": "loadMyPatientRecord()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "📷 Scan QR",
+        "onclick": "openQrScanModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "🖨️ Print Patient Card",
+        "onclick": "executePrintPatientCard()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeModal(",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": "btnSubmitAbhaLink",
+        "text": "✅ Verify & Link ABHA",
+        "onclick": "confirmAbhaLink()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeQrScanModal()",
+        "className": "close-btn"
+      },
+      {
+        "id": "btnStartPatientCamera",
+        "text": "📹 Start Camera Scan",
+        "onclick": "startPatientCameraScanner()",
+        "className": "primary-btn"
+      },
+      {
+        "id": "btnStopPatientCamera",
+        "text": "⏹️ Stop Camera",
+        "onclick": "stopPatientCameraScanner()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔍 Verify",
+        "onclick": "verifyQrFromInput()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "➕ Register New Patient",
+        "onclick": "openPatientRegistration(); closeModal(",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "📷 Scan QR Code",
+        "onclick": "openQrScanModal()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "Reset",
+        "onclick": "resetStaffPatientFilters()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Directory",
+        "onclick": "fetchStaffPatientsList()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Hospital Staff (STAFF-001)",
+        "onclick": "promptHospitalStaffLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "⚙️ Manage Patients →",
+        "onclick": "openStaffPatientManager()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit",
+        "onclick": "openEditPanel(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit",
+        "onclick": "openEditPanel(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit",
+        "onclick": "openEditPanel(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit",
+        "onclick": "openEditPanel(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit",
+        "onclick": "openEditPanel(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit",
+        "onclick": "openEditPanel(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Health Admin (HOSP-ADMIN)",
+        "onclick": "promptHospitalAdminLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "👨‍⚕️ DOC003 (Dr. Amit Kumar)",
+        "onclick": "fillDoctorLogin(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "👨‍⚕️ DOC001 (Dr. Rahul Sharma)",
+        "onclick": "fillDoctorLogin(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "👩‍⚕️ DOC002 (Dr. Priya Verma)",
+        "onclick": "fillDoctorLogin(",
+        "className": null
+      },
+      {
+        "id": "btnDoctorLoginSubmit",
+        "text": "🚀 Login & Open Doctor Dashboard →",
+        "onclick": "submitDoctorLogin()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": null
+      }
+    ],
+    "formsCount": 2,
+    "forms": [
+      {
+        "id": "patientForm",
+        "onsubmit": null,
+        "action": null
+      },
+      {
+        "id": "prescriptionForm",
+        "onsubmit": null,
+        "action": null
+      }
+    ],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\hospital\\hospital_dashboard.html",
+    "buttonsCount": 42,
+    "buttons": [
+      {
+        "id": null,
+        "text": "🔓 Verify & Enter Hospital Dashboard",
+        "onclick": null,
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "⚡ Quick Demo Access (Dr. Alok Verma - Admin)",
+        "onclick": "quickDemoStaffLogin()",
+        "className": "hd-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Stats",
+        "onclick": "refreshDashboardData()",
+        "className": "hd-btn hd-btn-outline hd-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "➕ Register Walk-in Patient",
+        "onclick": "openRegisterWalkInModal()",
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "📋 Offline Test Booking (Reception)",
+        "onclick": "openOfflineBookingModal()",
+        "className": "hd-btn hd-btn-success"
+      },
+      {
+        "id": null,
+        "text": "➕ Add Diagnostic Test",
+        "onclick": "openAddNewTestModal()",
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "📁 Add Category",
+        "onclick": "openAddNewCategoryModal()",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "🔬 Diagnostic Tests Catalog",
+        "onclick": "switchDiagSubTab(",
+        "className": "hd-cat-pill active"
+      },
+      {
+        "id": null,
+        "text": "⚡ Live Test Queue & Tokens",
+        "onclick": "switchDiagSubTab(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "🩸 Sample Collection Desk",
+        "onclick": "switchDiagSubTab(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "📑 Reports & Verification",
+        "onclick": "switchDiagSubTab(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "🏠 Home Sample Requests",
+        "onclick": "switchDiagSubTab(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "All Tests",
+        "onclick": "filterByCategory(",
+        "className": "hd-cat-pill active"
+      },
+      {
+        "id": null,
+        "text": "🩸 Pathology",
+        "onclick": "filterByCategory(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "🩻 Radiology",
+        "onclick": "filterByCategory(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "❤️ Cardiology",
+        "onclick": "filterByCategory(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "🔬 Other",
+        "onclick": "filterByCategory(",
+        "className": "hd-cat-pill"
+      },
+      {
+        "id": null,
+        "text": "➕ Publish New Report",
+        "onclick": "openPublishReportModal()",
+        "className": "hd-btn hd-btn-primary hd-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "⚡ Order Selected Diagnostic Tests",
+        "onclick": "submitDoctorTestOrder()",
+        "className": "hd-btn hd-btn-success hd-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "resetConsultationPad()",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "✅ Complete Consultation & Discharge Token",
+        "onclick": "completeDoctorConsultation()",
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "➕ Assign Bed to Patient",
+        "onclick": "openAssignBedModal()",
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "➕ Create New Invoice",
+        "onclick": "openCreateInvoiceModal()",
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "➕ Add Staff Member",
+        "onclick": "openAddStaffModal()",
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeHdModal(",
+        "className": "hd-modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeHdModal(",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "Generate Token & Print Receipt",
+        "onclick": null,
+        "className": "hd-btn hd-btn-success"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeHdModal(",
+        "className": "hd-modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeHdModal(",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "Publish & Generate QR Verified Report",
+        "onclick": null,
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeHdModal(",
+        "className": "hd-modal-close"
+      },
+      {
+        "id": null,
+        "text": "🖨️ Print Report",
+        "onclick": "printReportDocument()",
+        "className": "hd-btn hd-btn-outline hd-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "📥 Download",
+        "onclick": "downloadReportPDF()",
+        "className": "hd-btn hd-btn-primary hd-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeHdModal(",
+        "className": "hd-modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeHdModal(",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "Confirm Bed Allocation",
+        "onclick": null,
+        "className": "hd-btn hd-btn-primary"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeHdModal(",
+        "className": "hd-modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeHdModal(",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "Generate & Record Invoice",
+        "onclick": null,
+        "className": "hd-btn hd-btn-success"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeHdModal(",
+        "className": "hd-modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeHdModal(",
+        "className": "hd-btn hd-btn-outline"
+      },
+      {
+        "id": null,
+        "text": "Confirm & Issue OPD Token",
+        "onclick": null,
+        "className": "hd-btn hd-btn-primary"
+      }
+    ],
+    "formsCount": 6,
+    "forms": [
+      {
+        "id": "dashboardStaffLoginForm",
+        "onsubmit": "handleDashboardStaffLogin(event)",
+        "action": null
+      },
+      {
+        "id": "offlineBookingForm",
+        "onsubmit": "handleOfflineBookingSubmit(event)",
+        "action": null
+      },
+      {
+        "id": "publishReportForm",
+        "onsubmit": "handlePublishReportSubmit(event)",
+        "action": null
+      },
+      {
+        "id": "assignBedForm",
+        "onsubmit": "handleAssignBedSubmit(event)",
+        "action": null
+      },
+      {
+        "id": "createInvoiceForm",
+        "onsubmit": "handleCreateInvoiceSubmit(event)",
+        "action": null
+      },
+      {
+        "id": "registerWalkInForm",
+        "onsubmit": "handleRegisterWalkInSubmit(event)",
+        "action": null
+      }
+    ],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\parking\\parking.html",
+    "buttonsCount": 99,
+    "buttons": [
+      {
+        "id": "userBadgeBtn",
+        "text": "CU\r\n                \r\n                    Sign In\r",
+        "onclick": "toggleUserDropdown(event)",
+        "className": "user-badge-btn"
+      },
+      {
+        "id": "tab-btn-citizen",
+        "text": "👤 1. Citizen Parking Services",
+        "onclick": "switchParkingLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. Staff Operations & Barrier Booth",
+        "onclick": "switchParkingLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. Admin & ICCC Asset Management",
+        "onclick": "switchParkingLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "🅿️ Find Parking",
+        "onclick": "scrollToParking()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "⚙️ Staff Control",
+        "onclick": "openParkingStaffPanel()",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Audit Stream",
+        "onclick": "loadAIParkingAuditTable()",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "⚡ Forecast Demand",
+        "onclick": "runAIParkingForecast()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookParking(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookParking(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookParking(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Book Slot",
+        "onclick": "bookParking(",
+        "className": null
+      },
+      {
+        "id": "btnLayerStreet",
+        "text": "🗺️ Standard Map",
+        "onclick": "switchMapLayer(",
+        "className": "btn-map-layer active"
+      },
+      {
+        "id": "btnLayerSat",
+        "text": "🛰️ Satellite Map",
+        "onclick": "switchMapLayer(",
+        "className": "btn-map-layer"
+      },
+      {
+        "id": "btnLayerTraffic",
+        "text": "🚦 Traffic Radar",
+        "onclick": "switchMapLayer(",
+        "className": "btn-map-layer"
+      },
+      {
+        "id": null,
+        "text": "🔑 API Key",
+        "onclick": "openMapApiKeyModal()",
+        "className": "btn-map-layer key-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Recenter Gorakhpur",
+        "onclick": "recenterParkingMap()",
+        "className": "btn-recenter-map"
+      },
+      {
+        "id": null,
+        "text": "🏢 City Centre (PARK-001)",
+        "onclick": "switchLotTab(",
+        "className": "lot-tab active"
+      },
+      {
+        "id": null,
+        "text": "🚆 Railway Station (PARK-002)",
+        "onclick": "switchLotTab(",
+        "className": "lot-tab"
+      },
+      {
+        "id": null,
+        "text": "🏥 Hospital Parking (PARK-003)",
+        "onclick": "switchLotTab(",
+        "className": "lot-tab"
+      },
+      {
+        "id": null,
+        "text": "🛍️ Golghar Market (PARK-004)",
+        "onclick": "switchLotTab(",
+        "className": "lot-tab"
+      },
+      {
+        "id": null,
+        "text": "🎓 DDU Chowk (PARK-005)",
+        "onclick": "switchLotTab(",
+        "className": "lot-tab"
+      },
+      {
+        "id": null,
+        "text": "🏥 AIIMS Campus (PARK-006)",
+        "onclick": "switchLotTab(",
+        "className": "lot-tab"
+      },
+      {
+        "id": "btnToggleStaffMode",
+        "text": "🛡️ Switch to Staff Inspection View",
+        "onclick": "toggleStaffViewMode()",
+        "className": "mode-toggle-btn"
+      },
+      {
+        "id": null,
+        "text": "🚗 All Bays",
+        "onclick": "applySlotFilter(",
+        "className": "filter-chip active"
+      },
+      {
+        "id": null,
+        "text": "⚡ EV Charging",
+        "onclick": "applySlotFilter(",
+        "className": "filter-chip"
+      },
+      {
+        "id": null,
+        "text": "♿ Accessible",
+        "onclick": "applySlotFilter(",
+        "className": "filter-chip"
+      },
+      {
+        "id": null,
+        "text": "🏍️ Two-Wheelers",
+        "onclick": "applySlotFilter(",
+        "className": "filter-chip"
+      },
+      {
+        "id": null,
+        "text": "🟢 Available Only",
+        "onclick": "applySlotFilter(",
+        "className": "filter-chip"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Parking Staff (PRK001)",
+        "onclick": "promptParkingStaffLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "⚠️ LIFT ALL BARRIERS",
+        "onclick": "triggerEmergencyBarrierOverride(",
+        "className": "badge-emergency"
+      },
+      {
+        "id": null,
+        "text": "✓ Restore Auto",
+        "onclick": "triggerEmergencyBarrierOverride(",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🔍 Verify Pass",
+        "onclick": "handleGateScanAction(",
+        "className": "btn-gate-verify"
+      },
+      {
+        "id": null,
+        "text": "🚗 Open Barrier (Check-in)",
+        "onclick": "handleGateScanAction(",
+        "className": "btn-gate-in"
+      },
+      {
+        "id": null,
+        "text": "🏁 Check-out & Vacate",
+        "onclick": "handleGateScanAction(",
+        "className": "btn-gate-out"
+      },
+      {
+        "id": null,
+        "text": "📷 Scan Demo QR",
+        "onclick": "simulateGateQrDemo()",
+        "className": "btn-demo-scan"
+      },
+      {
+        "id": null,
+        "text": "⚡ Scan & Ingress",
+        "onclick": "triggerAnprRecognition()",
+        "className": "btn-anpr-scan"
+      },
+      {
+        "id": null,
+        "text": "🚗 Reserved: UP 53 AB 1008",
+        "onclick": "setAnprPreset(",
+        "className": "btn-preset"
+      },
+      {
+        "id": null,
+        "text": "⚡ EV Vehicle: UP 53 EV 7700",
+        "onclick": "setAnprPreset(",
+        "className": "btn-preset"
+      },
+      {
+        "id": null,
+        "text": "🆕 Unreserved Walk-in",
+        "onclick": "setAnprPreset(",
+        "className": "btn-preset"
+      },
+      {
+        "id": null,
+        "text": "➕ Direct Gate Booking (Citizen Lookup)",
+        "onclick": "openStaffDirectBookingModal()",
+        "className": "btn-staff-action primary"
+      },
+      {
+        "id": null,
+        "text": "🏢 Add New Facility",
+        "onclick": "openAddLotModal()",
+        "className": "btn-staff-action secondary"
+      },
+      {
+        "id": null,
+        "text": "✏️ Edit Facility Settings",
+        "onclick": "openEditLotModal()",
+        "className": "btn-staff-action secondary"
+      },
+      {
+        "id": null,
+        "text": "+ Vehicle Entry",
+        "onclick": "vehicleEntry()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "− Vehicle Exit",
+        "onclick": "vehicleExit()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "💾 Save Parking Changes",
+        "onclick": "saveParkingChanges()",
+        "className": "save-control-btn"
+      },
+      {
+        "id": null,
+        "text": "📄 Print Shift Report",
+        "onclick": "printShiftSummaryReport()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh",
+        "onclick": "fetchShiftSummary()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "💾 Save to DB",
+        "onclick": "submitStaffBayOverride()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Overstays",
+        "onclick": "fetchOverstays()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as City Admin / Parking Staff",
+        "onclick": "promptParkingStaffLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Add New Parking Facility",
+        "onclick": "openAddLotModal()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Tariffs",
+        "onclick": "fetchAdminPricing()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Scan Logs",
+        "onclick": "fetchAdminAnprLogs()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": "btnConfirmBooking",
+        "text": "🅿️ Confirm & Reserve Slot",
+        "onclick": null,
+        "className": "btn-confirm"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "🗺️ Guide Me to Bay",
+        "onclick": "openBayNavigationModal(document.getElementById(",
+        "className": "btn-navigate-pass"
+      },
+      {
+        "id": null,
+        "text": "🖨️ Print / Download Ticket",
+        "onclick": "printParkingPass()",
+        "className": "btn-print-voucher"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "Close Navigation",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "👤 Walk-in Guest (No Account)",
+        "onclick": "enableWalkInGuest()",
+        "className": "btn-link-action"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "🎟️ Reserve Bay & Issue Ticket",
+        "onclick": "submitStaffDirectBooking()",
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "🚀 Provision Facility & Generate Bays",
+        "onclick": null,
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "💾 Save Facility Changes",
+        "onclick": null,
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "🎟️ View QR Pass",
+        "onclick": "viewMyActivePassQr()",
+        "className": "btn-navigate-pass"
+      },
+      {
+        "id": null,
+        "text": "🗺️ Guide Me",
+        "onclick": "openBayNavigationModal(document.getElementById(",
+        "className": "btn-navigate-pass"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "💾 Save Vehicle Details",
+        "onclick": "saveUserProfileVehicle()",
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": "actTabActive",
+        "text": "🟢 Active Clearance Passes",
+        "onclick": "switchActivityTab(",
+        "className": "act-tab active"
+      },
+      {
+        "id": "actTabHistory",
+        "text": "📜 Booking History",
+        "onclick": "switchActivityTab(",
+        "className": "act-tab"
+      },
+      {
+        "id": "pillHistAll",
+        "text": "All Records",
+        "onclick": "filterHistoryStatus(",
+        "className": "hist-pill active"
+      },
+      {
+        "id": "pillHistCompleted",
+        "text": "🏁 Completed",
+        "onclick": "filterHistoryStatus(",
+        "className": "hist-pill"
+      },
+      {
+        "id": "pillHistCancelled",
+        "text": "❌ Cancelled",
+        "onclick": "filterHistoryStatus(",
+        "className": "hist-pill"
+      },
+      {
+        "id": "pillHistExpired",
+        "text": "⏰ Expired",
+        "onclick": "filterHistoryStatus(",
+        "className": "hist-pill"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "➕ Book Another Bay",
+        "onclick": "closeSlotModal(",
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeStaffQrScannerModal()",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "🔍 Verify & Check In",
+        "onclick": "handleManualQrVerify()",
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "Close Terminal",
+        "onclick": "closeStaffQrScannerModal()",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeSlotModal(",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeSlotModal(",
+        "className": "btn-cancel"
+      },
+      {
+        "id": null,
+        "text": "💾 Save & Apply Layers",
+        "onclick": "saveMapApiKey()",
+        "className": "btn-confirm-booking"
+      },
+      {
+        "id": null,
+        "text": "✕",
+        "onclick": "closeOverstayCollectModal()",
+        "className": "fine-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeOverstayCollectModal()",
+        "className": "btn-cancel"
+      },
+      {
+        "id": "btnConfirmFinePayment",
+        "text": "✓ Confirm Payment & Clear Bay",
+        "onclick": "confirmOverstayFinePayment()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🖨️ Print Receipt",
+        "onclick": "printReceiptArea()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "Done",
+        "onclick": "closeOverstayCollectModal()",
+        "className": null
+      }
+    ],
+    "formsCount": 3,
+    "forms": [
+      {
+        "id": "slotBookingForm",
+        "onsubmit": "submitSlotBooking(event)",
+        "action": null
+      },
+      {
+        "id": "addLotForm",
+        "onsubmit": "submitAddLot(event)",
+        "action": null
+      },
+      {
+        "id": "editLotForm",
+        "onsubmit": "submitEditLot(event)",
+        "action": null
+      }
+    ],
+    "linksCount": 5,
+    "interactiveLinks": [
+      {
+        "id": "navLoginBtn",
+        "text": "🔑 Sign In",
+        "onclick": "SmartCityAuth && SmartCityAuth.showLoginModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "👤\r\n                    \r\n                        ",
+        "onclick": "openUserProfileModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": "activePassCountBadge",
+        "text": "🎫\r\n                    \r\n                        ",
+        "onclick": "openUserActivityModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": "ddStaffScannerItem",
+        "text": "📷\r\n                    \r\n                        ",
+        "onclick": "openStaffQrScannerModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "🚪\r\n                    \r\n                        ",
+        "onclick": "handleUserLogout()",
+        "href": "javascript:void(0)"
+      }
+    ]
+  },
+  {
+    "file": "pages\\police\\police.html",
+    "buttonsCount": 12,
+    "buttons": [
+      {
+        "id": "tab-btn-citizen",
+        "text": "👤 1. Citizen Police Services & Public FIR",
+        "onclick": "switchPoliceLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. Police Staff Operations & Dispatch",
+        "onclick": "switchPoliceLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. ICCC Police Admin & Crime Intelligence",
+        "onclick": "switchPoliceLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "🚨 View Incidents",
+        "onclick": "scrollToIncidents()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "👮 Police Staff Access",
+        "onclick": "switchPoliceLayer(",
+        "className": "secondary-btn"
+      },
+      {
+        "id": null,
+        "text": "Check Status",
+        "onclick": "alert(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Police Staff (POL001)",
+        "onclick": "promptPoliceStaffLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Use My Location",
+        "onclick": "getPoliceLocation()",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "✓ Resolve / Close",
+        "onclick": "resolvePoliceCase()",
+        "className": "resolve-btn"
+      },
+      {
+        "id": null,
+        "text": "💾 Save Police Changes",
+        "onclick": "savePoliceIncident()",
+        "className": "save-control-btn"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Police Admin",
+        "onclick": "promptPoliceAdminLogin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "↻ Refresh Data",
+        "onclick": "refreshCrimeData()",
+        "className": null
+      }
+    ],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\privacy-policy.html",
+    "buttonsCount": 0,
+    "buttons": [],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\terms-and-conditions.html",
+    "buttonsCount": 0,
+    "buttons": [],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\traffic\\traffic.html",
+    "buttonsCount": 111,
+    "buttons": [
+      {
+        "id": "userBadgeBtn",
+        "text": "CU\n                \n                    Sign In\n  ",
+        "onclick": "toggleUserDropdown(event)",
+        "className": "user-badge-btn"
+      },
+      {
+        "id": null,
+        "text": "🚗 Citizen Navigation & Parking",
+        "onclick": "switchLayer(",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "👮 Traffic Staff Controls",
+        "onclick": "switchLayer(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "🛡️ System Admin",
+        "onclick": "switchLayer(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": "tab-btn-citizen",
+        "text": "1. Citizen / Public Layer",
+        "onclick": "switchLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-control",
+        "text": "2. Traffic Employee / Staff Layer",
+        "onclick": "switchLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "3. System Admin Layer",
+        "onclick": "switchLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel Selection",
+        "onclick": "cancelCoordinatePick()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Prev",
+        "onclick": "prevVMSBoard()",
+        "className": "vms-btn"
+      },
+      {
+        "id": null,
+        "text": "Next",
+        "onclick": "nextVMSBoard()",
+        "className": "vms-btn"
+      },
+      {
+        "id": null,
+        "text": "Staff Broadcast",
+        "onclick": "openVMSEditModal()",
+        "className": "vms-btn"
+      },
+      {
+        "id": null,
+        "text": "Track on Map",
+        "onclick": "focusCriticalAmbulanceOnMap()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": "btn-crit-banner-clear",
+        "text": "Clear Transit & Restore Signals",
+        "onclick": "clearActiveCriticalTransit()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": "btnStaffPinLocationMode",
+        "text": "Click Map to Add Feature",
+        "onclick": "toggleMapPinPlacementMode()",
+        "className": "btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add Junction",
+        "onclick": "openAddJunctionModal()",
+        "className": "btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add Signal",
+        "onclick": "openAddSignalModal()",
+        "className": "btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add CCTV",
+        "onclick": "openAddCameraModal()",
+        "className": "btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Report Incident",
+        "onclick": "openIncidentModal()",
+        "className": "btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Center Map",
+        "onclick": "trafficMap.resetView()",
+        "className": "map-tool-btn"
+      },
+      {
+        "id": "btn-toggle-heatmap",
+        "text": "Congestion Heatmap",
+        "onclick": "toggleHeatmapLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": "btn-toggle-ambulances",
+        "text": "Live Ambulances (--)",
+        "onclick": "toggleAmbulancesLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": "btn-toggle-signals",
+        "text": "Traffic Lights",
+        "onclick": "toggleSignalsLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": "btn-toggle-vms",
+        "text": "VMS Boards",
+        "onclick": "toggleVMSLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": "btn-toggle-parking",
+        "text": "Parking",
+        "onclick": "toggleParkingLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": "btn-toggle-incidents",
+        "text": "Incidents",
+        "onclick": "toggleIncidentsLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": "btn-toggle-waterlogging",
+        "text": "Monsoon / Flood Risk",
+        "onclick": "toggleWaterloggingLayer()",
+        "className": "map-tool-btn active"
+      },
+      {
+        "id": null,
+        "text": "Calculate Congestion-Free Route",
+        "onclick": "calculateAlternativeRoutes()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "🚨 Submit Traffic Incident Report",
+        "onclick": "openReportIncidentModal()",
+        "className": "btn-danger"
+      },
+      {
+        "id": null,
+        "text": "Search Challans",
+        "onclick": "searchCitizenChallans()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Demo: UP-53-AZ-1001",
+        "onclick": "fillSamplePlate(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Demo: UP-53-BK-2044",
+        "onclick": "fillSamplePlate(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Subscribe to Live Commute Broadcast",
+        "onclick": "subscribeCommuteAlert()",
+        "className": "btn-primary"
+      },
+      {
+        "id": "toggleStaffPassIcon",
+        "text": "",
+        "onclick": "toggleStaffPasswordVisibility()",
+        "className": "fa-solid fa-eye"
+      },
+      {
+        "id": null,
+        "text": "👮 Insp. Verma (TR-VERMA)",
+        "onclick": "fillStaffCredentials(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "👮 SI Pandey (TR-PANDEY)",
+        "onclick": "fillStaffCredentials(",
+        "className": null
+      },
+      {
+        "id": null,
+        "text": "🛡️ Admin (TR-ADMIN)",
+        "onclick": "fillStaffCredentials(",
+        "className": null
+      },
+      {
+        "id": "btnTrafficStaffSubmit",
+        "text": "🔐 Sign In to Traffic Operations",
+        "onclick": null,
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Export Municipal Report (CSV)",
+        "onclick": "exportMunicipalReport()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add Junction",
+        "onclick": "openAddJunctionModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add Traffic Light",
+        "onclick": "openAddSignalModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add CCTV Camera",
+        "onclick": "openAddCameraModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Refresh Audit Log",
+        "onclick": "loadAIPredictionsAuditTable()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Run AI Inference",
+        "onclick": "runAITrafficInference()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Save Signal Timing",
+        "onclick": "saveSignalTimingConfig()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🟢 Force Green (N/S)",
+        "onclick": "applyManualOverride(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🟢 Force Green (E/W)",
+        "onclick": "applyManualOverride(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🟡 Flash Amber",
+        "onclick": "applyManualOverride(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "🔄 Restore Auto",
+        "onclick": "applyManualOverride(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Compute Webster Timings",
+        "onclick": "computeWebsterTimingForActiveJunction()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": "btn-apply-webster",
+        "text": "Apply Optimal Timings to Sliders & Save",
+        "onclick": "applyWebsterTimingsToSliders()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Open AI Vision Inspector",
+        "onclick": "openAIVisionModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Add New Camera",
+        "onclick": "openAddCameraModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Refresh Violations",
+        "onclick": "loadViolationsData()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Refresh Fleet",
+        "onclick": "loadLiveAmbulancesFleet()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": "btn-dispatch-corridor",
+        "text": "Dispatch Green Corridor",
+        "onclick": "dispatchEmergencyCorridor()",
+        "className": "btn-danger"
+      },
+      {
+        "id": "btn-cancel-corridor",
+        "text": "Deactivate",
+        "onclick": "deactivateEmergencyCorridor()",
+        "className": "btn-secondary"
+      },
+      {
+        "id": "btn-start-amb-sim",
+        "text": "Start Approaching Simulation",
+        "onclick": "startAmbulanceSimulation()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": "btn-stop-amb-sim",
+        "text": "Stop Simulation",
+        "onclick": "stopAmbulanceSimulation()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "⚡ 1-Click Login: ICCC Director (Admin)",
+        "onclick": "quickLoginTrafficAdmin()",
+        "className": "primary-btn"
+      },
+      {
+        "id": null,
+        "text": "🔑 Manual Login Dialog",
+        "onclick": "promptTrafficAdminLogin()",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Export Municipal Report (CSV)",
+        "onclick": "exportMunicipalReport()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "+ Add Junction",
+        "onclick": "openAddJunctionModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "+ Add Traffic Light",
+        "onclick": "openAddSignalModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "+ Add Staff",
+        "onclick": "openAddStaffModal()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Save AI Settings",
+        "onclick": "saveAdminAISettings()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Refresh",
+        "onclick": "loadAuditLogs()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Pick Incident Location on Map",
+        "onclick": "pickCoordsFor(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": "btn-save-incident",
+        "text": "Submit Report",
+        "onclick": "submitTrafficIncident()",
+        "className": "btn-danger"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": "btn-modal-test-conn",
+        "text": "Test Connection",
+        "onclick": "testCameraConnectionInModal()",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "📍 Pick Camera Location on Map",
+        "onclick": "pickCoordsFor(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": "btn-save-camera",
+        "text": "Save Camera",
+        "onclick": "submitCameraForm()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Pick Coordinates on Map",
+        "onclick": "pickCoordsFor(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Save Junction",
+        "onclick": "submitJunctionForm()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Pick Coordinates on Map",
+        "onclick": "pickCoordsFor(",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Save Traffic Light",
+        "onclick": "submitSignalForm()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Register Officer",
+        "onclick": "submitStaffForm()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": "btn-submit-pay-challan",
+        "text": "Authorize & Settle Fine Now",
+        "onclick": "processChallanPayment()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Close Inspection",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Print Legal Court Notice",
+        "onclick": "printVirtualCourtNotice()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Analyze Feed",
+        "onclick": "refreshAIVisionData()",
+        "className": "btn-secondary btn-sm"
+      },
+      {
+        "id": "btn-sync-ai-flow",
+        "text": "Sync Flow to Signal Engine",
+        "onclick": "syncAIOpticalFlowToSignal()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Close Inspector",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Broadcast to Roadside Display",
+        "onclick": "submitVMSMessage()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "🎯 Pick Location From Map",
+        "onclick": "pickCoordsForSignalRelocation()",
+        "className": "btn-primary btn-sm"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      },
+      {
+        "id": null,
+        "text": "Save New Location",
+        "onclick": "submitSignalLocationModification()",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Close",
+        "onclick": "closeModal(",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "&times;",
+        "onclick": "closeModal(",
+        "className": "modal-close-btn"
+      },
+      {
+        "id": null,
+        "text": "Add Junction\n                    New crossing & no",
+        "onclick": "quickAddSelectFeature(",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Add Traffic Light\n                    Signal head ",
+        "onclick": "quickAddSelectFeature(",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Add CCTV Camera\n                    Optical unit &",
+        "onclick": "quickAddSelectFeature(",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Report Incident\n                    Roadblock or a",
+        "onclick": "quickAddSelectFeature(",
+        "className": "btn-primary"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn-secondary"
+      }
+    ],
+    "formsCount": 1,
+    "forms": [
+      {
+        "id": "trafficStaffLoginForm",
+        "onsubmit": "handleTrafficStaffLoginSubmit(event)",
+        "action": null
+      }
+    ],
+    "linksCount": 6,
+    "interactiveLinks": [
+      {
+        "id": "navLoginBtn",
+        "text": "🔑 Sign In",
+        "onclick": "SmartCityAuth && SmartCityAuth.showLoginModal()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "🚗 Citizen View (Public)",
+        "onclick": "switchRoleProfile(",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "👮 Insp. R.K. Verma (Traffic Staff)",
+        "onclick": "switchRoleProfile(",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "🛡️ ICCC Director (Admin)",
+        "onclick": "switchRoleProfile(",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": null,
+        "text": "🚪 Logout",
+        "onclick": "handleUserLogout()",
+        "href": "javascript:void(0)"
+      },
+      {
+        "id": "popup-closer",
+        "text": "&times;",
+        "onclick": "trafficMap.closePopup()",
+        "href": "javascript:void(0)"
+      }
+    ]
+  },
+  {
+    "file": "pages\\waste\\waste.html",
+    "buttonsCount": 47,
+    "buttons": [
+      {
+        "id": "tab-btn-citizen",
+        "text": "👤 1. Citizen Services",
+        "onclick": "switchWasteLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. Waste Staff Operations",
+        "onclick": "switchWasteLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. Admin & Assets",
+        "onclick": "switchWasteLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "📍 Report Waste",
+        "onclick": "openReportModal()",
+        "className": "btn green-btn"
+      },
+      {
+        "id": null,
+        "text": "🚛 Request Pickup",
+        "onclick": "openPickupModal()",
+        "className": "btn outline-btn"
+      },
+      {
+        "id": null,
+        "text": "🗑️ Request New Dustbin",
+        "onclick": "openCitizenBinRequestModal()",
+        "className": "btn white-btn"
+      },
+      {
+        "id": null,
+        "text": "+ New Request",
+        "onclick": "openCitizenBinRequestModal()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "↻ Refresh",
+        "onclick": "loadCitizenRequests(true)",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "🔑 Sign In as Staff (e.g. WST001)",
+        "onclick": "SmartCityAuth.showLoginModal(",
+        "className": "btn green-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Add Bin",
+        "onclick": "openBinModal()",
+        "className": "btn white-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Add Vehicle",
+        "onclick": "openVehicleModal()",
+        "className": "btn green-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Add Worker",
+        "onclick": "openWorkerModal()",
+        "className": "btn outline-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Create Route",
+        "onclick": "openRouteModal()",
+        "className": "btn outline-btn"
+      },
+      {
+        "id": null,
+        "text": "↻ Refresh",
+        "onclick": "refreshAllData()",
+        "className": "btn outline-btn"
+      },
+      {
+        "id": null,
+        "text": "↻ Refresh AI Log",
+        "onclick": "loadAIWastePredictionsTable()",
+        "className": "btn white-btn btn-sm"
+      },
+      {
+        "id": null,
+        "text": "⚡ Calculate AI Collection Priority",
+        "onclick": "runAIWasteInference()",
+        "className": "btn green-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Report",
+        "onclick": "openReportModal()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Pickup",
+        "onclick": "openPickupModal()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "+ Add Bin",
+        "onclick": "openBinModal()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "↻ Refresh",
+        "onclick": "loadCitizenBinRequests(true)",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "🔑 Sign In as Staff (e.g. WST001)",
+        "onclick": "SmartCityAuth.showLoginModal(",
+        "className": "btn green-btn"
+      },
+      {
+        "id": "btnAddAssetBtn",
+        "text": "+ Add Asset",
+        "onclick": "openActiveAssetModal()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "↻ Refresh",
+        "onclick": "refreshStaffAssets()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "🚛 Collection Vehicles",
+        "onclick": "switchWasteTab(",
+        "className": "waste-tab-btn active"
+      },
+      {
+        "id": null,
+        "text": "👷 Sanitation Workers",
+        "onclick": "switchWasteTab(",
+        "className": "waste-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "🗺️ Collection Routes",
+        "onclick": "switchWasteTab(",
+        "className": "waste-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "📊 Analytics & Hotspots",
+        "onclick": "switchWasteTab(",
+        "className": "waste-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "Save Bin",
+        "onclick": "saveBin()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "📍 Use GPS",
+        "onclick": "useCurrentLocationForReport()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "Submit Waste Report",
+        "onclick": "saveReport()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "📍 Use GPS",
+        "onclick": "useCurrentLocationForPickup()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "Save Pickup Request",
+        "onclick": "savePickup()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeCitizenBinRequestModal()",
+        "className": "modal-close"
+      },
+      {
+        "id": null,
+        "text": "📍 Use My Location",
+        "onclick": "useCurrentLocationForBinRequest()",
+        "className": "small-btn"
+      },
+      {
+        "id": null,
+        "text": "Submit Dustbin Request",
+        "onclick": "submitCitizenBinRequest()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "Save Operational Updates",
+        "onclick": "submitStaffRequestUpdate()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "Cancel",
+        "onclick": "closeModal(",
+        "className": "btn outline-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "Save Vehicle",
+        "onclick": "saveVehicle()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "Save Worker",
+        "onclick": "saveWorker()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close"
+      },
+      {
+        "id": null,
+        "text": "Save Collection Route",
+        "onclick": "saveRoute()",
+        "className": "submit-btn"
+      }
+    ],
+    "formsCount": 0,
+    "forms": [],
+    "linksCount": 0,
+    "interactiveLinks": []
+  },
+  {
+    "file": "pages\\water\\water.html",
+    "buttonsCount": 25,
+    "buttons": [
+      {
+        "id": "tab-btn-citizen",
+        "text": "👤 1. Citizen Water Services",
+        "onclick": "switchWaterLayer(",
+        "className": "layer-tab-btn active"
+      },
+      {
+        "id": "tab-btn-staff",
+        "text": "⚡ 2. Water Staff Operations",
+        "onclick": "switchWaterLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": "tab-btn-admin",
+        "text": "⚙️ 3. Water Infrastructure & SCADA",
+        "onclick": "switchWaterLayer(",
+        "className": "layer-tab-btn"
+      },
+      {
+        "id": null,
+        "text": "💦\n                    \n                    \n     ",
+        "onclick": "openReportModal(",
+        "className": "action-card leakage"
+      },
+      {
+        "id": null,
+        "text": "🚱\n                    \n                    \n     ",
+        "onclick": "openReportModal(",
+        "className": "action-card no-water"
+      },
+      {
+        "id": null,
+        "text": "🚛\n                    \n                    \n     ",
+        "onclick": "openTankerModal()",
+        "className": "action-card tanker"
+      },
+      {
+        "id": null,
+        "text": "🧪\n                    \n                    \n     ",
+        "onclick": "openReportModal(",
+        "className": "action-card quality"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Water Staff (WTR001)",
+        "onclick": "promptStaffLogin()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "⚡ Log in as Admin / Water Staff",
+        "onclick": "promptStaffLogin()",
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "🔄 Refresh Audit Stream",
+        "onclick": "loadAIWaterAuditTable()",
+        "className": "action-btn-sm"
+      },
+      {
+        "id": null,
+        "text": "⚡ Detect Anomaly & Leak Risk",
+        "onclick": "runAIWaterAnomalyDetection()",
+        "className": "action-btn-sm btn-blue"
+      },
+      {
+        "id": null,
+        "text": "+ Add Water Tank",
+        "onclick": "openTankModal()",
+        "className": "action-btn-sm btn-blue"
+      },
+      {
+        "id": null,
+        "text": "+ Record Test",
+        "onclick": "openQualityModal()",
+        "className": "action-btn-sm btn-blue"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": "submitReportBtn",
+        "text": "Submit Complaint",
+        "onclick": null,
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": "submitTankerBtn",
+        "text": "Request Tanker",
+        "onclick": null,
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "Confirm Assignment & Dispatch",
+        "onclick": null,
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "Confirm Dispatch",
+        "onclick": null,
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": "saveTankBtn",
+        "text": "Save Water Tank",
+        "onclick": null,
+        "className": "submit-btn"
+      },
+      {
+        "id": null,
+        "text": "×",
+        "onclick": "closeModal(",
+        "className": "close-btn"
+      },
+      {
+        "id": null,
+        "text": "Log Quality Test",
+        "onclick": null,
+        "className": "submit-btn"
+      }
+    ],
+    "formsCount": 6,
+    "forms": [
+      {
+        "id": "reportForm",
+        "onsubmit": null,
+        "action": null
+      },
+      {
+        "id": "tankerForm",
+        "onsubmit": null,
+        "action": null
+      },
+      {
+        "id": "assignForm",
+        "onsubmit": null,
+        "action": null
+      },
+      {
+        "id": "dispatchTankerForm",
+        "onsubmit": null,
+        "action": null
+      },
+      {
+        "id": "tankForm",
+        "onsubmit": null,
+        "action": null
+      },
+      {
+        "id": "qualityForm",
+        "onsubmit": null,
+        "action": null
+      }
+    ],
+    "linksCount": 0,
+    "interactiveLinks": []
+  }
+]

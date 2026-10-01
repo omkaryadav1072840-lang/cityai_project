@@ -241,30 +241,30 @@ router.put("/api/doctors/:id", authenticateToken, requireRole(["staff", "admin"]
     const sql = `
         UPDATE doctors
         SET
-            name = ?,
-            specialization = ?,
-            department = ?,
-            qualification = ?,
-            experience = ?,
-            mobile = ?,
-            email = ?,
-            consultation_fee = ?,
-            status = ?
+            name = COALESCE(?, name),
+            specialization = COALESCE(?, specialization),
+            department = COALESCE(?, department),
+            qualification = COALESCE(?, qualification),
+            experience = COALESCE(?, experience),
+            mobile = COALESCE(?, mobile),
+            email = COALESCE(?, email),
+            consultation_fee = COALESCE(?, consultation_fee),
+            status = COALESCE(?, status)
         WHERE id = ?
     `;
 
     db.query(
         sql,
         [
-            name,
+            name || null,
             specialization || null,
             department || null,
             qualification || null,
-            Number(experience || 0),
+            experience != null ? Number(experience) : null,
             mobile || null,
             email || null,
-            Number(consultationFee || 0),
-            status || "Available",
+            consultationFee != null ? Number(consultationFee) : null,
+            status || null,
             id
         ],
         (err, result) => {

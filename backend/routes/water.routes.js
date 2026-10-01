@@ -561,7 +561,7 @@ router.post(["/api/water/tanker-bookings", "/api/water/book-tanker"], optionalTo
             INSERT INTO water_tanker_bookings
             (booking_id, user_id, citizen_name, mobile, delivery_address, capacity, booking_date, delivery_slot, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
-        `, [bookingId, userId || (req.user && req.user.id) || null, cName, cMobile, finalAddress, cap, date, slot]);
+        `, [bookingId, String(userId || (req.user && req.user.id) || "guest-citizen"), cName, cMobile, finalAddress, cap, date, slot]);
 
         const [created] = await pool.query("SELECT * FROM water_tanker_bookings WHERE id = ?", [result.insertId]);
 

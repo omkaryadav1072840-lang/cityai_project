@@ -1,0 +1,406 @@
+[
+  {
+    "name": "ai_chat_messages",
+    "count": 296
+  },
+  {
+    "name": "ai_chat_sessions",
+    "count": 0
+  },
+  {
+    "name": "ai_data_sources",
+    "count": 6
+  },
+  {
+    "name": "ai_feedback",
+    "count": 21
+  },
+  {
+    "name": "ai_jobs",
+    "count": 0
+  },
+  {
+    "name": "ai_model_metrics",
+    "count": 2
+  },
+  {
+    "name": "ai_models",
+    "count": 7
+  },
+  {
+    "name": "ai_predictions",
+    "count": 325
+  },
+  {
+    "name": "ai_reviews",
+    "count": 18
+  },
+  {
+    "name": "ai_tool_logs",
+    "count": 148
+  },
+  {
+    "name": "ambulance_green_waves",
+    "count": 18
+  },
+  {
+    "name": "ambulances",
+    "count": 17
+  },
+  {
+    "name": "analytics_events",
+    "count": 7
+  },
+  {
+    "name": "appointments",
+    "count": 30
+  },
+  {
+    "name": "audit_logs",
+    "count": 240
+  },
+  {
+    "name": "auth_sessions",
+    "count": 0
+  },
+  {
+    "name": "citizen_feedback",
+    "count": 31
+  },
+  {
+    "name": "city_atms",
+    "count": 20
+  },
+  {
+    "name": "city_environmental_sensors",
+    "count": 6
+  },
+  {
+    "name": "city_restaurants",
+    "count": 16
+  },
+  {
+    "name": "cv_detections",
+    "count": 35
+  },
+  {
+    "name": "diagnostic_categories",
+    "count": 4
+  },
+  {
+    "name": "diagnostic_reports",
+    "count": 16
+  },
+  {
+    "name": "diagnostic_tests",
+    "count": 157
+  },
+  {
+    "name": "disaster_predictions",
+    "count": 15
+  },
+  {
+    "name": "doctor_schedules",
+    "count": 30
+  },
+  {
+    "name": "doctor_slots",
+    "count": 10
+  },
+  {
+    "name": "doctors",
+    "count": 32
+  },
+  {
+    "name": "emergency_departments",
+    "count": 15
+  },
+  {
+    "name": "emergency_incidents",
+    "count": 9
+  },
+  {
+    "name": "environment_predictions",
+    "count": 20
+  },
+  {
+    "name": "famous_places",
+    "count": 14
+  },
+  {
+    "name": "grievance_ai_analysis",
+    "count": 0
+  },
+  {
+    "name": "hospital_bed_categories",
+    "count": 57
+  },
+  {
+    "name": "hospital_beds",
+    "count": 1
+  },
+  {
+    "name": "hospital_departments",
+    "count": 34
+  },
+  {
+    "name": "hospital_invoices",
+    "count": 32
+  },
+  {
+    "name": "hospital_notifications",
+    "count": 49
+  },
+  {
+    "name": "hospital_predictions",
+    "count": 17
+  },
+  {
+    "name": "hospital_staff",
+    "count": 11
+  },
+  {
+    "name": "hospital_ward_beds",
+    "count": 16
+  },
+  {
+    "name": "hospital_wards",
+    "count": 22
+  },
+  {
+    "name": "hospitals",
+    "count": 14
+  },
+  {
+    "name": "medical_documents",
+    "count": 0
+  },
+  {
+    "name": "notifications",
+    "count": 206
+  },
+  {
+    "name": "parking_activity_logs",
+    "count": 0
+  },
+  {
+    "name": "parking_anpr_scans",
+    "count": 6
+  },
+  {
+    "name": "parking_bookings",
+    "count": 45
+  },
+  {
+    "name": "parking_entries",
+    "count": 0
+  },
+  {
+    "name": "parking_lots",
+    "count": 6
+  },
+  {
+    "name": "parking_occupancy_log",
+    "count": 0
+  },
+  {
+    "name": "parking_predictions",
+    "count": 68
+  },
+  {
+    "name": "parking_reports",
+    "count": 0
+  },
+  {
+    "name": "parking_slots",
+    "count": 132
+  },
+  {
+    "name": "patient_audit_logs",
+    "count": 33
+  },
+  {
+    "name": "patient_records",
+    "count": 19
+  },
+  {
+    "name": "patient_reports",
+    "count": 6
+  },
+  {
+    "name": "patients",
+    "count": 34
+  },
+  {
+    "name": "pharmacy",
+    "count": 12
+  },
+  {
+    "name": "pharmacy_bill_items",
+    "count": 19
+  },
+  {
+    "name": "pharmacy_bills",
+    "count": 7
+  },
+  {
+    "name": "pharmacy_cart",
+    "count": 9
+  },
+  {
+    "name": "place_civic_issues",
+    "count": 2
+  },
+  {
+    "name": "place_favorites",
+    "count": 0
+  },
+  {
+    "name": "place_reviews",
+    "count": 4
+  },
+  {
+    "name": "police_complaints",
+    "count": 2
+  },
+  {
+    "name": "police_stations",
+    "count": 8
+  },
+  {
+    "name": "police_stats",
+    "count": 6
+  },
+  {
+    "name": "prescriptions",
+    "count": 3
+  },
+  {
+    "name": "service_requests",
+    "count": 71
+  },
+  {
+    "name": "signal_optimizations",
+    "count": 18
+  },
+  {
+    "name": "staff",
+    "count": 24
+  },
+  {
+    "name": "street_lights",
+    "count": 8
+  },
+  {
+    "name": "test_bookings",
+    "count": 53
+  },
+  {
+    "name": "test_samples",
+    "count": 17
+  },
+  {
+    "name": "traffic_ai_settings",
+    "count": 7
+  },
+  {
+    "name": "traffic_audit_logs",
+    "count": 5495
+  },
+  {
+    "name": "traffic_cameras",
+    "count": 16
+  },
+  {
+    "name": "traffic_corridors",
+    "count": 3
+  },
+  {
+    "name": "traffic_incidents",
+    "count": 19
+  },
+  {
+    "name": "traffic_junctions",
+    "count": 9
+  },
+  {
+    "name": "traffic_movement_rules",
+    "count": 4
+  },
+  {
+    "name": "traffic_predictions",
+    "count": 81
+  },
+  {
+    "name": "traffic_signals",
+    "count": 37
+  },
+  {
+    "name": "traffic_violations",
+    "count": 27
+  },
+  {
+    "name": "users",
+    "count": 5
+  },
+  {
+    "name": "waste_bin_predictions",
+    "count": 17
+  },
+  {
+    "name": "waste_bin_requests",
+    "count": 0
+  },
+  {
+    "name": "waste_bins",
+    "count": 23
+  },
+  {
+    "name": "waste_predictions",
+    "count": 17
+  },
+  {
+    "name": "waste_routes",
+    "count": 4
+  },
+  {
+    "name": "waste_vehicles",
+    "count": 4
+  },
+  {
+    "name": "waste_workers",
+    "count": 5
+  },
+  {
+    "name": "water_anomalies",
+    "count": 23
+  },
+  {
+    "name": "water_pipelines",
+    "count": 6
+  },
+  {
+    "name": "water_quality_logs",
+    "count": 5
+  },
+  {
+    "name": "water_reports",
+    "count": 3
+  },
+  {
+    "name": "water_supply_schedules",
+    "count": 6
+  },
+  {
+    "name": "water_tanker_bookings",
+    "count": 6
+  },
+  {
+    "name": "water_tanks",
+    "count": 5
+  },
+  {
+    "name": "water_technicians",
+    "count": 6
+  }
+]

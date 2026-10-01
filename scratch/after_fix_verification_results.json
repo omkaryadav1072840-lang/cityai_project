@@ -1,0 +1,50 @@
+[
+  {
+    "bug": "BUG-001",
+    "severity": "CRITICAL",
+    "pass": true,
+    "details": "Green wave HTTP 200, Dispatch HTTP 200"
+  },
+  {
+    "bug": "BUG-002",
+    "severity": "HIGH",
+    "pass": "TKB-MUPLFI4U",
+    "details": "HTTP 201, Booking ID: TKB-MUPLFI4U"
+  },
+  {
+    "bug": "BUG-003",
+    "severity": "HIGH",
+    "pass": "CRITICAL RESPONSE",
+    "details": "HTTP 200, Status: CRITICAL RESPONSE"
+  },
+  {
+    "bug": "BUG-004",
+    "severity": "MEDIUM",
+    "pass": true,
+    "details": "HTTP 404 returned clean 404"
+  },
+  {
+    "bug": "BUG-005",
+    "severity": "MEDIUM",
+    "pass": true,
+    "details": "HTTP 200, Doctor updated successfully."
+  },
+  {
+    "bug": "BUG-006",
+    "severity": "MEDIUM",
+    "pass": 150,
+    "details": "HTTP 200, AQI: 150"
+  },
+  {
+    "bug": "BUG-007",
+    "severity": "LOW",
+    "pass": true,
+    "details": "HTTP 400 returned clean 400"
+  },
+  {
+    "bug": "BUG-008",
+    "severity": "LOW",
+    "pass": true,
+    "details": "HTTP 400 returned clean 400"
+  }
+]

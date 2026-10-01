@@ -1,0 +1,3410 @@
+[
+  {
+    "file": "city.routes.js",
+    "method": "GET",
+    "path": "/",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         status: \"healthy\",         message: \"SmartCity AI Backend is running\"     }); });  // ======================="
+  },
+  {
+    "file": "city.routes.js",
+    "method": "GET",
+    "path": "/api",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         status: \"healthy\",         message: \"SmartCity AI Backend is running\"     }); });  // ======================="
+  },
+  {
+    "file": "city.routes.js",
+    "method": "GET",
+    "path": "/api/status",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         status: \"healthy\",         message: \"SmartCity AI Backend is running\"     }); });  // ======================="
+  },
+  {
+    "file": "city.routes.js",
+    "method": "GET",
+    "path": "/api/city-status",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [             [hospitals],             [ambulances],             [incidents],             [sensors]   "
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "POST",
+    "path": "/api/register",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { name, mobile, email, password } = req.body;      if (!name || !mobile || !email || !password) {         return res.statu"
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "POST",
+    "path": "/api/login",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { loginId, password } = req.body;      if (!loginId || !password) {         return res.status(400).json({             mess"
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "POST",
+    "path": "/api/staff-login",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { staffId, password } = req.body;      if (!staffId || !password) {         return res.status(400).json({             mess"
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "GET",
+    "path": "/api/auth/me",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     res.json({         success: true,         user: req.user     }); });  // ===================================="
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "GET",
+    "path": "/api/user/profile",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     res.json({         success: true,         user: req.user     }); });  // ===================================="
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "PUT",
+    "path": "/api/auth/profile",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const {         name,         email,         mobile,         vehicleNumber,         ward,         bloodGroup,"
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     logAudit(req, {         userId: req.user.id || req.user.userId,         userName: req.user.name,         role"
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "POST",
+    "path": "/api/logout",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     logAudit(req, {         userId: req.user.id || req.user.userId,         userName: req.user.name,         role"
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "GET",
+    "path": "/api/user/activities",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const userId = req.user.id || req.user.userId;         const userName = req.user.name || "
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "GET",
+    "path": "/api/activities",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const userId = req.user.id || req.user.userId;         const userName = req.user.name || "
+  },
+  {
+    "file": "auth.routes.js",
+    "method": "POST",
+    "path": "/api/auth/demo-login",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         if (process.env.ALLOW_DEMO_LOGIN === \"false\") {             return res.status(403).json({                 su"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "POST",
+    "path": "/api/patients",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         let {             patientId,             name,             dob,             age,             "
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const { search, hospital, gender, status, page = 1, limit = 50 } = req.query;         con"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      try {         const [rows] = await db.promise().query( "
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "PUT",
+    "path": "/api/patients/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();     const {         name,         dob,         age,         "
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/:patientId/qr",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      try {         const [rows] = await db.promise().query( "
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "POST",
+    "path": "/api/patients/verify-qr",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         let { qrToken, patientId, qrData } = req.body;          // Support direct JSON string from ca"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "POST",
+    "path": "/api/patients/:patientId/link-abha",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();     const { abhaAddress, abhaNumber, consentGiven } = req.bo"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "POST",
+    "path": "/api/patients/:patientId/unlink-abha",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      try {         const [rows] = await db.promise().query( "
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "PATCH",
+    "path": "/api/patients/:patientId/status",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"admin\", \"staff\"]), async (req, res) => {     const patientId = req.params.patientId.trim();     const { status } = "
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/:patientId/appointments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      try {         const [patients] = await db.promise().que"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/:patientId/prescriptions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      try {         const [patients] = await db.promise().que"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/:patientId/records",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      if (!patientId) {         return res.status(400).json({"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "POST",
+    "path": "/api/patients/:patientId/records",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"doctor\", \"staff\", \"admin\"]), async (req, res) => {     const patientId = req.params.patientId.trim();     const { d"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/:patientId/reports",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const patientId = req.params.patientId.trim();      try {         const [patients] = await db.promise().que"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "POST",
+    "path": "/api/patients/:patientId/reports",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ",     authenticateToken,     requireRole([\"doctor\", \"staff\", \"admin\"]),     (req, res, next) => {         reportUpload.single(\"file\")(req, res, (uploa"
+  },
+  {
+    "file": "patient.routes.js",
+    "method": "GET",
+    "path": "/api/patients/search/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res, next) => {     req.url = `/api/patients/${encodeURIComponent(req.params.patientId)}`;"
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "GET",
+    "path": "/api/appointments/availability",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { hospitalId, doctorId, date } = req.query;      console.log(`[APPOINTMENT AVAILABILITY] Hospital: ${hospitalId} | Doctor:"
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "POST",
+    "path": "/api/appointments/book-strict",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     let { patientId, hospitalId, doctorId, appointmentDate, appointmentTime, patientName, patientMobile } = req"
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "POST",
+    "path": "/api/appointments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { patientId, doctor, slotId } = req.body;      if (!patientId || !slotId) {         return res.status(400).json({         "
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "PUT",
+    "path": "/api/appointments/:id/cancel",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const appointmentId = req.params.id;      if (!req.user && process.env.REQUIRE_AUTH !== \"false\") {         return"
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "GET",
+    "path": "/api/appointments",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const { hospital_id, doctor_id, date, status } = req.query;     const role = (req.user.role || req.user.type "
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "GET",
+    "path": "/api/appointments/my-appointments",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const { hospital_id, doctor_id, date, status } = req.query;     const role = (req.user.role || req.user.type "
+  },
+  {
+    "file": "appointment.routes.js",
+    "method": "GET",
+    "path": "/api/appointments/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const patientId = req.params.patientId;      if (!patientId) {         return res.status(400).json({             "
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "POST",
+    "path": "/api/doctor/login",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const { doctorId, password } = req.body;      if (!doctorId || !String(doctorId).trim()) {         return res.status(400)."
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "GET",
+    "path": "/api/doctors",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             doctor_id,             hospital_id,             name,             speci"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "POST",
+    "path": "/api/doctors",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const {         doctorId,         name,         specialization,         depa"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "PUT",
+    "path": "/api/doctors/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const {         name,         specialization, "
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "DELETE",
+    "path": "/api/doctors/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;      const sql = `         DELETE FROM doctors    "
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "GET",
+    "path": "/api/doctor-slots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             s.id,             s.doctor_id,             d.name AS doctor_name,             d.special"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "GET",
+    "path": "/api/doctors/:doctorId/slots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const doctorId = req.params.doctorId;      const sql = `         SELECT             id,             doctor_id,             slot_"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "POST",
+    "path": "/api/doctor-slots",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const { doctorId, slotDate, startTime, endTime, maxPatients } = req.body;   "
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "DELETE",
+    "path": "/api/doctor-slots/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;      const sql = `         DELETE FROM doctor_slot"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "GET",
+    "path": "/api/doctor/:doctorId/appointments",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireDoctorOrStaff, (req, res) => {     const doctorId = req.params.doctorId;      if (!doctorId) {         return res.status(4"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "GET",
+    "path": "/api/doctor/patient-history/:patientId",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireDoctorOrStaff, async (req, res) => {     const patientId = req.params.patientId.trim();      if (!patientId) {         ret"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "POST",
+    "path": "/api/doctor/consultation",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireDoctorOrStaff, async (req, res) => {     let { patientId, doctorId, doctorName, appointmentId, diagnosis, symptoms, treatm"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "PUT",
+    "path": "/api/appointments/:id/status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireDoctorOrStaff, (req, res) => {     const appointmentId = req.params.id;     const { status } = req.body;      if (!status)"
+  },
+  {
+    "file": "doctor.routes.js",
+    "method": "POST",
+    "path": "/api/doctor/order-tests",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireDoctorOrStaff, async (req, res) => {     const {         patientId,         hospitalId,         doctorId,         doctorNa"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospital/beds",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             hospital_name,             general_beds,             icu_beds,         "
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospital/bed-categories",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [categories] = await db.promise().query(`             SELECT c.id, c.hospital_id, h.hospital_name, c.c"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospital/bed_categories",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [categories] = await db.promise().query(`             SELECT c.id, c.hospital_id, h.hospital_name, c.c"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "PUT",
+    "path": "/api/hospital/beds/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const { generalBeds, icuBeds, emergencyBeds, p"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             hospital_id,             hospital_name,             address,           "
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/nearby/search",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const lat = Number(req.query.lat);     const lng = Number(req.query.lng);     const limit = Math.min(Number(req.query.limit) || "
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const hospitalId = req.params.hospitalId;     const numericId = !isNaN(hospitalId) ? Number(hospitalId) : 0;      const sql = ` "
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/beds",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const hospitalId = req.params.hospitalId;      const sql = `         SELECT             category,             total_beds, "
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/treatments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const hospitalId = req.params.hospitalId;      const sql = `         SELECT             hd.department_name,             hd.appro"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/doctors",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const hospitalId = req.params.hospitalId;      const sql = `         SELECT             id, doctor_id, name, specialization, dep"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "POST",
+    "path": "/api/hospitals",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const {         hospitalId,         hospitalName,         address,         p"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "PUT",
+    "path": "/api/hospitals/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const {         hospitalName,         address,"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/dashboard",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;      if (!verifyHospitalStaffAccess(req, hospitalId)) {         return r"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/appointments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;     const { date, status, doctor_id } = req.query;      if (!verifyHospi"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "POST",
+    "path": "/api/hospitals/:hospitalId/appointments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;     const {         patient_id,         patient_name,         patient_ag"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "PUT",
+    "path": "/api/hospitals/:hospitalId/appointments/:id/status",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId, id } = req.params;     const { status, checkin_status } = req.body;      if (!verifyHos"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/wards",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const { hospitalId } = req.params;     try {         const [wards] = await db.promise().query(`             SELECT        "
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/ward-beds",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const { hospitalId } = req.params;     const { ward_id, status } = req.query;      try {         let sql = `             S"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "POST",
+    "path": "/api/hospitals/:hospitalId/ward-beds/assign",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;     const { bed_id, patient_id, patient_name, notes } = req.body;      i"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "POST",
+    "path": "/api/hospitals/:hospitalId/ward-beds/release",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;     const { bed_id } = req.body;      if (!verifyHospitalStaffAccess(req"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/invoices",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;     const { patient_id } = req.query;      if (!verifyHospitalStaffAcces"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "POST",
+    "path": "/api/hospitals/:hospitalId/invoices",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;     const {         patient_id,         patient_name,         service_ty"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/staff",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;      if (!verifyHospitalStaffAccess(req, hospitalId)) {         return r"
+  },
+  {
+    "file": "hospital.routes.js",
+    "method": "GET",
+    "path": "/api/hospitals/:hospitalId/notifications",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { hospitalId } = req.params;      if (!verifyHospitalStaffAccess(req, hospitalId)) {         return r"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/categories",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const { hospital_id } = req.query;     try {         let sql = `SELECT * FROM diagnostic_categories WHERE status = 'Active"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "POST",
+    "path": "/api/diagnostics/categories",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { hospital_id, name, code, icon, description } = req.body;     i"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/tests",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const {         hospital_id,         category,         category_code,         search,         home_collection,         eme"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/hospitals/:hospitalId/tests",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res, next) => {     req.query.hospital_id = req.params.hospitalId;     // Re-route to general tests handler     const targetUrl = `/api/diagno"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/tests/:testId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [rows] = await db.promise().query(`             SELECT                  dt.*,                 dc.name "
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "POST",
+    "path": "/api/diagnostics/tests",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const {         hospital_id,         category_id,         category_cod"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "PUT",
+    "path": "/api/diagnostics/tests/:testId",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { testId } = req.params;     const {         name,         price"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "POST",
+    "path": "/api/diagnostics/bookings",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const {         hospital_id,         test_id,         patient_id,         patient_name,         patient_mob"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/bookings",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     const { hospital_id, patient_id, status, type, date } = req.query;     const role = (req.user.role || r"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "PUT",
+    "path": "/api/diagnostics/bookings/:bookingId/status",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\", \"doctor\"]), async (req, res) => {     const { bookingId } = req.params;     const { status, paymen"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/queue",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const { hospital_id, test_id } = req.query;     if (!hospital_id) {         return res.status(400).json({ success: false, "
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "POST",
+    "path": "/api/diagnostics/queue/call-next",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\", \"doctor\"]), async (req, res) => {     const { hospital_id, test_id } = req.body;     if (!hospital"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "POST",
+    "path": "/api/diagnostics/samples",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\", \"doctor\"]), async (req, res) => {     const {         booking_id,         hospital_id,         tes"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/samples",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\", \"doctor\"]), async (req, res) => {     const { hospital_id, status } = req.query;     if (!hospital"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "POST",
+    "path": "/api/diagnostics/reports",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\", \"doctor\"]), async (req, res) => {     const {         booking_id,         hospital_id,         tes"
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/reports/:reportId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const [rows] = await db.promise().query(`             SELECT                  dr.*,          "
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/reports/verify/:qrToken",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [rows] = await db.promise().query(`             SELECT                  dr.report_id,                 "
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "GET",
+    "path": "/api/diagnostics/home-collections",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     const { hospital_id, status } = req.query;     if (!hospital_id) {         return res.status(400).json("
+  },
+  {
+    "file": "diagnostics.routes.js",
+    "method": "PUT",
+    "path": "/api/diagnostics/home-collections/:bookingId/assign",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     const { bookingId } = req.params;     const { collection_staff, status = \"Assigned\" } = req.body;      "
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "GET",
+    "path": "/api/ambulances",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const isStaffOrAdmin = req.user && ([\"staff\", \"admin\", \"doctor\"].includes(req.user.role) || [\"staff\", \"admin\", \"d"
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "GET",
+    "path": "/api/emergency/ambulances",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const isStaffOrAdmin = req.user && ([\"staff\", \"admin\", \"doctor\"].includes(req.user.role) || [\"staff\", \"admin\", \"d"
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "GET",
+    "path": "/api/ambulances/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const id = req.params.id;     const isStaffOrAdmin = req.user && ([\"staff\", \"admin\", \"doctor\"].includes(req.user."
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "PUT",
+    "path": "/api/ambulances/:id/location",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const configuredToken = process.env.AMBULANCE_UPDATE_TOKEN;      if (configuredToken) {         const providedToken =           "
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "POST",
+    "path": "/api/ambulances",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const {         ambulanceId,         vehicleNumber,         driverName,     "
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "PUT",
+    "path": "/api/ambulances/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const {         driverName,         driverMobi"
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "PUT",
+    "path": "/api/ambulances/:id/status",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const { status } = req.body;      const allowe"
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "PUT",
+    "path": "/api/ambulances/:id/assign",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const {         patientName,         patientMo"
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "PUT",
+    "path": "/api/ambulances/:id/reset",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;      const sql = `         UPDATE ambulances      "
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "GET",
+    "path": "/api/ambulances/nearby/search",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const lat = Number(req.query.lat);     const lng = Number(req.query.lng);     const limit = Math.min(Number(req.query.limit) || "
+  },
+  {
+    "file": "ambulance.routes.js",
+    "method": "DELETE",
+    "path": "/api/ambulances/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;      const sql = `         DELETE FROM ambulances "
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "GET",
+    "path": "/api/emergency-departments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             hospital_name,             emergency_number,             emergency_type"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "GET",
+    "path": "/api/emergency/departments",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             hospital_name,             emergency_number,             emergency_type"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "POST",
+    "path": "/api/emergency-departments",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const {         hospitalName,         emergencyNumber,         emergencyType"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "PUT",
+    "path": "/api/emergency-departments/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const {         emergencyNumber,         emerg"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "GET",
+    "path": "/api/emergency/incidents",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const isStaffOrAdmin = req.user && ([\"staff\", \"admin\"].includes(req.user.role) || [\"staff\", \"admin\"].includes(req"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "POST",
+    "path": "/api/emergency/incidents",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { type, location, latitude, longitude, description, callerName, callerMobile, priority } = req.body;      if (!location &&"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "POST",
+    "path": "/api/emergency/sos",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { latitude, longitude, address, callerMobile, type } = req.body;      const incidentCode = \"SOS-\" + Date.now().toString(36"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "PUT",
+    "path": "/api/emergency/incidents/:id/resolve",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const newStatus = (req.body && req.body.status"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "PUT",
+    "path": "/api/emergency/incidents/:id/status",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const newStatus = (req.body && req.body.status"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "GET",
+    "path": "/api/emergency/contacts",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         success: true,         city: \"Gorakhpur\",         state: \"Uttar Pradesh\",         contacts: GORAKHPUR_EMERGEN"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "GET",
+    "path": "/api/emergency-contacts",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         success: true,         city: \"Gorakhpur\",         state: \"Uttar Pradesh\",         contacts: GORAKHPUR_EMERGEN"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "POST",
+    "path": "/api/emergency/green-wave",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     return EmergencyController.criticalDispatch(req, res); });"
+  },
+  {
+    "file": "emergency.routes.js",
+    "method": "POST",
+    "path": "/api/emergency/critical-dispatch",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     return EmergencyController.criticalDispatch(req, res); });"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "GET",
+    "path": "/api/pharmacy",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             medicine_name,             category,             quantity,             "
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "GET",
+    "path": "/api/pharmacy/medicines",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id,             medicine_name,             category,             quantity,             "
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "GET",
+    "path": "/api/pharmacy/search/:medicine",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const medicine = req.params.medicine.trim();      if (!medicine) {         return res.status(400).json({             success: fa"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "POST",
+    "path": "/api/pharmacy",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const { medicineName, category, quantity, price } = req.body;      if (!medi"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "PUT",
+    "path": "/api/pharmacy/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const { quantity, price, availability } = req."
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "POST",
+    "path": "/api/pharmacy/prescriptions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { patientId, prescriptionFile, doctorName } = req.body;      if (!patientId || !prescriptionFile) {         return res.sta"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "POST",
+    "path": "/api/pharmacy/cart",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { patientId, medicineId, medicineName, quantity } = req.body;      if (!patientId || !medicineId || !medicineName || !quan"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "GET",
+    "path": "/api/pharmacy/cart/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const patientId = req.params.patientId;      if (!patientId) {         return res.status(400).json({             "
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "DELETE",
+    "path": "/api/pharmacy/cart/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const id = req.params.id;      if (!req.user && process.env.REQUIRE_AUTH !== \"false\") {         return res.status"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "POST",
+    "path": "/api/pharmacy/checkout",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { patientId, discount } = req.body;      if (!patientId) {         return res.status(400).json({             message: \"Pat"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "GET",
+    "path": "/api/pharmacy/bills/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const patientId = req.params.patientId;      if (!patientId) {         return res.status(400).json({             "
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "GET",
+    "path": "/api/prescriptions/:patientId",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const patientId = req.params.patientId;      if (!patientId) {         return res.status(400).json({ message: \"Pa"
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "POST",
+    "path": "/api/prescriptions/upload",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ",     prescriptionUpload.single(\"prescriptionFile\"),     async (req, res) => {         try {             const { patientId, uploadedBy, doctorName } ="
+  },
+  {
+    "file": "pharmacy.routes.js",
+    "method": "POST",
+    "path": "/api/pharmacy/payment",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { patientId, paymentMethod, amount, items } = req.body;      if (!patientId) {         return res.sta"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/upload-evidence",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", upload.single(\"evidence\"), (req, res) => {     if (!req.file) {         return res.status(400).json({ success: false, message: \"No image file provid"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/bins",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { status, search } = req.query;         let query = \"SELECT * FROM waste_bins WHERE status != 'Inactiv"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/reports",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, upload.single(\"evidence\"), async (req, res) => {     try {         const {             category = \"Garbage Dump\",             wasteTy"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/report",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, upload.single(\"evidence\"), async (req, res) => {     try {         const {             category = \"Garbage Dump\",             wasteTy"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/pickups",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const {             wasteType = \"General Waste\",             pickupDate,             pickupTi"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/my-requests",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         let userId = req.user?.id || req.user?.userId || req.query.userId || null;         let mobile"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/facilities",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         success: true,         facilities: [             {                 id: 1,                 name: \"Gorakhpur Mu"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/bin-requests",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const {         userId,         citizenName,         reason,         wasteType,         location,         latitude,         long"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/bin-requests",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const { userId } = req.query;     const role = (req.user.role || req.user.type || \"\").toLowerCase();     cons"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/bin-requests/:requestCode/status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, (req, res) => {     const { requestCode } = req.params;     const { status, internal_remarks, scheduled_date }"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/requests",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const {             status,             priority,             wasteTyp"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/requests/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const idOrCode = req.params.id;         const [rows] = await pool.quer"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/requests/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const idOrCode = req.params.id;         const [rows] = await pool.quer"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/requests/update-status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const id = req.body.requestId || req.body.id || req.body.requestCode; "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/requests/:id/reopen",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const idOrCode = req.params.id;         const [rows] = await pool.quer"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/operations/summary",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const [requests] = await pool.query(`             SELECT              "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/bins",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const {             name,             location,             latitude, "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/bins/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const binId = req.params.id;         const {             name,        "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "DELETE",
+    "path": "/api/waste/bins/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         await pool.query(\"UPDATE waste_bins SET status = 'Inactive' WHERE id ="
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/bins/:id/fill",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const binId = req.params.id;         const fill = Math.min(100, Math.m"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/vehicles",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const [vehicles] = await pool.query(\"SELECT * FROM waste_vehicles ORDE"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/vehicles",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const { vehicle_number, vehicle_type, capacity_tons, driver_name, driv"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/vehicles/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const { vehicle_number, vehicle_type, capacity_tons, driver_name, driv"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "DELETE",
+    "path": "/api/waste/vehicles/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         await pool.query(\"UPDATE waste_vehicles SET status = 'Inactive' WHERE "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/workers",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const [workers] = await pool.query(\"SELECT * FROM waste_workers WHERE "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/workers",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const { name, phone, role, status, assigned_vehicle_id, assigned_route"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/workers/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const { name, phone, role, status, assigned_vehicle_id, assigned_route"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "DELETE",
+    "path": "/api/waste/workers/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         await pool.query(\"UPDATE waste_workers SET status = 'Inactive' WHERE i"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/routes",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const [routes] = await pool.query(`             SELECT r.*, v.vehicle_"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/routes",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const { route_name, area, schedule, assigned_vehicle_id, waypoints_jso"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "PUT",
+    "path": "/api/waste/routes/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         const { route_name, area, schedule, assigned_vehicle_id, status, waypo"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "DELETE",
+    "path": "/api/waste/routes/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         await pool.query(\"UPDATE waste_routes SET status = 'Suspended' WHERE i"
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/analytics",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWasteStaff, async (req, res) => {     try {         // Status breakdown         const [statusCounts] = await pool.query(` "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "GET",
+    "path": "/api/waste/hotspots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [complaintClusters] = await pool.query(`             SELECT                  address as location,     "
+  },
+  {
+    "file": "waste.routes.js",
+    "method": "POST",
+    "path": "/api/waste/smart-priority",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { category, description, wasteType, fillLevel, repeatCount } = req.body;     const assessment = calculateWastePriority({  "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const lotsSql = `         SELECT             id, parking_code, name, address, area,             total_slots, available_slots, oc"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/lots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const lotsSql = `         SELECT             id, parking_code, name, address, area,             total_slots, available_slots, oc"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/stats",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const statsSql = `         SELECT             COUNT(*) AS total_lots,             COALESCE(SUM(total_slots), 0) AS total_slots, "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/staff/overview",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const [[stats]] = await db.promise().query(`             SELECT                  COUNT(*) AS "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/active-entries",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const [[stats]] = await db.promise().query(`             SELECT                  COUNT(*) AS "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/users/search",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const q = String(req.query.q || \"\").trim();     try {         let quer"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/my-bookings",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const rawUserId = req.query.userId;     const rawPhone = req.query.phone;     const rawVehicle = req.query."
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/slots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const { status, lot_id } = req.query;         let query = `             SELECT s.*, l.name AS"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { clause, value } = parseLotIdentifier(req.params.id);      db.query(         `SELECT * FROM parking_lots WHERE ${clause} "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { parkingCode, name, address, area, totalSlots, hourlyRate, stat"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "PUT",
+    "path": "/api/parking/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const id = req.params.id;     const { name, address, area, totalSlots,"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/staff-book",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { lotId, slotNumber, userId, customerName, customerPhone, vehicl"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/book",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || \"LOT-001\";     const { userId, vehicleN"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/:id/book",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || \"LOT-001\";     const { userId, vehicleN"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/:id/release",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const { clause, value } = parseLotIdentifier(i"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/:id/slots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { clause, value } = parseLotIdentifier(req.params.id);      try {         // Find lot by id or code  "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/:id/book-slot",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { clause, value } = parseLotIdentifier(req.params.id);     const { slotNumber, vehicleNumber, custome"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/bookings/:bookingId/cancel",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const bookingId = req.params.bookingId;     const { reason, qr_token, qrToken } = req.body;     const provi"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/verify-qr",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const { qrPayload, bookingId: inputBookingId, qrToken: inputToken, lotId: inputLotId } = req."
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "PUT",
+    "path": "/api/parking/slots/:slotId/status",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const slotId = req.params.slotId;     const { status } = req.body;    "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/gate-action",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { action, bookingId, vehicleNumber } = req.body;      if (!booki"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/anpr-scan",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { lotId, vehicleNumber, isEv } = req.body;      if (!lotId || !vehicleNumber) {         return res.st"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/operations/summary",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const pool = db.promise();         const [[lotStats]] = await pool.query(`             SELECT               "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/staff/overstays",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     try {         const pool = db.promise();         const [rows] = await "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/emergency-barrier-override",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { action, reason } = req.body;     const isRaised = action !== \""
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/admin/pricing",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     try {         const pool = db.promise();         const [lots] = await "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "PUT",
+    "path": "/api/parking/lots/:id/pricing",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const id = req.params.id;     const { hourly_rate, peak_hourly_rate, s"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/admin/anpr-logs",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     try {         const pool = db.promise();         const [logs] = await "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/resolve-overstay-penalty",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { bookingId, paymentMethod = \"CASH\", attendantStaffId = \"PRK001\""
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "POST",
+    "path": "/api/parking/send-overstay-alert",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { bookingId, phone, vehicleNumber, overstayMinutes, fineDue } = "
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "PUT",
+    "path": "/api/parking/slots/:slotId/staff-override",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     const { slotId } = req.params;     const { status, lotId, staffId = \"P"
+  },
+  {
+    "file": "parking.routes.js",
+    "method": "GET",
+    "path": "/api/parking/staff/shift-summary",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     try {         const pool = db.promise();         const [revRows] = awa"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/operations/summary",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [[tanksTotal]] = await pool.query(\"SELECT COUNT(*) as c, SUM(CASE WHEN pump_status = 'ON' THEN 1 ELSE "
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/tanks",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [results] = await pool.query(`             SELECT                 id, tank_id, name, zone,            "
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/tanks/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const id = req.params.id;     try {         const [results] = await pool.query(             \"SELECT * FROM water_tanks WHE"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "POST",
+    "path": "/api/water/tanks",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const { name, zone, capacity_liters, current_level_percent, latitude, longitude, pum"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/tanks/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { name, zone, currentLevelPercent, status, pump_"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/tanks/:id/pump",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { pump_status } = req.body;      const validPump"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "DELETE",
+    "path": "/api/water/tanks/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     try {         const [result] = await pool.query(\"DELET"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/reports",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { status, userId, priority } = req.query;     const role = (req.user ? (req.user.role || req.user.typ"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "POST",
+    "path": "/api/water/reports",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, upload.single(\"evidenceImage\"), async (req, res) => {     try {         const citizenName = req.body.citizenName || (req.user && req."
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/reports/:id/assign",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { technician_id, technician_name, priority, inte"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/reports/:id/status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { status, internal_remarks } = req.body;      co"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "POST",
+    "path": "/api/water/tanker-bookings",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { userId, citizenName, name, mobile, deliveryAddress, address, capacity, capacityLiters, bookingDate,"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "POST",
+    "path": "/api/water/book-tanker",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { userId, citizenName, name, mobile, deliveryAddress, address, capacity, capacityLiters, bookingDate,"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/tanker-bookings",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     const { userId, status } = req.query;     const role = (req.user ? (req.user.role || req.user.type || \"\") :"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/tanker-bookings/:id/dispatch",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { assigned_driver_name, assigned_driver_phone, a"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/tanker-bookings/:id/status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { status, internal_remarks } = req.body;      co"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/pipelines",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [results] = await pool.query(\"SELECT * FROM water_pipelines ORDER BY id ASC\");         res.json({ succ"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/technicians",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [results] = await pool.query(\"SELECT * FROM water_technicians ORDER BY role, name ASC\");         res.j"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/quality",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [results] = await pool.query(\"SELECT * FROM water_quality_logs ORDER BY tested_at DESC LIMIT 20\");    "
+  },
+  {
+    "file": "water.routes.js",
+    "method": "POST",
+    "path": "/api/water/quality",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const { zone, ph, tds, turbidity, chlorine, status, tested_by } = req.body;     if ("
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/schedules",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [results] = await pool.query(\"SELECT * FROM water_supply_schedules ORDER BY id ASC\");         res.json"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/supply-schedules",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [results] = await pool.query(\"SELECT * FROM water_supply_schedules ORDER BY id ASC\");         res.json"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "PUT",
+    "path": "/api/water/schedules/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireWaterStaff, async (req, res) => {     const id = req.params.id;     const { supply_time, duration, pressure, status } = re"
+  },
+  {
+    "file": "water.routes.js",
+    "method": "GET",
+    "path": "/api/water/anomalies",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [pipes] = await pool.query(`             SELECT id, 'Pipeline Pressure Drop' AS anomaly_type, pipeline"
+  },
+  {
+    "file": "police.routes.js",
+    "method": "GET",
+    "path": "/api/police/stations",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const sql = `         SELECT             id, station_id, name, sho_name, phone,             jurisdiction, location, latitude, lo"
+  },
+  {
+    "file": "police.routes.js",
+    "method": "GET",
+    "path": "/api/police/stats",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     // Ordered chronologically; limit configurable via query param     const limit = Math.min(Number(req.query.limit) || 6, 12);    "
+  },
+  {
+    "file": "police.routes.js",
+    "method": "POST",
+    "path": "/api/police/complaint",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const { userId, citizenName, mobile, category, subject, description, stationId } = req.body;     const finalUserI"
+  },
+  {
+    "file": "police.routes.js",
+    "method": "GET",
+    "path": "/api/police/complaints",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const { userId } = req.query;     const isStaffOrAdmin = [\"staff\", \"admin\"].includes(req.user.role) || [\"staf"
+  },
+  {
+    "file": "police.routes.js",
+    "method": "PUT",
+    "path": "/api/police/complaints/:id/status",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const id = req.params.id;     const { status } = req.body;      const allowe"
+  },
+  {
+    "file": "police.routes.js",
+    "method": "GET",
+    "path": "/api/police/emergency-contacts",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({         success: true,         policeHelpline: \"112\",         womenHelpline: \"1090\",         cyberCrimeHelpline: \"193"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/status",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const pythonHealth = await aiClient.checkHealth();         const [models] = await pool.query(\"SELECT model_i"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/models",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [models] = await pool.query(\"SELECT * FROM ai_models ORDER BY module ASC\");         res.json({ success"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/assistant",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const question = req.body.question || req.body.message || req.body.query;         if (!questi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/chat",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const question = req.body.question || req.body.message || req.body.query;         if (!questi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/orchestrate",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const question = req.body.question || req.body.message || req.body.query;         if (!questi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/tool-call",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const { tool, parameters, session_id } = req.body;         if (!tool) {             return re"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/emergency/dispatch",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const body = req.body || {};         const {             incident_id,             origin_lat,             or"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/camera/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, stream_url, camera_name, direction, is_simulated } = req.body;         let camData = {   "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/anomalies",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         let bedStats = { total: 1000, available: 750 };         try {             const [wb] = await pool.query(\"SEL"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/predictions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const { module: mod, review_status, limit = 50 } = req.query;         let query = \"SELECT * F"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/review/:predictionId",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), async (req, res) => {     try {         const predictionId = req.params.predictionId;         co"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/predictions/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const idParam = req.params.id;         const numericId = !isNaN(idParam) ? Number(idParam) : "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/predictions/:id/feedback",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const idParam = req.params.id;         const numericId = !isNaN(idParam) ? Number(idParam) : "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/metrics",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const [totalRows] = await pool.query(\"SELECT COUNT(*) AS total FROM ai_predictions\");        "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/admin/ai-command-center",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const [traffic] = await pool.query(\"SELECT COUNT(*) AS count, AVG(congestion_level) AS avg_co"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/prediction",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { junction_id, vehicle_count, queue_length } = req.query;         const result = await trafficAIServic"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/traffic/multi-horizon",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { junction_id, vehicle_count, queue_length } = req.query;         const result = await trafficAIServic"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/traffic/predict",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { junction_id, vehicle_count, queue_length } = req.query;         const result = await trafficAIServic"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/optimize-signal",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { junction_id, approaches } = req.body;         const result = await trafficAIService.optimizeSignalWe"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/traffic/optimize-signal",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { junction_id, approaches } = req.body;         const result = await trafficAIService.optimizeSignalWe"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/corridor-coordination",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { corridor_name } = req.query;         const result = await trafficAIService.coordinateCorridor({ corr"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/traffic/corridor-coordination",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { corridor_name } = req.query;         const result = await trafficAIService.coordinateCorridor({ corr"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/ambulance-preemption",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { ambulance_id, latitude, longitude, junction_id } = req.body;         const result = await trafficAIS"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/traffic/ambulance-preemption",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { ambulance_id, latitude, longitude, junction_id } = req.body;         const result = await trafficAIS"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/cv/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, junction_id, image_url, simulated_event } = req.body;         const result = await cvAndA"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/cv/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, junction_id, image_url, simulated_event } = req.body;         const result = await cvAndA"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/anpr/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, junction_id, vehicle_number, vehicle_type, violation_type, measured_speed_kmh, speed_limi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/anpr/process-violation",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, junction_id, vehicle_number, vehicle_type, violation_type, measured_speed_kmh, speed_limi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/cv/violations/:id/verify",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { decision, notes } = req.body;         const staff_username = req.user?.username || req.body.staff_us"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/services/grievance-ai-analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { service_request_id = 9999, description, locality } = req.body;         const result = await grievanc"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/grievance/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { service_request_id = 9999, description, locality } = req.body;         const result = await grievanc"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/services/grievance-image-ai",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { image_url, image_name } = req.body;         const result = await grievanceAIService.analyzeGrievance"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/grievance/image-analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { image_url, image_name } = req.body;         const result = await grievanceAIService.analyzeGrievance"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/waste/prediction",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { bin_id, bin_code } = req.query;         const result = await wasteAIService.predictBinFillLevel({ bi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/waste/bin-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { bin_id, bin_code } = req.query;         const result = await wasteAIService.predictBinFillLevel({ bi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/waste/predict",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { bin_id, bin_code } = req.query;         const result = await wasteAIService.predictBinFillLevel({ bi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/waste/optimize-route",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { ward_number, min_fill_threshold } = req.body;         const result = await wasteAIService.optimizeCo"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/waste/optimize-route",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { ward_number, min_fill_threshold } = req.body;         const result = await wasteAIService.optimizeCo"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/waste/ward-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { ward_number } = req.query;         const result = await wasteAIService.forecastWardWaste({ ward_numb"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/waste/ward-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { ward_number } = req.query;         const result = await wasteAIService.forecastWardWaste({ ward_numb"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/water/anomalies",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone, inflow_rate_lps, outflow_rate_lps, pressure_bar } = req.query;         const result = await wa"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/water/anomalies",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone, inflow_rate_lps, outflow_rate_lps, pressure_bar } = req.query;         const result = await wa"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/water/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone, inflow_rate_lps, outflow_rate_lps, pressure_bar } = req.query;         const result = await wa"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/water/detect-anomalies",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone, inflow_rate_lps, outflow_rate_lps, pressure_bar } = req.body;         const result = await wat"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/water/detect-anomalies",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone, inflow_rate_lps, outflow_rate_lps, pressure_bar } = req.body;         const result = await wat"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/water/demand-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone } = req.query;         const result = await waterAIService.forecastDemand({ zone });         re"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/water/demand-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { zone } = req.query;         const result = await waterAIService.forecastDemand({ zone });         re"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/hospital/forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { hospital_id } = req.query;         const result = await healthcareAIService.forecastBedSurge({ hospi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/hospital/bed-surge",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { hospital_id } = req.query;         const result = await healthcareAIService.forecastBedSurge({ hospi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/hospital/bed-surge",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { hospital_id } = req.query;         const result = await healthcareAIService.forecastBedSurge({ hospi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/healthcare/analyze",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { hospital_id } = req.query;         const result = await healthcareAIService.forecastBedSurge({ hospi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/hospital/recommend-bed",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { patient_severity, required_bed_type } = req.body;         const result = await healthcareAIService.r"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/hospital/recommend-bed",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { patient_severity, required_bed_type } = req.body;         const result = await healthcareAIService.r"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/hospital/recommend-ambulance",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { emergency_type, destination_hospital_id } = req.body;         const result = await healthcareAIServi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/hospital/recommend-ambulance",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { emergency_type, destination_hospital_id } = req.body;         const result = await healthcareAIServi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/hospital/qr-patient-access",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { qr_token } = req.body;         const authHeader = req.headers[\"authorization\"] || req.headers[\"x-acc"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/hospital/qr-patient-access",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { qr_token } = req.body;         const authHeader = req.headers[\"authorization\"] || req.headers[\"x-acc"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/parking/prediction",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { lot_id } = req.query;         const result = await parkingAIService.predictOccupancy({ lot_id });   "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/parking/occupancy-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { lot_id } = req.query;         const result = await parkingAIService.predictOccupancy({ lot_id });   "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/parking/occupancy-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { lot_id } = req.query;         const result = await parkingAIService.predictOccupancy({ lot_id });   "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/parking/forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { lot_id } = req.query;         const result = await parkingAIService.predictOccupancy({ lot_id });   "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/parking/recommend-alternative",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { lot_id } = req.query;         const result = await parkingAIService.recommendAlternativeParking({ lo"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/parking/recommend-alternative",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { lot_id } = req.query;         const result = await parkingAIService.recommendAlternativeParking({ lo"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/parking/detect-illegal",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, location } = req.body;         const result = await parkingAIService.detectIllegalParking"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/parking/detect-illegal",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { camera_id, location } = req.body;         const result = await parkingAIService.detectIllegalParking"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/environment/aqi-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { station_code } = req.query;         const result = await environmentDisasterAIService.forecastAQI({ "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/environment/aqi-forecast",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { station_code } = req.query;         const result = await environmentDisasterAIService.forecastAQI({ "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/disaster/flood-risk",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { locality, rainfall_mm } = req.query;         const result = await environmentDisasterAIService.predi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/disaster/flood-risk",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { locality, rainfall_mm } = req.query;         const result = await environmentDisasterAIService.predi"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/tourism/attractions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const AIController = require(\"../controllers/ai.controller\");         return await AIController.getTouristGu"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/tourist/attractions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const AIController = require(\"../controllers/ai.controller\");         return await AIController.getTouristGu"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/tourist/places",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const AIController = require(\"../controllers/ai.controller\");         return await AIController.getTouristGu"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/admin/command-center-executive",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = await commandCenterSimulationService.getFullCityHealthStatus();         res.json(result);    "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/command-center/executive",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = await commandCenterSimulationService.getFullCityHealthStatus();         res.json(result);    "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/admin/what-if-simulation",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { scenario_type, parameter_value } = req.body;         const result = commandCenterSimulationService.s"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "POST",
+    "path": "/api/ai/simulation/what-if",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { scenario_type, parameter_value } = req.body;         const result = commandCenterSimulationService.s"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/admin/resource-optimization",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = commandCenterSimulationService.optimizeMunicipalResources();         res.json(result);     } "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/admin/resource-optimization",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = commandCenterSimulationService.optimizeMunicipalResources();         res.json(result);     } "
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/models/health",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = await modelMonitoringService.getModelPerformanceReport();         res.json(result);     } cat"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/models/monitoring",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = await modelMonitoringService.getModelPerformanceReport();         res.json(result);     } cat"
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/explainability/:prediction_id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = await modelMonitoringService.getPredictionExplanation(req.params.prediction_id);         res."
+  },
+  {
+    "file": "ai.routes.js",
+    "method": "GET",
+    "path": "/api/ai/predictions/:prediction_id/explain",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const result = await modelMonitoringService.getPredictionExplanation(req.params.prediction_id);         res."
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { category, search, sort } = req.query;      let query = `         SELECT              p.id, p.name, p.slug, p.category, p"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/categories",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const query = `         SELECT category, COUNT(*) AS count         FROM famous_places         WHERE is_active = 1         GROUP "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/:identifier",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const identifier = req.params.identifier;     const isNumeric = /^\\d+$/.test(identifier);      const query = `         SELECT   "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/:id/nearby-services",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const placeId = req.params.id;      db.query(\"SELECT id, name, latitude, longitude FROM famous_places WHERE id = ?\", [placeId], "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/:id/nearby-atms",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const placeId = req.params.id;      db.query(\"SELECT id, name, latitude, longitude FROM famous_places WHERE id = ?\", [placeId], "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/:id/nearby-food",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const placeId = req.params.id;      db.query(\"SELECT id, name, latitude, longitude FROM famous_places WHERE id = ?\", [placeId], "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/:id/traffic-analysis",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const placeId = req.params.id;      db.query(\"SELECT id, name, locality, address, latitude, longitude FROM famous_places WHERE i"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/:id/reviews",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const placeId = req.params.id;      const query = `         SELECT id, user_id, user_name, rating, review_text, created_at      "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "POST",
+    "path": "/api/famous-places/:id/reviews",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const placeId = req.params.id;     const { rating, review_text } = req.body;     const userId = req.user.id; "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "POST",
+    "path": "/api/famous-places/:id/issues",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, (req, res) => {     const placeId = req.params.id;     const { category, description, citizen_name, citizen_mobile, photo_url, latitu"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/famous-places/user/favorites",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const userId = req.user.id;      const sql = `         SELECT f.place_id, p.name, p.slug, p.category, p.image"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "POST",
+    "path": "/api/famous-places/:id/favorite",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, (req, res) => {     const placeId = req.params.id;     const userId = req.user.id;      db.query(\"SELECT id FROM place_favorites "
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "POST",
+    "path": "/api/famous-places/trip-planner",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     const { startPoint, duration, interests, transport, maxPlaces } = req.body;      // Start location presets     const startingPoi"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "POST",
+    "path": "/api/famous-places/ai-assistant",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     const { message, history } = req.body;      if (!message || typeof message !== \"string\" || !message.trim()) {         retu"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "GET",
+    "path": "/api/admin/famous-places/issues",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const sql = `         SELECT id, issue_code, place_id, place_name, citizen_n"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "PUT",
+    "path": "/api/admin/famous-places/issues/:id",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const issueId = req.params.id;     const { status, admin_remarks } = req.bod"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "POST",
+    "path": "/api/admin/famous-places",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const { name, category, short_description, description, address, locality, l"
+  },
+  {
+    "file": "famous_places.routes.js",
+    "method": "DELETE",
+    "path": "/api/admin/famous-places/:id/reviews/:reviewId",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"staff\", \"admin\"]), (req, res) => {     const reviewId = req.params.reviewId;     db.query(\"UPDATE place_reviews SET"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/junctions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [junctions] = await pool.promise().query(             `SELECT j.*,                      (SELECT COUNT("
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/junctions/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [rows] = await pool.promise().query(             `SELECT * FROM tra"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/junctions/:id/webster-timing",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [jnc] = await pool.promise().query(`SELECT * FROM traffic_junctions"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/junctions",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id, name, zone, landmark, latitude, longitude, mode, cycle_time, officer_name } = "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/junctions/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { name, zone, landmark, latitude, longitude, mode"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "DELETE",
+    "path": "/api/traffic/junctions/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { operator } = req.body || {};          await poo"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/signals",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [signals] = await pool.promise().query(             `SELECT s.*, j.name as junction_name, j.zone, j.mo"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/signals",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { junction_id, approach, street_name, latitude, longitude, signal_type, status, gree"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/signals/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { street_name, latitude, longitude, signal_type, "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/signals/:id/location",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { latitude, longitude, operator, role } = req.bod"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "DELETE",
+    "path": "/api/traffic/signals/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { operator } = req.body || {};          await poo"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/junctions/:id/signals",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { cycle_time, mode, signals, operator, role } = r"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/junctions/:id/override",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, handleJunctionOverride);"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/signals/override",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, handleJunctionOverride);"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/junctions/:id/override",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, handleJunctionOverride);  // ========================================================= // 2. CCTV CAMERAS & AI VISION // ========="
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/signals/override",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, handleJunctionOverride);  // ========================================================= // 2. CCTV CAMERAS & AI VISION // ========="
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/cameras",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { junction_id } = req.query;         let query = `             SELECT c.*, j.name as junction_name, j."
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/junctions/:id/cameras",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [cameras] = await pool.promise().query(             `SELECT c.*, j."
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/cameras/test-connection",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { stream_url, source_type, playback_type } = req.body;         if (!stream_url || !stream_url.trim()) "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/cameras",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const {              junction_id,              camera_name,              direction,       "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/junctions/:id/cameras",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     req.body.junction_id = req.params.id;     const { junction_id, camera_name, direction, stream_url, resol"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/cameras",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { junction_id, camera_name, direction, stream_url, resolution, fps, sensor_type, sou"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/cameras/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { camera_name, direction, stream_url, resolution,"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "DELETE",
+    "path": "/api/traffic/cameras/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { operator } = req.body || {};          await poo"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/cameras/:id/telemetry",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [cams] = await pool.promise().query(             `SELECT c.*, j.nam"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/cameras/:id/traffic-feed",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { vehicles_per_min, avg_speed, operator } = req.b"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/cameras/:id/ai-vision",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [cams] = await pool.promise().query(             `SELECT c.*, j.nam"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/cameras/:id/sync-ai-flow",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const [cams] = await pool.promise().query(             "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/junctions/:id/camera-traffic-summary",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [cameras] = await pool.promise().query(             \"SELECT id, cam"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/violations/search",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { plate } = req.query;         if (!plate || !plate.trim()) {             return res.status(400).json("
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/violations/:id/pay",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const { payment_method, transaction_ref, paid_by } = req.body;          c"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/violations",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { status, junction_id } = req.query;         let query = `             SELECT v.*, j.name as junction_"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/violations/:id/evidence",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { id } = req.params;         const [rows] = await pool.promise().query(             `SELECT v.*, j.nam"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/violations",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { junction_id, camera_id, violation_type, vehicle_number, vehicle_type, speed_kmh, f"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/violations/:id/review",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { action, notes, operator, role } = req.body;    "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/movement-rules",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [rules] = await pool.promise().query(             `SELECT r.*, j.name as junction_name               F"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/movement-rules",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { junction_id, rule_type, title, description, start_time, end_time, penalty_amount, "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/movement-rules/:id/toggle",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { is_active, operator } = req.body;          awai"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/incidents",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { status } = req.query;         let query = `SELECT * FROM traffic_incidents`;         const params = "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/incidents",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { reporter_name, reporter_phone, junction_id, incident_type, location_name, latitude, longitude, descr"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/incidents/:id/status",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { status, assigned_officer, resolution_notes, ope"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/incidents/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { incident_type, location_name, latitude, longitu"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "DELETE",
+    "path": "/api/traffic/incidents/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { operator } = req.body || {};          await poo"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/corridors",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [corridors] = await pool.promise().query(             `SELECT * FROM traffic_corridors ORDER BY status"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/corridors/dispatch",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { corridor_id, operator, role } = req.body;         if (!corridor_id) {             "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/corridors/:id/deactivate",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { operator, role } = req.body;          await tra"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/alternative-routes",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { from, to } = req.query;          // Realistic Gorakhpur route planner with congestion-aware alternat"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/parking-lots",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [lots] = await pool.promise().query(             `SELECT pl.id, pl.parking_code, pl.name, pl.address, "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/ai-insights",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [junctions] = await pool.promise().query(             `SELECT j.*,                      (SELECT AVG(ve"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/ai-recommendation/apply",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { recommendation_id, junction_id, action, operator, role } = req.body;          if ("
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/admin/users",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"admin\", \"staff\"]), async (req, res) => {     try {         const [staff] = await pool.promise().query(             "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/admin/users",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"admin\"]), async (req, res) => {     try {         const { name, staff_id, password, department, operator } = req.bo"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/admin/audit-logs",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const limit = Number(req.query.limit) || 40;         const [logs] = await pool.promise().quer"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/audit-logs",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const limit = Number(req.query.limit) || 40;         const [logs] = await pool.promise().quer"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/admin/ai-settings",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"admin\", \"staff\"]), async (req, res) => {     try {         const [settings] = await pool.promise().query(          "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "PUT",
+    "path": "/api/traffic/admin/ai-settings",
+    "hasAuth": true,
+    "hasRole": true,
+    "snippet": ", authenticateToken, requireRole([\"admin\"]), async (req, res) => {     try {         const { settings, operator } = req.body;         if (!Array.isArr"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/analytics/summary",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [jncStats] = await pool.promise().query(             `SELECT COUNT(*) as total_junctions,             "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/dashboard-metrics",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [jncStats] = await pool.promise().query(             `SELECT COUNT(*) as total_junctions,             "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/analytics/historical",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         // Hourly traffic volume trend for Gorakhpur (06:00 to 22:00)         const hourlyTrend = [             { ho"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/waterlogging",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const waterloggingZones = [             {                 id: \"WL-01\",                 name: \"Dharamshala Ra"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/reports/export-csv",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [junctions] = await pool.promise().query(`SELECT * FROM traffic_junctions ORDER BY id ASC`);         c"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/vms-boards",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     res.json({ success: true, count: vmsBoards.length, boards: vmsBoards }); });"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/vms-boards/:id/message",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { line1, line2, line3, status, ledColor, operator"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/commute-alerts/subscribe",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { citizen_name, phone_or_email, from_route, to_route, notification_time } = req.body;         if (!fro"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "GET",
+    "path": "/api/traffic/ambulances/live",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const ambulances = ambulanceSimulator.getSimulatedAmbulances();         res.json({             success: true"
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/ambulances/:id/critical-dispatch",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const { destinationHospital, reason } = req.body;      "
+  },
+  {
+    "file": "traffic.routes.js",
+    "method": "POST",
+    "path": "/api/traffic/ambulances/:id/clear-critical",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", requireStaffRole, async (req, res) => {     try {         const { id } = req.params;         const result = await ambulanceSimulator.setAmbulanceCri"
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "POST",
+    "path": "/api/requests",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const {             department,             category,             description,             la"
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "GET",
+    "path": "/api/requests",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const { department, status, priority, search, page = 1, limit = 50 } = req.query;        "
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "GET",
+    "path": "/api/requests/:id",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const idOrCode = req.params.id;         const [rows] = await pool.query(             \"SELECT "
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "PUT",
+    "path": "/api/requests/:id/assign",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const { assigned_staff_id, assigned_staff_name } = req.body;         const user = req.use"
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "PUT",
+    "path": "/api/requests/:id/status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const { status, resolution_notes } = req.body;         const user = req.user;          co"
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "GET",
+    "path": "/api/staff/my-tasks",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         const role = (user.role || user.type || \"\").toLowerCase();"
+  },
+  {
+    "file": "requests.routes.js",
+    "method": "POST",
+    "path": "/api/requests/:id/feedback",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const { rating, comments } = req.body;         const user = req.user;          if (!ratin"
+  },
+  {
+    "file": "notifications.routes.js",
+    "method": "GET",
+    "path": "/api/notifications",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         const userId = user.id || user.userId;         const role "
+  },
+  {
+    "file": "notifications.routes.js",
+    "method": "GET",
+    "path": "/api/notifications/unread-count",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         const userId = user.id || user.userId;         const role "
+  },
+  {
+    "file": "notifications.routes.js",
+    "method": "PUT",
+    "path": "/api/notifications/:id/read",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         await pool.query(\"UPDATE notifications SET is_read = 1 WHERE id = ?\", [req.params.id]);  "
+  },
+  {
+    "file": "notifications.routes.js",
+    "method": "PUT",
+    "path": "/api/notifications/read-all",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         const userId = user.id || user.userId;         const role "
+  },
+  {
+    "file": "street_lights.routes.js",
+    "method": "GET",
+    "path": "/api/street-lights",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { status, zone } = req.query;         let query = \"SELECT * FROM street_lights WHERE 1=1\";         con"
+  },
+  {
+    "file": "street_lights.routes.js",
+    "method": "GET",
+    "path": "/api/street-lights/faults",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [rows] = await pool.query(\"SELECT * FROM street_lights WHERE status = 'FAULT' ORDER BY id ASC\");      "
+  },
+  {
+    "file": "street_lights.routes.js",
+    "method": "POST",
+    "path": "/api/street-lights",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         if (!canManageStreetLights(user)) {             return res"
+  },
+  {
+    "file": "street_lights.routes.js",
+    "method": "PUT",
+    "path": "/api/street-lights/:id/status",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         if (!canManageStreetLights(user)) {             return res"
+  },
+  {
+    "file": "environment.routes.js",
+    "method": "GET",
+    "path": "/api/environment/aqi",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [sensors] = await pool.query(             \"SELECT * FROM city_environmental_sensors WHERE status = 'Ac"
+  },
+  {
+    "file": "environment.routes.js",
+    "method": "GET",
+    "path": "/api/environment/stations",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const [sensors] = await pool.query(\"SELECT * FROM city_environmental_sensors\");         const geojson = {   "
+  },
+  {
+    "file": "environment.routes.js",
+    "method": "PUT",
+    "path": "/api/environment/sensors/:id",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, async (req, res) => {     try {         const user = req.user;         const role = (user.role || user.type || \"\").toLowerCase();"
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "GET",
+    "path": "/api/admin/command-center",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         // Query real statistics across all departments in parallel         const ["
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "GET",
+    "path": "/api/admin/stats",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         // Query real statistics across all departments in parallel         const ["
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "GET",
+    "path": "/api/admin/audit-logs",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         const { module, department, action, search, page = 1, limit = 50 } = req.qu"
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "GET",
+    "path": "/api/admin/users",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         const [users] = await pool.query(             \"SELECT id, name, mobile, ema"
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "GET",
+    "path": "/api/admin/staff",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         const [users] = await pool.query(             \"SELECT id, name, mobile, ema"
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "PUT",
+    "path": "/api/admin/users/:id/role",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         const { role, department } = req.body;         const targetUserId = req.par"
+  },
+  {
+    "file": "admin.routes.js",
+    "method": "GET",
+    "path": "/api/admin/analytics",
+    "hasAuth": true,
+    "hasRole": false,
+    "snippet": ", authenticateToken, requireAdmin, async (req, res) => {     try {         const [             [requestsByDept],             [resolutionTimeAvg],     "
+  },
+  {
+    "file": "search.routes.js",
+    "method": "GET",
+    "path": "/api/search",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", optionalToken, async (req, res) => {     try {         const query = (req.query.q || \"\").trim();         if (!query || query.length < 2) {          "
+  },
+  {
+    "file": "map.routes.js",
+    "method": "GET",
+    "path": "/api/map/incidents",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", async (req, res) => {     try {         const { layers } = req.query; // optional comma-separated filter: \"traffic,waste,emergency,hospital,parking,"
+  },
+  {
+    "file": "analytics.routes.js",
+    "method": "POST",
+    "path": "/api/analytics/event",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     // If telemetry is disabled via environment variable     if (process.env.ANALYTICS_ENABLED === \"false\") {         return res.jso"
+  },
+  {
+    "file": "analytics.routes.js",
+    "method": "GET",
+    "path": "/api/analytics/summary",
+    "hasAuth": false,
+    "hasRole": false,
+    "snippet": ", (req, res) => {     db.query(`         SELECT event_name, COUNT(*) as count, MAX(created_at) as last_seen         FROM analytics_events         GROU"
+  }
+]

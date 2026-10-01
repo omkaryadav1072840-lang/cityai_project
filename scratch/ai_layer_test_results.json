@@ -1,0 +1,310 @@
+{
+  "chatbotQueries": [
+    {
+      "query": "Nearest hospital batao",
+      "durationMs": 14,
+      "success": true,
+      "intent": "find_hospitals",
+      "dataSource": "REAL",
+      "replyPreview": "गोरखपुर के प्रमुख सत्यापित अस्पताल:\n\n• **District Women Hospital**: Near Town Hall, Gorakhpur, Uttar",
+      "itemCount": 2
+    },
+    {
+      "query": "ICU bed kaha available hai?",
+      "durationMs": 1,
+      "success": true,
+      "intent": "find_available_beds",
+      "dataSource": "REAL",
+      "replyPreview": "गोरखपुर में उपलब्ध वार्ड और आईसीयू बेड:\n\n• **BRD Medical College**: General Ward (188 beds available",
+      "itemCount": 57
+    },
+    {
+      "query": "Parking kaha available hai?",
+      "durationMs": 2,
+      "success": true,
+      "intent": "find_parking",
+      "dataSource": "REAL",
+      "replyPreview": "गोरखपुर में उपलब्ध पार्किंग स्थल:\n\n• **DDU Chowk Parking**: 23/24 खाली (20 ₹/hr)\n• **Golghar Market ",
+      "itemCount": 6
+    },
+    {
+      "query": "Gorakhpur me traffic kaha jyada hai?",
+      "durationMs": 1,
+      "success": true,
+      "intent": "get_traffic_status",
+      "dataSource": "REAL",
+      "replyPreview": "गोरखपुर में लाइव ट्रैफिक स्थिति:\n\n• **Dharamshala Bazar Crossing**: 79 traffic (188 vehicles, Signal",
+      "itemCount": 37
+    },
+    {
+      "query": "Police station near me",
+      "durationMs": 1,
+      "success": true,
+      "intent": "get_police_stations",
+      "dataSource": "REAL",
+      "replyPreview": "Nearest police stations in Gorakhpur:\n\n• **AIIMS Campus Security Post**: AIIMS Gorakhpur, Kushmi For",
+      "itemCount": 8
+    },
+    {
+      "query": "Ramgarh Tal kaise jaaye?",
+      "durationMs": 0,
+      "success": true,
+      "intent": "get_tourist_places",
+      "dataSource": "REAL",
+      "replyPreview": "गोरखपुर के प्रमुख पर्यटन व धार्मिक स्थल:\n\n• **Gorakhnath Temple**: Religious (04:00 AM - 10:00 PM, ₹",
+      "itemCount": 14
+    },
+    {
+      "query": "mera parking booking dikhao",
+      "durationMs": 1,
+      "success": true,
+      "intent": "find_parking",
+      "dataSource": "REAL",
+      "replyPreview": "गोरखपुर में उपलब्ध पार्किंग स्थल:\n\n• **DDU Chowk Parking**: 23/24 खाली (20 ₹/hr)\n• **Golghar Market ",
+      "itemCount": 6
+    },
+    {
+      "query": "Water tanker kaise book kare?",
+      "durationMs": 1,
+      "success": true,
+      "intent": "get_water_status",
+      "dataSource": "REAL",
+      "replyPreview": "नमस्ते! मैं गोरखपुर स्मार्टसिटी AI सहायक हूँ। आप मुझसे अस्पताल बेड, डॉक्टर, ट्रैफिक, पार्किंग, आपातक",
+      "itemCount": 1
+    },
+    {
+      "query": "Kachra uthane ka schedule kya hai?",
+      "durationMs": 1,
+      "success": true,
+      "intent": "get_waste_status",
+      "dataSource": "REAL",
+      "replyPreview": "नमस्ते! मैं गोरखपुर स्मार्टसिटी AI सहायक हूँ। आप मुझसे अस्पताल बेड, डॉक्टर, ट्रैफिक, पार्किंग, आपातक",
+      "itemCount": 20
+    },
+    {
+      "query": "Unknown nonsense query that should not invent data xyz123",
+      "durationMs": 0,
+      "success": true,
+      "intent": "get_nearby_services",
+      "dataSource": "REAL",
+      "replyPreview": "Hello! I am your Gorakhpur SmartCity AI Assistant. You can ask me about hospital beds, parking slots",
+      "itemCount": 1
+    }
+  ],
+  "groundedTools": [
+    {
+      "name": "find_hospitals",
+      "passed": true,
+      "normalDurationMs": 1,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "find_available_beds",
+      "passed": true,
+      "normalDurationMs": 1,
+      "normalCount": 15,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "find_doctors",
+      "passed": true,
+      "normalDurationMs": 1,
+      "normalCount": 1,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "find_parking",
+      "passed": true,
+      "normalDurationMs": 1,
+      "normalCount": 1,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_parking_availability",
+      "passed": true,
+      "normalDurationMs": 2,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_traffic_status",
+      "passed": true,
+      "normalDurationMs": 1,
+      "normalCount": 37,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_nearby_services",
+      "passed": true,
+      "normalDurationMs": 0,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_emergency_services",
+      "passed": true,
+      "normalDurationMs": 0,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_police_stations",
+      "passed": true,
+      "normalDurationMs": 0,
+      "normalCount": 8,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_waste_status",
+      "passed": true,
+      "normalDurationMs": 0,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_water_status",
+      "passed": true,
+      "normalDurationMs": 1,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_tourist_places",
+      "passed": true,
+      "normalDurationMs": 0,
+      "normalCount": 14,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_route_information",
+      "passed": true,
+      "normalDurationMs": 0,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    },
+    {
+      "name": "get_user_bookings",
+      "passed": true,
+      "normalDurationMs": 3,
+      "normalCount": 0,
+      "dataSource": "REAL",
+      "invalidHandled": true,
+      "emptyHandled": true,
+      "error": null
+    }
+  ],
+  "mlModels": [
+    {
+      "model": "Traffic Congestion Prediction",
+      "endpoint": "http://127.0.0.1:8000/api/v1/traffic/predict",
+      "status": 200,
+      "durationMs": 40,
+      "success": true,
+      "outputPreview": "{\"junction_id\":\"JNC-GOLGHAR-01\",\"predicted_congestion\":\"HIGH\",\"severity_score\":83.6,\"confidence\":0.9",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Traffic Camera Computer Vision",
+      "endpoint": "http://127.0.0.1:8000/api/v1/traffic/camera-vision",
+      "status": 422,
+      "durationMs": 4,
+      "success": false,
+      "outputPreview": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"camera_name\"],\"msg\":\"Field required\",\"input\":{\"camera_id",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Waste Accumulation & Priority",
+      "endpoint": "http://127.0.0.1:8000/api/v1/waste/predict",
+      "status": 200,
+      "durationMs": 23,
+      "success": true,
+      "outputPreview": "{\"bin_id\":\"BIN-101\",\"estimated_fill_pct\":24.5,\"priority_rank\":\"MEDIUM\",\"collection_recommended\":fals",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Water SCADA Anomaly Detection",
+      "endpoint": "http://127.0.0.1:8000/api/v1/water/anomaly",
+      "status": 422,
+      "durationMs": 13,
+      "success": false,
+      "outputPreview": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"current_level_pct\"],\"msg\":\"Field required\",\"input\":{\"tan",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Hospital Bed Capacity Surge",
+      "endpoint": "http://127.0.0.1:8000/api/v1/healthcare/capacity",
+      "status": 422,
+      "durationMs": 16,
+      "success": false,
+      "outputPreview": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"total_beds\"],\"msg\":\"Field required\",\"input\":{\"hospital_i",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Emergency Rapid Dispatch ETA",
+      "endpoint": "http://127.0.0.1:8000/api/v1/emergency/route-eta",
+      "status": 200,
+      "durationMs": 2,
+      "success": true,
+      "outputPreview": "{\"incident_id\":\"EM-SOS-001\",\"estimated_travel_minutes\":2.8,\"distance_km\":1.66,\"priority_level\":\"P2_U",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Parking Demand Forecast",
+      "endpoint": "http://127.0.0.1:8000/api/v1/parking/demand",
+      "status": 422,
+      "durationMs": 13,
+      "success": false,
+      "outputPreview": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"total_slots\"],\"msg\":\"Field required\",\"input\":{\"lot_id\":\"",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    },
+    {
+      "model": "Environmental AQI Forecast",
+      "endpoint": "http://127.0.0.1:8000/api/v1/environment/aqi-forecast",
+      "status": 200,
+      "durationMs": 15,
+      "success": true,
+      "outputPreview": "{\"sensor_id\":\"AQI-GKP-01\",\"calculated_aqi\":150,\"aqi_category\":\"MODERATE\",\"dominant_pollutant\":\"PM2.5",
+      "dataSource": "PREDICTED_AND_ACTUAL"
+    }
+  ]
+}

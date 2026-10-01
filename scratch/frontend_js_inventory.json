@@ -1,0 +1,4461 @@
+[
+  {
+    "file": "api\\ai.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\auth.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\client.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\emergency.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\hospital.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\index.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\parking.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\police.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\traffic.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\waste.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "api\\water.api.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "auth.js",
+    "functionsCount": 33,
+    "functions": [
+      {
+        "name": "_getApiBase",
+        "params": ""
+      },
+      {
+        "name": "_decodePayload",
+        "params": "token"
+      },
+      {
+        "name": "_isTokenExpired",
+        "params": "token"
+      },
+      {
+        "name": "_escapeHtml",
+        "params": "str"
+      },
+      {
+        "name": "showToast",
+        "params": "message, type = \"info\""
+      },
+      {
+        "name": "_injectAuthStyles",
+        "params": ""
+      },
+      {
+        "name": "_clearUserDataCache",
+        "params": ""
+      },
+      {
+        "name": "_syncCitizenPatientProfile",
+        "params": ""
+      },
+      {
+        "name": "setSession",
+        "params": "token, user"
+      },
+      {
+        "name": "getToken",
+        "params": ""
+      },
+      {
+        "name": "getUser",
+        "params": ""
+      },
+      {
+        "name": "isAuthenticated",
+        "params": ""
+      },
+      {
+        "name": "isStaff",
+        "params": ""
+      },
+      {
+        "name": "isCitizen",
+        "params": ""
+      },
+      {
+        "name": "getRole",
+        "params": ""
+      },
+      {
+        "name": "getDepartment",
+        "params": ""
+      },
+      {
+        "name": "canEdit",
+        "params": "department"
+      },
+      {
+        "name": "hasPermission",
+        "params": "moduleName, action = \"view\""
+      },
+      {
+        "name": "isModuleStaff",
+        "params": "moduleName"
+      },
+      {
+        "name": "logout",
+        "params": ""
+      },
+      {
+        "name": "authFetch",
+        "params": "url, options = {}"
+      },
+      {
+        "name": "refreshNotificationCount",
+        "params": ""
+      },
+      {
+        "name": "toggleNotificationDrawer",
+        "params": ""
+      },
+      {
+        "name": "loadNotifications",
+        "params": ""
+      },
+      {
+        "name": "quickLoginPersona",
+        "params": "roleKey"
+      },
+      {
+        "name": "showProfileModal",
+        "params": "activeTab = \"identity\""
+      },
+      {
+        "name": "loadProfilePatientQR",
+        "params": ""
+      },
+      {
+        "name": "showLoginModal",
+        "params": "defaultTab = \"citizen\", options = {}"
+      },
+      {
+        "name": "openActivityCenter",
+        "params": "defaultTab = \"requests\""
+      },
+      {
+        "name": "loadTabContent",
+        "params": "tab"
+      },
+      {
+        "name": "renderUserHeader",
+        "params": ""
+      },
+      {
+        "name": "SmartCityAuth",
+        "params": "("
+      },
+      {
+        "name": "dismissModal",
+        "params": ""
+      }
+    ],
+    "listenersCount": 30,
+    "listeners": [
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "dismissModal"
+      },
+      {
+        "event": "click",
+        "handler": "dismissModal"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "storage",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "components\\ai_widget.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 7,
+    "listeners": [
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "keydown",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "components\\analytics.js",
+    "functionsCount": 3,
+    "functions": [
+      {
+        "name": "sanitizeData",
+        "params": "obj"
+      },
+      {
+        "name": "canTrack",
+        "params": ""
+      },
+      {
+        "name": "sendEvent",
+        "params": "eventName, metadata = {}"
+      }
+    ],
+    "listenersCount": 1,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "components\\cookie_consent.js",
+    "functionsCount": 4,
+    "functions": [
+      {
+        "name": "getConsent",
+        "params": ""
+      },
+      {
+        "name": "setConsent",
+        "params": "choice"
+      },
+      {
+        "name": "initCookieBanner",
+        "params": ""
+      },
+      {
+        "name": "hideBanner",
+        "params": ""
+      }
+    ],
+    "listenersCount": 3,
+    "listeners": [
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "initCookieBanner"
+      }
+    ]
+  },
+  {
+    "file": "components\\smartcity_map.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 1,
+    "listeners": [
+      {
+        "event": "click",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "components\\ui_components.js",
+    "functionsCount": 3,
+    "functions": [
+      {
+        "name": "getToastContainer",
+        "params": ""
+      },
+      {
+        "name": "removeToast",
+        "params": ""
+      },
+      {
+        "name": "closeModal",
+        "params": ""
+      }
+    ],
+    "listenersCount": 6,
+    "listeners": [
+      {
+        "event": "click",
+        "handler": "removeToast"
+      },
+      {
+        "event": "click",
+        "handler": "onAction"
+      },
+      {
+        "event": "click",
+        "handler": "onRetry"
+      },
+      {
+        "event": "click",
+        "handler": "closeModal"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "js\\smartcity-map.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "pages\\emergency\\emergency.js",
+    "functionsCount": 42,
+    "functions": [
+      {
+        "name": "initializeEmergencyMap",
+        "params": ""
+      },
+      {
+        "name": "addDemoMarkers",
+        "params": ""
+      },
+      {
+        "name": "createEmergencyMarker",
+        "params": "data"
+      },
+      {
+        "name": "showMapFilter",
+        "params": "filter"
+      },
+      {
+        "name": "getCurrentLocation",
+        "params": ""
+      },
+      {
+        "name": "callEmergency",
+        "params": "number"
+      },
+      {
+        "name": "openEmergencyModal",
+        "params": ""
+      },
+      {
+        "name": "closeEmergencyModal",
+        "params": ""
+      },
+      {
+        "name": "openEmergencyWithType",
+        "params": "type"
+      },
+      {
+        "name": "requestAmbulance",
+        "params": ""
+      },
+      {
+        "name": "submitEmergency",
+        "params": ""
+      },
+      {
+        "name": "addEmergencyToUI",
+        "params": "emergency"
+      },
+      {
+        "name": "loadSavedEmergencies",
+        "params": ""
+      },
+      {
+        "name": "updateActiveCount",
+        "params": ""
+      },
+      {
+        "name": "fetchLiveEmergencyData",
+        "params": ""
+      },
+      {
+        "name": "initEmergencyRealtime",
+        "params": ""
+      },
+      {
+        "name": "checkStaffPermission",
+        "params": ""
+      },
+      {
+        "name": "updateIncidentStatus",
+        "params": ""
+      },
+      {
+        "name": "dispatchUnit",
+        "params": ""
+      },
+      {
+        "name": "closeIncident",
+        "params": ""
+      },
+      {
+        "name": "showToast",
+        "params": "message"
+      },
+      {
+        "name": "escapeHTML",
+        "params": "value"
+      },
+      {
+        "name": "getCurrentEmergencyUser",
+        "params": ""
+      },
+      {
+        "name": "isEmergencyStaff",
+        "params": ""
+      },
+      {
+        "name": "isEmergencyAdmin",
+        "params": ""
+      },
+      {
+        "name": "switchEmergencyLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "promptEmergencyStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "promptEmergencyAdminLogin",
+        "params": ""
+      },
+      {
+        "name": "initializeIncidentControl",
+        "params": ""
+      },
+      {
+        "name": "getEmergencyIncidents",
+        "params": ""
+      },
+      {
+        "name": "saveEmergencyIncidents",
+        "params": "incidents"
+      },
+      {
+        "name": "populateIncidentSelector",
+        "params": ""
+      },
+      {
+        "name": "loadSelectedIncident",
+        "params": ""
+      },
+      {
+        "name": "saveIncidentControls",
+        "params": ""
+      },
+      {
+        "name": "useIncidentLocation",
+        "params": ""
+      },
+      {
+        "name": "resolveSelectedIncident",
+        "params": ""
+      },
+      {
+        "name": "onAIEmergencyPresetChange",
+        "params": "presetVal"
+      },
+      {
+        "name": "runAIEmergencyDispatchEstimate",
+        "params": ""
+      },
+      {
+        "name": "confirmAIEmergencyDispatch",
+        "params": "incidentId"
+      },
+      {
+        "name": "loadAIEmergencyAuditTable",
+        "params": ""
+      },
+      {
+        "name": "submitAIEmergencyReview",
+        "params": "predictionId, actionTaken"
+      }
+    ],
+    "listenersCount": 3,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      },
+      {
+        "event": "change",
+        "handler": "loadSelectedIncident"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\famous\\famous.js",
+    "functionsCount": 86,
+    "functions": [
+      {
+        "name": "setupAuthBadge",
+        "params": ""
+      },
+      {
+        "name": "checkStaffAccess",
+        "params": ""
+      },
+      {
+        "name": "initializeMap",
+        "params": ""
+      },
+      {
+        "name": "createCategoryPin",
+        "params": "category"
+      },
+      {
+        "name": "renderMapMarkers",
+        "params": "placesToRender"
+      },
+      {
+        "name": "fitAllPlaces",
+        "params": ""
+      },
+      {
+        "name": "centerGorakhpur",
+        "params": ""
+      },
+      {
+        "name": "getUserCurrentLocation",
+        "params": ""
+      },
+      {
+        "name": "toggleMapLayer",
+        "params": "layerName"
+      },
+      {
+        "name": "drawServiceRoute",
+        "params": "originLat, originLng, destLat, destLng, serviceName, distanceKm, iconEmoji = \"📍\""
+      },
+      {
+        "name": "clearServiceRoute",
+        "params": ""
+      },
+      {
+        "name": "openNearbyHospitals",
+        "params": ""
+      },
+      {
+        "name": "openNearbyParking",
+        "params": ""
+      },
+      {
+        "name": "showNearbyATMsOnMap",
+        "params": ""
+      },
+      {
+        "name": "showNearbyFoodOnMap",
+        "params": ""
+      },
+      {
+        "name": "showNearbyPoliceOnMap",
+        "params": ""
+      },
+      {
+        "name": "fetchTrafficAnalysis",
+        "params": "placeId"
+      },
+      {
+        "name": "openTrafficAnalysisModal",
+        "params": ""
+      },
+      {
+        "name": "openGoogleTraffic",
+        "params": ""
+      },
+      {
+        "name": "loadAllPlaces",
+        "params": ""
+      },
+      {
+        "name": "loadCategoryStats",
+        "params": ""
+      },
+      {
+        "name": "loadUserFavorites",
+        "params": ""
+      },
+      {
+        "name": "calculateDistanceKm",
+        "params": "lat1, lon1, lat2, lon2"
+      },
+      {
+        "name": "renderPlacesGrid",
+        "params": "places"
+      },
+      {
+        "name": "getFilteredPlaces",
+        "params": ""
+      },
+      {
+        "name": "handleSearchInput",
+        "params": "val"
+      },
+      {
+        "name": "selectCategory",
+        "params": "cat"
+      },
+      {
+        "name": "handleSortChange",
+        "params": "val"
+      },
+      {
+        "name": "updateFilterDisplay",
+        "params": ""
+      },
+      {
+        "name": "resetFilters",
+        "params": ""
+      },
+      {
+        "name": "scrollToMap",
+        "params": ""
+      },
+      {
+        "name": "selectPlaceSpotlight",
+        "params": "place"
+      },
+      {
+        "name": "updateSpotlightServicesLabels",
+        "params": "placeId"
+      },
+      {
+        "name": "loadNearbyParking",
+        "params": "placeId = null"
+      },
+      {
+        "name": "loadPlaceReviews",
+        "params": "placeId"
+      },
+      {
+        "name": "openPlaceDetails",
+        "params": "placeId"
+      },
+      {
+        "name": "fetchAndRenderModalNearbyServices",
+        "params": "placeId"
+      },
+      {
+        "name": "openSelectedPlaceModal",
+        "params": ""
+      },
+      {
+        "name": "navigateCurrentModalPlace",
+        "params": ""
+      },
+      {
+        "name": "navigateCoordinates",
+        "params": "lat, lng"
+      },
+      {
+        "name": "shareCurrentPlace",
+        "params": ""
+      },
+      {
+        "name": "toggleFavorite",
+        "params": "placeId, btnEl"
+      },
+      {
+        "name": "toggleFavoriteFromModal",
+        "params": ""
+      },
+      {
+        "name": "openSavedPlacesModal",
+        "params": ""
+      },
+      {
+        "name": "openTripPlannerModal",
+        "params": ""
+      },
+      {
+        "name": "generateTripPlan",
+        "params": ""
+      },
+      {
+        "name": "renderTripPlanOutput",
+        "params": "plan"
+      },
+      {
+        "name": "openCivicIssueModal",
+        "params": "placeId"
+      },
+      {
+        "name": "reportIssueFromModal",
+        "params": ""
+      },
+      {
+        "name": "submitCivicIssue",
+        "params": ""
+      },
+      {
+        "name": "openWriteReviewModal",
+        "params": ""
+      },
+      {
+        "name": "submitPlaceReview",
+        "params": ""
+      },
+      {
+        "name": "openAIDrawer",
+        "params": ""
+      },
+      {
+        "name": "closeAIDrawer",
+        "params": ""
+      },
+      {
+        "name": "handleAIInputKey",
+        "params": "e"
+      },
+      {
+        "name": "sendQuickAIPrompt",
+        "params": "promptText"
+      },
+      {
+        "name": "sendAIChatMessage",
+        "params": ""
+      },
+      {
+        "name": "getCurrentFamousUser",
+        "params": ""
+      },
+      {
+        "name": "isFamousStaff",
+        "params": ""
+      },
+      {
+        "name": "isFamousAdmin",
+        "params": ""
+      },
+      {
+        "name": "switchFamousLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "promptFamousStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "promptFamousAdminLogin",
+        "params": ""
+      },
+      {
+        "name": "loadAdminIssues",
+        "params": ""
+      },
+      {
+        "name": "openAdminModal",
+        "params": ""
+      },
+      {
+        "name": "updateAdminIssueStatus",
+        "params": "issueId, newStatus"
+      },
+      {
+        "name": "showAdminIssueDetails",
+        "params": "code, encodedDesc"
+      },
+      {
+        "name": "populatePlaceDropdowns",
+        "params": "places"
+      },
+      {
+        "name": "openModal",
+        "params": "id"
+      },
+      {
+        "name": "closeModal",
+        "params": "id"
+      },
+      {
+        "name": "showToast",
+        "params": "message"
+      },
+      {
+        "name": "updateLiveTime",
+        "params": ""
+      },
+      {
+        "name": "getDirections",
+        "params": ""
+      },
+      {
+        "name": "planVisit",
+        "params": ""
+      },
+      {
+        "name": "showPlaceInfo",
+        "params": ""
+      },
+      {
+        "name": "findNearby",
+        "params": "type"
+      },
+      {
+        "name": "openTraffic",
+        "params": ""
+      },
+      {
+        "name": "navigateParking",
+        "params": ""
+      },
+      {
+        "name": "callEmergency",
+        "params": "number"
+      },
+      {
+        "name": "writeReview",
+        "params": ""
+      },
+      {
+        "name": "openAI",
+        "params": ""
+      },
+      {
+        "name": "goToMainApp",
+        "params": ""
+      },
+      {
+        "name": "openReportIssueModal",
+        "params": "preselectedPlaceId = null"
+      },
+      {
+        "name": "closeReportIssueModal",
+        "params": ""
+      },
+      {
+        "name": "submitFieldIssue",
+        "params": "event"
+      }
+    ],
+    "listenersCount": 1,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\hospital\\doctor_dashboard.js",
+    "functionsCount": 20,
+    "functions": [
+      {
+        "name": "getAuthHeaders",
+        "params": "extra = {}"
+      },
+      {
+        "name": "playChime",
+        "params": "type = 'ding'"
+      },
+      {
+        "name": "showToast",
+        "params": "message, type = 'info'"
+      },
+      {
+        "name": "initDoctorProfiles",
+        "params": ""
+      },
+      {
+        "name": "switchActiveDoctor",
+        "params": ""
+      },
+      {
+        "name": "loadDoctorQueue",
+        "params": ""
+      },
+      {
+        "name": "updateQueueStats",
+        "params": "appts"
+      },
+      {
+        "name": "filterQueue",
+        "params": "filter"
+      },
+      {
+        "name": "renderQueue",
+        "params": "appts"
+      },
+      {
+        "name": "updateAppointmentStatus",
+        "params": "appointmentId, newStatus"
+      },
+      {
+        "name": "startCameraScanner",
+        "params": ""
+      },
+      {
+        "name": "stopCameraScanner",
+        "params": ""
+      },
+      {
+        "name": "handleQrScanSuccess",
+        "params": "decodedText"
+      },
+      {
+        "name": "lookupPatientFromInput",
+        "params": ""
+      },
+      {
+        "name": "openPatientDossier",
+        "params": "patientId, appointmentId = null"
+      },
+      {
+        "name": "renderDossierContent",
+        "params": "data"
+      },
+      {
+        "name": "submitConsultation",
+        "params": "event"
+      },
+      {
+        "name": "closeDossierModal",
+        "params": ""
+      },
+      {
+        "name": "initSocketConnection",
+        "params": ""
+      },
+      {
+        "name": "handleDoctorProfileClick",
+        "params": ""
+      }
+    ],
+    "listenersCount": 1,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\hospital\\hospital.js",
+    "functionsCount": 188,
+    "functions": [
+      {
+        "name": "apiRequest",
+        "params": "endpoint, options = {}"
+      },
+      {
+        "name": "escapeHTML",
+        "params": "value"
+      },
+      {
+        "name": "escapeJS",
+        "params": "value"
+      },
+      {
+        "name": "openModal",
+        "params": "id"
+      },
+      {
+        "name": "closeModal",
+        "params": "id"
+      },
+      {
+        "name": "closeAllModals",
+        "params": ""
+      },
+      {
+        "name": "doctorBusinessId",
+        "params": "doctor"
+      },
+      {
+        "name": "findDoctorById",
+        "params": "id"
+      },
+      {
+        "name": "showNotification",
+        "params": "message, type = \"info\""
+      },
+      {
+        "name": "showLoading",
+        "params": "element, message = \"Loading...\""
+      },
+      {
+        "name": "showError",
+        "params": "element, message"
+      },
+      {
+        "name": "showSuccess",
+        "params": "element, message"
+      },
+      {
+        "name": "getPatientId",
+        "params": ""
+      },
+      {
+        "name": "isPatientLoggedIn",
+        "params": ""
+      },
+      {
+        "name": "showCurrentPatient",
+        "params": ""
+      },
+      {
+        "name": "generatePatientID",
+        "params": ""
+      },
+      {
+        "name": "calculateAge",
+        "params": "dob"
+      },
+      {
+        "name": "handleDobAutoAge",
+        "params": "dobValue"
+      },
+      {
+        "name": "openPatientRegistration",
+        "params": ""
+      },
+      {
+        "name": "showPatientQR",
+        "params": "patientOrPayload, containerId = \"patientQRCode\""
+      },
+      {
+        "name": "setupPatientForm",
+        "params": ""
+      },
+      {
+        "name": "calculateDistance",
+        "params": "lat1, lon1, lat2, lon2"
+      },
+      {
+        "name": "initAmbulanceSocket",
+        "params": ""
+      },
+      {
+        "name": "showHospitals",
+        "params": ""
+      },
+      {
+        "name": "createHospitalDataModal",
+        "params": ""
+      },
+      {
+        "name": "filterAndSortHospitals",
+        "params": ""
+      },
+      {
+        "name": "renderHospitals",
+        "params": "hospitals"
+      },
+      {
+        "name": "openHospitalDashboardDirect",
+        "params": "hospitalId"
+      },
+      {
+        "name": "selectHospitalById",
+        "params": "hospitalId"
+      },
+      {
+        "name": "openDoctorBookingFlow",
+        "params": "preselectedDoctorId = null, preselectedHospitalId = null"
+      },
+      {
+        "name": "onBookingHospitalChange",
+        "params": "preselectedDoctorId = null"
+      },
+      {
+        "name": "fetchDynamicSlots",
+        "params": ""
+      },
+      {
+        "name": "renderSlotGrid",
+        "params": "slots"
+      },
+      {
+        "name": "selectTimeSlot",
+        "params": "buttonEl, time24"
+      },
+      {
+        "name": "confirmStrictBooking",
+        "params": ""
+      },
+      {
+        "name": "renderConfirmationCard",
+        "params": "app"
+      },
+      {
+        "name": "selectHospital",
+        "params": "hospitalId"
+      },
+      {
+        "name": "viewHospital",
+        "params": "hospitalIdOrName"
+      },
+      {
+        "name": "createHospitalDetailsModal",
+        "params": ""
+      },
+      {
+        "name": "openHospitalDetails",
+        "params": "hospital"
+      },
+      {
+        "name": "renderHospitalDetailsTabs",
+        "params": ""
+      },
+      {
+        "name": "switchHospitalDetailsTab",
+        "params": "tab"
+      },
+      {
+        "name": "renderDiagnosticsTabInHospitalDetails",
+        "params": "body"
+      },
+      {
+        "name": "setDetailsTestCategory",
+        "params": "catCode"
+      },
+      {
+        "name": "createCitizenTestBookingModal",
+        "params": ""
+      },
+      {
+        "name": "onCtbHospitalChange",
+        "params": "hospId"
+      },
+      {
+        "name": "onCtbTestDropdownChange",
+        "params": "testId"
+      },
+      {
+        "name": "loadCitizenTestsForHospital",
+        "params": "hospId"
+      },
+      {
+        "name": "openCitizenTestBookingModal",
+        "params": "testId, hospId"
+      },
+      {
+        "name": "openCitizenHomeSampleModal",
+        "params": "testId, hospId"
+      },
+      {
+        "name": "handleCitizenTestBookingSubmit",
+        "params": "e"
+      },
+      {
+        "name": "showTestBookingConfirmationSlip",
+        "params": "booking"
+      },
+      {
+        "name": "openDoctorFromHospital",
+        "params": "doctorId"
+      },
+      {
+        "name": "searchHospitals",
+        "params": ""
+      },
+      {
+        "name": "loadDoctorsForBooking",
+        "params": ""
+      },
+      {
+        "name": "openDoctorBooking",
+        "params": ""
+      },
+      {
+        "name": "bookSpecificDoctor",
+        "params": "doctorNameOrId"
+      },
+      {
+        "name": "resetBookingTimeSlots",
+        "params": ""
+      },
+      {
+        "name": "loadTimeSlotsForBooking",
+        "params": ""
+      },
+      {
+        "name": "formatSlotTime",
+        "params": "time"
+      },
+      {
+        "name": "bookDoctorSlot",
+        "params": ""
+      },
+      {
+        "name": "showBookingSuccess",
+        "params": "appointment, patientId, doctorName, date, time"
+      },
+      {
+        "name": "printAppointment",
+        "params": "appointmentId, patientId, doctorName, date, time"
+      },
+      {
+        "name": "openDoctorFinder",
+        "params": ""
+      },
+      {
+        "name": "loadDoctorFinder",
+        "params": ""
+      },
+      {
+        "name": "renderDoctorFinder",
+        "params": "doctors"
+      },
+      {
+        "name": "searchDoctors",
+        "params": ""
+      },
+      {
+        "name": "resetDoctorFilters",
+        "params": ""
+      },
+      {
+        "name": "viewDoctorDetails",
+        "params": "doctorId"
+      },
+      {
+        "name": "closeDoctorDetails",
+        "params": ""
+      },
+      {
+        "name": "loadDoctorSlots",
+        "params": "doctorId"
+      },
+      {
+        "name": "renderDoctorSlots",
+        "params": "slots, doctorId, hospitalId"
+      },
+      {
+        "name": "selectDoctorSlot",
+        "params": "doctorId, hospitalId, time24"
+      },
+      {
+        "name": "openMyAppointments",
+        "params": ""
+      },
+      {
+        "name": "loadMyAppointments",
+        "params": ""
+      },
+      {
+        "name": "renderMyAppointments",
+        "params": "appointments"
+      },
+      {
+        "name": "cancelAppointment",
+        "params": "appointmentId"
+      },
+      {
+        "name": "openEmergency",
+        "params": ""
+      },
+      {
+        "name": "callEmergency",
+        "params": ""
+      },
+      {
+        "name": "trackAmbulance",
+        "params": ""
+      },
+      {
+        "name": "showAmbulance",
+        "params": ""
+      },
+      {
+        "name": "refreshAmbulance",
+        "params": ""
+      },
+      {
+        "name": "renderAmbulanceList",
+        "params": "ambulances"
+      },
+      {
+        "name": "selectAmbulance",
+        "params": "ambulanceId"
+      },
+      {
+        "name": "initializeAmbulanceMap",
+        "params": ""
+      },
+      {
+        "name": "plotAllAmbulances",
+        "params": "ambulances"
+      },
+      {
+        "name": "updateAmbulanceMarkerPosition",
+        "params": "ambulance"
+      },
+      {
+        "name": "getFreshLocation",
+        "params": ""
+      },
+      {
+        "name": "startEmergencyRequest",
+        "params": ""
+      },
+      {
+        "name": "findEmergencyMatches",
+        "params": "lat, lng"
+      },
+      {
+        "name": "renderEmergencyMatchPanel",
+        "params": ""
+      },
+      {
+        "name": "selectMatchHospital",
+        "params": "id"
+      },
+      {
+        "name": "selectMatchAmbulance",
+        "params": "id"
+      },
+      {
+        "name": "confirmEmergencyAssignment",
+        "params": ""
+      },
+      {
+        "name": "getHospitalCoordsById",
+        "params": "hospitalId"
+      },
+      {
+        "name": "clearAmbulanceRoute",
+        "params": ""
+      },
+      {
+        "name": "renderStatusTimeline",
+        "params": "currentStatus"
+      },
+      {
+        "name": "renderAmbulanceRoutePanel",
+        "params": "ambulance"
+      },
+      {
+        "name": "getNextAmbulanceStatus",
+        "params": "currentStatus"
+      },
+      {
+        "name": "advanceAmbulanceStatus",
+        "params": "ambulanceId"
+      },
+      {
+        "name": "refreshAmbulanceRoute",
+        "params": "ambulanceId"
+      },
+      {
+        "name": "resetAmbulanceTracking",
+        "params": "ambulanceId"
+      },
+      {
+        "name": "createBedModal",
+        "params": ""
+      },
+      {
+        "name": "showBeds",
+        "params": ""
+      },
+      {
+        "name": "loadBeds",
+        "params": ""
+      },
+      {
+        "name": "renderBedCategoryCards",
+        "params": "beds"
+      },
+      {
+        "name": "renderBeds",
+        "params": "beds"
+      },
+      {
+        "name": "openPatientFile",
+        "params": "patientId = null"
+      },
+      {
+        "name": "loadMyPatientRecord",
+        "params": ""
+      },
+      {
+        "name": "searchPatientFile",
+        "params": ""
+      },
+      {
+        "name": "switchRecordTab",
+        "params": "tab"
+      },
+      {
+        "name": "printPatientRecord",
+        "params": ""
+      },
+      {
+        "name": "openPatientPrintCard",
+        "params": "patient = null"
+      },
+      {
+        "name": "executePrintPatientCard",
+        "params": ""
+      },
+      {
+        "name": "openAbhaModal",
+        "params": "patientId = null"
+      },
+      {
+        "name": "confirmAbhaLink",
+        "params": ""
+      },
+      {
+        "name": "unlinkAbha",
+        "params": "patientId"
+      },
+      {
+        "name": "openQrScanModal",
+        "params": ""
+      },
+      {
+        "name": "closeQrScanModal",
+        "params": ""
+      },
+      {
+        "name": "startPatientCameraScanner",
+        "params": ""
+      },
+      {
+        "name": "stopPatientCameraScanner",
+        "params": ""
+      },
+      {
+        "name": "verifyQrFromInput",
+        "params": ""
+      },
+      {
+        "name": "handleScannedQrResult",
+        "params": "qrData"
+      },
+      {
+        "name": "openStaffPatientManager",
+        "params": ""
+      },
+      {
+        "name": "debounceStaffPatientSearch",
+        "params": ""
+      },
+      {
+        "name": "resetStaffPatientFilters",
+        "params": ""
+      },
+      {
+        "name": "fetchStaffPatientsList",
+        "params": ""
+      },
+      {
+        "name": "toggleStaffPatientStatus",
+        "params": "patientId, currentStatus"
+      },
+      {
+        "name": "renderRecordTab",
+        "params": "tab"
+      },
+      {
+        "name": "toggleInlineForm",
+        "params": "id"
+      },
+      {
+        "name": "renderAddRecordForm",
+        "params": "patientId"
+      },
+      {
+        "name": "renderAddReportForm",
+        "params": "patientId"
+      },
+      {
+        "name": "setupAddRecordForm",
+        "params": "patientId"
+      },
+      {
+        "name": "setupAddReportForm",
+        "params": "patientId"
+      },
+      {
+        "name": "openPrescriptionUpload",
+        "params": ""
+      },
+      {
+        "name": "setupPrescriptionForm",
+        "params": ""
+      },
+      {
+        "name": "showPharmacy",
+        "params": ""
+      },
+      {
+        "name": "updatePharmacyLoginUI",
+        "params": ""
+      },
+      {
+        "name": "verifyPharmacyPatient",
+        "params": ""
+      },
+      {
+        "name": "logoutPharmacyPatient",
+        "params": ""
+      },
+      {
+        "name": "loadMedicines",
+        "params": ""
+      },
+      {
+        "name": "renderMedicines",
+        "params": "medicines"
+      },
+      {
+        "name": "searchMedicines",
+        "params": ""
+      },
+      {
+        "name": "viewMedicine",
+        "params": "medicineId"
+      },
+      {
+        "name": "addToCart",
+        "params": "medicineId"
+      },
+      {
+        "name": "loadPatientCart",
+        "params": "patientId = getPatientId("
+      },
+      {
+        "name": "updateCartCount",
+        "params": ""
+      },
+      {
+        "name": "openCart",
+        "params": ""
+      },
+      {
+        "name": "getCartTotal",
+        "params": ""
+      },
+      {
+        "name": "renderCart",
+        "params": ""
+      },
+      {
+        "name": "changeCartQuantity",
+        "params": "medicineId, change"
+      },
+      {
+        "name": "removeFromCart",
+        "params": "cartId"
+      },
+      {
+        "name": "checkoutMedicineCart",
+        "params": ""
+      },
+      {
+        "name": "openPaymentModal",
+        "params": ""
+      },
+      {
+        "name": "renderPaymentSummary",
+        "params": ""
+      },
+      {
+        "name": "showPaymentFields",
+        "params": ""
+      },
+      {
+        "name": "validatePayment",
+        "params": "method"
+      },
+      {
+        "name": "processPayment",
+        "params": ""
+      },
+      {
+        "name": "showReceipt",
+        "params": "data"
+      },
+      {
+        "name": "printReceipt",
+        "params": ""
+      },
+      {
+        "name": "openEditPanel",
+        "params": "panelType"
+      },
+      {
+        "name": "globalSearch",
+        "params": "value"
+      },
+      {
+        "name": "logoutPatient",
+        "params": ""
+      },
+      {
+        "name": "checkBackend",
+        "params": ""
+      },
+      {
+        "name": "setupEscapeKey",
+        "params": ""
+      },
+      {
+        "name": "setupModalClick",
+        "params": ""
+      },
+      {
+        "name": "setupSearchInputs",
+        "params": ""
+      },
+      {
+        "name": "initializeApplication",
+        "params": ""
+      },
+      {
+        "name": "openDoctorLoginModal",
+        "params": ""
+      },
+      {
+        "name": "populateDoctorLoginDropdown",
+        "params": ""
+      },
+      {
+        "name": "onSelectDoctorFromDropdown",
+        "params": ""
+      },
+      {
+        "name": "fillDoctorLogin",
+        "params": "docId"
+      },
+      {
+        "name": "submitDoctorLogin",
+        "params": ""
+      },
+      {
+        "name": "onAIHospitalChange",
+        "params": "facilityId"
+      },
+      {
+        "name": "runAIHealthcareAnalysis",
+        "params": ""
+      },
+      {
+        "name": "loadAIHealthcareAuditTable",
+        "params": ""
+      },
+      {
+        "name": "submitAIHealthcareReview",
+        "params": "predictionId, actionTaken"
+      },
+      {
+        "name": "getCurrentHospitalUser",
+        "params": ""
+      },
+      {
+        "name": "isHospitalStaff",
+        "params": ""
+      },
+      {
+        "name": "isHospitalAdmin",
+        "params": ""
+      },
+      {
+        "name": "switchHospitalLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "promptHospitalStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "promptHospitalAdminLogin",
+        "params": ""
+      },
+      {
+        "name": "filterServiceCards",
+        "params": "category, btn"
+      },
+      {
+        "name": "applyUpdate",
+        "params": "updated"
+      },
+      {
+        "name": "window.onload",
+        "params": ""
+      },
+      {
+        "name": "window.onload",
+        "params": ""
+      }
+    ],
+    "listenersCount": 9,
+    "listeners": [
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "keydown",
+        "handler": "e"
+      },
+      {
+        "event": "click",
+        "handler": "e"
+      },
+      {
+        "event": "input",
+        "handler": "handler"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "initializeApplication"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "applyRoleUI"
+      }
+    ]
+  },
+  {
+    "file": "pages\\hospital\\hospital_dashboard.js",
+    "functionsCount": 66,
+    "functions": [
+      {
+        "name": "isStaffUser",
+        "params": "user"
+      },
+      {
+        "name": "enforceStaffAuth",
+        "params": ""
+      },
+      {
+        "name": "handleDashboardStaffLogin",
+        "params": "e"
+      },
+      {
+        "name": "quickDemoStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "handleStaffLogout",
+        "params": ""
+      },
+      {
+        "name": "populateHospitalSwitcher",
+        "params": ""
+      },
+      {
+        "name": "authFetch",
+        "params": "url, options = {}"
+      },
+      {
+        "name": "updateUserProfileDisplay",
+        "params": ""
+      },
+      {
+        "name": "renderModuleTabs",
+        "params": ""
+      },
+      {
+        "name": "switchModule",
+        "params": "moduleId"
+      },
+      {
+        "name": "onSwitchHospital",
+        "params": "newHospId"
+      },
+      {
+        "name": "onSwitchRole",
+        "params": "newRole"
+      },
+      {
+        "name": "loadHospitalInfo",
+        "params": ""
+      },
+      {
+        "name": "refreshDashboardData",
+        "params": ""
+      },
+      {
+        "name": "loadActiveModuleData",
+        "params": ""
+      },
+      {
+        "name": "loadAppointments",
+        "params": ""
+      },
+      {
+        "name": "updateApptStatus",
+        "params": "apptId, newStatus"
+      },
+      {
+        "name": "openRegisterWalkInModal",
+        "params": ""
+      },
+      {
+        "name": "renderWalkInDoctorOptions",
+        "params": "docs"
+      },
+      {
+        "name": "filterWalkInDoctorsByDept",
+        "params": "dept"
+      },
+      {
+        "name": "handleRegisterWalkInSubmit",
+        "params": "e"
+      },
+      {
+        "name": "openOfflineBookingModal",
+        "params": ""
+      },
+      {
+        "name": "updateOfflineTestFee",
+        "params": "selectEl"
+      },
+      {
+        "name": "handleOfflineBookingSubmit",
+        "params": "e"
+      },
+      {
+        "name": "switchDiagSubTab",
+        "params": "subTabId, btn"
+      },
+      {
+        "name": "loadDiagnosticsModule",
+        "params": ""
+      },
+      {
+        "name": "loadDiagnosticCatalog",
+        "params": ""
+      },
+      {
+        "name": "renderDiagnosticTestGrid",
+        "params": "tests"
+      },
+      {
+        "name": "filterDiagnosticTests",
+        "params": ""
+      },
+      {
+        "name": "filterByCategory",
+        "params": "catCode, btn"
+      },
+      {
+        "name": "loadDiagnosticLiveQueue",
+        "params": ""
+      },
+      {
+        "name": "callNextQueueToken",
+        "params": "testId"
+      },
+      {
+        "name": "loadDiagnosticSamples",
+        "params": ""
+      },
+      {
+        "name": "loadDiagnosticReports",
+        "params": ""
+      },
+      {
+        "name": "loadDiagnosticHomeCollections",
+        "params": ""
+      },
+      {
+        "name": "assignHomeCollector",
+        "params": "bookingId"
+      },
+      {
+        "name": "openOfflineBookingModal",
+        "params": ""
+      },
+      {
+        "name": "openOfflineBookingForTest",
+        "params": "preselectedTestId = null"
+      },
+      {
+        "name": "updateOfflinePrice",
+        "params": ""
+      },
+      {
+        "name": "handleOfflineBookingSubmit",
+        "params": "e"
+      },
+      {
+        "name": "viewDiagnosticReport",
+        "params": "reportId, patientName, patientId, testName, tokenNo"
+      },
+      {
+        "name": "printReportDocument",
+        "params": ""
+      },
+      {
+        "name": "downloadReportPDF",
+        "params": ""
+      },
+      {
+        "name": "openPublishReportModal",
+        "params": ""
+      },
+      {
+        "name": "onReportBookingSelected",
+        "params": ""
+      },
+      {
+        "name": "handlePublishReportSubmit",
+        "params": "e"
+      },
+      {
+        "name": "loadDoctorClinicalDesk",
+        "params": ""
+      },
+      {
+        "name": "selectPatientForConsultation",
+        "params": "appt"
+      },
+      {
+        "name": "submitDoctorTestOrder",
+        "params": ""
+      },
+      {
+        "name": "completeDoctorConsultation",
+        "params": ""
+      },
+      {
+        "name": "resetConsultationPad",
+        "params": ""
+      },
+      {
+        "name": "loadBedsAndWards",
+        "params": ""
+      },
+      {
+        "name": "handleBedClick",
+        "params": "bedId, status, patientName"
+      },
+      {
+        "name": "openAssignBedModal",
+        "params": "preselectedBedId = null"
+      },
+      {
+        "name": "handleAssignBedSubmit",
+        "params": "e"
+      },
+      {
+        "name": "loadPharmacyStock",
+        "params": ""
+      },
+      {
+        "name": "loadBillingInvoices",
+        "params": ""
+      },
+      {
+        "name": "openCreateInvoiceModal",
+        "params": ""
+      },
+      {
+        "name": "handleCreateInvoiceSubmit",
+        "params": "e"
+      },
+      {
+        "name": "loadEmergencyAmbulances",
+        "params": ""
+      },
+      {
+        "name": "loadAdminStaff",
+        "params": ""
+      },
+      {
+        "name": "openAddStaffModal",
+        "params": ""
+      },
+      {
+        "name": "openAddNewTestModal",
+        "params": ""
+      },
+      {
+        "name": "openAddNewCategoryModal",
+        "params": ""
+      },
+      {
+        "name": "closeHdModal",
+        "params": "modalId"
+      },
+      {
+        "name": "escapeHtml",
+        "params": "str"
+      }
+    ],
+    "listenersCount": 1,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\parking\\parking.js",
+    "functionsCount": 121,
+    "functions": [
+      {
+        "name": "getParkingData",
+        "params": ""
+      },
+      {
+        "name": "saveParkingData",
+        "params": "data"
+      },
+      {
+        "name": "getCurrentUser",
+        "params": ""
+      },
+      {
+        "name": "isParkingStaff",
+        "params": ""
+      },
+      {
+        "name": "switchParkingLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "promptParkingStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "calculateEstimatedCost",
+        "params": ""
+      },
+      {
+        "name": "fetchOperationsSummary",
+        "params": ""
+      },
+      {
+        "name": "fetchOverstays",
+        "params": ""
+      },
+      {
+        "name": "renderOverstays",
+        "params": "list"
+      },
+      {
+        "name": "triggerEmergencyBarrierOverride",
+        "params": "action = 'ALL_OPEN'"
+      },
+      {
+        "name": "fetchAdminPricing",
+        "params": ""
+      },
+      {
+        "name": "renderAdminPricing",
+        "params": "lots"
+      },
+      {
+        "name": "saveLotPricing",
+        "params": "lotId"
+      },
+      {
+        "name": "toggleSurge",
+        "params": "lotId, newSurgeState"
+      },
+      {
+        "name": "fetchAdminAnprLogs",
+        "params": ""
+      },
+      {
+        "name": "renderAdminAnprLogs",
+        "params": "logs"
+      },
+      {
+        "name": "escapeHTML",
+        "params": "str"
+      },
+      {
+        "name": "getLatestActivePass",
+        "params": ""
+      },
+      {
+        "name": "updateUserName",
+        "params": ""
+      },
+      {
+        "name": "checkParkingPermission",
+        "params": ""
+      },
+      {
+        "name": "loadParkingUI",
+        "params": ""
+      },
+      {
+        "name": "updateParkingCards",
+        "params": "data"
+      },
+      {
+        "name": "fetchParkingDataFromAPI",
+        "params": ""
+      },
+      {
+        "name": "initParkingRealtime",
+        "params": ""
+      },
+      {
+        "name": "renderDynamicParkingCards",
+        "params": "data"
+      },
+      {
+        "name": "setupParkingSelector",
+        "params": ""
+      },
+      {
+        "name": "loadSelectedParking",
+        "params": ""
+      },
+      {
+        "name": "saveParkingChanges",
+        "params": ""
+      },
+      {
+        "name": "vehicleEntry",
+        "params": ""
+      },
+      {
+        "name": "vehicleExit",
+        "params": ""
+      },
+      {
+        "name": "openParkingStaffPanel",
+        "params": ""
+      },
+      {
+        "name": "scrollToParking",
+        "params": ""
+      },
+      {
+        "name": "showToast",
+        "params": "message"
+      },
+      {
+        "name": "initInteractiveSlotGrid",
+        "params": ""
+      },
+      {
+        "name": "updateModeBadgeUI",
+        "params": ""
+      },
+      {
+        "name": "loadInteractiveSlots",
+        "params": "lotId, isSilent = false"
+      },
+      {
+        "name": "updateGridLegendStats",
+        "params": "slots, lot"
+      },
+      {
+        "name": "formatSlotTime",
+        "params": "timeStr"
+      },
+      {
+        "name": "renderInteractiveSlotGrid",
+        "params": "slots"
+      },
+      {
+        "name": "openStaffSlotModal",
+        "params": "slot"
+      },
+      {
+        "name": "generateFallbackSlots",
+        "params": "lotId"
+      },
+      {
+        "name": "showCitizenQrPassModal",
+        "params": "booking"
+      },
+      {
+        "name": "generateQrSvg",
+        "params": "text"
+      },
+      {
+        "name": "isFinder",
+        "params": "r, c"
+      },
+      {
+        "name": "isFinderDark",
+        "params": "r, c"
+      },
+      {
+        "name": "generateFloorSchematicSvg",
+        "params": "targetBay, colIndex, isRowA, startX, startY, mainLaneY, aisleX, targetY"
+      },
+      {
+        "name": "applyTileLayer",
+        "params": "cfg"
+      },
+      {
+        "name": "initParkingGpsMap",
+        "params": "lotsData"
+      },
+      {
+        "name": "buildGorakhpurTrafficCorridors",
+        "params": ""
+      },
+      {
+        "name": "renderParkingMapMarkers",
+        "params": "lotsData"
+      },
+      {
+        "name": "startStaffScannerCamera",
+        "params": ""
+      },
+      {
+        "name": "stopStaffScannerCamera",
+        "params": ""
+      },
+      {
+        "name": "initNavUserProfile",
+        "params": ""
+      },
+      {
+        "name": "onAIParkingLotChange",
+        "params": "lotId"
+      },
+      {
+        "name": "runAIParkingForecast",
+        "params": ""
+      },
+      {
+        "name": "loadAIParkingAuditTable",
+        "params": ""
+      },
+      {
+        "name": "submitAIParkingReview",
+        "params": "predictionId, actionTaken"
+      },
+      {
+        "name": "check",
+        "params": "row, col"
+      },
+      {
+        "name": "window.openOverstayCollectModal",
+        "params": ""
+      },
+      {
+        "name": "window.closeOverstayCollectModal",
+        "params": ""
+      },
+      {
+        "name": "window.selectFinePaymentMethod",
+        "params": ""
+      },
+      {
+        "name": "window.confirmOverstayFinePayment",
+        "params": ""
+      },
+      {
+        "name": "window.printReceiptArea",
+        "params": ""
+      },
+      {
+        "name": "window.sendOverstayDriverAlert",
+        "params": ""
+      },
+      {
+        "name": "window.submitStaffBayOverride",
+        "params": ""
+      },
+      {
+        "name": "window.fetchShiftSummary",
+        "params": ""
+      },
+      {
+        "name": "window.printShiftSummaryReport",
+        "params": ""
+      },
+      {
+        "name": "window.resolveOverstayFine",
+        "params": ""
+      },
+      {
+        "name": "window.bookParking",
+        "params": ""
+      },
+      {
+        "name": "window.toggleStaffViewMode",
+        "params": ""
+      },
+      {
+        "name": "window.switchLotTab",
+        "params": ""
+      },
+      {
+        "name": "window.applySlotFilter",
+        "params": ""
+      },
+      {
+        "name": "window.openSlotModal",
+        "params": ""
+      },
+      {
+        "name": "window.closeSlotModal",
+        "params": ""
+      },
+      {
+        "name": "window.openCitizenBookingModalByNumber",
+        "params": ""
+      },
+      {
+        "name": "window.handleSlotBayClick",
+        "params": ""
+      },
+      {
+        "name": "window.openCitizenBookingModal",
+        "params": ""
+      },
+      {
+        "name": "window.calculateBookingAmount",
+        "params": ""
+      },
+      {
+        "name": "window.submitSlotBooking",
+        "params": ""
+      },
+      {
+        "name": "window.updateSlotStatus",
+        "params": ""
+      },
+      {
+        "name": "window.printParkingPass",
+        "params": ""
+      },
+      {
+        "name": "window.handleGateScanAction",
+        "params": ""
+      },
+      {
+        "name": "window.simulateGateQrDemo",
+        "params": ""
+      },
+      {
+        "name": "window.setAnprPreset",
+        "params": ""
+      },
+      {
+        "name": "window.triggerAnprRecognition",
+        "params": ""
+      },
+      {
+        "name": "window.openBayNavigationModal",
+        "params": ""
+      },
+      {
+        "name": "window.switchMapLayer",
+        "params": ""
+      },
+      {
+        "name": "window.openMapApiKeyModal",
+        "params": ""
+      },
+      {
+        "name": "window.saveMapApiKey",
+        "params": ""
+      },
+      {
+        "name": "window.updateParkingGpsMap",
+        "params": ""
+      },
+      {
+        "name": "window.recenterParkingMap",
+        "params": ""
+      },
+      {
+        "name": "window.focusAndBookFromMap",
+        "params": ""
+      },
+      {
+        "name": "window.openStaffDirectBookingModal",
+        "params": ""
+      },
+      {
+        "name": "window.onStaffDirectLotChanged",
+        "params": ""
+      },
+      {
+        "name": "window.handleCitizenSearch",
+        "params": ""
+      },
+      {
+        "name": "window.selectCitizenForBooking",
+        "params": ""
+      },
+      {
+        "name": "window.enableWalkInGuest",
+        "params": ""
+      },
+      {
+        "name": "window.updateStaffFarePreview",
+        "params": ""
+      },
+      {
+        "name": "window.submitStaffDirectBooking",
+        "params": ""
+      },
+      {
+        "name": "window.openAddLotModal",
+        "params": ""
+      },
+      {
+        "name": "window.submitAddLot",
+        "params": ""
+      },
+      {
+        "name": "window.openEditLotModal",
+        "params": ""
+      },
+      {
+        "name": "window.onEditLotSelected",
+        "params": ""
+      },
+      {
+        "name": "window.submitEditLot",
+        "params": ""
+      },
+      {
+        "name": "window.toggleUserDropdown",
+        "params": ""
+      },
+      {
+        "name": "window.openUserProfileModal",
+        "params": ""
+      },
+      {
+        "name": "window.saveUserProfileVehicle",
+        "params": ""
+      },
+      {
+        "name": "window.openUserActivityModal",
+        "params": ""
+      },
+      {
+        "name": "window.switchActivityTab",
+        "params": ""
+      },
+      {
+        "name": "window.filterHistoryStatus",
+        "params": ""
+      },
+      {
+        "name": "window.renderUserActivityList",
+        "params": ""
+      },
+      {
+        "name": "window.cancelCitizenBooking",
+        "params": ""
+      },
+      {
+        "name": "window.viewMyActivePassQr",
+        "params": ""
+      },
+      {
+        "name": "window.openStaffQrScannerModal",
+        "params": ""
+      },
+      {
+        "name": "window.closeStaffQrScannerModal",
+        "params": ""
+      },
+      {
+        "name": "window.handleManualQrVerify",
+        "params": ""
+      },
+      {
+        "name": "window.toggleUserDropdown",
+        "params": ""
+      },
+      {
+        "name": "window.handleUserLogout",
+        "params": ""
+      },
+      {
+        "name": "window.scrollToSlotGrid",
+        "params": ""
+      }
+    ],
+    "listenersCount": 9,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      },
+      {
+        "event": "smartcity:auth-changed",
+        "handler": "anonymous"
+      },
+      {
+        "event": "change",
+        "handler": "loadSelectedParking"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "closeHandler"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "keydown",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\police\\police.js",
+    "functionsCount": 30,
+    "functions": [
+      {
+        "name": "getCurrentUser",
+        "params": ""
+      },
+      {
+        "name": "isPoliceStaff",
+        "params": ""
+      },
+      {
+        "name": "isPoliceAdmin",
+        "params": ""
+      },
+      {
+        "name": "switchPoliceLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "promptPoliceStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "promptPoliceAdminLogin",
+        "params": ""
+      },
+      {
+        "name": "scrollToIncidents",
+        "params": ""
+      },
+      {
+        "name": "loadPoliceIncidentsFromBackend",
+        "params": ""
+      },
+      {
+        "name": "updateUser",
+        "params": ""
+      },
+      {
+        "name": "checkPolicePermission",
+        "params": ""
+      },
+      {
+        "name": "getIncidents",
+        "params": ""
+      },
+      {
+        "name": "saveIncidents",
+        "params": "incidents"
+      },
+      {
+        "name": "initializeIncidents",
+        "params": ""
+      },
+      {
+        "name": "renderIncidents",
+        "params": ""
+      },
+      {
+        "name": "populateIncidentSelect",
+        "params": ""
+      },
+      {
+        "name": "loadSelectedIncident",
+        "params": ""
+      },
+      {
+        "name": "savePoliceIncident",
+        "params": ""
+      },
+      {
+        "name": "resolvePoliceCase",
+        "params": ""
+      },
+      {
+        "name": "getPoliceLocation",
+        "params": ""
+      },
+      {
+        "name": "updatePoliceStats",
+        "params": ""
+      },
+      {
+        "name": "refreshCrimeData",
+        "params": ""
+      },
+      {
+        "name": "fetchPoliceStations",
+        "params": ""
+      },
+      {
+        "name": "renderCrimeCharts",
+        "params": "data"
+      },
+      {
+        "name": "renderTrendChart",
+        "params": "monthly"
+      },
+      {
+        "name": "renderAreaChart",
+        "params": "areas"
+      },
+      {
+        "name": "renderCategories",
+        "params": "categories"
+      },
+      {
+        "name": "scrollToAnalytics",
+        "params": ""
+      },
+      {
+        "name": "scrollToPoliceControl",
+        "params": ""
+      },
+      {
+        "name": "showToast",
+        "params": "message"
+      }
+    ],
+    "listenersCount": 1,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\traffic\\openlayers_map.js",
+    "functionsCount": 0,
+    "functions": [],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "pages\\traffic\\traffic.js",
+    "functionsCount": 131,
+    "functions": [
+      {
+        "name": "initClock",
+        "params": ""
+      },
+      {
+        "name": "initUserSession",
+        "params": ""
+      },
+      {
+        "name": "isStaffUser",
+        "params": ""
+      },
+      {
+        "name": "isAdminUser",
+        "params": ""
+      },
+      {
+        "name": "getAuthHeaders",
+        "params": ""
+      },
+      {
+        "name": "toggleUserDropdown",
+        "params": "event"
+      },
+      {
+        "name": "switchRoleProfile",
+        "params": "role"
+      },
+      {
+        "name": "handleUserLogout",
+        "params": ""
+      },
+      {
+        "name": "updateMapMount",
+        "params": "layer, hasStaffAccess"
+      },
+      {
+        "name": "switchLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "quickLoginTrafficStaff",
+        "params": ""
+      },
+      {
+        "name": "quickLoginTrafficAdmin",
+        "params": ""
+      },
+      {
+        "name": "fillStaffCredentials",
+        "params": "staffId, password"
+      },
+      {
+        "name": "toggleStaffPasswordVisibility",
+        "params": ""
+      },
+      {
+        "name": "handleTrafficStaffLoginSubmit",
+        "params": "event"
+      },
+      {
+        "name": "promptTrafficStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "toggleMapPinPlacementMode",
+        "params": ""
+      },
+      {
+        "name": "showQuickAddFeatureModal",
+        "params": "lat, lng"
+      },
+      {
+        "name": "quickAddSelectFeature",
+        "params": "type"
+      },
+      {
+        "name": "promptTrafficAdminLogin",
+        "params": ""
+      },
+      {
+        "name": "initSocketConnection",
+        "params": ""
+      },
+      {
+        "name": "loadSharedTrafficData",
+        "params": ""
+      },
+      {
+        "name": "loadConnectedParkingData",
+        "params": ""
+      },
+      {
+        "name": "loadIncidentsData",
+        "params": ""
+      },
+      {
+        "name": "loadCityAnalyticsKPIs",
+        "params": ""
+      },
+      {
+        "name": "populateJunctionSelects",
+        "params": "junctions"
+      },
+      {
+        "name": "calculateAlternativeRoutes",
+        "params": ""
+      },
+      {
+        "name": "selectControlJunction",
+        "params": "jncId"
+      },
+      {
+        "name": "renderSignalDisplay",
+        "params": "signals"
+      },
+      {
+        "name": "updateTimingSliders",
+        "params": ""
+      },
+      {
+        "name": "saveSignalTimingConfig",
+        "params": ""
+      },
+      {
+        "name": "applyManualOverride",
+        "params": "action, approach = \"North\""
+      },
+      {
+        "name": "refreshActiveJunctionSignals",
+        "params": "jncId"
+      },
+      {
+        "name": "renderCameraStream",
+        "params": "cam, containerId"
+      },
+      {
+        "name": "loadDynamicCCTVWall",
+        "params": ""
+      },
+      {
+        "name": "renderSingleCameraCard",
+        "params": "cam"
+      },
+      {
+        "name": "fullscreenCameraCard",
+        "params": "camId"
+      },
+      {
+        "name": "testSingleCameraCard",
+        "params": "camId"
+      },
+      {
+        "name": "openAIVisionModal",
+        "params": "camId"
+      },
+      {
+        "name": "switchAIVisionCamera",
+        "params": "camId"
+      },
+      {
+        "name": "refreshAIVisionData",
+        "params": ""
+      },
+      {
+        "name": "syncAIOpticalFlowToSignal",
+        "params": ""
+      },
+      {
+        "name": "loadViolationsData",
+        "params": ""
+      },
+      {
+        "name": "reviewViolation",
+        "params": "vioId, action"
+      },
+      {
+        "name": "dispatchEmergencyCorridor",
+        "params": ""
+      },
+      {
+        "name": "deactivateEmergencyCorridor",
+        "params": ""
+      },
+      {
+        "name": "showEmergencyCorridorBanner",
+        "params": "data"
+      },
+      {
+        "name": "hideEmergencyCorridorBanner",
+        "params": ""
+      },
+      {
+        "name": "loadMovementRules",
+        "params": ""
+      },
+      {
+        "name": "toggleRuleStatus",
+        "params": "id, newStatus"
+      },
+      {
+        "name": "loadAdminJunctionsTable",
+        "params": ""
+      },
+      {
+        "name": "loadAdminSignalsTable",
+        "params": ""
+      },
+      {
+        "name": "loadAdminStaff",
+        "params": ""
+      },
+      {
+        "name": "loadAdminAISettings",
+        "params": ""
+      },
+      {
+        "name": "saveAdminAISettings",
+        "params": ""
+      },
+      {
+        "name": "loadAuditLogs",
+        "params": ""
+      },
+      {
+        "name": "openModal",
+        "params": "id"
+      },
+      {
+        "name": "closeModal",
+        "params": "id"
+      },
+      {
+        "name": "openReportIncidentModal",
+        "params": "incId = null"
+      },
+      {
+        "name": "openAddJunctionModal",
+        "params": ""
+      },
+      {
+        "name": "openEditJunctionModal",
+        "params": "jncId"
+      },
+      {
+        "name": "openAddSignalModal",
+        "params": ""
+      },
+      {
+        "name": "openAddStaffModal",
+        "params": ""
+      },
+      {
+        "name": "pickCoordsFor",
+        "params": "target"
+      },
+      {
+        "name": "cancelCoordinatePick",
+        "params": ""
+      },
+      {
+        "name": "handleCameraSourceChange",
+        "params": ""
+      },
+      {
+        "name": "handlePlaybackTypeChange",
+        "params": ""
+      },
+      {
+        "name": "testCameraConnectionInModal",
+        "params": ""
+      },
+      {
+        "name": "openAddCameraModal",
+        "params": ""
+      },
+      {
+        "name": "openEditCameraModal",
+        "params": "camId"
+      },
+      {
+        "name": "submitCameraForm",
+        "params": ""
+      },
+      {
+        "name": "deleteCamera",
+        "params": "camId"
+      },
+      {
+        "name": "submitJunctionForm",
+        "params": ""
+      },
+      {
+        "name": "deleteJunction",
+        "params": "id"
+      },
+      {
+        "name": "submitSignalForm",
+        "params": ""
+      },
+      {
+        "name": "openEditSignalModal",
+        "params": "sigId"
+      },
+      {
+        "name": "deleteSignal",
+        "params": "sigId"
+      },
+      {
+        "name": "submitStaffForm",
+        "params": ""
+      },
+      {
+        "name": "submitTrafficIncident",
+        "params": ""
+      },
+      {
+        "name": "handleMapMarkerPopup",
+        "params": "props, coord"
+      },
+      {
+        "name": "toggleHeatmapLayer",
+        "params": ""
+      },
+      {
+        "name": "toggleAmbulancesLayer",
+        "params": ""
+      },
+      {
+        "name": "toggleSignalsLayer",
+        "params": ""
+      },
+      {
+        "name": "toggleParkingLayer",
+        "params": ""
+      },
+      {
+        "name": "toggleIncidentsLayer",
+        "params": ""
+      },
+      {
+        "name": "toggleWaterloggingLayer",
+        "params": ""
+      },
+      {
+        "name": "toggleVMSLayer",
+        "params": ""
+      },
+      {
+        "name": "loadWaterloggingData",
+        "params": ""
+      },
+      {
+        "name": "searchCitizenChallans",
+        "params": ""
+      },
+      {
+        "name": "fillSamplePlate",
+        "params": "plate"
+      },
+      {
+        "name": "openPayChallanModal",
+        "params": "id, vehicleNo, amount, violationType"
+      },
+      {
+        "name": "processChallanPayment",
+        "params": ""
+      },
+      {
+        "name": "exportMunicipalReport",
+        "params": ""
+      },
+      {
+        "name": "showAmbulanceGreenWaveBanner",
+        "params": "data"
+      },
+      {
+        "name": "showToast",
+        "params": "msg"
+      },
+      {
+        "name": "loadVMSBoards",
+        "params": ""
+      },
+      {
+        "name": "renderActiveVMSBoard",
+        "params": ""
+      },
+      {
+        "name": "prevVMSBoard",
+        "params": ""
+      },
+      {
+        "name": "nextVMSBoard",
+        "params": ""
+      },
+      {
+        "name": "openVMSEditModal",
+        "params": ""
+      },
+      {
+        "name": "submitVMSMessage",
+        "params": ""
+      },
+      {
+        "name": "subscribeCommuteAlert",
+        "params": ""
+      },
+      {
+        "name": "computeWebsterTimingForActiveJunction",
+        "params": ""
+      },
+      {
+        "name": "applyWebsterTimingsToSliders",
+        "params": ""
+      },
+      {
+        "name": "startAmbulanceSimulation",
+        "params": ""
+      },
+      {
+        "name": "stopAmbulanceSimulation",
+        "params": ""
+      },
+      {
+        "name": "inspectANPREvidence",
+        "params": "violationId"
+      },
+      {
+        "name": "printVirtualCourtNotice",
+        "params": ""
+      },
+      {
+        "name": "loadLiveAmbulancesFleet",
+        "params": ""
+      },
+      {
+        "name": "renderLiveAmbulancesTable",
+        "params": "ambulances"
+      },
+      {
+        "name": "updateAmbulanceRowInFleetTable",
+        "params": "amb"
+      },
+      {
+        "name": "dispatchAmbulanceCriticalCorridor",
+        "params": "ambId, vehicleNumber, destHospital"
+      },
+      {
+        "name": "clearAmbulanceCriticalCorridor",
+        "params": "ambId, vehicleNumber"
+      },
+      {
+        "name": "onCriticalTransitActivated",
+        "params": "data"
+      },
+      {
+        "name": "onCriticalTransitCleared",
+        "params": "data"
+      },
+      {
+        "name": "showCriticalTransitBanner",
+        "params": "amb"
+      },
+      {
+        "name": "hideCriticalTransitBanner",
+        "params": ""
+      },
+      {
+        "name": "focusCriticalAmbulanceOnMap",
+        "params": ""
+      },
+      {
+        "name": "clearActiveCriticalTransit",
+        "params": ""
+      },
+      {
+        "name": "onHeatmapRadiusChange",
+        "params": "val"
+      },
+      {
+        "name": "onHeatmapBlurChange",
+        "params": "val"
+      },
+      {
+        "name": "onHeatmapOpacityChange",
+        "params": "val"
+      },
+      {
+        "name": "openModifySignalLocationModal",
+        "params": "sigId"
+      },
+      {
+        "name": "pickCoordsForSignalRelocation",
+        "params": ""
+      },
+      {
+        "name": "submitSignalLocationModification",
+        "params": ""
+      },
+      {
+        "name": "showJunctionCameraTrafficSummary",
+        "params": "jncId"
+      },
+      {
+        "name": "promptCameraTrafficSurge",
+        "params": "camId, camName"
+      },
+      {
+        "name": "runAITrafficInference",
+        "params": ""
+      },
+      {
+        "name": "loadAIPredictionsAuditTable",
+        "params": ""
+      },
+      {
+        "name": "submitAIOperatorReview",
+        "params": "predictionId, action"
+      }
+    ],
+    "listenersCount": 4,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      },
+      {
+        "event": "resize",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "loadedmetadata",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "pages\\traffic\\traffic_ai_vision.js",
+    "functionsCount": 1,
+    "functions": [
+      {
+        "name": "animate",
+        "params": ""
+      }
+    ],
+    "listenersCount": 0,
+    "listeners": []
+  },
+  {
+    "file": "pages\\waste\\waste.js",
+    "functionsCount": 76,
+    "functions": [
+      {
+        "name": "getAuth",
+        "params": ""
+      },
+      {
+        "name": "getCurrentUser",
+        "params": ""
+      },
+      {
+        "name": "getAuthToken",
+        "params": ""
+      },
+      {
+        "name": "isWasteStaff",
+        "params": ""
+      },
+      {
+        "name": "authFetch",
+        "params": "url, options = {}"
+      },
+      {
+        "name": "escapeHTML",
+        "params": "str"
+      },
+      {
+        "name": "showToast",
+        "params": "message, isError = false"
+      },
+      {
+        "name": "switchWasteLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "showNotificationsDrawer",
+        "params": ""
+      },
+      {
+        "name": "initMap",
+        "params": ""
+      },
+      {
+        "name": "createColorIcon",
+        "params": "color, emoji = \"🗑️\""
+      },
+      {
+        "name": "renderMapMarkers",
+        "params": ""
+      },
+      {
+        "name": "refreshAllData",
+        "params": ""
+      },
+      {
+        "name": "loadBins",
+        "params": ""
+      },
+      {
+        "name": "loadHotspots",
+        "params": ""
+      },
+      {
+        "name": "loadCitizenRequests",
+        "params": "showUserFeedback = false"
+      },
+      {
+        "name": "loadStaffRequests",
+        "params": ""
+      },
+      {
+        "name": "loadStaffAssets",
+        "params": ""
+      },
+      {
+        "name": "loadOperationsSummary",
+        "params": ""
+      },
+      {
+        "name": "updateCitizenStats",
+        "params": ""
+      },
+      {
+        "name": "renderCitizenComplaintsList",
+        "params": ""
+      },
+      {
+        "name": "renderCitizenBinRequestsList",
+        "params": ""
+      },
+      {
+        "name": "renderNearbyBinsCitizen",
+        "params": ""
+      },
+      {
+        "name": "renderCitizenPickupSchedule",
+        "params": ""
+      },
+      {
+        "name": "filterStaffRequests",
+        "params": ""
+      },
+      {
+        "name": "renderStaffReportsList",
+        "params": "reports"
+      },
+      {
+        "name": "renderStaffPickupsList",
+        "params": "pickups"
+      },
+      {
+        "name": "renderBinsList",
+        "params": ""
+      },
+      {
+        "name": "populateStaffDropdowns",
+        "params": ""
+      },
+      {
+        "name": "renderVehiclesTable",
+        "params": ""
+      },
+      {
+        "name": "renderWorkersTable",
+        "params": ""
+      },
+      {
+        "name": "renderRoutesTable",
+        "params": ""
+      },
+      {
+        "name": "loadAnalyticsData",
+        "params": ""
+      },
+      {
+        "name": "renderHotspotsTable",
+        "params": ""
+      },
+      {
+        "name": "initSocket",
+        "params": ""
+      },
+      {
+        "name": "init",
+        "params": ""
+      },
+      {
+        "name": "window.openBinModal",
+        "params": ""
+      },
+      {
+        "name": "window.updateModalStatus",
+        "params": ""
+      },
+      {
+        "name": "window.saveBin",
+        "params": ""
+      },
+      {
+        "name": "window.editBin",
+        "params": ""
+      },
+      {
+        "name": "window.deleteBin",
+        "params": ""
+      },
+      {
+        "name": "window.quickUpdateBinFill",
+        "params": ""
+      },
+      {
+        "name": "window.openReportModal",
+        "params": ""
+      },
+      {
+        "name": "window.openPickupModal",
+        "params": ""
+      },
+      {
+        "name": "window.useCurrentLocationForReport",
+        "params": ""
+      },
+      {
+        "name": "window.useCurrentLocationForPickup",
+        "params": ""
+      },
+      {
+        "name": "window.useCurrentLocationForBinRequest",
+        "params": ""
+      },
+      {
+        "name": "window.handleEvidencePreview",
+        "params": ""
+      },
+      {
+        "name": "window.saveReport",
+        "params": ""
+      },
+      {
+        "name": "window.savePickup",
+        "params": ""
+      },
+      {
+        "name": "window.openCitizenBinRequestModal",
+        "params": ""
+      },
+      {
+        "name": "window.closeCitizenBinRequestModal",
+        "params": ""
+      },
+      {
+        "name": "window.submitCitizenBinRequest",
+        "params": ""
+      },
+      {
+        "name": "window.loadCitizenBinRequests",
+        "params": ""
+      },
+      {
+        "name": "window.updateBinRequestStatus",
+        "params": ""
+      },
+      {
+        "name": "window.openStaffRequestModal",
+        "params": ""
+      },
+      {
+        "name": "window.submitStaffRequestUpdate",
+        "params": ""
+      },
+      {
+        "name": "window.quickResolveRequest",
+        "params": ""
+      },
+      {
+        "name": "window.reopenRequest",
+        "params": ""
+      },
+      {
+        "name": "window.switchWasteTab",
+        "params": ""
+      },
+      {
+        "name": "window.openActiveAssetModal",
+        "params": ""
+      },
+      {
+        "name": "window.openVehicleModal",
+        "params": ""
+      },
+      {
+        "name": "window.saveVehicle",
+        "params": ""
+      },
+      {
+        "name": "window.deleteVehicle",
+        "params": ""
+      },
+      {
+        "name": "window.openWorkerModal",
+        "params": ""
+      },
+      {
+        "name": "window.saveWorker",
+        "params": ""
+      },
+      {
+        "name": "window.deleteWorker",
+        "params": ""
+      },
+      {
+        "name": "window.openRouteModal",
+        "params": ""
+      },
+      {
+        "name": "window.saveRoute",
+        "params": ""
+      },
+      {
+        "name": "window.deleteRoute",
+        "params": ""
+      },
+      {
+        "name": "window.focusMapLocation",
+        "params": ""
+      },
+      {
+        "name": "window.closeModal",
+        "params": ""
+      },
+      {
+        "name": "window.runAIWasteInference",
+        "params": ""
+      },
+      {
+        "name": "window.loadAIWastePredictionsTable",
+        "params": ""
+      },
+      {
+        "name": "window.submitAIWasteReview",
+        "params": ""
+      }
+    ],
+    "listenersCount": 3,
+    "listeners": [
+      {
+        "event": "smartcity:auth-change",
+        "handler": "anonymous"
+      },
+      {
+        "event": "storage",
+        "handler": "e"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "init"
+      }
+    ]
+  },
+  {
+    "file": "pages\\water\\water.js",
+    "functionsCount": 55,
+    "functions": [
+      {
+        "name": "getAuth",
+        "params": ""
+      },
+      {
+        "name": "getCurrentUser",
+        "params": ""
+      },
+      {
+        "name": "isWaterStaff",
+        "params": ""
+      },
+      {
+        "name": "getAuthHeaders",
+        "params": ""
+      },
+      {
+        "name": "switchWaterLayer",
+        "params": "layer"
+      },
+      {
+        "name": "applyRoleUI",
+        "params": ""
+      },
+      {
+        "name": "initWaterMap",
+        "params": ""
+      },
+      {
+        "name": "renderMapMarkers",
+        "params": ""
+      },
+      {
+        "name": "fetchAllWaterData",
+        "params": ""
+      },
+      {
+        "name": "fetchSummary",
+        "params": ""
+      },
+      {
+        "name": "fetchTanks",
+        "params": ""
+      },
+      {
+        "name": "fetchReports",
+        "params": ""
+      },
+      {
+        "name": "fetchTankers",
+        "params": ""
+      },
+      {
+        "name": "fetchPipelines",
+        "params": ""
+      },
+      {
+        "name": "fetchTechnicians",
+        "params": ""
+      },
+      {
+        "name": "fetchQualityLogs",
+        "params": ""
+      },
+      {
+        "name": "fetchSchedules",
+        "params": ""
+      },
+      {
+        "name": "renderTanks",
+        "params": ""
+      },
+      {
+        "name": "renderUserReports",
+        "params": ""
+      },
+      {
+        "name": "renderUserTankers",
+        "params": ""
+      },
+      {
+        "name": "renderSchedules",
+        "params": ""
+      },
+      {
+        "name": "renderStaffComplaints",
+        "params": ""
+      },
+      {
+        "name": "renderStaffTankers",
+        "params": ""
+      },
+      {
+        "name": "renderTechnicians",
+        "params": ""
+      },
+      {
+        "name": "populateTechSelect",
+        "params": ""
+      },
+      {
+        "name": "renderAdminTanks",
+        "params": ""
+      },
+      {
+        "name": "renderPipelines",
+        "params": ""
+      },
+      {
+        "name": "renderQualityLogs",
+        "params": ""
+      },
+      {
+        "name": "openReportModal",
+        "params": "type"
+      },
+      {
+        "name": "openTankerModal",
+        "params": ""
+      },
+      {
+        "name": "openAssignModal",
+        "params": "reportId, priority"
+      },
+      {
+        "name": "openDispatchTankerModal",
+        "params": "bookingId"
+      },
+      {
+        "name": "openTankModal",
+        "params": "tankId = null"
+      },
+      {
+        "name": "openQualityModal",
+        "params": ""
+      },
+      {
+        "name": "closeModal",
+        "params": "id"
+      },
+      {
+        "name": "togglePumpStatus",
+        "params": "tankId, currentStatus"
+      },
+      {
+        "name": "deleteTank",
+        "params": "tankId"
+      },
+      {
+        "name": "updateReportStatus",
+        "params": "reportId, status"
+      },
+      {
+        "name": "updateTankerStatus",
+        "params": "bookingId, status"
+      },
+      {
+        "name": "initRealtime",
+        "params": ""
+      },
+      {
+        "name": "toggleProfile",
+        "params": ""
+      },
+      {
+        "name": "switchRole",
+        "params": "role"
+      },
+      {
+        "name": "promptStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "handleAuthAction",
+        "params": ""
+      },
+      {
+        "name": "showToast",
+        "params": "msg"
+      },
+      {
+        "name": "getIssueIcon",
+        "params": "type"
+      },
+      {
+        "name": "getStatusBg",
+        "params": "s"
+      },
+      {
+        "name": "getStatusFg",
+        "params": "s"
+      },
+      {
+        "name": "getTankerStatusBg",
+        "params": "s"
+      },
+      {
+        "name": "getTankerStatusFg",
+        "params": "s"
+      },
+      {
+        "name": "escapeHTML",
+        "params": "str"
+      },
+      {
+        "name": "onAIWaterTankChange",
+        "params": "tankId"
+      },
+      {
+        "name": "runAIWaterAnomalyDetection",
+        "params": ""
+      },
+      {
+        "name": "loadAIWaterAuditTable",
+        "params": ""
+      },
+      {
+        "name": "submitAIWaterReview",
+        "params": "predictionId, actionTaken"
+      }
+    ],
+    "listenersCount": 8,
+    "listeners": [
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      },
+      {
+        "event": "smartcity:auth-changed",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "realtime.js",
+    "functionsCount": 4,
+    "functions": [
+      {
+        "name": "togglePopup",
+        "params": ""
+      },
+      {
+        "name": "resolveNavUrl",
+        "params": "targetUrl"
+      },
+      {
+        "name": "formatMarkdown",
+        "params": "text"
+      },
+      {
+        "name": "sendWidgetQuery",
+        "params": ""
+      }
+    ],
+    "listenersCount": 7,
+    "listeners": [
+      {
+        "event": "click",
+        "handler": "togglePopup"
+      },
+      {
+        "event": "click",
+        "handler": "togglePopup"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "sendWidgetQuery"
+      },
+      {
+        "event": "keydown",
+        "handler": "anonymous"
+      },
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      }
+    ]
+  },
+  {
+    "file": "script.js",
+    "functionsCount": 85,
+    "functions": [
+      {
+        "name": "initializeMap",
+        "params": ""
+      },
+      {
+        "name": "checkBackend",
+        "params": ""
+      },
+      {
+        "name": "loadCityStatus",
+        "params": ""
+      },
+      {
+        "name": "getMyLocation",
+        "params": ""
+      },
+      {
+        "name": "drawUserLocation",
+        "params": ""
+      },
+      {
+        "name": "loadRealPlaces",
+        "params": "lat, lng"
+      },
+      {
+        "name": "showFeature",
+        "params": "type, button"
+      },
+      {
+        "name": "loadLiveIncidentsOnCityMap",
+        "params": "layerType"
+      },
+      {
+        "name": "loadLiveParkingOnCityMap",
+        "params": ""
+      },
+      {
+        "name": "typeMatches",
+        "params": "selected, actual"
+      },
+      {
+        "name": "detectRealType",
+        "params": "tags"
+      },
+      {
+        "name": "addRealMarker",
+        "params": "place"
+      },
+      {
+        "name": "addDemoMarker",
+        "params": "item"
+      },
+      {
+        "name": "getPlaceCoordinates",
+        "params": "place"
+      },
+      {
+        "name": "showLocationInfo",
+        "params": "name,\r\n\r\n    type,\r\n\r\n    lat,\r\n\r\n    lng,\r\n\r\n    isDemo"
+      },
+      {
+        "name": "startNavigation",
+        "params": "destinationLat,\r\n\r\n    destinationLng,\r\n\r\n    destinationName"
+      },
+      {
+        "name": "useGorakhpurForNavigation",
+        "params": "destinationLat,\r\n\r\n    destinationLng,\r\n\r\n    destinationName"
+      },
+      {
+        "name": "createRoute",
+        "params": "destinationLat,\r\n\r\n    destinationLng,\r\n\r\n    destinationName"
+      },
+      {
+        "name": "showDemoTraffic",
+        "params": "lat, lng"
+      },
+      {
+        "name": "searchLocation",
+        "params": ""
+      },
+      {
+        "name": "refreshMapData",
+        "params": ""
+      },
+      {
+        "name": "clearMarkers",
+        "params": ""
+      },
+      {
+        "name": "clearTraffic",
+        "params": ""
+      },
+      {
+        "name": "getIcon",
+        "params": "type"
+      },
+      {
+        "name": "defaultName",
+        "params": "type"
+      },
+      {
+        "name": "escapeHTML",
+        "params": "value"
+      },
+      {
+        "name": "escapeJS",
+        "params": "value"
+      },
+      {
+        "name": "initializeAIButton",
+        "params": ""
+      },
+      {
+        "name": "sendAIMessage",
+        "params": ""
+      },
+      {
+        "name": "handleQuickPrompt",
+        "params": "promptText"
+      },
+      {
+        "name": "showAITypingIndicator",
+        "params": ""
+      },
+      {
+        "name": "removeAITypingIndicator",
+        "params": "id"
+      },
+      {
+        "name": "appendChatMessage",
+        "params": "sender, text, actions = []"
+      },
+      {
+        "name": "formatAIMarkdown",
+        "params": "text"
+      },
+      {
+        "name": "triggerQuickSOSFromChat",
+        "params": ""
+      },
+      {
+        "name": "generatePatientID",
+        "params": ""
+      },
+      {
+        "name": "initializePatientForm",
+        "params": ""
+      },
+      {
+        "name": "calculateAge",
+        "params": "dob"
+      },
+      {
+        "name": "openPatientRegistration",
+        "params": ""
+      },
+      {
+        "name": "openDoctorBooking",
+        "params": ""
+      },
+      {
+        "name": "openHospitalContacts",
+        "params": ""
+      },
+      {
+        "name": "closeHealthModal",
+        "params": "id"
+      },
+      {
+        "name": "bookDoctorSlot",
+        "params": ""
+      },
+      {
+        "name": "trackAmbulance",
+        "params": ""
+      },
+      {
+        "name": "openHospitalBooking",
+        "params": ""
+      },
+      {
+        "name": "openPatientFile",
+        "params": ""
+      },
+      {
+        "name": "searchPatientFile",
+        "params": ""
+      },
+      {
+        "name": "checkExistingLogin",
+        "params": ""
+      },
+      {
+        "name": "openAuthPopup",
+        "params": "tab = \"citizen\""
+      },
+      {
+        "name": "showLogin",
+        "params": ""
+      },
+      {
+        "name": "showCreateAccount",
+        "params": ""
+      },
+      {
+        "name": "showStaffLogin",
+        "params": ""
+      },
+      {
+        "name": "clearAuthMessages",
+        "params": ""
+      },
+      {
+        "name": "createUserAccount",
+        "params": ""
+      },
+      {
+        "name": "userLogin",
+        "params": ""
+      },
+      {
+        "name": "staffLogin",
+        "params": ""
+      },
+      {
+        "name": "saveCurrentLogin",
+        "params": ""
+      },
+      {
+        "name": "closeAuthPopup",
+        "params": ""
+      },
+      {
+        "name": "updateUserBar",
+        "params": ""
+      },
+      {
+        "name": "canStaffEdit",
+        "params": "feature"
+      },
+      {
+        "name": "showViewOnlyMessage",
+        "params": "feature"
+      },
+      {
+        "name": "requireEditPermission",
+        "params": "feature"
+      },
+      {
+        "name": "applyStaffPermissions",
+        "params": ""
+      },
+      {
+        "name": "logoutSmartCity",
+        "params": ""
+      },
+      {
+        "name": "initDashboardRealtime",
+        "params": ""
+      },
+      {
+        "name": "initVoiceAssistant",
+        "params": ""
+      },
+      {
+        "name": "stopVoiceListening",
+        "params": ""
+      },
+      {
+        "name": "speakAIText",
+        "params": "text"
+      },
+      {
+        "name": "openGrievanceModal",
+        "params": "preselectDept"
+      },
+      {
+        "name": "closeGrievanceModal",
+        "params": ""
+      },
+      {
+        "name": "switchGrievanceTab",
+        "params": "tab"
+      },
+      {
+        "name": "handleDeptChange",
+        "params": ""
+      },
+      {
+        "name": "fillCurrentLocationForGrievance",
+        "params": ""
+      },
+      {
+        "name": "handleGrievanceSubmit",
+        "params": "e"
+      },
+      {
+        "name": "loadMyGrievances",
+        "params": ""
+      },
+      {
+        "name": "renderGrievanceCard",
+        "params": "req"
+      },
+      {
+        "name": "startSlaTickTimer",
+        "params": ""
+      },
+      {
+        "name": "updateAllSlaClocks",
+        "params": ""
+      },
+      {
+        "name": "rateGrievance",
+        "params": "requestId, rating"
+      },
+      {
+        "name": "openCommandCenterModal",
+        "params": ""
+      },
+      {
+        "name": "closeCommandCenterModal",
+        "params": ""
+      },
+      {
+        "name": "fetchCommandCenterData",
+        "params": ""
+      },
+      {
+        "name": "fetchAIPredictionsLedger",
+        "params": ""
+      },
+      {
+        "name": "submitAIReview",
+        "params": "predictionId, action"
+      },
+      {
+        "name": "showSimulatedDispatchAlert",
+        "params": "ticket"
+      }
+    ],
+    "listenersCount": 7,
+    "listeners": [
+      {
+        "event": "DOMContentLoaded",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "sendAIMessage"
+      },
+      {
+        "event": "keydown",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "submit",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      },
+      {
+        "event": "click",
+        "handler": "anonymous"
+      }
+    ]
+  }
+]

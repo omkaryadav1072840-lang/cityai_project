@@ -855,9 +855,15 @@ router.post("/api/admin/famous-places", authenticateToken, requireRole(["staff",
 });
 
 router.delete("/api/admin/famous-places/:id/reviews/:reviewId", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
-    const reviewId = req.params.reviewId;
-    db.query("UPDATE place_reviews SET status = 'Hidden' WHERE id = ?", [reviewId], (err) => {
+    const reviewId = Number(req.params.reviewId);
+    if (isNaN(reviewId) || reviewId <= 0) {
+        return res.status(400).json({ success: false, message: "Valid integer review ID is required." });
+    }
+    db.query("UPDATE place_reviews SET status = 'Hidden' WHERE id = ?", [reviewId], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: "Error moderating review." });
+        if (result && result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Review not found." });
+        }
         res.json({ success: true, message: "Review hidden from public directory." });
     });
 });

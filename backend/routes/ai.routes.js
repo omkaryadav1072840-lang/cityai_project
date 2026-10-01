@@ -787,8 +787,8 @@ router.get("/api/admin/ai-command-center", optionalToken, async (req, res) => {
         const [hospitals] = await pool.query("SELECT SUM(total_beds) AS total_beds, SUM(icu_beds) AS icu_beds FROM hospitals WHERE status != 'Inactive'");
         const [emergencies] = await pool.query("SELECT COUNT(*) AS active FROM emergency_incidents WHERE status IN ('ACTIVE', 'Active', 'Dispatched')");
         const [grievances] = await pool.query("SELECT COUNT(*) AS pending FROM service_requests WHERE status IN ('Pending', 'Submitted', 'In Progress')");
-        const [waste] = await pool.query("SELECT COUNT(*) AS bins, AVG(current_fill_level) AS avg_fill FROM waste_bins");
-        const [aqi] = await pool.query("SELECT AVG(aqi_value) AS avg_aqi FROM environmental_sensors");
+        const [waste] = await pool.query("SELECT COUNT(*) AS bins, AVG(fill_level) AS avg_fill FROM waste_bins");
+        const [aqi] = await pool.query("SELECT AVG(aqi) AS avg_aqi FROM city_environmental_sensors");
         const [predictions] = await pool.query("SELECT COUNT(*) AS total_today FROM ai_predictions WHERE DATE(created_at) = CURDATE()");
 
         const avgCongestion = Math.round(traffic[0]?.avg_congestion || 38);
@@ -920,7 +920,8 @@ router.post("/api/cv/violations/:id/verify", async (req, res) => {
         });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        const statusCode = err.message && err.message.toLowerCase().includes("not found") ? 404 : 500;
+        res.status(statusCode).json({ success: false, error: err.message });
     }
 });
 
@@ -1053,7 +1054,8 @@ router.post(["/api/hospital/qr-patient-access", "/api/ai/hospital/qr-patient-acc
         const result = await healthcareAIService.accessPatientRecordViaQR({ qr_token, accessing_user_token: userToken });
         res.json(result);
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        const statusCode = err.message && (err.message.includes("Missing") || err.message.includes("Invalid")) ? 400 : 500;
+        res.status(statusCode).json({ success: false, error: err.message });
     }
 });
 
