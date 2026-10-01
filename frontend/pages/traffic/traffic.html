@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- Traffic Module Stylesheet (Consistent with Parking/Police/Emergency) -->
     <link rel="stylesheet" href="traffic.css">
+    <link rel="stylesheet" href="../../components/ui_components.css">
 </head>
 <body>
 
@@ -40,10 +41,10 @@
         <!-- User Profile Badge & Dropdown -->
         <div class="user-profile-menu-container" id="userProfileMenuContainer">
             <button type="button" class="user-badge-btn" id="userBadgeBtn" onclick="toggleUserDropdown(event)">
-                <span class="user-avatar-circle" id="userAvatarCircle">OY</span>
+                <span class="user-avatar-circle" id="userAvatarCircle">CU</span>
                 <div class="user-badge-info">
-                    <span class="user-badge-name" id="navUserName">Omkar Yadav</span>
-                    <span class="user-badge-status" id="navUserStatus">🟢 Active Citizen</span>
+                    <span class="user-badge-name" id="navUserName">Sign In</span>
+                    <span class="user-badge-status" id="navUserStatus">Visitor</span>
                 </div>
                 <span class="dropdown-caret">▾</span>
             </button>
@@ -51,8 +52,8 @@
             <!-- Dropdown Menu -->
             <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
                 <div class="dropdown-header-info">
-                    <strong id="ddUserFullName">Omkar Yadav</strong>
-                    <span id="ddUserContact">Citizen • Gorakhpur</span>
+                    <strong id="ddUserFullName">Guest Visitor</strong>
+                    <span id="ddUserContact">Sign in to access controls</span>
                 </div>
                 <div style="font-size: 11px; font-weight: 700; color: #64748b; margin: 4px 8px;">SWITCH DEMO ROLE:</div>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('citizen')">
@@ -252,74 +253,107 @@
         </div>
     </div>
 
-    <!-- ================= OPENLAYERS MAP CARD ================= -->
-    <div class="map-container-card">
-        <div class="card-header">
-            <h2><i class="fa-solid fa-map-location-dot" style="color: #2563eb;"></i> Gorakhpur Live Traffic Map</h2>
-            <div class="map-toolbar">
-                <button class="map-tool-btn" onclick="trafficMap.resetView()" title="Center on Gorakhpur">
-                    <i class="fa-solid fa-crosshairs"></i> Center Map
-                </button>
-                <button id="btn-toggle-heatmap" class="map-tool-btn active" onclick="toggleHeatmapLayer()">
-                    <i class="fa-solid fa-fire"></i> Congestion Heatmap
-                </button>
-                <button id="btn-toggle-ambulances" class="map-tool-btn active" onclick="toggleAmbulancesLayer()" title="Toggle Live Moving Ambulances">
-                    <i class="fa-solid fa-truck-medical" style="color: #dc2626;"></i> Live Ambulances (<span id="map-amb-badge">--</span>)
-                </button>
-                <button id="btn-toggle-signals" class="map-tool-btn active" onclick="toggleSignalsLayer()">
-                    <i class="fa-solid fa-traffic-light"></i> Traffic Lights
-                </button>
-                <button id="btn-toggle-vms" class="map-tool-btn active" onclick="toggleVMSLayer()">
-                    <i class="fa-solid fa-chalkboard"></i> VMS Boards
-                </button>
-                <button id="btn-toggle-parking" class="map-tool-btn active" onclick="toggleParkingLayer()">
-                    <i class="fa-solid fa-square-parking"></i> Parking
-                </button>
-                <button id="btn-toggle-incidents" class="map-tool-btn active" onclick="toggleIncidentsLayer()">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Incidents
-                </button>
-                <button id="btn-toggle-waterlogging" class="map-tool-btn active" onclick="toggleWaterloggingLayer()">
-                    <i class="fa-solid fa-cloud-showers-heavy"></i> Monsoon / Flood Risk
-                </button>
+    <!-- ================= OPENLAYERS MAP MOUNT CONTAINER (CITIZEN DEFAULT) ================= -->
+    <div id="citizen-map-mount">
+        <div class="map-container-card" id="trafficMapContainerCard">
+            <!-- Staff GIS Toolbar (Active when viewed by Traffic Staff) -->
+            <div id="staff-map-gis-bar" style="display: none; background: #0f172a; color: #ffffff; padding: 12px 18px; border-radius: 12px 12px 0 0; border-bottom: 1px solid #334155;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 18px;">🗺️</span>
+                        <div>
+                            <strong style="font-size: 14px; letter-spacing: 0.3px; color: #f8fafc;">Operational GIS Grid & Asset Placement</strong>
+                            <div style="font-size: 11px; color: #94a3b8;">Click on map to drop location pins or register new infrastructure below</div>
+                        </div>
+                        <span style="background: #0284c7; color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px; margin-left: 6px;">STAFF MODE</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="btn-sm" id="btnStaffPinLocationMode" onclick="toggleMapPinPlacementMode()" style="background: #3b82f6; color: #ffffff; border: 1px solid #60a5fa; border-radius: 6px; padding: 6px 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-map-pin"></i> <span id="pinModeBtnText">Click Map to Add Feature</span>
+                        </button>
+                        <button class="btn-sm" onclick="openAddJunctionModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
+                            <i class="fa-solid fa-plus" style="color: #38bdf8;"></i> Add Junction
+                        </button>
+                        <button class="btn-sm" onclick="openAddSignalModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
+                            <i class="fa-solid fa-traffic-light" style="color: #4ade80;"></i> Add Signal
+                        </button>
+                        <button class="btn-sm" onclick="openAddCameraModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
+                            <i class="fa-solid fa-video" style="color: #a78bfa;"></i> Add CCTV
+                        </button>
+                        <button class="btn-sm" onclick="openIncidentModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
+                            <i class="fa-solid fa-triangle-exclamation" style="color: #fb923c;"></i> Report Incident
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div id="traffic-ol-map"></div>
 
-        <!-- ================= CONGESTION HEATMAP DYNAMIC CONTROLS & THERMAL SPECTRUM ================= -->
-        <div id="heatmap-controls-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 9px 16px; font-size: 12px;">
-            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-                <span style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-fire-flame-curved" style="color: #ea580c;"></i> Congestion Heatmap:
-                </span>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="color: #64748b;">Radius:</span>
-                    <input type="range" id="hm-radius-slider" min="15" max="50" value="26" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapRadiusChange(this.value)">
-                    <span id="hm-radius-val" style="font-weight: 700; color: #0f172a; width: 28px;">26px</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="color: #64748b;">Blur:</span>
-                    <input type="range" id="hm-blur-slider" min="15" max="50" value="28" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapBlurChange(this.value)">
-                    <span id="hm-blur-val" style="font-weight: 700; color: #0f172a; width: 28px;">28px</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="color: #64748b;">Opacity:</span>
-                    <input type="range" id="hm-opacity-slider" min="30" max="100" value="85" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapOpacityChange(this.value)">
-                    <span id="hm-opacity-val" style="font-weight: 700; color: #0f172a; width: 32px;">85%</span>
+            <div class="card-header">
+                <h2><i class="fa-solid fa-map-location-dot" style="color: #2563eb;"></i> Gorakhpur Live Traffic Map</h2>
+                <div class="map-toolbar">
+                    <button class="map-tool-btn" onclick="trafficMap.resetView()" title="Center on Gorakhpur">
+                        <i class="fa-solid fa-crosshairs"></i> Center Map
+                    </button>
+                    <button id="btn-toggle-heatmap" class="map-tool-btn active" onclick="toggleHeatmapLayer()">
+                        <i class="fa-solid fa-fire"></i> Congestion Heatmap
+                    </button>
+                    <button id="btn-toggle-ambulances" class="map-tool-btn active" onclick="toggleAmbulancesLayer()" title="Toggle Live Moving Ambulances">
+                        <i class="fa-solid fa-truck-medical" style="color: #dc2626;"></i> Live Ambulances (<span id="map-amb-badge">--</span>)
+                    </button>
+                    <button id="btn-toggle-signals" class="map-tool-btn active" onclick="toggleSignalsLayer()">
+                        <i class="fa-solid fa-traffic-light"></i> Traffic Lights
+                    </button>
+                    <button id="btn-toggle-vms" class="map-tool-btn active" onclick="toggleVMSLayer()">
+                        <i class="fa-solid fa-chalkboard"></i> VMS Boards
+                    </button>
+                    <button id="btn-toggle-parking" class="map-tool-btn active" onclick="toggleParkingLayer()">
+                        <i class="fa-solid fa-square-parking"></i> Parking
+                    </button>
+                    <button id="btn-toggle-incidents" class="map-tool-btn active" onclick="toggleIncidentsLayer()">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Incidents
+                    </button>
+                    <button id="btn-toggle-waterlogging" class="map-tool-btn active" onclick="toggleWaterloggingLayer()">
+                        <i class="fa-solid fa-cloud-showers-heavy"></i> Monsoon / Flood Risk
+                    </button>
                 </div>
             </div>
-            <!-- Heatmap Thermal Spectrum Legend -->
-            <div style="display: flex; align-items: center; gap: 10px; font-size: 11px;">
-                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e;"></span> Clear (&lt;40%)</span>
-                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#facc15;"></span> Moderate (40-65%)</span>
-                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ea580c;"></span> Heavy (65-80%)</span>
-                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#dc2626;"></span> Severe (&gt;80%)</span>
-            </div>
-        </div>
+            <div id="traffic-ol-map"></div>
 
-        <!-- Map Popup Element -->
-        <div id="map-popup" class="ol-popup">
-            <a href="javascript:void(0)" id="popup-closer" class="ol-popup-closer" onclick="trafficMap.closePopup()">&times;</a>
-            <div id="popup-content"></div>
+            <!-- ================= CONGESTION HEATMAP DYNAMIC CONTROLS & THERMAL SPECTRUM ================= -->
+            <div id="heatmap-controls-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 9px 16px; font-size: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                    <span style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-fire-flame-curved" style="color: #ea580c;"></i> Congestion Heatmap:
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #64748b;">Radius:</span>
+                        <input type="range" id="hm-radius-slider" min="15" max="50" value="26" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapRadiusChange(this.value)">
+                        <span id="hm-radius-val" style="font-weight: 700; color: #0f172a; width: 28px;">26px</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #64748b;">Blur:</span>
+                        <input type="range" id="hm-blur-slider" min="15" max="50" value="28" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapBlurChange(this.value)">
+                        <span id="hm-blur-val" style="font-weight: 700; color: #0f172a; width: 28px;">28px</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #64748b;">Opacity:</span>
+                        <input type="range" id="hm-opacity-slider" min="30" max="100" value="85" style="width: 75px; accent-color: #2563eb;" oninput="onHeatmapOpacityChange(this.value)">
+                        <span id="hm-opacity-val" style="font-weight: 700; color: #0f172a; width: 32px;">85%</span>
+                    </div>
+                </div>
+                <!-- Heatmap Thermal Spectrum Legend -->
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 11px;">
+                    <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#22c55e;"></span> Clear (&lt;40%)</span>
+                    <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#facc15;"></span> Moderate (40-65%)</span>
+                    <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ea580c;"></span> Heavy (65-80%)</span>
+                    <span style="display: flex; align-items: center; gap: 4px; font-weight: 600;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#dc2626;"></span> Severe (&gt;80%)</span>
+                </div>
+            </div>
+
+            <!-- Map Popup Element -->
+            <div id="map-popup" class="ol-popup">
+                <a href="javascript:void(0)" id="popup-closer" class="ol-popup-closer" onclick="trafficMap.closePopup()">&times;</a>
+                <div id="popup-content"></div>
+            </div>
         </div>
     </div>
 
@@ -450,11 +484,11 @@
                 <div>
                     <div class="form-group">
                         <label>YOUR NAME</label>
-                        <input type="text" id="commute-name-input" class="form-control" placeholder="e.g. Rahul Sharma" value="Omkar Yadav">
+                        <input type="text" id="commute-name-input" class="form-control" placeholder="e.g. Rahul Sharma" value="">
                     </div>
                     <div class="form-group">
                         <label>MOBILE NUMBER OR EMAIL</label>
-                        <input type="text" id="commute-contact-input" class="form-control" placeholder="e.g. 9876543210 or omkar@example.com" value="+91 98765 43210">
+                        <input type="text" id="commute-contact-input" class="form-control" placeholder="e.g. 9876543210 or citizen@example.com" value="">
                     </div>
                 </div>
 
@@ -498,19 +532,59 @@
 
         <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
         <div class="layer-gatekeeper-card" id="staffGatekeeper">
-            <div class="gatekeeper-icon">🔒</div>
-            <h3>Traffic Staff Operations Access Restricted</h3>
+            <div class="gatekeeper-icon">👮</div>
+            <h3>Traffic Staff & Officer Portal Login</h3>
             <p>
-                This layer is reserved for traffic police officers, junction operators, and ICCC signals personnel.
+                Enter your authorized Traffic Department Staff ID and Password to access Gorakhpur ATCS signal control, CCTV optical grid, and GIS asset placement console.
             </p>
-            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px;">
-                <button class="primary-btn" onclick="quickLoginTrafficStaff()">
-                    ⚡ 1-Click Login: Insp. Verma (Traffic Staff)
+
+            <!-- Dedicated Staff Login Form -->
+            <form id="trafficStaffLoginForm" onsubmit="handleTrafficStaffLoginSubmit(event)" style="max-width: 440px; margin: 20px auto 0; text-align: left; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 14px; padding: 22px 24px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);">
+                
+                <div id="staffLoginErrorAlert" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 14px; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span id="staffLoginErrorText">Invalid credentials.</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; letter-spacing: 0.5px;">
+                        <i class="fa-solid fa-id-badge" style="color: #2563eb;"></i> OFFICER / STAFF ID
+                    </label>
+                    <input type="text" id="trafficStaffIdInput" class="form-control" required placeholder="e.g. TR-VERMA, TR-PANDEY, TR-ADMIN" autocomplete="username" style="width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: 600; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; letter-spacing: 0.5px;">
+                        <i class="fa-solid fa-lock" style="color: #2563eb;"></i> SECURITY PASSWORD
+                    </label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="trafficStaffPasswordInput" class="form-control" required placeholder="Enter your password" autocomplete="current-password" style="width: 100%; padding: 10px 42px 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+                        <button type="button" onclick="toggleStaffPasswordVisibility()" style="position: absolute; right: 10px; background: none; border: none; color: #64748b; cursor: pointer; padding: 4px 6px; font-size: 14px;" title="Show/Hide Password">
+                            <i class="fa-solid fa-eye" id="toggleStaffPassIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Demo Credential Selector -->
+                <div style="margin-bottom: 18px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 6px;">QUICK DEMO SELECTOR:</div>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button type="button" onclick="fillStaffCredentials('TR-VERMA', 'verma123')" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            👮 Insp. Verma (TR-VERMA)
+                        </button>
+                        <button type="button" onclick="fillStaffCredentials('TR-PANDEY', 'pandey123')" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            👮 SI Pandey (TR-PANDEY)
+                        </button>
+                        <button type="button" onclick="fillStaffCredentials('TR-ADMIN', 'admin123')" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            🛡️ Admin (TR-ADMIN)
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnTrafficStaffSubmit" class="btn-primary" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; justify-content: center; border-radius: 8px;">
+                    🔐 Sign In to Traffic Operations
                 </button>
-                <button class="btn-secondary" onclick="promptTrafficStaffLogin()" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer;">
-                    🔑 Manual Login Dialog
-                </button>
-            </div>
+            </form>
         </div>
 
         <!-- STAFF OPERATIONS MAIN CONTAINER -->
@@ -536,6 +610,9 @@
                 </button>
             </div>
         </div>
+
+        <!-- STAFF OPERATIONAL GIS MAP MOUNT -->
+        <div id="staff-map-mount" style="margin-bottom: 24px;"></div>
 
         <!-- ================= AI INTELLIGENCE & CONGESTION PREDICTION PANEL (FastAPI ML) ================= -->
         <div class="content-card" style="margin-bottom: 24px; border-left: 4px solid #2563eb; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
@@ -1147,11 +1224,11 @@
             </div>
             <div class="form-group">
                 <label>REPORTER NAME</label>
-                <input type="text" id="inc-name" class="form-control" value="Omkar Yadav">
+                <input type="text" id="inc-name" class="form-control" placeholder="Enter your name" value="">
             </div>
             <div class="form-group">
                 <label>CONTACT PHONE</label>
-                <input type="text" id="inc-phone" class="form-control" value="6306880179">
+                <input type="text" id="inc-phone" class="form-control" placeholder="10-digit mobile number" value="">
             </div>
         </div>
         <div class="modal-footer">
@@ -1737,9 +1814,55 @@
             <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; margin-top: 14px; font-size: 11px; color: #64748b;">
                 <strong>IRC Capacity Model Formula:</strong> <code>Congestion % = [0.55 × (Vehicles / Max Capacity) + 0.45 × ((45 km/h - Avg Speed) / 45)] × 100</code>.
             </div>
-        </div>
         <div class="modal-footer">
             <button class="btn-primary" onclick="closeModal('modal-camera-traffic-summary')">Close</button>
+        </div>
+    </div>
+</div>
+<!-- ================= MODAL: QUICK ADD FEATURE AT CLICKED LOCATION ================= -->
+<div id="modal-quick-add-feature" class="modal-overlay">
+    <div class="modal-box" style="max-width: 500px; text-align: center;">
+        <div class="modal-header">
+            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <i class="fa-solid fa-map-location-dot" style="color: #2563eb;"></i> Add Feature at Selected Location
+            </h3>
+            <button class="modal-close-btn" onclick="closeModal('modal-quick-add-feature')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+                <div style="font-size: 12px; font-weight: 700; color: #1e40af; margin-bottom: 4px;">SELECTED MAP COORDINATES</div>
+                <div style="font-size: 16px; font-weight: 800; color: #0f172a;">
+                    Lat: <span id="quick-pick-lat">26.7588000</span>, Lng: <span id="quick-pick-lng">83.3731000</span>
+                </div>
+            </div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+                Choose the traffic asset or infrastructure element to configure at this location:
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button type="button" class="btn-primary" onclick="quickAddSelectFeature('jnc')" style="padding: 14px; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 8px;">
+                    <i class="fa-solid fa-plus" style="font-size: 18px;"></i>
+                    <strong>Add Junction</strong>
+                    <small style="font-size: 11px; opacity: 0.85;">New crossing & node</small>
+                </button>
+                <button type="button" class="btn-primary" onclick="quickAddSelectFeature('sig')" style="padding: 14px; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #059669; border-color: #059669; border-radius: 8px;">
+                    <i class="fa-solid fa-traffic-light" style="font-size: 18px;"></i>
+                    <strong>Add Traffic Light</strong>
+                    <small style="font-size: 11px; opacity: 0.85;">Signal head & timing</small>
+                </button>
+                <button type="button" class="btn-primary" onclick="quickAddSelectFeature('cam')" style="padding: 14px; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #7c3aed; border-color: #7c3aed; border-radius: 8px;">
+                    <i class="fa-solid fa-video" style="font-size: 18px;"></i>
+                    <strong>Add CCTV Camera</strong>
+                    <small style="font-size: 11px; opacity: 0.85;">Optical unit & stream</small>
+                </button>
+                <button type="button" class="btn-primary" onclick="quickAddSelectFeature('inc')" style="padding: 14px; font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: #dc2626; border-color: #dc2626; border-radius: 8px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px;"></i>
+                    <strong>Report Incident</strong>
+                    <small style="font-size: 11px; opacity: 0.85;">Roadblock or accident</small>
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-quick-add-feature')">Cancel</button>
         </div>
     </div>
 </div>
@@ -1748,6 +1871,9 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ol@v9.1.0/dist/ol.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="../../components/ui_components.js"></script>
+<script src="../../api/client.js"></script>
+<script src="../../api/traffic.api.js"></script>
 <script src="../../auth.js"></script>
 <script src="openlayers_map.js"></script>
 <script src="traffic_ai_vision.js"></script>

@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -17,7 +16,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="shortcut icon" href="/favicon.ico">
 
-    <!-- Open Graph / Facebook / LinkedIn -->
+    <!-- Open Graph / Social Meta -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://smartcity.gorakhpur.gov.in/">
     <meta property="og:title" content="SmartCity AI — Integrated Urban Operations & Citizen Platform">
@@ -26,13 +25,6 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="675">
 
-    <!-- Twitter / X -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://smartcity.gorakhpur.gov.in/">
-    <meta name="twitter:title" content="SmartCity AI — Integrated Urban Operations & Citizen Platform">
-    <meta name="twitter:description" content="Live urban operations: Traffic heatmaps, emergency dispatch, hospital beds, and smart parking powered by grounded AI.">
-    <meta name="twitter:image" content="/smartcity-og-preview.png">
-
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css">
@@ -40,283 +32,184 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="components/ui_components.css">
     <link rel="stylesheet" href="components/cookie_consent.css">
-
 </head>
-
 
 <body>
 
+<!-- =====================================================
+     TOP ANNOUNCEMENT BAR
+===================================================== -->
+<div class="sc-top-announcement">
+    <span>🏛️ <b>Gorakhpur Smart City Mission</b> • Municipal Directorate & Integrated Command and Control Center (ICCC)</span>
+    <span style="display: flex; gap: 16px; align-items: center;">
+        <span>📞 24/7 Helpline: <b>1800-180-2026</b></span>
+        <span>🚨 Emergency: <b>112</b></span>
+    </span>
+</div>
 
 <!-- =====================================================
      NAVBAR
 ===================================================== -->
-
 <nav class="navbar">
-
     <div class="logo">
-        Smart<span>City AI</span>
+        <a href="/" id="navBrandLogo" style="text-decoration: none; color: inherit;">Smart<span>City AI</span></a>
     </div>
-
 
     <div class="nav-links">
-
-        <a href="#dashboard">
-            Dashboard
-        </a>
-
-        <a href="#cityMap">
-            Live Map
-        </a>
-
-        <a href="pages/traffic/traffic.html">
-            Traffic
-        </a>
-
-        <a href="pages/waste/waste.html">
-            Waste
-        </a>
-
-        <a href="pages/water/water.html">
-            Water
-        </a>
-
-        <a href="pages/emergency/emergency.html">
-            Emergency
-        </a>
-
-        <a href="pages/parking/parking.html">
-            Parking
-        </a>
-
-        <a href="pages/hospital/hospital.html">
-            Healthcare
-        </a>
-
-        <a href="pages/police/police.html">
-            Police
-        </a>
-
-        <a href="pages/famous/famous.html">
-            Places
-        </a>
-
-        <a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #38bdf8; font-weight: 600;">
+        <a href="#hero">Home</a>
+        <a href="#services">Services</a>
+        <a href="#aiAssistant">AI Assistant</a>
+        <a href="#map">Live Map</a>
+        <a href="#cityReports">Reports</a>
+        <a href="#howItWorks">How It Works</a>
+        <a href="#about">About</a>
+        <a href="#emergencyHelplines">Emergency</a>
+        <a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #0284c7; font-weight: 700;">
             📋 Grievances
         </a>
-
-        <a href="javascript:void(0)" onclick="openCommandCenterModal()" style="color: #a78bfa; font-weight: 600;">
+        <a href="javascript:void(0)" onclick="openCommandCenterModal()" style="color: #7c3aed; font-weight: 700;">
             🏛️ Command Center
         </a>
-
     </div>
 
+    <!-- Container for Centralized Profile Header / User Badge -->
+    <div class="nav-right" id="navUserHeaderContainer"></div>
 </nav>
-
-
 
 <main>
 
+<!-- =====================================================
+     1. PLATFORM HERO SECTION
+===================================================== -->
+<section class="sc-platform-hero" id="hero">
+    <div class="sc-platform-hero-container">
+        <div>
+            <div class="sc-hero-badge">
+                <span>🏙️</span> Official Municipal Platform • Gorakhpur, UP
+            </div>
+            <h1 class="sc-hero-headline">
+                Integrated Urban Intelligence & <span>Citizen Services</span>
+            </h1>
+            <p class="sc-hero-description">
+                Experience unified civic governance powered by real-time IoT telemetry, grounded AI municipal assistance, live hospital bed occupancy at AIIMS & BRD, smart parking, and SLA-guaranteed grievance resolution.
+            </p>
+            <div class="sc-hero-actions">
+                <a href="#services" class="sc-btn-hero-primary">
+                    <span>🚀</span> Explore City Services
+                </a>
+                <a href="#map" class="sc-btn-hero-secondary">
+                    <span>🗺️</span> Live Navigation Map
+                </a>
+                <button type="button" onclick="openGrievanceModal()" class="sc-btn-hero-secondary">
+                    <span>📋</span> Lodge Grievance
+                </button>
+                <a href="#aiAssistant" class="sc-btn-hero-secondary" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                    <span>🤖</span> Ask Civic AI
+                </a>
+            </div>
+            <div class="sc-hero-kpi-bar">
+                <div class="sc-hero-kpi-item">
+                    <span class="sc-hero-kpi-num" id="heroKpiSignals">42</span>
+                    <span class="sc-hero-kpi-label">Connected Junctions</span>
+                </div>
+                <div class="sc-hero-kpi-item">
+                    <span class="sc-hero-kpi-num" id="heroKpiBeds">100%</span>
+                    <span class="sc-hero-kpi-label">Live Bed Telemetry</span>
+                </div>
+                <div class="sc-hero-kpi-item">
+                    <span class="sc-hero-kpi-num">6</span>
+                    <span class="sc-hero-kpi-label">Multi-Tier Parking Lots</span>
+                </div>
+                <div class="sc-hero-kpi-item">
+                    <span class="sc-hero-kpi-num" style="color: #34d399;">98.4%</span>
+                    <span class="sc-hero-kpi-label">SLA Compliance</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-hero-card-side">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">🛡️</span>
+                    <div>
+                        <div style="font-weight: 800; font-size: 14px; color: #ffffff;">Gorakhpur ICCC Status</div>
+                        <div style="font-size: 11px; color: #94a3b8;">Municipal Central Operations</div>
+                    </div>
+                </div>
+                <span style="font-size: 10px; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); padding: 3px 8px; border-radius: 999px;">
+                    ● ACTIVE
+                </span>
+            </div>
+            <div style="font-size: 12.5px; color: #cbd5e1; line-height: 1.6; margin-bottom: 16px;">
+                The Integrated Command and Control Center coordinates real-time emergency green waves, automated waste collection scheduling, scada water telemetry, and optical AI CCTV surveillance across 70 municipal wards.
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 16px;">
+                <div style="background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                    <div style="color: #94a3b8; font-size: 11px;">Green Wave Corridor</div>
+                    <div style="font-weight: 700; color: #38bdf8; margin-top: 2px;">AI Preemption Ready</div>
+                </div>
+                <div style="background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                    <div style="color: #94a3b8; font-size: 11px;">Avg Ambulance ETA</div>
+                    <div style="font-weight: 700; color: #34d399; margin-top: 2px;">6.4 Minutes</div>
+                </div>
+            </div>
+            <button type="button" class="sc-btn-hero-primary" style="width: 100%; justify-content: center; padding: 10px;" onclick="window.location.href='pages/emergency/emergency.html'">
+                <span>🚨</span> Dispatch Municipal Emergency
+            </button>
+        </div>
+    </div>
+</section>
 
 <!-- =====================================================
-     DASHBOARD / HERO
+     2. AI CIVIC ASSISTANT & QUICK LAUNCHPAD
 ===================================================== -->
-
-<section
-    class="hero"
-    id="dashboard"
->
-
-
-    <!-- =================================================
-         FEATURE SIDEBAR
-    ================================================== -->
-
+<section class="hero" id="aiAssistant" style="margin-top: 40px;">
+    <!-- Feature Launchpad -->
     <div class="features">
-
-
-        <!-- TRAFFIC -->
-
-        <a
-            href="pages/traffic/traffic.html"
-            class="feature"
-            id="feat-traffic"
-        >
-
-            <span>
-                🚦
-            </span>
-
-            <p>
-                Traffic
-            </p>
-
+        <a href="pages/traffic/traffic.html" class="feature" id="feat-traffic">
+            <span>🚦</span>
+            <p>Traffic</p>
         </a>
-
-
-
-        <!-- WASTE -->
-
-        <a
-            href="pages/waste/waste.html"
-            class="feature"
-            id="feat-waste"
-        >
-
-            <span>
-                🗑️
-            </span>
-
-            <p>
-                Waste
-            </p>
-
+        <a href="pages/waste/waste.html" class="feature" id="feat-waste">
+            <span>🗑️</span>
+            <p>Waste</p>
         </a>
-
-
-
-        <!-- WATER -->
-
-        <a
-            href="pages/water/water.html"
-            class="feature"
-            id="feat-water"
-        >
-
-            <span>
-                💧
-            </span>
-
-            <p>
-                Water
-            </p>
-
+        <a href="pages/water/water.html" class="feature" id="feat-water">
+            <span>💧</span>
+            <p>Water</p>
         </a>
-
-
-
-        <!-- EMERGENCY -->
-
-        <a
-            href="pages/emergency/emergency.html"
-            class="feature"
-            id="feat-emergency"
-        >
-
-            <span>
-                🚨
-            </span>
-
-            <p>
-                Emergency
-            </p>
-
+        <a href="pages/emergency/emergency.html" class="feature" id="feat-emergency">
+            <span>🚨</span>
+            <p>Emergency</p>
         </a>
-
-
-
-        <!-- PARKING -->
-
-        <a
-            href="pages/parking/parking.html"
-            class="feature"
-            id="feat-parking"
-        >
-
-            <span>
-                🅿️
-            </span>
-
-            <p>
-                Parking
-            </p>
-
+        <a href="pages/parking/parking.html" class="feature" id="feat-parking">
+            <span>🅿️</span>
+            <p>Parking</p>
         </a>
-
-
-
-        <!-- HOSPITAL -->
-
-        <a
-            href="pages/hospital/hospital.html"
-            class="feature"
-            id="feat-hospital"
-        >
-
-            <span>
-                🏥
-            </span>
-
-            <p>
-                Hospital
-            </p>
-
+        <a href="pages/hospital/hospital.html" class="feature" id="feat-hospital">
+            <span>🏥</span>
+            <p>Hospital</p>
         </a>
-
-
-
-        <!-- POLICE -->
-
-        <a
-            href="pages/police/police.html"
-            class="feature"
-            id="feat-police"
-        >
-
-            <span>
-                👮
-            </span>
-
-            <p>
-                Police
-            </p>
-
+        <a href="pages/police/police.html" class="feature" id="feat-police">
+            <span>👮</span>
+            <p>Police</p>
         </a>
-
-
-
-        <!-- FAMOUS PLACES -->
-
-        <a
-            href="pages/famous/famous.html"
-            class="feature"
-            id="feat-famous"
-        >
-
-            <span>
-                ⭐
-            </span>
-
-            <p>
-                Famous Places
-            </p>
-
+        <a href="pages/famous/famous.html" class="feature" id="feat-famous">
+            <span>⭐</span>
+            <p>Famous Places</p>
         </a>
-
     </div>
 
-
-
-    <!-- =================================================
-         AI CARD
-    ================================================== -->
-
+    <!-- Grounded AI Municipal Assistant Card -->
     <div class="ai-card" id="smartCityAICard">
-
         <div class="ai-head">
-            <div class="ai-avatar">
-                🤖
-            </div>
-
+            <div class="ai-avatar">🤖</div>
             <div>
-                <h1>
-                    Smart <span>City AI</span>
-                </h1>
-                <p>
-                    Live Municipal & Emergency Assistant
-                </p>
+                <h1>Smart <span>City AI</span></h1>
+                <p>Live Municipal & Emergency Assistant</p>
             </div>
-
             <div class="ai-header-controls" style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
                 <span id="aiModelBadge" style="font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.2);">
                     ● ONLINE
@@ -328,7 +221,6 @@
         </div>
 
         <div class="ai-display" id="aiChatDisplay">
-            <!-- Scrollable chat container -->
             <div id="aiChatMessages" class="ai-chat-messages">
                 <div class="ai-msg ai-msg-bot">
                     <div class="ai-msg-bubble">
@@ -350,943 +242,526 @@
         </div>
 
         <div class="ai-input">
-            <input
-                type="text"
-                id="userInput"
-                placeholder="Ask Smart City AI (or speak in Hindi/English)..."
-                autocomplete="off"
-            >
-            <button id="aiVoiceBtn" class="ai-voice-btn" type="button" title="Voice Input (Hindi / English)">
-                🎤
-            </button>
-            <button id="aiSpeakerBtn" class="ai-speaker-btn" type="button" title="Toggle Voice Response">
-                🔊
-            </button>
-            <button id="sendButton">
-                Send ➔
-            </button>
+            <input type="text" id="userInput" placeholder="Ask Smart City AI (or speak in Hindi/English)..." autocomplete="off">
+            <button id="aiVoiceBtn" class="ai-voice-btn" type="button" title="Voice Input (Hindi / English)">🎤</button>
+            <button id="aiSpeakerBtn" class="ai-speaker-btn" type="button" title="Toggle Voice Response">🔊</button>
+            <button id="sendButton">Send ➔</button>
         </div>
-
     </div>
-
 </section>
 
-
-
 <!-- =====================================================
-     CURRENT CITY REPORTS
+     3. OFFICIAL SMARTCITY SERVICES DIRECTORY
 ===================================================== -->
-
-<section
-    class="reports"
-    id="cityReports"
->
-
-
-    <div class="section-title">
-
-        <div>
-
-            <h2>
-                Current City Reports
-            </h2>
-
-            <p>
-                Smart city service overview
-            </p>
-
-        </div>
-
-
-        <span class="live">
-
-            <i></i>
-
-            LIVE
-
-        </span>
-
+<section class="sc-section" id="services">
+    <div class="sc-section-header">
+        <span class="sc-section-badge">Civic Portals & Modules</span>
+        <h2 class="sc-section-title">Official Municipal Services</h2>
+        <p class="sc-section-subtitle">
+            Direct access to Gorakhpur's integrated citizen portals. Each module provides dedicated workflows for public citizens and authorized departmental staff.
+        </p>
     </div>
 
+    <div class="sc-services-grid">
+        <!-- 1. Traffic -->
+        <a href="pages/traffic/traffic.html" class="sc-service-card">
+            <div class="sc-service-icon-box">🚦</div>
+            <div class="sc-service-title">
+                <span>Smart Traffic & Signals</span>
+                <span style="font-size: 11px; color: #16a34a; font-weight: 700;">LIVE ADAPTIVE</span>
+            </div>
+            <p class="sc-service-desc">
+                Real-time congestion heatmaps across 42 junctions, AI emergency green waves, optical CCTV feeds, and e-Challan payment.
+            </p>
+            <div class="sc-service-footer">
+                <span>Launch Traffic Grid</span>
+                <span>➔</span>
+            </div>
+        </a>
 
+        <!-- 2. Healthcare -->
+        <a href="pages/hospital/hospital.html" class="sc-service-card">
+            <div class="sc-service-icon-box">🏥</div>
+            <div class="sc-service-title">
+                <span>Healthcare & Hospital Beds</span>
+                <span style="font-size: 11px; color: #2563eb; font-weight: 700;">AIIMS • BRD</span>
+            </div>
+            <p class="sc-service-desc">
+                Live ICU and general bed tracker, digital OPD queue passes, doctor appointment scheduling, and Ayushman QR Health Pass.
+            </p>
+            <div class="sc-service-footer">
+                <span>Access Health Portal</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 3. Smart Parking -->
+        <a href="pages/parking/parking.html" class="sc-service-card">
+            <div class="sc-service-icon-box">🅿️</div>
+            <div class="sc-service-title">
+                <span>IoT Smart Parking</span>
+                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">FASTAG RFID</span>
+            </div>
+            <p class="sc-service-desc">
+                Real-time bay vacancy at Golghar, Railway Station, and Civil Lines. Instant slot reservation and barrier QR ticketing.
+            </p>
+            <div class="sc-service-footer">
+                <span>Find & Book Parking</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 4. Waste Management -->
+        <a href="pages/waste/waste.html" class="sc-service-card">
+            <div class="sc-service-icon-box">🗑️</div>
+            <div class="sc-service-title">
+                <span>Intelligent Waste System</span>
+                <span style="font-size: 11px; color: #d97706; font-weight: 700;">IOT SENSORS</span>
+            </div>
+            <p class="sc-service-desc">
+                Smart ultrasonic bin fill monitoring, automated garbage vehicle route dispatch, and citizen overflowing bin reporting.
+            </p>
+            <div class="sc-service-footer">
+                <span>Monitor Waste Grid</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 5. Water Supply -->
+        <a href="pages/water/water.html" class="sc-service-card">
+            <div class="sc-service-icon-box">💧</div>
+            <div class="sc-service-title">
+                <span>SCADA Water & Drainage</span>
+                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">PRESSURE SENSORS</span>
+            </div>
+            <p class="sc-service-desc">
+                Live municipal pipeline pressure telemetry, automated tubewell schedules, water quality sensor logs, and supply alerts.
+            </p>
+            <div class="sc-service-footer">
+                <span>Check Water Status</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 6. Emergency SOS -->
+        <a href="pages/emergency/emergency.html" class="sc-service-card">
+            <div class="sc-service-icon-box">🚨</div>
+            <div class="sc-service-title">
+                <span>Emergency SOS & Response</span>
+                <span style="font-size: 11px; color: #dc2626; font-weight: 700;">24/7 DISPATCH</span>
+            </div>
+            <p class="sc-service-desc">
+                Immediate multi-agency dispatch linking Ambulance (108), Police (112), and Fire Brigade (101) with live vehicle GPS tracking.
+            </p>
+            <div class="sc-service-footer">
+                <span>Open Emergency Center</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 7. Police & Safety -->
+        <a href="pages/police/police.html" class="sc-service-card">
+            <div class="sc-service-icon-box">👮</div>
+            <div class="sc-service-title">
+                <span>City Police & Public Safety</span>
+                <span style="font-size: 11px; color: #4338ca; font-weight: 700;">PCR BEATS</span>
+            </div>
+            <p class="sc-service-desc">
+                Locate nearest police stations, view live PCR beat patrol radiuses, lost & found registry, and report local civic safety concerns.
+            </p>
+            <div class="sc-service-footer">
+                <span>Police Services</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 8. Tourism & Heritage -->
+        <a href="pages/famous/famous.html" class="sc-service-card">
+            <div class="sc-service-icon-box">⭐</div>
+            <div class="sc-service-title">
+                <span>Heritage, Tourism & Culture</span>
+                <span style="font-size: 11px; color: #ea580c; font-weight: 700;">EXPLORE GKP</span>
+            </div>
+            <p class="sc-service-desc">
+                Interactive tourism guides to Ramgarh Tal, Gorakhnath Dham, Planetarium, and historical cultural landmarks.
+            </p>
+            <div class="sc-service-footer">
+                <span>Explore City Places</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 9. Grievance Redressal -->
+        <div class="sc-service-card" style="cursor: pointer;" onclick="openGrievanceModal()">
+            <div class="sc-service-icon-box">📋</div>
+            <div class="sc-service-title">
+                <span>Citizen Grievance Redressal</span>
+                <span style="font-size: 11px; color: #2563eb; font-weight: 700;">GUARANTEED SLA</span>
+            </div>
+            <p class="sc-service-desc">
+                Lodge civic complaints with instant tracking ID and strict municipal SLA deadlines (2 to 48 hours). Track real-time progress.
+            </p>
+            <div class="sc-service-footer">
+                <span>Lodge / Track Complaint</span>
+                <span>➔</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     4. CURRENT CITY TELEMETRY REPORTS
+===================================================== -->
+<section class="reports" id="cityReports">
+    <div class="section-title">
+        <div>
+            <h2>Current City Reports</h2>
+            <p>Smart city service overview & real-time telemetry</p>
+        </div>
+        <span class="live">
+            <i></i> LIVE
+        </span>
+    </div>
 
     <div class="reports-grid">
-
-
-        <!-- =================================================
-             TRAFFIC
-        ================================================== -->
-
-        <div
-            class="report-card"
-            id="traffic"
-        >
-
-            <div class="report-icon">
-                🚦
-            </div>
-
-            <h3>
-                Traffic
-            </h3>
-
-            <strong id="trafficValue">
-                Loading...
-            </strong>
-
-            <p>
-                Congestion level
-            </p>
-
+        <!-- TRAFFIC -->
+        <div class="report-card" id="traffic">
+            <div class="report-icon">🚦</div>
+            <h3>Traffic</h3>
+            <strong id="trafficValue">Loading...</strong>
+            <p>Congestion level</p>
             <div class="progress">
-
-                <span
-                    id="trafficProgress"
-                    style="width:0%"
-                ></span>
-
+                <span id="trafficProgress" style="width:0%"></span>
             </div>
-
         </div>
 
-
-
-        <!-- =================================================
-             WASTE
-        ================================================== -->
-
-        <div
-            class="report-card"
-            id="waste"
-        >
-
-            <div class="report-icon">
-                🗑️
-            </div>
-
-            <h3>
-                Waste Management
-            </h3>
-
-            <strong>
-                68%
-            </strong>
-
-            <p>
-                Average bin fill level
-            </p>
-
+        <!-- WASTE -->
+        <div class="report-card" id="waste">
+            <div class="report-icon">🗑️</div>
+            <h3>Waste Management</h3>
+            <strong>68%</strong>
+            <p>Average bin fill level</p>
             <div class="progress">
-
-                <span
-                    style="width:68%"
-                ></span>
-
+                <span style="width:68%"></span>
             </div>
-
         </div>
 
-
-
-        <!-- =================================================
-             WATER
-        ================================================== -->
-
-        <div
-            class="report-card"
-            id="water"
-        >
-
-            <div class="report-icon">
-                💧
-            </div>
-
-            <h3>
-                Water Supply
-            </h3>
-
-            <strong>
-                91%
-            </strong>
-
-            <p>
-                Water availability
-            </p>
-
+        <!-- WATER -->
+        <div class="report-card" id="water">
+            <div class="report-icon">💧</div>
+            <h3>Water Supply</h3>
+            <strong>91%</strong>
+            <p>Water availability</p>
             <div class="progress">
-
-                <span
-                    style="width:91%"
-                ></span>
-
+                <span style="width:91%"></span>
             </div>
-
         </div>
 
-
-
-        <!-- =================================================
-             AIR QUALITY
-        ================================================== -->
-
-        <div
-            class="report-card"
-            id="airQuality"
-        >
-
-            <div class="report-icon">
-                🌫️
-            </div>
-
-            <h3>
-                Air Quality
-            </h3>
-
-            <strong id="aqiValue">
-                Loading...
-            </strong>
-
-            <p id="aqiStatus">
-                Loading...
-            </p>
-
+        <!-- AIR QUALITY -->
+        <div class="report-card" id="airQuality">
+            <div class="report-icon">🌫️</div>
+            <h3>Air Quality</h3>
+            <strong id="aqiValue">Loading...</strong>
+            <p id="aqiStatus">Loading...</p>
             <div class="progress">
-
-                <span
-                    id="aqiProgress"
-                    style="width:0%"
-                ></span>
-
+                <span id="aqiProgress" style="width:0%"></span>
             </div>
-
         </div>
 
-
-
-        <!-- =================================================
-             EMERGENCY
-        ================================================== -->
-
-        <div
-            class="report-card"
-            id="emergency"
-        >
-
-            <div class="report-icon">
-                🚨
-            </div>
-
-            <h3>
-                Emergency
-            </h3>
-
-            <strong id="ambulanceValue">
-                Loading...
-            </strong>
-
-            <p>
-                Ambulances Available
-            </p>
-
+        <!-- EMERGENCY -->
+        <div class="report-card" id="emergency">
+            <div class="report-icon">🚨</div>
+            <h3>Emergency</h3>
+            <strong id="ambulanceValue">Loading...</strong>
+            <p>Ambulances Available</p>
         </div>
 
-
-
-        <!-- =================================================
-             STREET LIGHT
-        ================================================== -->
-
+        <!-- STREET LIGHT -->
         <div class="report-card">
-
-            <div class="report-icon">
-                💡
-            </div>
-
-            <h3>
-                Street Lights
-            </h3>
-
-            <strong>
-                98%
-            </strong>
-
-            <p>
-                Working normally
-            </p>
-
+            <div class="report-icon">💡</div>
+            <h3>Street Lights</h3>
+            <strong>98%</strong>
+            <p>Working normally</p>
             <div class="progress">
-
-                <span
-                    style="width:98%"
-                ></span>
-
+                <span style="width:98%"></span>
             </div>
-
         </div>
-
     </div>
-
 </section>
 
-
-
 <!-- =====================================================
-     SMART CITY MAP
+     5. SMART CITY INTERACTIVE NAVIGATION MAP
 ===================================================== -->
-
-<section
-    class="map-section"
-    id="map"
->
-
-
+<section class="map-section" id="map">
     <div class="map-header">
-
         <div>
-
-            <h2>
-                Smart City Navigation
-            </h2>
-
-            <p>
-                Explore nearby real places and
-                Smart City locations
-            </p>
-
+            <h2>Smart City Navigation</h2>
+            <p>Explore nearby civic services, hospitals, parking bays, and landmarks</p>
         </div>
-
-
         <span class="live">
-
-            <i></i>
-
-            MAP LIVE
-
+            <i></i> MAP LIVE
         </span>
-
     </div>
 
-
-
-    <!-- =================================================
-         SEARCH + LOCATION
-    ================================================== -->
-
+    <!-- SEARCH + LOCATION -->
     <div class="map-tools">
-
-
         <div class="search-box">
-
-            <input
-                type="text"
-                id="mapSearch"
-                placeholder="Search place or area..."
-            >
-
-            <button
-                onclick="searchLocation()"
-            >
-                🔍 Search
-            </button>
-
+            <input type="text" id="mapSearch" placeholder="Search place or area...">
+            <button onclick="searchLocation()">🔍 Search</button>
         </div>
-
-
-
-        <button
-            class="location-btn"
-            onclick="getMyLocation()"
-        >
-            📍 My Location
-        </button>
-
-
-
-        <button
-            class="refresh-btn"
-            onclick="refreshMapData()"
-        >
-            🔄 Refresh
-        </button>
-
+        <button class="location-btn" onclick="getMyLocation()">📍 My Location</button>
+        <button class="refresh-btn" onclick="refreshMapData()">🔄 Refresh</button>
     </div>
 
-
-
-    <!-- =================================================
-         MAP FILTERS
-    ================================================== -->
-
+    <!-- MAP FILTERS -->
     <div class="map-features">
-
-
-        <button
-            class="map-filter active"
-            onclick="showFeature('all', this)"
-        >
-            🗺️ All
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('traffic', this)"
-        >
-            🚦 Traffic
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('waste', this)"
-        >
-            🗑️ Waste
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('hospital', this)"
-        >
-            🏥 Hospital
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('police', this)"
-        >
-            👮 Police
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('fire', this)"
-        >
-            🚒 Fire
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('parking', this)"
-        >
-            🅿️ Parking
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('water', this)"
-        >
-            💧 Water
-        </button>
-
-
-        <button
-            class="map-filter"
-            onclick="showFeature('places', this)"
-        >
-            ⭐ Famous Places
-        </button>
-
-        <button
-            class="map-filter"
-            onclick="showFeature('lights', this)"
-        >
-            💡 Street Lights
-        </button>
-
-        <button
-            class="map-filter"
-            onclick="showFeature('aqi', this)"
-        >
-            🌱 AQI Sensors
-        </button>
-
-        <button
-            class="map-filter"
-            onclick="showFeature('emergency', this)"
-        >
-            🚨 Emergency SOS
-        </button>
-
+        <button class="map-filter active" onclick="showFeature('all', this)">🗺️ All</button>
+        <button class="map-filter" onclick="showFeature('traffic', this)">🚦 Traffic</button>
+        <button class="map-filter" onclick="showFeature('waste', this)">🗑️ Waste</button>
+        <button class="map-filter" onclick="showFeature('hospital', this)">🏥 Hospital</button>
+        <button class="map-filter" onclick="showFeature('police', this)">👮 Police</button>
+        <button class="map-filter" onclick="showFeature('fire', this)">🚒 Fire</button>
+        <button class="map-filter" onclick="showFeature('parking', this)">🅿️ Parking</button>
+        <button class="map-filter" onclick="showFeature('water', this)">💧 Water</button>
+        <button class="map-filter" onclick="showFeature('places', this)">⭐ Famous Places</button>
+        <button class="map-filter" onclick="showFeature('lights', this)">💡 Street Lights</button>
+        <button class="map-filter" onclick="showFeature('aqi', this)">🌱 AQI Sensors</button>
+        <button class="map-filter" onclick="showFeature('emergency', this)">🚨 Emergency SOS</button>
     </div>
 
-
-
-    <!-- MAP -->
-
+    <!-- MAP CANVAS -->
     <div id="cityMap"></div>
 
-
-
     <!-- NAVIGATION INFORMATION -->
-
-    <div
-        class="navigation-info"
-        id="navigationInfo"
-    >
-
-        <div class="navigation-icon">
-            🧭
-        </div>
-
+    <div class="navigation-info" id="navigationInfo">
+        <div class="navigation-icon">🧭</div>
         <div>
-
-            <h3>
-                Navigation
-            </h3>
-
-            <p>
-                Click any marker and choose
-                <b>Navigate Here</b>.
-            </p>
-
+            <h3>Navigation</h3>
+            <p>Click any marker and choose <b>Navigate Here</b> to compute real-time routing.</p>
         </div>
-
     </div>
-
-
 
     <p class="map-note">
-
-        Real places are loaded from
-        OpenStreetMap.
-
-        Locations marked
-        <b>DEMO / TEST DATA</b>
-        are sample Smart City locations
-        for project demonstration.
-
+        Real city infrastructure loaded from OpenStreetMap & municipal database. Locations marked <b>DEMO / TEST DATA</b> are test sensor placements.
     </p>
-
 </section>
 
-
-
 <!-- =====================================================
-     SMARTCITY AI AUTH SYSTEM
+     6. HOW THE PLATFORM WORKS
 ===================================================== -->
-
-<div
-    id="authOverlay"
-    class="auth-overlay"
->
-
-
-    <div class="auth-modal">
-
-
-        <!-- =================================================
-             LOGIN
-        ================================================== -->
-
-        <div id="loginPanel">
-
-
-            <div class="auth-icon">
-                🏙️
-            </div>
-
-
-            <h2>
-                Welcome to <span>SmartCity AI</span>
-            </h2>
-
-
-            <p class="auth-subtitle">
-                Login to continue
-            </p>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Email / Mobile Number
-                </label>
-
-                <input
-                    type="text"
-                    id="loginId"
-                    placeholder="Enter email or mobile number"
-                    autocomplete="username"
-                >
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="loginPassword"
-                    placeholder="Enter password"
-                    autocomplete="current-password"
-                >
-
-            </div>
-
-
-
-            <div
-                id="loginMessage"
-                class="auth-message"
-            ></div>
-
-
-
-            <button
-                class="auth-primary-btn"
-                onclick="userLogin()"
-            >
-                LOGIN
-            </button>
-
-
-
-            <div class="auth-switch">
-
-                Don't have an account?
-
-                <button
-                    type="button"
-                    onclick="showCreateAccount()"
-                >
-                    Create Your Account
-                </button>
-
-            </div>
-
-
-
-            <div class="staff-login-link">
-
-                <button
-                    type="button"
-                    onclick="showStaffLogin()"
-                >
-                    🏢 Staff Login
-                </button>
-
-            </div>
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             CREATE ACCOUNT
-        ================================================== -->
-
-        <div
-            id="createPanel"
-            style="display:none;"
-        >
-
-
-            <div class="auth-icon">
-                👤
-            </div>
-
-
-            <h2>
-                Create Your Account
-            </h2>
-
-
-            <p class="auth-subtitle">
-                Register as a SmartCity user
-            </p>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Full Name
-                </label>
-
-                <input
-                    type="text"
-                    id="createName"
-                    placeholder="Enter your full name"
-                >
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Mobile Number
-                </label>
-
-                <input
-                    type="tel"
-                    id="createMobile"
-                    placeholder="10 digit mobile number"
-                >
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    id="createEmail"
-                    placeholder="Enter your email"
-                >
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="createPassword"
-                    placeholder="Create password"
-                >
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Confirm Password
-                </label>
-
-                <input
-                    type="password"
-                    id="createConfirmPassword"
-                    placeholder="Confirm password"
-                >
-
-            </div>
-
-
-
-            <div
-                id="createMessage"
-                class="auth-message"
-            ></div>
-
-
-
-            <button
-                class="auth-primary-btn"
-                onclick="createUserAccount()"
-            >
-                CREATE ACCOUNT
-            </button>
-
-
-
-            <div class="auth-switch">
-
-                Already have an account?
-
-                <button
-                    type="button"
-                    onclick="showLogin()"
-                >
-                    Login
-                </button>
-
-            </div>
-
-
-
-            <div class="staff-login-link">
-
-                <button
-                    type="button"
-                    onclick="showStaffLogin()"
-                >
-                    🏢 Staff Login
-                </button>
-
-            </div>
-
-
-        </div>
-
-
-
-        <!-- =================================================
-             STAFF LOGIN
-        ================================================== -->
-
-        <div
-            id="staffPanel"
-            style="display:none;"
-        >
-
-
-            <div class="auth-icon">
-                🏢
-            </div>
-
-
-            <h2>
-                Staff Login
-            </h2>
-
-
-            <p class="auth-subtitle">
-                Authorized department access
-            </p>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Department
-                </label>
-
-
-                <select id="staffDepartment">
-
-                    <option value="">
-                        Select Department
-                    </option>
-
-                    <option value="traffic">
-                        🚦 Traffic Department
-                    </option>
-
-                    <option value="waste">
-                        🗑️ Waste Management
-                    </option>
-
-                    <option value="water">
-                        💧 Water Department
-                    </option>
-
-                    <option value="emergency">
-                        🚨 Emergency Department
-                    </option>
-
-                    <option value="parking">
-                        🅿️ Parking Department
-                    </option>
-
-                    <option value="healthcare">
-                        🏥 Healthcare Department
-                    </option>
-
-                    <option value="police">
-                        👮 Police Department
-                    </option>
-
-                    <option value="admin">
-                        🛡️ Administration
-                    </option>
-
-                </select>
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Employee ID
-                </label>
-
-                <input
-                    type="text"
-                    id="staffId"
-                    placeholder="Employee ID"
-                >
-
-            </div>
-
-
-
-            <div class="auth-group">
-
-                <label>
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="staffPassword"
-                    placeholder="Password"
-                >
-
-            </div>
-
-
-
-            <div
-                id="staffMessage"
-                class="auth-message"
-            ></div>
-
-
-
-            <button
-                class="auth-primary-btn"
-                onclick="staffLogin()"
-            >
-                STAFF LOGIN
-            </button>
-
-
-
-            <div class="auth-switch">
-
-                Not Staff?
-
-                <button
-                    type="button"
-                    onclick="showLogin()"
-                >
-                    User Login
-                </button>
-
-            </div>
-
-
-        </div>
-
-
+<section class="sc-section sc-section-dark" id="howItWorks">
+    <div class="sc-section-header">
+        <span class="sc-section-badge">Architecture & Data Flow</span>
+        <h2 class="sc-section-title">How the SmartCity AI Platform Operates</h2>
+        <p class="sc-section-subtitle">
+            An end-to-end telemetry architecture connecting field sensors, AI reasoning models, and municipal service teams directly with citizens.
+        </p>
     </div>
 
-</div>
-
-
-
+    <div class="sc-steps-grid">
+        <div class="sc-step-card">
+            <div class="sc-step-num">1</div>
+            <h3 class="sc-step-title">IoT Telemetry & Sensors</h3>
+            <p class="sc-step-desc">
+                Over 100+ IoT nodes, SCADA flow sensors, RFID waste tags, adaptive CCTV optical feeds, and parking detectors stream live readings every second.
+            </p>
+        </div>
+        <div class="sc-step-card">
+            <div class="sc-step-num">2</div>
+            <h3 class="sc-step-title">ICCC & Grounded AI</h3>
+            <p class="sc-step-desc">
+                Machine learning models analyze patterns, predict traffic congestion bottlenecks, monitor hospital bed availability, and detect anomalous pressure drops.
+            </p>
+        </div>
+        <div class="sc-step-card">
+            <div class="sc-step-num">3</div>
+            <h3 class="sc-step-title">Automated Dispatch</h3>
+            <p class="sc-step-desc">
+                Emergency ambulances receive dynamic green light preemption corridors, garbage trucks receive optimized collection routes, and police units coordinate.
+            </p>
+        </div>
+        <div class="sc-step-card">
+            <div class="sc-step-num">4</div>
+            <h3 class="sc-step-title">Transparent Citizen Delivery</h3>
+            <p class="sc-step-desc">
+                Citizens access real-time hospital queues, reserve parking bays, verify e-Challans, and track grievances with binding municipal SLAs.
+            </p>
+        </div>
+    </div>
+</section>
 
 <!-- =====================================================
-     CITIZEN GRIEVANCE & LIVE SLA TRACKING PORTAL MODAL
+     7. ABOUT GORAKHPUR SMART CITY MISSION
+===================================================== -->
+<section class="sc-section" id="about">
+    <div class="sc-about-grid">
+        <div>
+            <span class="sc-section-badge">Mission & Governance</span>
+            <h2 class="sc-section-title">About Gorakhpur Smart City</h2>
+            <p style="color: #64748b; font-size: 1.05rem; line-height: 1.6; margin-bottom: 20px;">
+                Gorakhpur Smart City Mission is an urban transformation initiative by the Government of Uttar Pradesh and the Ministry of Housing and Urban Affairs.
+            </p>
+            <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6;">
+                By combining sustainable physical infrastructure with state-of-the-art information technology, the platform enhances quality of life, delivers accountable municipal services, and empowers citizens through digital inclusion.
+            </p>
+
+            <div class="sc-about-feature-list">
+                <div class="sc-about-feature-item">
+                    <div class="sc-about-icon">🌱</div>
+                    <div>
+                        <div style="font-weight: 700; color: #0f172a; font-size: 14px;">Clean & Sustainable Development</div>
+                        <div style="font-size: 12.5px; color: #64748b;">Solar street lighting, eco-friendly transit corridors, and Ramgarh Tal wetland conservation.</div>
+                    </div>
+                </div>
+                <div class="sc-about-feature-item">
+                    <div class="sc-about-icon">🏥</div>
+                    <div>
+                        <div style="font-weight: 700; color: #0f172a; font-size: 14px;">World-Class Healthcare Integration</div>
+                        <div style="font-size: 12.5px; color: #64748b;">Direct real-time digital linking with AIIMS Gorakhpur and BRD Medical College.</div>
+                    </div>
+                </div>
+                <div class="sc-about-feature-item">
+                    <div class="sc-about-icon">🛡️</div>
+                    <div>
+                        <div style="font-weight: 700; color: #0f172a; font-size: 14px;">Accountable Civic SLAs</div>
+                        <div style="font-size: 12.5px; color: #64748b;">Every complaint is tracked on a public ledger with guaranteed resolution timelines.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-about-stats-card">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 16px; color: #ffffff;">Key Municipal Metrics</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                <div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: #38bdf8;">70</div>
+                    <div style="font-size: 12px; color: #94a3b8;">Municipal Wards Covered</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: #34d399;">1.2M+</div>
+                    <div style="font-size: 12px; color: #94a3b8;">Citizens Served</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: #a78bfa;">100+</div>
+                    <div style="font-size: 12px; color: #94a3b8;">Active Telemetry Nodes</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: #f59e0b;">24/7</div>
+                    <div style="font-size: 12px; color: #94a3b8;">ICCC Operations</div>
+                </div>
+            </div>
+            <div style="padding: 16px; background: rgba(30, 41, 59, 0.8); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 12.5px; color: #cbd5e1; line-height: 1.5;">
+                Gorakhpur Smart City Command Center operates continuously from Nagar Nigam premises, monitoring traffic corridors, municipal services, and civic safety.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     8. EMERGENCY INFORMATION & 24/7 HELPLINES
+===================================================== -->
+<section class="sc-section" id="emergencyHelplines" style="background: #fef2f2; border-top: 1px solid #fee2e2; border-bottom: 1px solid #fee2e2; max-width: 100%;">
+    <div style="max-width: 1320px; margin: 0 auto;">
+        <div class="sc-section-header" style="margin-bottom: 36px;">
+            <span class="sc-section-badge" style="background: #fee2e2; border-color: #fca5a5; color: #dc2626;">24x7 Emergency Directory</span>
+            <h2 class="sc-section-title" style="color: #991b1b;">Immediate Civic Helplines</h2>
+            <p class="sc-section-subtitle" style="color: #7f1d1d;">
+                Keep these numbers accessible. Municipal and state emergency control rooms operate 24 hours a day, 7 days a week.
+            </p>
+        </div>
+
+        <div class="sc-helpline-grid">
+            <div class="sc-helpline-card">
+                <div class="sc-helpline-icon">🚨</div>
+                <div class="sc-helpline-name">National Emergency</div>
+                <a href="tel:112" class="sc-helpline-number">112</a>
+                <div class="sc-helpline-desc">Police, Fire & Medical Combined</div>
+            </div>
+            <div class="sc-helpline-card">
+                <div class="sc-helpline-icon">🚑</div>
+                <div class="sc-helpline-name">State Ambulance</div>
+                <a href="tel:108" class="sc-helpline-number">108</a>
+                <div class="sc-helpline-desc">Free Medical Emergency Response</div>
+            </div>
+            <div class="sc-helpline-card">
+                <div class="sc-helpline-icon">🚒</div>
+                <div class="sc-helpline-name">Fire & Rescue</div>
+                <a href="tel:101" class="sc-helpline-number">101</a>
+                <div class="sc-helpline-desc">Fire Brigade Control Room</div>
+            </div>
+            <div class="sc-helpline-card">
+                <div class="sc-helpline-icon">📞</div>
+                <div class="sc-helpline-name">Municipal Helpline</div>
+                <a href="tel:18001802026" class="sc-helpline-number">1800-180-2026</a>
+                <div class="sc-helpline-desc">Nagar Nigam Grievances (Toll-Free)</div>
+            </div>
+            <div class="sc-helpline-card">
+                <div class="sc-helpline-icon">🏥</div>
+                <div class="sc-helpline-name">AIIMS Gorakhpur</div>
+                <a href="tel:05512207777" class="sc-helpline-number" style="font-size: 19px;">0551-2207777</a>
+                <div class="sc-helpline-desc">Emergency Trauma Center</div>
+            </div>
+            <div class="sc-helpline-card">
+                <div class="sc-helpline-icon">💧</div>
+                <div class="sc-helpline-name">Water Supply</div>
+                <a href="tel:05512334455" class="sc-helpline-number" style="font-size: 19px;">0551-2334455</a>
+                <div class="sc-helpline-desc">Jal Kal Control Room</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     9. CITIZEN HELPDESK & CONTACT
+===================================================== -->
+<section class="sc-section" id="contact">
+    <div class="sc-section-header">
+        <span class="sc-section-badge">Citizen Helpdesk</span>
+        <h2 class="sc-section-title">Contact Municipal Authority</h2>
+        <p class="sc-section-subtitle">
+            Visit our administrative headquarters or reach out via official digital grievance redressal channels.
+        </p>
+    </div>
+
+    <div class="sc-contact-grid">
+        <div class="sc-contact-card">
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">Headquarters & Office Hours</h3>
+            <div style="font-size: 13.5px; line-height: 1.8; color: #475569;">
+                <p>📍 <strong>Municipal Corporation Gorakhpur (Nagar Nigam)</strong><br>
+                Town Hall Compound, Civil Lines, Gorakhpur, UP - 273001</p>
+                <p>🕒 <strong>Office Timings:</strong> Monday – Saturday: 09:30 AM – 06:00 PM<br>
+                (Emergency Control Room & ICCC operate 24x7x365)</p>
+                <p>📧 <strong>Email Support:</strong> <a href="mailto:support@smartcity.gorakhpur.gov.in" style="color: #2563eb;">support@smartcity.gorakhpur.gov.in</a></p>
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="button" onclick="openGrievanceModal()" class="sc-btn-hero-primary" style="padding: 10px 20px;">
+                    <span>📋</span> Register Citizen Grievance
+                </button>
+            </div>
+        </div>
+
+        <div class="sc-contact-card" style="background: #f8fafc;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px;">Quick Civic Assistance</h3>
+            <p style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 16px;">
+                Have a question regarding parking rates, hospital bed reservations, property tax, water tanker dispatch, or traffic fines? Ask our AI Civic Assistant directly.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" class="sc-btn-hero-secondary" style="background: #ffffff; color: #1e293b; border-color: #cbd5e1; justify-content: flex-start;" onclick="handleQuickPrompt('How do I pay my traffic e-Challan online?')">
+                    <span>💳</span> How do I pay traffic e-Challan online?
+                </button>
+                <button type="button" class="sc-btn-hero-secondary" style="background: #ffffff; color: #1e293b; border-color: #cbd5e1; justify-content: flex-start;" onclick="handleQuickPrompt('What is the water tanker emergency contact?')">
+                    <span>💧</span> How do I request an emergency water tanker?
+                </button>
+                <button type="button" class="sc-btn-hero-secondary" style="background: #ffffff; color: #1e293b; border-color: #cbd5e1; justify-content: flex-start;" onclick="handleQuickPrompt('How to get an OPD token for AIIMS Gorakhpur?')">
+                    <span>🏥</span> How to get an OPD token for AIIMS Gorakhpur?
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     10. CITIZEN GRIEVANCE REDRESSAL MODAL
 ====================================================== -->
 <div id="scGrievanceModal" class="sc-modal-overlay">
     <div class="sc-modal-box">
@@ -1393,7 +868,7 @@
 </div>
 
 <!-- =====================================================
-     EXECUTIVE CITY COMMAND CENTER MODAL
+     11. EXECUTIVE COMMAND CENTER MODAL (STAFF / ADMIN ONLY)
 ====================================================== -->
 <div id="scCommandCenterModal" class="sc-modal-overlay">
     <div class="sc-modal-box" style="max-width: 960px;">
@@ -1530,7 +1005,7 @@
 </main>
 
 <!-- =====================================================
-     MUNICIPAL FOOTER (Legal, Navigation & Accessibility)
+     12. MUNICIPAL FOOTER (Legal, Navigation & Helplines)
 ===================================================== -->
 <footer class="sc-main-footer" role="contentinfo" style="background: #0f172a; color: #94a3b8; padding: 48px 5% 32px; border-top: 1px solid #1e293b; font-family: 'Plus Jakarta Sans', sans-serif;">
     <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px;">
@@ -1576,16 +1051,27 @@
 </footer>
 
 <!-- =====================================================
-     LEAFLET JAVASCRIPT
+     SCRIPTS
 ===================================================== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<!-- SmartCity AI Core Scripts -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="components/cookie_consent.js"></script>
 <script src="components/analytics.js"></script>
+<script src="components/ui_components.js"></script>
+<script src="components/smartcity_map.js"></script>
+<script src="api/client.js"></script>
+<script src="api/auth.api.js"></script>
+<script src="api/traffic.api.js"></script>
+<script src="api/parking.api.js"></script>
+<script src="api/hospital.api.js"></script>
+<script src="api/waste.api.js"></script>
+<script src="api/water.api.js"></script>
+<script src="api/emergency.api.js"></script>
+<script src="api/police.api.js"></script>
+<script src="api/ai.api.js"></script>
+<script src="api/index.js"></script>
 <script src="auth.js"></script>
 <script src="realtime.js"></script>
 <script src="script.js"></script>

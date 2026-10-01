@@ -3760,121 +3760,45 @@ function openAuthPopup(tab = "citizen") {
 ========================================================= */
 
 function showLogin() {
-
-    const login =
-        document.getElementById(
-            "loginPanel"
-        );
-
-
-    const create =
-        document.getElementById(
-            "createPanel"
-        );
-
-
-    const staff =
-        document.getElementById(
-            "staffPanel"
-        );
-
-
-    if (login)
-        login.style.display = "block";
-
-
-    if (create)
-        create.style.display = "none";
-
-
-    if (staff)
-        staff.style.display = "none";
-
-
+    if (window.SmartCityAuth && typeof window.SmartCityAuth.showLoginModal === "function") {
+        window.SmartCityAuth.showLoginModal("citizen");
+        return;
+    }
+    const login = document.getElementById("loginPanel");
+    const create = document.getElementById("createPanel");
+    const staff = document.getElementById("staffPanel");
+    if (login) login.style.display = "block";
+    if (create) create.style.display = "none";
+    if (staff) staff.style.display = "none";
     clearAuthMessages();
-
 }
-
-
-/* =========================================================
-   CREATE ACCOUNT PANEL
-========================================================= */
 
 function showCreateAccount() {
-
-    const login =
-        document.getElementById(
-            "loginPanel"
-        );
-
-
-    const create =
-        document.getElementById(
-            "createPanel"
-        );
-
-
-    const staff =
-        document.getElementById(
-            "staffPanel"
-        );
-
-
-    if (login)
-        login.style.display = "none";
-
-
-    if (create)
-        create.style.display = "block";
-
-
-    if (staff)
-        staff.style.display = "none";
-
-
+    if (window.SmartCityAuth && typeof window.SmartCityAuth.showRegisterModal === "function") {
+        window.SmartCityAuth.showRegisterModal();
+        return;
+    }
+    const login = document.getElementById("loginPanel");
+    const create = document.getElementById("createPanel");
+    const staff = document.getElementById("staffPanel");
+    if (login) login.style.display = "none";
+    if (create) create.style.display = "block";
+    if (staff) staff.style.display = "none";
     clearAuthMessages();
-
 }
 
-
-/* =========================================================
-   STAFF LOGIN PANEL
-========================================================= */
-
 function showStaffLogin() {
-
-    const login =
-        document.getElementById(
-            "loginPanel"
-        );
-
-
-    const create =
-        document.getElementById(
-            "createPanel"
-        );
-
-
-    const staff =
-        document.getElementById(
-            "staffPanel"
-        );
-
-
-    if (login)
-        login.style.display = "none";
-
-
-    if (create)
-        create.style.display = "none";
-
-
-    if (staff)
-        staff.style.display = "block";
-
-
+    if (window.SmartCityAuth && typeof window.SmartCityAuth.showLoginModal === "function") {
+        window.SmartCityAuth.showLoginModal("staff");
+        return;
+    }
+    const login = document.getElementById("loginPanel");
+    const create = document.getElementById("createPanel");
+    const staff = document.getElementById("staffPanel");
+    if (login) login.style.display = "none";
+    if (create) create.style.display = "none";
+    if (staff) staff.style.display = "block";
     clearAuthMessages();
-
 }
 
 
@@ -5375,6 +5299,17 @@ async function rateGrievance(requestId, rating) {
 // --------------------------------------------------------------------------
 
 function openCommandCenterModal() {
+    const isOfficer = typeof SmartCityAuth !== "undefined" && (SmartCityAuth.isAdmin() || SmartCityAuth.isStaff());
+    if (!isOfficer) {
+        if (typeof SmartCityAuth !== "undefined") {
+            SmartCityAuth.showLoginModal("staff", {
+                message: "Integrated Command & Control Center (ICCC) is restricted to municipal staff and administrators. Please log in with your official ID."
+            });
+        } else {
+            alert("ICCC Command Center requires municipal staff or admin credentials.");
+        }
+        return;
+    }
     const modal = document.getElementById("scCommandCenterModal");
     if (!modal) return;
     modal.classList.add("active");

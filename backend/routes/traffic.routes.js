@@ -2346,7 +2346,7 @@ router.put("/api/traffic/admin/ai-settings", authenticateToken, requireRole(["ad
 // 10. ANALYTICS & HISTORICAL TRAFFIC REPORTS
 // =========================================================
 
-router.get("/api/traffic/analytics/summary", async (req, res) => {
+router.get(["/api/traffic/analytics/summary", "/api/traffic/dashboard-metrics"], async (req, res) => {
     try {
         const [jncStats] = await pool.promise().query(
             `SELECT COUNT(*) as total_junctions, 

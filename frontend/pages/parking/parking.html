@@ -15,6 +15,7 @@
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="parking.css">
+    <link rel="stylesheet" href="../../components/ui_components.css">
 </head>
 
 <body>
@@ -42,10 +43,10 @@
         <!-- TOP RIGHT CITIZEN PROFILE BADGE & DROPDOWN -->
         <div class="user-profile-menu-container" id="userProfileMenuContainer">
             <button type="button" class="user-badge-btn" id="userBadgeBtn" onclick="toggleUserDropdown(event)">
-                <span class="user-avatar-circle" id="userAvatarCircle">OY</span>
+                <span class="user-avatar-circle" id="userAvatarCircle">CU</span>
                 <div class="user-badge-info">
-                    <span class="user-badge-name" id="navUserName">Omkar Yadav</span>
-                    <span class="user-badge-status" id="navUserStatus">🟢 Active Citizen</span>
+                    <span class="user-badge-name" id="navUserName">Sign In</span>
+                    <span class="user-badge-status" id="navUserStatus">Visitor</span>
                 </div>
                 <span class="dropdown-caret">▾</span>
             </button>
@@ -53,10 +54,10 @@
             <!-- DROPDOWN MENU: PROFILE, MY ACTIVITY, STAFF SCANNER, LOGOUT -->
             <div class="user-dropdown-menu" id="userDropdownMenu" style="display: none;">
                 <div class="dropdown-header-info">
-                    <div class="user-dh-avatar" id="ddUserAvatarCircle">OY</div>
+                    <div class="user-dh-avatar" id="ddUserAvatarCircle">CU</div>
                     <div class="user-dh-meta">
-                        <strong id="ddUserFullName">Omkar Yadav</strong>
-                        <span id="ddUserContact">6306880179 • Citizen</span>
+                        <strong id="ddUserFullName">Guest Visitor</strong>
+                        <span id="ddUserContact">Sign in to manage passes</span>
                     </div>
                 </div>
                 <div class="dropdown-separator"></div>
@@ -1871,7 +1872,7 @@
                     <button type="button" class="btn-link-action" onclick="enableWalkInGuest()">👤 Walk-in Guest (No Account)</button>
                 </div>
                 <div class="search-input-wrapper">
-                    <input type="text" id="citizenSearchInput" placeholder="Search by citizen name, phone (e.g. 6306880179), or email..." oninput="handleCitizenSearch(this.value)" autocomplete="off" />
+                    <input type="text" id="citizenSearchInput" placeholder="Search by citizen name, phone (e.g. 9876543210), or email..." oninput="handleCitizenSearch(this.value)" autocomplete="off" />
                     <span class="search-indicator" id="citizenSearchSpinner" style="display: none;">⏳</span>
                 </div>
                 <!-- AUTOCOMPLETE DROPDOWN -->
@@ -2071,8 +2072,8 @@
             <div class="profile-hero-card">
                 <div class="profile-avatar-large">👤</div>
                 <div class="profile-meta">
-                    <h3 id="profCardName">Omkar Yadav</h3>
-                    <span class="citizen-id-pill" id="profCardId">CITIZEN ID: GKP-2026-001</span>
+                    <h3 id="profCardName">Citizen Profile</h3>
+                    <span class="citizen-id-pill" id="profCardId">SMARTCITY CITIZEN</span>
                     <span class="citizen-tier-pill">✓ VERIFIED CITIZEN</span>
                 </div>
             </div>
@@ -2368,6 +2369,10 @@
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="../../components/ui_components.js"></script>
+<script src="../../components/smartcity_map.js"></script>
+<script src="../../api/client.js"></script>
+<script src="../../api/parking.api.js"></script>
 <script src="../../auth.js"></script>
 <script src="../../realtime.js"></script>
 <script src="parking.js"></script>

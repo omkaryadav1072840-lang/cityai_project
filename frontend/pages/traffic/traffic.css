@@ -1349,3 +1349,39 @@ body {
     color: #b91c1c;
     font-family: monospace;
 }
+
+/* =========================================================
+   5. TRAFFIC STAFF AUTHENTICATION & GIS MAP STYLING
+   ========================================================= */
+#staff-map-mount {
+    width: 100%;
+    margin-bottom: 24px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+#staff-map-gis-bar {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#staff-map-gis-bar button:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+#trafficStaffLoginForm input:focus {
+    outline: none;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+#modal-quick-add-feature button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    transition: all 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -8,6 +8,7 @@ const {
     generateToken,
     authenticateToken
 } = require("../middleware/auth.middleware");
+const { logAudit } = require("../services/audit_logger");
 
 // =========================================================
 // CITIZEN REGISTER
@@ -56,6 +57,14 @@ router.post("/api/register", (req, res) => {
             };
 
             const token = generateToken(userData, userRole);
+
+            logAudit(req, {
+                userId: result.insertId,
+                userName: name,
+                role: userRole,
+                action: "USER_REGISTER",
+                module: "AUTH"
+            });
 
             res.status(201).json({
                 message: "Account created successfully.",
@@ -133,6 +142,14 @@ router.post("/api/login", (req, res) => {
         };
 
         const token = generateToken(userData, userRole);
+
+        logAudit(req, {
+            userId: user.id,
+            userName: user.name,
+            role: userRole,
+            action: "USER_LOGIN",
+            module: "AUTH"
+        });
 
         res.json({
             message: "Login successful.",
@@ -301,6 +318,15 @@ router.post("/api/staff-login", (req, res) => {
 
         const token = generateToken(staffData, role);
 
+        logAudit(req, {
+            userId: staff.id,
+            userName: staff.name,
+            role,
+            department: staff.department,
+            action: "STAFF_LOGIN",
+            module: "AUTH"
+        });
+
         res.json({
             message: "Staff login successful.",
             user: staffData,
@@ -364,6 +390,15 @@ router.put("/api/auth/profile", authenticateToken, (req, res) => {
                 emergencyContactPhone: emergencyContactPhone || req.user.emergencyContactPhone
             };
 
+            logAudit(req, {
+                userId,
+                userName: updatedUser.name,
+                role: userRole,
+                action: "PROFILE_UPDATE",
+                module: "USER",
+                metadata: { updatedFields: Object.keys(req.body) }
+            });
+
             return res.json({
                 success: true,
                 message: "Profile updated successfully.",
@@ -384,11 +419,172 @@ router.put("/api/auth/profile", authenticateToken, (req, res) => {
             emergencyContactPhone: emergencyContactPhone || req.user.emergencyContactPhone
         };
 
+        logAudit(req, {
+            userId,
+            userName: updatedUser.name,
+            role: userRole,
+            action: "PROFILE_UPDATE",
+            module: "STAFF",
+            metadata: { updatedFields: Object.keys(req.body) }
+        });
+
         return res.json({
             success: true,
             message: "Profile updated successfully.",
             user: updatedUser
         });
+    }
+});
+
+// =========================================================
+// LOGOUT (/api/auth/logout)
+// =========================================================
+
+router.post(["/api/auth/logout", "/api/logout"], authenticateToken, (req, res) => {
+    logAudit(req, {
+        userId: req.user.id || req.user.userId,
+        userName: req.user.name,
+        role: req.user.role,
+        department: req.user.department,
+        action: "USER_LOGOUT",
+        module: "AUTH"
+    });
+    res.json({
+        success: true,
+        message: "Session ended successfully."
+    });
+});
+
+// =========================================================
+// CENTRALIZED USER ACTIVITIES (/api/user/activities)
+// =========================================================
+
+router.get(["/api/user/activities", "/api/activities"], authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id || req.user.userId;
+        const userName = req.user.name || "";
+        const userMob = req.user.mobile || "";
+        const role = (req.user.role || req.user.type || "").toLowerCase();
+        const isAdmin = role === "admin";
+
+        // Admin can request all activities or filter by specific user
+        const targetUserId = (isAdmin && req.query.user_id) ? req.query.user_id : userId;
+        const targetUserName = (isAdmin && req.query.user_name) ? req.query.user_name : userName;
+
+        let auditQuery = "SELECT id, action, module, record_id, metadata, created_at FROM audit_logs WHERE user_id = ? OR user_name = ? ORDER BY created_at DESC LIMIT 50";
+        let auditParams = [targetUserId, targetUserName];
+
+        if (isAdmin && !req.query.user_id && !req.query.user_name) {
+            auditQuery = "SELECT id, action, module, record_id, metadata, created_at, user_name, role FROM audit_logs ORDER BY created_at DESC LIMIT 100";
+            auditParams = [];
+        }
+
+        const [auditRows] = await db.promise().query(auditQuery, auditParams);
+
+        // Fetch parking bookings
+        let parkingRows = [];
+        try {
+            const [pRows] = await db.promise().query(
+                "SELECT id, lot_name, slot_code, vehicle_number, status, created_at FROM parking_bookings WHERE user_id = ? OR (vehicle_number = ? AND ? != '') ORDER BY created_at DESC LIMIT 20",
+                [targetUserId, req.user.vehicleNumber || "", req.user.vehicleNumber || ""]
+            );
+            parkingRows = pRows;
+        } catch (_) {}
+
+        // Fetch grievances / service requests
+        let requestRows = [];
+        try {
+            const [rRows] = await db.promise().query(
+                "SELECT id, request_code, department, category, priority, status, description, created_at FROM service_requests WHERE citizen_phone = ? OR (user_id = ? AND ? != 0) ORDER BY created_at DESC LIMIT 20",
+                [userMob, targetUserId, targetUserId || 0]
+            );
+            requestRows = rRows;
+        } catch (_) {}
+
+        // Fetch appointments
+        let apptRows = [];
+        try {
+            const [aRows] = await db.promise().query(`
+                SELECT a.id, a.appointment_code, a.appointment_date, a.appointment_time, a.status, a.created_at, h.hospital_name, d.name AS doctor_name, d.specialization
+                FROM appointments a
+                LEFT JOIN hospitals h ON a.hospital_id = h.hospital_id
+                LEFT JOIN doctors d ON a.doctor_id = d.doctor_id
+                WHERE a.patient_id IN (SELECT patient_id FROM patients WHERE user_id = ? OR mobile = ?)
+                ORDER BY a.created_at DESC LIMIT 20
+            `, [targetUserId, userMob]);
+            apptRows = aRows;
+        } catch (_) {}
+
+        // Normalize all activities into a unified timeline
+        const unified = [];
+
+        // Add audit log entries
+        for (const a of auditRows) {
+            unified.push({
+                id: `audit-${a.id}`,
+                type: "SYSTEM_AUDIT",
+                action: a.action,
+                module: a.module,
+                title: a.action.replace(/_/g, " "),
+                subtitle: `Module: ${a.module}${a.record_id ? ' • Ref: ' + a.record_id : ''}`,
+                timestamp: a.created_at,
+                details: a.metadata
+            });
+        }
+
+        // Add parking bookings
+        for (const p of parkingRows) {
+            unified.push({
+                id: `park-${p.id}`,
+                type: "PARKING_BOOKING",
+                action: "PARKING_RESERVATION",
+                module: "PARKING",
+                title: `Parking Bay ${p.slot_code || 'Assigned'} Reserved`,
+                subtitle: `${p.lot_name || 'Smart Parking Lot'} • Vehicle: ${p.vehicle_number || 'Registered'}`,
+                timestamp: p.created_at,
+                status: p.status
+            });
+        }
+
+        // Add grievances
+        for (const r of requestRows) {
+            unified.push({
+                id: `req-${r.id}`,
+                type: "CIVIC_GRIEVANCE",
+                action: "GRIEVANCE_FILED",
+                module: (r.department || "MUNICIPAL").toUpperCase(),
+                title: `Grievance: ${r.category || 'Municipal Issue'} (${r.request_code || 'REQ'})`,
+                subtitle: `Priority: ${r.priority} • Status: ${r.status}`,
+                timestamp: r.created_at,
+                status: r.status
+            });
+        }
+
+        // Add appointments
+        for (const ap of apptRows) {
+            unified.push({
+                id: `appt-${ap.id}`,
+                type: "HEALTHCARE_APPOINTMENT",
+                action: "DOCTOR_APPOINTMENT",
+                module: "HEALTHCARE",
+                title: `Doctor OPD: ${ap.doctor_name || 'Specialist'} (${ap.specialization || 'Clinical'})`,
+                subtitle: `${ap.hospital_name || 'Hospital Hub'} • ${ap.appointment_date ? new Date(ap.appointment_date).toLocaleDateString() : 'Scheduled'}`,
+                timestamp: ap.created_at,
+                status: ap.status
+            });
+        }
+
+        // Sort descending by timestamp
+        unified.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+        res.json({
+            success: true,
+            count: unified.length,
+            activities: unified
+        });
+    } catch (err) {
+        console.error("Activities error:", err);
+        res.status(500).json({ success: false, message: "Error loading activities: " + err.message });
     }
 });
 // =========================================================

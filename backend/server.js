@@ -287,7 +287,6 @@ app.use(analyticsRoutes);
 // =========================================================
 
 app.use(multerErrorHandler);
-app.use(serveHtmlErrorPage);
 app.use(notFoundHandler);
 app.use(generalErrorHandler);
 

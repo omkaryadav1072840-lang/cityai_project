@@ -1072,7 +1072,7 @@ async function viewDiagnosticReport(reportId, patientName, patientId, testName, 
     document.getElementById("rpHospName").textContent = document.getElementById("bannerHospName").textContent;
     document.getElementById("rpHospAddress").textContent = document.getElementById("bannerHospAddress").textContent;
     document.getElementById("rpReportId").textContent = reportId || "RPT-2026-001";
-    document.getElementById("rpPatientName").textContent = patientName || "Omkar Yadav";
+    document.getElementById("rpPatientName").textContent = patientName || "Admitted Patient";
     document.getElementById("rpPatientId").textContent = patientId || "PAT-5931984821";
     document.getElementById("rpTokenNo").textContent = tokenNo || "A-021";
     document.getElementById("rpTestName").textContent = testName || "Complete Blood Count (CBC) with ESR";
@@ -1115,7 +1115,7 @@ function openPublishReportModal() {
     if (!modal || !select) return;
 
     select.innerHTML = '<option value="">-- Choose Processing Booking --</option>' +
-        '<option value="TB-2026-0101" data-pid="PAT-5931984821" data-tid="TEST-CBC-001">Token A-021 - Omkar Yadav (CBC with ESR)</option>' +
+        '<option value="TB-2026-0101" data-pid="PAT-5931984821" data-tid="TEST-CBC-001">Token A-021 - Rajesh Sharma (CBC with ESR)</option>' +
         '<option value="TB-2026-0102" data-pid="PAT-1002348" data-tid="TEST-LFT-001">Token B-011 - Ramesh Kumar (LFT Profile)</option>';
 
     modal.classList.add("active");

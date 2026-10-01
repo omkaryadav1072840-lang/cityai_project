@@ -61,18 +61,7 @@ function initUserSession() {
     const isAuth = window.SmartCityAuth && typeof SmartCityAuth.isAuthenticated === "function" && SmartCityAuth.isAuthenticated();
     const token = isAuth ? SmartCityAuth.getToken() : (localStorage.getItem("smartCityJWT") || null);
 
-    let currentUser = (token && window.SmartCityAuth && SmartCityAuth.getUser()) || {
-        name: "Omkar Yadav",
-        role: "citizen",
-        department: "citizen"
-    };
-    if (!token) {
-        currentUser = {
-            name: "Omkar Yadav",
-            role: "citizen",
-            department: "citizen"
-        };
-    }
+    let currentUser = (token && window.SmartCityAuth && SmartCityAuth.getUser()) || null;
 
     const userNameEl = document.getElementById("navUserName");
     const userStatusEl = document.getElementById("navUserStatus");
@@ -80,40 +69,56 @@ function initUserSession() {
     const ddUserFullName = document.getElementById("ddUserFullName");
     const ddUserContact = document.getElementById("ddUserContact");
 
-    if (userNameEl) userNameEl.textContent = currentUser.name;
-    if (ddUserFullName) ddUserFullName.textContent = currentUser.name;
+    if (currentUser && isAuth) {
+        if (userNameEl) userNameEl.textContent = currentUser.name || "Citizen";
+        if (ddUserFullName) ddUserFullName.textContent = currentUser.name || "Citizen";
 
-    const initials = (currentUser.name || "Omkar Yadav").split(" ").map(p => p[0]).join("").substring(0, 2).toUpperCase() || "OY";
-    if (userAvatarCircle) userAvatarCircle.textContent = initials;
+        const initials = (currentUser.name || "CT").split(" ").map(p => p[0]).join("").substring(0, 2).toUpperCase() || "CT";
+        if (userAvatarCircle) userAvatarCircle.textContent = initials;
 
-    if (token && (currentUser.role === "admin" || currentUser.department === "admin")) {
-        if (userStatusEl) userStatusEl.textContent = "🛡️ System Admin";
-        if (ddUserContact) ddUserContact.textContent = "Administrator • ICCC";
-    } else if (token && (currentUser.role === "staff" || currentUser.department === "traffic")) {
-        if (userStatusEl) userStatusEl.textContent = "👮 Traffic Staff";
-        if (ddUserContact) ddUserContact.textContent = "Traffic Officer • Gorakhpur";
+        if (currentUser.role === "admin" || currentUser.department === "admin") {
+            if (userStatusEl) userStatusEl.textContent = "🛡️ System Admin";
+            if (ddUserContact) ddUserContact.textContent = "Administrator • ICCC";
+        } else if (currentUser.role === "staff" && (currentUser.department === "traffic" || (currentUser.editable && currentUser.editable.includes("traffic")))) {
+            if (userStatusEl) userStatusEl.textContent = "👮 Traffic Staff";
+            if (ddUserContact) ddUserContact.textContent = "Traffic Officer • Gorakhpur";
+        } else if (currentUser.role === "staff") {
+            if (userStatusEl) userStatusEl.textContent = `Staff • ${(currentUser.department || "Operations").toUpperCase()}`;
+            if (ddUserContact) ddUserContact.textContent = `${currentUser.name} • Public View`;
+        } else {
+            if (userStatusEl) userStatusEl.textContent = "🟢 Active Citizen";
+            if (ddUserContact) ddUserContact.textContent = `${currentUser.mobile || currentUser.email || "Citizen"} • Gorakhpur`;
+        }
     } else {
-        if (userStatusEl) userStatusEl.textContent = "🟢 Active Citizen";
-        if (ddUserContact) ddUserContact.textContent = "Citizen • Gorakhpur";
+        if (userNameEl) userNameEl.textContent = "Sign In";
+        if (ddUserFullName) ddUserFullName.textContent = "Guest Visitor";
+        if (userStatusEl) userStatusEl.textContent = "Visitor";
+        if (ddUserContact) ddUserContact.textContent = "Sign in to access traffic controls";
+        if (userAvatarCircle) userAvatarCircle.textContent = "GV";
     }
     applyRoleUI();
 }
 
 // Check if currently authenticated user is Traffic Staff or Administrator with valid token
 function isStaffUser() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.canEdit === "function") {
+        return SmartCityAuth.canEdit("traffic");
+    }
     const token = (window.SmartCityAuth && SmartCityAuth.getToken()) ||
                   localStorage.getItem("smartCityJWT") ||
                   localStorage.getItem("smartcity_auth_token") ||
                   localStorage.getItem("token");
     if (!token) return false;
 
-    if (window.SmartCityAuth && typeof SmartCityAuth.isStaff === "function") {
-        if (SmartCityAuth.isStaff()) return true;
-    }
     const user = (window.SmartCityAuth && SmartCityAuth.getUser()) ||
                  JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
-    const role = ((user && (user.role || user.department)) || "").toLowerCase();
-    return role.includes("staff") || role.includes("admin") || role.includes("traffic") || role.includes("controller") || role.includes("officer") || role.includes("police");
+    const role = ((user && (user.role || user.type)) || "").toLowerCase();
+    if (role === "admin") return true;
+    if (role === "staff") {
+        const dept = (user.department || "").toLowerCase();
+        return dept === "traffic" || (user.editable && Array.isArray(user.editable) && user.editable.includes("traffic"));
+    }
+    return false;
 }
 
 function isAdminUser() {
@@ -134,7 +139,7 @@ function getAuthHeaders() {
     const user = (window.SmartCityAuth && SmartCityAuth.getUser()) ||
                  JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
     const role = user.role || user.department || (isStaffUser() ? "staff" : "citizen");
-    const name = user.name || (document.getElementById("navUserName") && document.getElementById("navUserName").textContent) || "Omkar Yadav";
+    const name = user.name || (document.getElementById("navUserName") && document.getElementById("navUserName").textContent) || "Citizen";
     const token = (window.SmartCityAuth && SmartCityAuth.getToken()) || localStorage.getItem("smartCityJWT") || localStorage.getItem("token") || "";
 
     const headers = {
@@ -170,13 +175,19 @@ async function switchRoleProfile(role) {
             await SmartCityAuth.quickLoginPersona("citizen");
         } else {
             localStorage.removeItem("smartCityJWT");
-            localStorage.setItem("smartCityCurrentUser", JSON.stringify({ name: "Omkar Yadav", role: "citizen", department: "citizen" }));
             initUserSession();
             switchLayer("citizen");
         }
     } else if (role === "officer") {
         if (!isStaffUser()) {
-            await quickLoginTrafficStaff();
+            switchLayer("control");
+            setTimeout(() => {
+                const idInput = document.getElementById("trafficStaffIdInput");
+                if (idInput) {
+                    idInput.scrollIntoView({ behavior: "smooth", block: "center" });
+                    idInput.focus();
+                }
+            }, 100);
         } else {
             switchLayer("control");
         }
@@ -197,8 +208,34 @@ function handleUserLogout() {
 }
 
 // =========================================================
-// 2. LAYER SWITCHING (CITIZEN, STAFF, ADMIN)
+// 2. LAYER SWITCHING & DYNAMIC MAP MOUNTING
 // =========================================================
+function updateMapMount(layer, hasStaffAccess) {
+    const mapCard = document.getElementById("trafficMapContainerCard");
+    const citizenMount = document.getElementById("citizen-map-mount");
+    const staffMount = document.getElementById("staff-map-mount");
+    const staffGisBar = document.getElementById("staff-map-gis-bar");
+
+    if (!mapCard) return;
+
+    if (layer === "control" && hasStaffAccess) {
+        if (staffMount && mapCard.parentElement !== staffMount) {
+            staffMount.appendChild(mapCard);
+        }
+        if (staffGisBar) staffGisBar.style.display = "block";
+    } else {
+        if (citizenMount && mapCard.parentElement !== citizenMount) {
+            citizenMount.appendChild(mapCard);
+        }
+        if (staffGisBar) staffGisBar.style.display = "none";
+    }
+
+    setTimeout(() => {
+        if (window.trafficMap) trafficMap.updateSize();
+    }, 60);
+}
+window.updateMapMount = updateMapMount;
+
 function switchLayer(layer) {
     const isStaff = isStaffUser();
     const isAdmin = isAdminUser();
@@ -231,12 +268,23 @@ function switchLayer(layer) {
         adminMain.style.display = isAdmin ? "block" : "none";
     }
 
+    // Dynamic map mounting between Citizen and Staff views
+    updateMapMount(layer, hasStaffAccess);
+
     if (layer === "control" && hasStaffAccess) {
         selectControlJunction(selectedJunctionId);
         loadDynamicCCTVWall();
         loadViolationsData();
         loadMovementRules();
         loadAIPredictionsAuditTable();
+    } else if (layer === "control" && !hasStaffAccess) {
+        setTimeout(() => {
+            const idInput = document.getElementById("trafficStaffIdInput");
+            if (idInput) {
+                idInput.scrollIntoView({ behavior: "smooth", block: "center" });
+                idInput.focus();
+            }
+        }, 100);
     } else if (layer === "admin" && isAdmin) {
         loadAdminJunctionsTable();
         loadAdminSignalsTable();
@@ -349,34 +397,213 @@ async function quickLoginTrafficAdmin() {
 }
 window.quickLoginTrafficAdmin = quickLoginTrafficAdmin;
 
-function promptTrafficStaffLogin() {
-    if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
-        SmartCityAuth.showLoginModal("staff", {
-            prefillStaffId: "TR-VERMA",
-            department: "traffic",
-            message: "🔒 Sign in to access the Traffic Control Room."
-        });
-        return;
-    }
-    const staffId = prompt("Enter Traffic Staff ID:");
-    const pass = prompt("Enter Password:");
-    if (staffId && pass) {
-        fetch("/api/staff-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ staffId, password: pass })
-        }).then(r => r.json()).then(data => {
-            if (data.token) {
-                localStorage.setItem("smartCityJWT", data.token);
-                localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
-                window.location.reload();
-            } else {
-                alert(data.message || "Login failed");
-            }
-        });
+// =========================================================
+// STAFF LOGIN & CREDENTIAL HANDLERS
+// =========================================================
+function fillStaffCredentials(staffId, password) {
+    const idInput = document.getElementById("trafficStaffIdInput");
+    const passInput = document.getElementById("trafficStaffPasswordInput");
+    const errorAlert = document.getElementById("staffLoginErrorAlert");
+    if (idInput) idInput.value = staffId;
+    if (passInput) passInput.value = password;
+    if (errorAlert) errorAlert.style.display = "none";
+    if (typeof showToast === "function") showToast(`Filled demo ID: ${staffId}`, "info");
+}
+window.fillStaffCredentials = fillStaffCredentials;
+
+function toggleStaffPasswordVisibility() {
+    const passInput = document.getElementById("trafficStaffPasswordInput");
+    const icon = document.getElementById("toggleStaffPassIcon");
+    if (!passInput) return;
+    if (passInput.type === "password") {
+        passInput.type = "text";
+        if (icon) {
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        }
+    } else {
+        passInput.type = "password";
+        if (icon) {
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
     }
 }
+window.toggleStaffPasswordVisibility = toggleStaffPasswordVisibility;
+
+async function handleTrafficStaffLoginSubmit(event) {
+    if (event) event.preventDefault();
+
+    const idInput = document.getElementById("trafficStaffIdInput");
+    const passInput = document.getElementById("trafficStaffPasswordInput");
+    const errorAlert = document.getElementById("staffLoginErrorAlert");
+    const errorText = document.getElementById("staffLoginErrorText");
+    const submitBtn = document.getElementById("btnTrafficStaffSubmit");
+
+    const staffId = idInput ? idInput.value.trim() : "";
+    const password = passInput ? passInput.value : "";
+
+    if (!staffId || !password) {
+        if (errorAlert && errorText) {
+            errorText.textContent = "Please enter both your Staff ID and Password.";
+            errorAlert.style.display = "flex";
+        }
+        return;
+    }
+
+    if (errorAlert) errorAlert.style.display = "none";
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Verifying Credentials...`;
+    }
+
+    try {
+        const res = await fetch("/api/staff-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ staffId, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+            localStorage.setItem("smartCityJWT", data.token);
+            localStorage.setItem("smartCityCurrentUser", JSON.stringify(data.user));
+            if (window.SmartCityAuth && typeof SmartCityAuth.setSession === "function") {
+                SmartCityAuth.setSession(data.token, data.user);
+            }
+            if (typeof showToast === "function") {
+                showToast(`Welcome Officer ${data.user.name || ''}! Access granted.`, "success");
+            }
+            if (passInput) passInput.value = "";
+            initUserSession();
+            applyRoleUI();
+            switchLayer("control");
+        } else {
+            if (errorAlert && errorText) {
+                errorText.textContent = data.message || "Invalid Staff ID or Password. Please try again.";
+                errorAlert.style.display = "flex";
+            }
+            if (typeof showToast === "function") {
+                showToast(data.message || "Authentication failed", "error");
+            }
+        }
+    } catch (err) {
+        if (errorAlert && errorText) {
+            errorText.textContent = "Network error connecting to auth service: " + err.message;
+            errorAlert.style.display = "flex";
+        }
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `🔐 Sign In to Traffic Operations`;
+        }
+    }
+}
+window.handleTrafficStaffLoginSubmit = handleTrafficStaffLoginSubmit;
+
+function promptTrafficStaffLogin() {
+    switchLayer("control");
+    setTimeout(() => {
+        const idInput = document.getElementById("trafficStaffIdInput");
+        if (idInput) {
+            idInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            idInput.focus();
+        }
+    }, 100);
+}
 window.promptTrafficStaffLogin = promptTrafficStaffLogin;
+
+// =========================================================
+// INTERACTIVE MAP PIN PLACEMENT & QUICK FEATURE CREATION
+// =========================================================
+let isPinPlacementActive = false;
+let currentPickedCoords = { lat: "26.7588000", lng: "83.3731000" };
+
+function toggleMapPinPlacementMode() {
+    isPinPlacementActive = !isPinPlacementActive;
+    const btn = document.getElementById("btnStaffPinLocationMode");
+    const txt = document.getElementById("pinModeBtnText");
+    const banner = document.getElementById("map-coord-pick-banner");
+
+    if (isPinPlacementActive) {
+        if (btn) {
+            btn.style.background = "#dc2626";
+            btn.style.borderColor = "#ef4444";
+        }
+        if (txt) txt.textContent = "Cancel Placement Mode";
+        if (banner) {
+            banner.innerHTML = `<span><i class="fa-solid fa-crosshairs"></i> <strong>MAP PIN PLACEMENT ACTIVE:</strong> Click anywhere on the Gorakhpur road grid to set coordinates for a new feature.</span>
+            <button class="btn-secondary btn-sm" onclick="toggleMapPinPlacementMode()">Cancel</button>`;
+            banner.style.display = "flex";
+        }
+        showToast("📍 Placement Mode Active: Click any location on the map to add a feature.", "info");
+
+        trafficMap.startCoordinatePickMode((lat, lng) => {
+            isPinPlacementActive = false;
+            if (btn) {
+                btn.style.background = "#3b82f6";
+                btn.style.borderColor = "#60a5fa";
+            }
+            if (txt) txt.textContent = "Click Map to Add Feature";
+            if (banner) banner.style.display = "none";
+            showQuickAddFeatureModal(lat, lng);
+        });
+    } else {
+        if (btn) {
+            btn.style.background = "#3b82f6";
+            btn.style.borderColor = "#60a5fa";
+        }
+        if (txt) txt.textContent = "Click Map to Add Feature";
+        if (banner) banner.style.display = "none";
+        if (trafficMap) trafficMap.stopCoordinatePickMode();
+    }
+}
+window.toggleMapPinPlacementMode = toggleMapPinPlacementMode;
+
+function showQuickAddFeatureModal(lat, lng) {
+    currentPickedCoords = {
+        lat: Number(lat).toFixed(7),
+        lng: Number(lng).toFixed(7)
+    };
+    const latSpan = document.getElementById("quick-pick-lat");
+    const lngSpan = document.getElementById("quick-pick-lng");
+    if (latSpan) latSpan.textContent = currentPickedCoords.lat;
+    if (lngSpan) lngSpan.textContent = currentPickedCoords.lng;
+    openModal("modal-quick-add-feature");
+}
+window.showQuickAddFeatureModal = showQuickAddFeatureModal;
+
+function quickAddSelectFeature(type) {
+    closeModal("modal-quick-add-feature");
+    const { lat, lng } = currentPickedCoords;
+
+    if (type === "jnc") {
+        openAddJunctionModal();
+        const latInput = document.getElementById("jnc-lat-input");
+        const lngInput = document.getElementById("jnc-lng-input");
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+    } else if (type === "sig") {
+        openAddSignalModal();
+        const latInput = document.getElementById("sig-lat-input");
+        const lngInput = document.getElementById("sig-lng-input");
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+    } else if (type === "cam") {
+        openAddCameraModal();
+        const latInput = document.getElementById("cam-lat-input");
+        const lngInput = document.getElementById("cam-lng-input");
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+    } else if (type === "inc") {
+        openIncidentModal();
+        const latInput = document.getElementById("inc-lat-input");
+        const lngInput = document.getElementById("inc-lng-input");
+        if (latInput) latInput.value = lat;
+        if (lngInput) lngInput.value = lng;
+    }
+}
+window.quickAddSelectFeature = quickAddSelectFeature;
 
 function promptTrafficAdminLogin() {
     if (window.SmartCityAuth && typeof SmartCityAuth.showLoginModal === "function") {
@@ -2088,6 +2315,17 @@ function pickCoordsFor(target) {
 }
 
 function cancelCoordinatePick() {
+    isPinPlacementActive = false;
+    const btn = document.getElementById("btnStaffPinLocationMode");
+    const txt = document.getElementById("pinModeBtnText");
+    const banner = document.getElementById("map-coord-pick-banner");
+    if (btn) {
+        btn.style.background = "#3b82f6";
+        btn.style.borderColor = "#60a5fa";
+    }
+    if (txt) txt.textContent = "Click Map to Add Feature";
+    if (banner) banner.style.display = "none";
+
     if (trafficMap) trafficMap.stopCoordinatePickMode();
     if (activeCoordinateTarget === "jnc") {
         const modal = document.getElementById("modal-junction");
@@ -2410,6 +2648,13 @@ async function submitCameraForm() {
 
             // Reload camera wall to re-render all cards including new one
             await loadDynamicCCTVWall();
+            if (window.trafficMap && trafficMap.map && !isNaN(latVal) && !isNaN(lngVal)) {
+                trafficMap.map.getView().animate({
+                    center: ol.proj.fromLonLat([lngVal, latVal]),
+                    zoom: 15.5,
+                    duration: 800
+                });
+            }
         } else {
             console.error("Camera Save Error:", json);
             const errMsg = json.message || "Failed to save camera to database.";
@@ -2497,9 +2742,16 @@ async function submitJunctionForm() {
         const json = await res.json();
         if (json.success) {
             closeModal("modal-junction");
-            showToast(isEdit ? `Junction ${name} updated successfully!` : json.message);
+            showToast(isEdit ? `Junction ${name} updated successfully!` : json.message, "success");
             await loadSharedTrafficData();
             if (typeof loadAdminJunctionsTable === "function") loadAdminJunctionsTable();
+            if (window.trafficMap && trafficMap.map && !isNaN(lat) && !isNaN(lng)) {
+                trafficMap.map.getView().animate({
+                    center: ol.proj.fromLonLat([lng, lat]),
+                    zoom: 15,
+                    duration: 800
+                });
+            }
         }
     } catch (e) {
         showToast("Error saving junction.");
@@ -2564,9 +2816,16 @@ async function submitSignalForm() {
         const json = await res.json();
         if (json.success) {
             closeModal("modal-signal");
-            showToast(json.message);
-            loadSharedTrafficData();
-            loadAdminSignalsTable();
+            showToast(json.message, "success");
+            await loadSharedTrafficData();
+            if (typeof loadAdminSignalsTable === "function") loadAdminSignalsTable();
+            if (window.trafficMap && trafficMap.map && lat && lng) {
+                trafficMap.map.getView().animate({
+                    center: ol.proj.fromLonLat([lng, lat]),
+                    zoom: 15.5,
+                    duration: 800
+                });
+            }
         }
     } catch (e) {
         showToast("Error saving signal.");
@@ -2683,8 +2942,15 @@ async function submitTrafficIncident() {
         const json = await res.json();
         if (json.success) {
             closeModal("modal-incident");
-            showToast(isEdit ? `Incident ${editId} updated with location!` : "Incident report submitted to Traffic Control!");
+            showToast(isEdit ? `Incident ${editId} updated with location!` : "Incident report submitted to Traffic Control!", "success");
             loadIncidentsData();
+            if (window.trafficMap && trafficMap.map && !isNaN(lat) && !isNaN(lng)) {
+                trafficMap.map.getView().animate({
+                    center: ol.proj.fromLonLat([lng, lat]),
+                    zoom: 15.5,
+                    duration: 800
+                });
+            }
         }
     } catch (e) {
         showToast("Error saving incident.");
@@ -3334,8 +3600,8 @@ async function subscribeCommuteAlert() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                citizen_name: name || "Omkar Yadav",
-                phone_or_email: contact || "+91 98765 43210",
+                citizen_name: name || user.name || "Citizen User",
+                phone_or_email: contact || user.mobile || user.phone || user.email || "",
                 from_route,
                 to_route,
                 notification_time: prefTime

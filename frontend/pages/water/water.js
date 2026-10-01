@@ -108,7 +108,7 @@
     function applyRoleUI() {
         const staff = isWaterStaff();
         const user = getCurrentUser();
-        const name = user ? (user.name || user.username || "Omkar") : (localStorage.getItem("waterRole") === "worker" ? "Water Worker" : "Citizen");
+        const name = user ? (user.name || user.username || "Citizen") : (localStorage.getItem("waterRole") === "worker" ? "Water Worker" : "Citizen");
 
         const profileName = document.getElementById("profileName");
         const profileNavName = document.getElementById("profileNavName");

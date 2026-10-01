@@ -321,17 +321,18 @@ router.post("/api/emergency/sos", (req, res) => {
 });
 
 // RESOLVE AN EMERGENCY INCIDENT (Staff/Admin)
-router.put("/api/emergency/incidents/:id/resolve", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
+router.put(["/api/emergency/incidents/:id/resolve", "/api/emergency/incidents/:id/status"], authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
+    const newStatus = (req.body && req.body.status) ? req.body.status.toUpperCase() : 'RESOLVED';
 
     const sql = `
         UPDATE emergency_incidents
-        SET status = 'RESOLVED',
-            resolved_at = NOW()
+        SET status = ?,
+            resolved_at = ${newStatus === 'RESOLVED' ? 'NOW()' : 'NULL'}
         WHERE id = ? OR incident_code = ?
     `;
 
-    db.query(sql, [id, id], (err, result) => {
+    db.query(sql, [newStatus, id, id], (err, result) => {
         if (err) {
             console.error("Resolve incident error:", err);
             return res.status(500).json({ message: "Database error." });
@@ -343,19 +344,48 @@ router.put("/api/emergency/incidents/:id/resolve", authenticateToken, requireRol
 
         const resolvePayload = {
             id,
-            status: "RESOLVED",
-            resolvedAt: new Date().toISOString()
+            status: newStatus,
+            resolvedAt: newStatus === 'RESOLVED' ? new Date().toISOString() : null
         };
 
         // Broadcast resolution
-        emitEmergencyResolved(resolvePayload);
+        if (newStatus === 'RESOLVED') {
+            emitEmergencyResolved(resolvePayload);
+        }
 
         res.json({
             success: true,
-            message: "Emergency incident marked as resolved.",
+            message: `Emergency incident marked as ${newStatus}.`,
             incident: resolvePayload
         });
     });
+});
+
+// EMERGENCY HELPLINES & CONTACT NUMBERS (Gorakhpur City)
+const GORAKHPUR_EMERGENCY_CONTACTS = [
+    { service: "Unified Emergency Response", number: "112", description: "Police, Fire, and Medical Integrated Control", category: "Immediate" },
+    { service: "National Ambulance Service", number: "108", description: "Free 24/7 Trauma and Medical Transport", category: "Medical" },
+    { service: "Pregnant Women & Infant Transport", number: "102", description: "Mother and Child Janani Suraksha Vahan", category: "Medical" },
+    { service: "Fire & Rescue Control Room", number: "101", description: "Gorakhpur Central Fire Station, Golghar", category: "Fire" },
+    { service: "Women Power Line", number: "1090", description: "Dedicated Safety & Harassment Redressal", category: "Police" },
+    { service: "Disaster Management Cell", number: "1077", description: "Gorakhpur Flood & Disaster Relief Centre", category: "Disaster" },
+    { service: "Child Helpline", number: "1098", description: "Child Protection and Emergency Support", category: "Social" },
+    { service: "Gorakhpur Municipal Corporation", number: "1800-180-2026", description: "Civic Emergency & Disaster Toll-Free", category: "Civic" }
+];
+
+router.get(["/api/emergency/contacts", "/api/emergency-contacts"], (req, res) => {
+    res.json({
+        success: true,
+        city: "Gorakhpur",
+        state: "Uttar Pradesh",
+        contacts: GORAKHPUR_EMERGENCY_CONTACTS
+    });
+});
+
+// GREEN WAVE AMBULANCE PREEMPTION ROUTE
+const EmergencyController = require("../controllers/emergency.controller");
+router.post(["/api/emergency/green-wave", "/api/emergency/critical-dispatch"], authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
+    return EmergencyController.criticalDispatch(req, res);
 });
 
 module.exports = router;

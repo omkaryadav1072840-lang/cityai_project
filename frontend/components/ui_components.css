@@ -1,0 +1,443 @@
+/**
+ * SMARTCITY AI - REUSABLE UI DESIGN SYSTEM COMPONENTS
+ * Glassmorphic, responsive, and accessible styling tokens.
+ */
+
+:root {
+    --sc-primary: #3b82f6;
+    --sc-primary-glow: rgba(59, 130, 246, 0.35);
+    --sc-success: #10b981;
+    --sc-success-glow: rgba(16, 185, 129, 0.35);
+    --sc-warning: #f59e0b;
+    --sc-warning-glow: rgba(245, 158, 11, 0.35);
+    --sc-danger: #ef4444;
+    --sc-danger-glow: rgba(239, 68, 68, 0.35);
+    --sc-bg-glass: rgba(15, 23, 42, 0.85);
+    --sc-border-glass: rgba(255, 255, 255, 0.12);
+    --sc-text-main: #f8fafc;
+    --sc-text-muted: #94a3b8;
+    --sc-radius: 12px;
+    --sc-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================================
+   1. TOAST NOTIFICATIONS
+   ========================================================= */
+.sc-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 380px;
+    width: calc(100% - 40px);
+}
+
+.sc-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: var(--sc-radius);
+    background: var(--sc-bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--sc-border-glass);
+    color: var(--sc-text-main);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    font-size: 0.92rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(30px);
+    transition: var(--sc-transition);
+}
+
+.sc-toast.sc-toast-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.sc-toast-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.sc-toast-message {
+    flex-grow: 1;
+    line-height: 1.4;
+}
+
+.sc-toast-close {
+    background: transparent;
+    border: none;
+    color: var(--sc-text-muted);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: var(--sc-transition);
+}
+
+.sc-toast-close:hover {
+    color: var(--sc-text-main);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sc-toast-success { border-left: 4px solid var(--sc-success); box-shadow: 0 8px 20px -4px var(--sc-success-glow); }
+.sc-toast-error { border-left: 4px solid var(--sc-danger); box-shadow: 0 8px 20px -4px var(--sc-danger-glow); }
+.sc-toast-warning { border-left: 4px solid var(--sc-warning); box-shadow: 0 8px 20px -4px var(--sc-warning-glow); }
+.sc-toast-info { border-left: 4px solid var(--sc-primary); box-shadow: 0 8px 20px -4px var(--sc-primary-glow); }
+
+/* =========================================================
+   2. LOADING STATES & SKELETONS
+   ========================================================= */
+.sc-loading-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 40px 20px;
+    width: 100%;
+    min-height: 160px;
+    color: var(--sc-text-muted);
+}
+
+.sc-spinner {
+    width: 38px;
+    height: 38px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: var(--sc-primary);
+    border-radius: 50%;
+    animation: sc-spin 0.8s linear infinite;
+}
+
+@keyframes sc-spin {
+    to { transform: rotate(360deg); }
+}
+
+.sc-loading-text {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.sc-skeleton {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: sc-skeleton 1.5s infinite;
+    border-radius: 6px;
+}
+
+@keyframes sc-skeleton {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* =========================================================
+   3. EMPTY & ERROR STATES
+   ========================================================= */
+.sc-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 24px;
+    border-radius: var(--sc-radius);
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px dashed var(--sc-border-glass);
+    margin: 16px 0;
+}
+
+.sc-state-icon {
+    font-size: 2.8rem;
+    margin-bottom: 14px;
+    opacity: 0.85;
+}
+
+.sc-state-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--sc-text-main);
+    margin-bottom: 8px;
+}
+
+.sc-state-desc {
+    font-size: 0.9rem;
+    color: var(--sc-text-muted);
+    max-width: 440px;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.sc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--sc-transition);
+    border: none;
+    text-decoration: none;
+}
+
+.sc-btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+}
+
+.sc-btn-primary:hover {
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.5);
+}
+
+.sc-btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--sc-text-main);
+    border: 1px solid var(--sc-border-glass);
+}
+
+.sc-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+/* =========================================================
+   4. STAT CARDS
+   ========================================================= */
+.sc-stat-card {
+    background: var(--sc-bg-glass);
+    border: 1px solid var(--sc-border-glass);
+    border-radius: var(--sc-radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: var(--sc-transition);
+    backdrop-filter: blur(10px);
+}
+
+.sc-stat-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+.sc-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sc-stat-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--sc-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sc-stat-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--sc-primary);
+}
+
+.sc-stat-value {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--sc-text-main);
+    letter-spacing: -0.5px;
+}
+
+.sc-stat-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--sc-text-muted);
+}
+
+.sc-stat-trend-up { color: var(--sc-success); }
+.sc-stat-trend-down { color: var(--sc-danger); }
+
+/* =========================================================
+   5. REUSABLE MODAL DIALOG
+   ========================================================= */
+.sc-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--sc-transition);
+}
+
+.sc-modal-backdrop.sc-modal-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sc-modal-dialog {
+    background: #0f172a;
+    border: 1px solid var(--sc-border-glass);
+    border-radius: 16px;
+    max-width: 580px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    transform: scale(0.95);
+    transition: var(--sc-transition);
+}
+
+.sc-modal-backdrop.sc-modal-active .sc-modal-dialog {
+    transform: scale(1);
+}
+
+.sc-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--sc-border-glass);
+}
+
+.sc-modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sc-text-main);
+    margin: 0;
+}
+
+.sc-modal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.4rem;
+    color: var(--sc-text-muted);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 6px;
+    transition: var(--sc-transition);
+}
+
+.sc-modal-close-btn:hover {
+    color: var(--sc-text-main);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sc-modal-body {
+    padding: 24px;
+    color: var(--sc-text-main);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.sc-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 18px 24px;
+    border-top: 1px solid var(--sc-border-glass);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* =========================================================
+   6. MODULE HEADER & UTILITIES
+   ========================================================= */
+.sc-module-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--sc-border-glass);
+}
+
+.sc-module-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sc-module-icon {
+    font-size: 2rem;
+    color: var(--sc-primary);
+}
+
+.sc-module-title {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--sc-text-main);
+    margin: 0;
+}
+
+.sc-module-desc {
+    font-size: 0.9rem;
+    color: var(--sc-text-muted);
+    margin: 4px 0 0 0;
+}
+
+.sc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sc-badge-live {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--sc-success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sc-badge-live::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sc-success);
+    animation: sc-pulse 1.8s infinite;
+}
+
+@keyframes sc-pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}

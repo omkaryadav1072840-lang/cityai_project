@@ -178,7 +178,7 @@ function isParkingStaff() {
     if (!user) return false;
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const department = String(user.department || "").toLowerCase().trim();
-    return (type === "staff" && (department === "parking" || !department)) || type === "admin" || type === "superadmin";
+    return (type === "staff" && (department === "parking" || (user.editable && Array.isArray(user.editable) && user.editable.includes("parking")))) || type === "admin" || type === "superadmin";
 }
 
 let currentParkingLayer = "citizen";
@@ -901,19 +901,8 @@ function getLatestActivePass() {
 }
 
 function updateUserName() {
-    let user = getCurrentUser();
-    if (!user) {
-        user = {
-            id: 1,
-            name: "Omkar Yadav",
-            phone: "6306880179",
-            mobile: "6306880179",
-            email: "omkaryadav@gmail.com",
-            role: "citizen",
-            defaultVehicle: "UP 53 AB 1008"
-        };
-        localStorage.setItem("smartCityCurrentUser", JSON.stringify(user));
-    }
+    const isAuth = window.SmartCityAuth && typeof SmartCityAuth.isAuthenticated === "function" && SmartCityAuth.isAuthenticated();
+    const user = isAuth ? SmartCityAuth.getUser() : null;
 
     const navName = document.getElementById("navUserName");
     const navStatus = document.getElementById("navUserStatus");
@@ -921,10 +910,19 @@ function updateUserName() {
     const ddContact = document.getElementById("ddUserContact");
     const badge = document.getElementById("activePassCountBadge");
 
-    if (navName) navName.textContent = user.name || "Citizen";
-    if (navStatus) navStatus.textContent = "🟢 Active Citizen";
-    if (ddName) ddName.textContent = user.name || "Citizen";
-    if (ddContact) ddContact.textContent = `${user.phone || user.mobile || "6306880179"} • Citizen`;
+    if (user && isAuth) {
+        const isStaff = typeof isParkingStaff === "function" && isParkingStaff();
+        const roleText = isStaff ? "Staff • Parking" : "Active Citizen";
+        if (navName) navName.textContent = user.name || "Citizen";
+        if (navStatus) navStatus.textContent = isStaff ? "🛡️ Parking Staff" : "🟢 Active Citizen";
+        if (ddName) ddName.textContent = user.name || "Citizen";
+        if (ddContact) ddContact.textContent = `${user.phone || user.mobile || user.email || ""} • ${roleText}`;
+    } else {
+        if (navName) navName.textContent = "Sign In";
+        if (navStatus) navStatus.textContent = "Visitor";
+        if (ddName) ddName.textContent = "Guest Visitor";
+        if (ddContact) ddContact.textContent = "Sign in to manage parking passes";
+    }
 
     const activePass = getLatestActivePass();
     if (badge) {
@@ -3969,10 +3967,10 @@ window.openUserProfileModal = function () {
     let user = typeof getCurrentUser === "function" ? getCurrentUser() : null;
     if (!user) {
         user = {
-            name: "Omkar Yadav",
-            phone: "6306880179",
-            mobile: "6306880179",
-            email: "omkaryadav@gmail.com"
+            name: "Citizen Guest",
+            phone: "",
+            mobile: "",
+            email: ""
         };
     }
 
@@ -3982,12 +3980,12 @@ window.openUserProfileModal = function () {
     const inputEmail = document.getElementById("profInputEmail");
     const inputPlate = document.getElementById("profInputPlate");
 
-    if (cardName) cardName.textContent = user.name || "Omkar Yadav";
-    if (inputName) inputName.value = user.name || "Omkar Yadav";
-    if (inputPhone) inputPhone.value = user.phone || user.mobile || "6306880179";
-    if (inputEmail) inputEmail.value = user.email || "omkaryadav@gmail.com";
+    if (cardName) cardName.textContent = user.name || "Citizen Guest";
+    if (inputName) inputName.value = user.name || "";
+    if (inputPhone) inputPhone.value = user.phone || user.mobile || "";
+    if (inputEmail) inputEmail.value = user.email || "";
 
-    const savedPlate = localStorage.getItem("smartcity_primary_vehicle") || user.defaultVehicle || "UP 53 AB 1008";
+    const savedPlate = localStorage.getItem("smartcity_primary_vehicle") || user.defaultVehicle || "";
     if (inputPlate) inputPlate.value = savedPlate;
 
     // Check if user has an active pass to display inside profile

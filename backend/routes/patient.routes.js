@@ -192,6 +192,8 @@ router.post("/api/patients", optionalToken, async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active')
         `;
 
+        const cleanBloodGroup = bloodGroup ? String(bloodGroup).trim().split(" ")[0].slice(0, 10) : null;
+
         const [result] = await db.promise().query(sql, [
             patientId,
             userId,
@@ -201,7 +203,7 @@ router.post("/api/patients", optionalToken, async (req, res) => {
             gender || null,
             cleanMobile,
             emergencyContact ? String(emergencyContact).trim() : null,
-            bloodGroup || null,
+            cleanBloodGroup,
             address ? String(address).trim() : null,
             hospitalId || null,
             initialAbhaStatus,
@@ -454,6 +456,10 @@ router.put("/api/patients/:patientId", optionalToken, async (req, res) => {
             WHERE id = ?
         `;
 
+        const cleanBloodGroup = bloodGroup !== undefined
+            ? (bloodGroup ? String(bloodGroup).trim().split(" ")[0].slice(0, 10) : null)
+            : patient.blood_group;
+
         await db.promise().query(updateSql, [
             name || null,
             dob || null,
@@ -461,7 +467,7 @@ router.put("/api/patients/:patientId", optionalToken, async (req, res) => {
             gender || null,
             mobile || null,
             emergencyContact || null,
-            bloodGroup || null,
+            cleanBloodGroup,
             address || null,
             hospitalId || null,
             emergencyInfo || null,

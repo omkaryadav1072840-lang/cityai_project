@@ -152,7 +152,7 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
     }
 
     // 1. Validate Patient ID
-    db.query("SELECT id, name FROM patients WHERE patient_id = ? OR id = ?", [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)], (pErr, pRows) => {
+    db.query("SELECT id, name, patient_id FROM patients WHERE patient_id = ? OR id = ?", [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)], (pErr, pRows) => {
         if (pErr) return res.status(500).json({ success: false, message: "Database error." });
         if (!pRows || !pRows.length) {
             return res.status(404).json({
@@ -160,6 +160,8 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                 message: "Patient ID not found. Please register the patient first."
             });
         }
+
+        const resolvedPatientId = pRows[0].patient_id || patientId;
 
         // 2. Fetch Doctor and Hospital Name with flexible ID support
         const docSql = `
@@ -176,6 +178,8 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
             }
 
             const { doctor_id, doctor_name, hospital_name, resolved_hosp_id } = dRows[0];
+            const finalDoctorId = doctor_id || doctorId;
+            const finalHospId = resolved_hosp_id || hospitalId;
 
             // 3. Insert Appointment with Duplicate Catch
             const insertSql = `
@@ -184,18 +188,18 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                 VALUES (?, ?, ?, ?, ?, ?, 'Confirmed')
             `;
 
-            db.query(insertSql, [patientId, resolved_hosp_id || hospitalId, doctor_id || doctorId, doctor_name, appointmentDate, appointmentTime], (insErr, insRes) => {
+            db.query(insertSql, [resolvedPatientId, finalHospId, finalDoctorId, doctor_name, appointmentDate, appointmentTime], (insErr, insRes) => {
                 if (insErr) {
                     if (insErr.code === 'ER_DUP_ENTRY') {
                         db.query("SELECT id FROM appointments WHERE patient_id = ? AND appointment_date = ? AND appointment_time = ? LIMIT 1",
-                            [patientId, appointmentDate, appointmentTime], (sameErr, sameRows) => {
+                            [resolvedPatientId, appointmentDate, appointmentTime], (sameErr, sameRows) => {
                                 if (!sameErr && sameRows && sameRows.length > 0) {
                                     return res.status(200).json({
                                         success: true,
                                         message: "Appointment already confirmed for this patient.",
                                         appointment: {
                                             appointmentId: `APT-${100000 + sameRows[0].id}`,
-                                            patientId,
+                                            patientId: resolvedPatientId,
                                             hospitalName: hospital_name,
                                             doctorName: doctor_name,
                                             date: appointmentDate,
@@ -223,7 +227,7 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                     io.emit("appointment:new", {
                         id: insRes.insertId,
                         appointmentId,
-                        patientId,
+                        patientId: resolvedPatientId,
                         patientName: pRows[0]?.name || "Patient",
                         hospitalName: hospital_name,
                         doctorName: doctor_name,
@@ -239,7 +243,7 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                     message: "Appointment confirmed successfully.",
                     appointment: {
                         appointmentId,
-                        patientId,
+                        patientId: resolvedPatientId,
                         hospitalName: hospital_name,
                         doctorName: doctor_name,
                         date: appointmentDate,

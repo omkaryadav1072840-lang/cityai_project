@@ -840,7 +840,7 @@ router.get("/api/admin/ai-command-center", optionalToken, async (req, res) => {
 // =========================================================
 
 // Traffic AI - Multi-Horizon Prediction (15m, 30m, 60m)
-router.get(["/api/traffic/prediction", "/api/ai/traffic/multi-horizon"], async (req, res) => {
+router.get(["/api/traffic/prediction", "/api/ai/traffic/multi-horizon", "/api/ai/traffic/predict"], async (req, res) => {
     try {
         const { junction_id, vehicle_count, queue_length } = req.query;
         const result = await trafficAIService.predictMultiHorizon({ junction_id, vehicle_count, queue_length });
@@ -947,7 +947,7 @@ router.post(["/api/services/grievance-image-ai", "/api/ai/grievance/image-analyz
 });
 
 // Smart Waste AI - Bin Fill-Level Prediction
-router.get(["/api/waste/prediction", "/api/ai/waste/bin-forecast"], async (req, res) => {
+router.get(["/api/waste/prediction", "/api/ai/waste/bin-forecast", "/api/ai/waste/predict"], async (req, res) => {
     try {
         const { bin_id, bin_code } = req.query;
         const result = await wasteAIService.predictBinFillLevel({ bin_id, bin_code });
@@ -984,7 +984,7 @@ router.get(["/api/waste/ward-forecast", "/api/ai/waste/ward-forecast"], async (r
 // =========================================================
 
 // Phase 7: Smart Water AI - Anomaly Detection
-router.get(["/api/water/anomalies", "/api/ai/water/anomalies"], async (req, res) => {
+router.get(["/api/water/anomalies", "/api/ai/water/anomalies", "/api/ai/water/analyze"], async (req, res) => {
     try {
         const { zone, inflow_rate_lps, outflow_rate_lps, pressure_bar } = req.query;
         const result = await waterAIService.detectPipeAnomalies({ zone, inflow_rate_lps, outflow_rate_lps, pressure_bar });
@@ -1015,7 +1015,7 @@ router.get(["/api/water/demand-forecast", "/api/ai/water/demand-forecast"], asyn
 });
 
 // Phase 8: Healthcare AI - Bed Surge Forecasting
-router.get(["/api/hospital/forecast", "/api/hospital/bed-surge", "/api/ai/hospital/bed-surge"], async (req, res) => {
+router.get(["/api/hospital/forecast", "/api/hospital/bed-surge", "/api/ai/hospital/bed-surge", "/api/ai/healthcare/analyze"], async (req, res) => {
     try {
         const { hospital_id } = req.query;
         const result = await healthcareAIService.forecastBedSurge({ hospital_id });
@@ -1058,7 +1058,7 @@ router.post(["/api/hospital/qr-patient-access", "/api/ai/hospital/qr-patient-acc
 });
 
 // Phase 9: Smart Parking AI - Occupancy & Dynamic Pricing
-router.get(["/api/parking/prediction", "/api/parking/occupancy-forecast", "/api/ai/parking/occupancy-forecast"], async (req, res) => {
+router.get(["/api/parking/prediction", "/api/parking/occupancy-forecast", "/api/ai/parking/occupancy-forecast", "/api/ai/parking/forecast"], async (req, res) => {
     try {
         const { lot_id } = req.query;
         const result = await parkingAIService.predictOccupancy({ lot_id });
@@ -1109,11 +1109,37 @@ router.get(["/api/disaster/flood-risk", "/api/ai/disaster/flood-risk"], async (r
     }
 });
 
-router.get(["/api/tourism/itinerary", "/api/ai/tourism/itinerary"], async (req, res) => {
+router.all(["/api/tourism/itinerary", "/api/ai/tourism/itinerary", "/api/ai/tourist/itinerary"], async (req, res) => {
     try {
-        const { interest } = req.query;
-        const result = await environmentDisasterAIService.generateOneDayItinerary({ interest });
-        res.json(result);
+        const AIController = require("../controllers/ai.controller");
+        return await AIController.generateItinerary(req, res);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.get(["/api/tourism/attractions", "/api/ai/tourist/attractions", "/api/ai/tourist/places"], async (req, res) => {
+    try {
+        const AIController = require("../controllers/ai.controller");
+        return await AIController.getTouristGuide(req, res);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.all(["/api/hospital/recommend", "/api/ai/hospital/recommend", "/api/ai/healthcare/recommend"], async (req, res) => {
+    try {
+        const AIController = require("../controllers/ai.controller");
+        return await AIController.recommendHospital(req, res);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.all(["/api/parking/recommend", "/api/ai/parking/recommend"], async (req, res) => {
+    try {
+        const AIController = require("../controllers/ai.controller");
+        return await AIController.recommendParking(req, res);
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }

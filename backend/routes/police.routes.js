@@ -200,4 +200,22 @@ router.put("/api/police/complaints/:id/status", authenticateToken, requireRole([
     );
 });
 
+// =========================================================
+// POLICE EMERGENCY CONTACTS
+// =========================================================
+
+router.get("/api/police/emergency-contacts", (req, res) => {
+    res.json({
+        success: true,
+        policeHelpline: "112",
+        womenHelpline: "1090",
+        cyberCrimeHelpline: "1930",
+        trafficHelpline: "1073",
+        fireHelpline: "101",
+        seniorCitizenHelpline: "14567",
+        spGorakhpurOffice: "0551-2336601",
+        cityControlRoom: "0551-2200100"
+    });
+});
+
 module.exports = router;

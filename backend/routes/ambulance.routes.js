@@ -13,7 +13,7 @@ const AMBULANCE_DETAIL_COLUMNS = `
 `;
 
 // GET ALL AMBULANCES
-router.get("/api/ambulances", optionalToken, (req, res) => {
+router.get(["/api/ambulances", "/api/emergency/ambulances"], optionalToken, (req, res) => {
     const isStaffOrAdmin = req.user && (["staff", "admin", "doctor"].includes(req.user.role) || ["staff", "admin", "doctor"].includes(req.user.type));
 
     const sql = `

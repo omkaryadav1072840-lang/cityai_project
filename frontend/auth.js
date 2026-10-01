@@ -901,12 +901,31 @@ const SmartCityAuth = (() => {
         if (!user) return false;
         const role = (user.role || user.type || "").toLowerCase();
         if (role === "admin") return true;
+        const targetDept = (department || "").toLowerCase();
+        if (role === "doctor") {
+            return targetDept === "hospital" || targetDept === "healthcare";
+        }
         if (role === "staff") {
             const userDept = (user.department || "").toLowerCase();
-            const targetDept = (department || "").toLowerCase();
-            return userDept === targetDept;
+            if (userDept === targetDept) return true;
+            if (user.editable && Array.isArray(user.editable) && user.editable.map(e => String(e).toLowerCase()).includes(targetDept)) return true;
+            if ((userDept === "hospital" || userDept === "healthcare") && (targetDept === "hospital" || targetDept === "healthcare")) return true;
+            return false;
         }
         return false;
+    }
+
+    function hasPermission(moduleName, action = "view") {
+        const user = getUser();
+        if (!user) return action === "view";
+        const role = (user.role || user.type || "").toLowerCase();
+        if (role === "admin") return true;
+        if (action === "view") return true;
+        return canEdit(moduleName);
+    }
+
+    function isModuleStaff(moduleName) {
+        return canEdit(moduleName);
     }
 
     function logout() {
@@ -1119,18 +1138,18 @@ const SmartCityAuth = (() => {
         }
 
         const isStaffUser = isStaff();
-        const displayName = user.name || (isStaffUser ? "Staff Officer" : "Omkar Yadav");
-        const mobile = user.mobile || user.phone || "6306880179";
-        const email = user.email || (isStaffUser ? "officer@smartcity.gov.in" : "omkaryadav@gmail.com");
-        const citizenId = user.citizen_id || user.citizenId || (isStaffUser ? (user.staff_id || "ST-TR-VERMA") : "GKP-CIT-2026-001");
+        const displayName = user.name || user.username || (isStaffUser ? "Staff Officer" : "Citizen User");
+        const mobile = user.mobile || user.phone || "";
+        const email = user.email || (isStaffUser ? (user.staff_id ? `${user.staff_id.toLowerCase()}@smartcity.gov.in` : "officer@smartcity.gov.in") : "");
+        const citizenId = user.citizen_id || user.citizenId || (isStaffUser ? (user.staff_id || "ST-OFFICIAL") : (user.id ? `GKP-CIT-${user.id}` : "GKP-CITIZEN"));
         const roleLabel = isStaffUser ? (user.department ? `${user.role.toUpperCase()} • ${user.department.toUpperCase()}` : "STAFF OFFICER") : "VERIFIED CITIZEN";
-        const initials = displayName.split(" ").map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || (isStaffUser ? "ST" : "OY");
-        const savedVehicle = localStorage.getItem("smartcity_primary_vehicle") || user.vehicleNumber || "UP 53 AB 1008";
-        const pId = localStorage.getItem("patientId") || user.patientId || (isStaffUser ? null : "PAT-1002348");
+        const initials = displayName.split(" ").map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || (isStaffUser ? "ST" : "CT");
+        const savedVehicle = localStorage.getItem("smartcity_primary_vehicle") || user.vehicleNumber || "";
+        const pId = localStorage.getItem("patientId") || user.patientId || null;
         const ward = user.ward || "Ward 14 - Golghar Commercial / Civil Lines";
         const bloodGroup = user.bloodGroup || "O+ Positive";
-        const emergencyContactName = user.emergencyContactName || "Rajesh Yadav";
-        const emergencyContactPhone = user.emergencyContactPhone || "9876543210";
+        const emergencyContactName = user.emergencyContactName || "";
+        const emergencyContactPhone = user.emergencyContactPhone || "";
 
         const modal = document.createElement("div");
         modal.id = "scGlobalProfileModal";
@@ -1325,14 +1344,14 @@ const SmartCityAuth = (() => {
                         <div class="sc-profile-grid">
                             <div class="sc-card-panel">
                                 <div class="sc-panel-header">
-                                    <span>🏥 Ayushman Health Card &amp; Emergency</span>
-                                    <span style="font-size:10px; color:#34d399;">DIGITAL HEALTH ID</span>
+                                    <span>🏥 Ayushman Digital Health Dossier</span>
+                                    <span style="font-size:10px; color:#34d399;">ABHA INTEGRATED</span>
                                 </div>
                                 <div class="sc-field-group">
                                     <label class="sc-field-label">Assigned Patient Dossier ID</label>
                                     <div class="sc-input-wrapper">
                                         <span class="sc-input-icon">🪪</span>
-                                        <input type="text" class="sc-input-control" value="${_escapeHtml(pId || 'PAT-1002348')}" readonly />
+                                        <input type="text" id="scProfInputPatientId" class="sc-input-control" value="${_escapeHtml(pId || 'Fetching Patient ID...')}" readonly />
                                     </div>
                                 </div>
                                 <div class="sc-field-group">
@@ -1355,31 +1374,48 @@ const SmartCityAuth = (() => {
                                     <label class="sc-field-label">Emergency Contact Person</label>
                                     <div class="sc-input-wrapper">
                                         <span class="sc-input-icon">🆘</span>
-                                        <input type="text" id="scProfInputEmName" class="sc-input-control" value="${_escapeHtml(emergencyContactName)}" />
+                                        <input type="text" id="scProfInputEmName" class="sc-input-control" value="${_escapeHtml(emergencyContactName)}" placeholder="e.g. Next of Kin Name" />
                                     </div>
                                 </div>
                                 <div class="sc-field-group">
                                     <label class="sc-field-label">Emergency Phone</label>
                                     <div class="sc-input-wrapper">
                                         <span class="sc-input-icon">📞</span>
-                                        <input type="tel" id="scProfInputEmPhone" class="sc-input-control" value="${_escapeHtml(emergencyContactPhone)}" />
+                                        <input type="tel" id="scProfInputEmPhone" class="sc-input-control" value="${_escapeHtml(emergencyContactPhone)}" placeholder="e.g. 10-digit mobile" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="sc-card-panel">
-                                <div class="sc-panel-header">
-                                    <span>🩺 Medical Dossier Quick Access</span>
+                            <div class="sc-card-panel" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                <div class="sc-panel-header" style="width: 100%;">
+                                    <span>🪪 Verified Patient QR Health Pass</span>
+                                    <span id="scHealthCardStatusBadge" style="font-size: 10px; color: #34d399; font-weight: 700;">● SECURE TOKEN</span>
                                 </div>
-                                <p style="font-size:12px; color:#94a3b8; line-height:1.5; margin:0;">
-                                    Instant linkage with AIIMS Gorakhpur, BRD Medical College, pathology reports, prescription history, and emergency triage.
-                                </p>
-                                <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
-                                    <button type="button" class="sc-btn-secondary" onclick="document.getElementById('scGlobalProfileModal').remove(); const hLink = window.location.pathname.includes('/pages/') ? '../hospital/hospital.html' : 'pages/hospital/hospital.html'; window.location.href = hLink;">
-                                        <span>🪪</span> Open Digital OPD Pass &amp; Medical QR
+                                <div id="scPatientQrWrapper" style="padding: 12px; background: #ffffff; border-radius: 12px; margin: 10px auto; display: inline-flex; justify-content: center; align-items: center; box-shadow: 0 4px 14px rgba(0,0,0,0.35);">
+                                    <div id="scProfilePatientQr" style="min-width: 130px; min-height: 130px; display: flex; align-items: center; justify-content: center;"></div>
+                                </div>
+                                <div id="scPatientQrDetails" style="font-size: 11.5px; color: #94a3b8; max-width: 280px; line-height: 1.4; margin: 4px 0 8px;">
+                                    Privacy-Preserving QR Token • Scan at AIIMS Gorakhpur or BRD Medical OPD desk for authenticated triage access.
+                                </div>
+                                <div id="scPatientQrActions" style="display: flex; gap: 8px; width: 100%; justify-content: center; margin-top: 6px;">
+                                    <button type="button" id="scBtnVerifyMyQr" class="sc-btn-secondary" style="font-size: 11.5px; padding: 6px 12px;">
+                                        🔍 Verify QR
                                     </button>
-                                    <button type="button" class="sc-btn-secondary" onclick="document.getElementById('scGlobalProfileModal').remove(); SmartCityAuth.openActivityCenter('appointments');">
-                                        <span>📅</span> Track Doctor Appointments
+                                    <button type="button" class="sc-btn-secondary" style="font-size: 11.5px; padding: 6px 12px;" onclick="window.print()">
+                                        🖨️ Print Pass
+                                    </button>
+                                </div>
+                                <div id="scNoPatientSection" style="display: none; padding: 14px; text-align: center;">
+                                    <div style="font-size: 26px; margin-bottom: 6px;">🏥</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 4px;">No Digital Patient Profile Yet</div>
+                                    <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 12px;">Activate your official Ayushman Patient ID to generate your secure QR pass for hospital OPD and clinical services.</div>
+                                    <button type="button" id="scBtnCreatePatientPass" class="sc-btn-primary" style="padding: 8px 16px; font-size: 12px; font-weight: 700;">
+                                        ➕ Generate Patient QR Pass
+                                    </button>
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:6px; margin-top:12px; width: 100%;">
+                                    <button type="button" class="sc-btn-secondary" onclick="document.getElementById('scGlobalProfileModal').remove(); const hLink = window.location.pathname.includes('/pages/') ? '../hospital/hospital.html' : 'pages/hospital/hospital.html'; window.location.href = hLink;" style="justify-content: center;">
+                                        <span>🏥</span> Open Healthcare &amp; Hospital Portal
                                     </button>
                                 </div>
                             </div>
@@ -1436,7 +1472,7 @@ const SmartCityAuth = (() => {
                                 </div>
                                 <div class="sc-persona-chips">
                                     <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
-                                        <span>🚗</span> Omkar (Citizen 1)
+                                        <span>🚗</span> Citizen (Verified)
                                     </button>
                                     <button type="button" class="sc-persona-btn sc-p-citizen2" onclick="SmartCityAuth.quickLoginPersona('citizen2')">
                                         <span>👤</span> Demo Citizen
@@ -1493,6 +1529,130 @@ const SmartCityAuth = (() => {
         // Tab Navigation
         const tabs = modal.querySelectorAll(".sc-tab-pill");
         const panes = modal.querySelectorAll(".sc-profile-pane");
+        // Dynamic QR and Health Dossier Handler
+        async function loadProfilePatientQR() {
+            const qrContainer = modal.querySelector("#scProfilePatientQr");
+            const wrapper = modal.querySelector("#scPatientQrWrapper");
+            const details = modal.querySelector("#scPatientQrDetails");
+            const actions = modal.querySelector("#scPatientQrActions");
+            const noPatSection = modal.querySelector("#scNoPatientSection");
+            const inputPid = modal.querySelector("#scProfInputPatientId");
+
+            if (!qrContainer) return;
+            qrContainer.innerHTML = "<div style='color:#64748b; font-size:11px;'>Loading QR...</div>";
+
+            let activePatientId = localStorage.getItem("patientId") || user.patientId;
+
+            if (!activePatientId) {
+                try {
+                    const patRes = await authFetch(`${_getApiBase()}/api/patients`);
+                    const patData = await patRes.json();
+                    if (patData.success && patData.patients && patData.patients.length > 0) {
+                        activePatientId = patData.patients[0].patient_id;
+                        localStorage.setItem("patientId", activePatientId);
+                    }
+                } catch (_) {}
+            }
+
+            if (!activePatientId) {
+                if (wrapper) wrapper.style.display = "none";
+                if (details) details.style.display = "none";
+                if (actions) actions.style.display = "none";
+                if (noPatSection) noPatSection.style.display = "block";
+                if (inputPid) inputPid.value = "Not Registered Yet";
+                return;
+            }
+
+            if (inputPid) inputPid.value = activePatientId;
+            if (wrapper) wrapper.style.display = "inline-flex";
+            if (details) details.style.display = "block";
+            if (actions) actions.style.display = "flex";
+            if (noPatSection) noPatSection.style.display = "none";
+
+            try {
+                const qrRes = await authFetch(`${_getApiBase()}/api/patients/${encodeURIComponent(activePatientId)}/qr`);
+                const qrJson = await qrRes.json();
+                qrContainer.innerHTML = "";
+                const qrPayloadStr = (qrJson && qrJson.qrText) ? qrJson.qrText : JSON.stringify({ patientId: activePatientId, verifyUrl: `/api/patients/verify-qr?token=${qrJson.qrToken || activePatientId}` });
+
+                if (typeof QRCode !== "undefined") {
+                    new QRCode(qrContainer, {
+                        text: qrPayloadStr,
+                        width: 130,
+                        height: 130,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: (typeof QRCode.CorrectLevel !== "undefined" ? QRCode.CorrectLevel.M : 0)
+                    });
+                } else {
+                    qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(qrPayloadStr)}" width="130" height="130" alt="Patient QR Code" style="display:block; border-radius:6px;" />`;
+                }
+            } catch (e) {
+                qrContainer.innerHTML = "<div style='color:#ef4444; font-size:11px;'>Failed to load QR code</div>";
+            }
+        }
+
+        // Wire 1-Click Patient Registration
+        const createPassBtn = modal.querySelector("#scBtnCreatePatientPass");
+        if (createPassBtn) {
+            createPassBtn.addEventListener("click", async () => {
+                createPassBtn.disabled = true;
+                createPassBtn.textContent = "Generating Pass...";
+                try {
+                    const res = await authFetch(`${_getApiBase()}/api/patients`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            name: user.name || "Citizen User",
+                            mobile: user.mobile || user.phone || "9999999999",
+                            bloodGroup: modal.querySelector("#scProfInputBlood") ? modal.querySelector("#scProfInputBlood").value : "O+ Positive",
+                            emergencyContact: modal.querySelector("#scProfInputEmName") ? modal.querySelector("#scProfInputEmName").value : "",
+                            address: modal.querySelector("#scProfInputWard") ? modal.querySelector("#scProfInputWard").value : "Gorakhpur"
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.patient) {
+                        localStorage.setItem("patientId", data.patient.patient_id);
+                        showToast("Digital Patient Pass created successfully!", "success");
+                        loadProfilePatientQR();
+                        renderUserHeader();
+                    } else {
+                        showToast(data.message || "Could not create patient pass.", "error");
+                        createPassBtn.disabled = false;
+                        createPassBtn.textContent = "➕ Generate Patient QR Pass";
+                    }
+                } catch (err) {
+                    showToast("Error creating patient pass.", "error");
+                    createPassBtn.disabled = false;
+                    createPassBtn.textContent = "➕ Generate Patient QR Pass";
+                }
+            });
+        }
+
+        // Wire QR Test Verify
+        const verifyBtn = modal.querySelector("#scBtnVerifyMyQr");
+        if (verifyBtn) {
+            verifyBtn.addEventListener("click", async () => {
+                const activePid = localStorage.getItem("patientId") || user.patientId;
+                if (!activePid) return;
+                try {
+                    const vRes = await authFetch(`${_getApiBase()}/api/patients/verify-qr`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ patientId: activePid })
+                    });
+                    const vData = await vRes.json();
+                    if (vData.success) {
+                        alert(`✅ Patient QR Verified!\n\nPatient ID: ${activePid}\nStatus: Verified Active\nAccess Level: ${vData.authorized ? 'Clinical Medical Records' : 'Public Masked Summary'}`);
+                    } else {
+                        alert("Verification failed: " + (vData.message || "Unknown error"));
+                    }
+                } catch (err) {
+                    alert("Verification error: " + err.message);
+                }
+            });
+        }
+
         tabs.forEach(tab => {
             tab.addEventListener("click", () => {
                 const target = tab.getAttribute("data-tab");
@@ -1501,6 +1661,9 @@ const SmartCityAuth = (() => {
                 panes.forEach(p => {
                     p.style.display = p.id === `scTabPane-${target}` ? "block" : "none";
                 });
+                if (target === "health") {
+                    loadProfilePatientQR();
+                }
             });
         });
 
@@ -1614,7 +1777,7 @@ const SmartCityAuth = (() => {
                     </div>
                     <div class="sc-persona-chips">
                         <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
-                            <span>🚗</span> Omkar (Citizen 1)
+                            <span>🚗</span> Citizen (Verified)
                         </button>
                         <button type="button" class="sc-persona-btn sc-p-citizen2" onclick="SmartCityAuth.quickLoginPersona('citizen2')">
                             <span>👤</span> Demo (Citizen 2)
@@ -1652,7 +1815,7 @@ const SmartCityAuth = (() => {
                             <label class="sc-field-label">Mobile Number or Email <span class="req">*</span></label>
                             <div class="sc-input-wrapper">
                                 <span class="sc-input-icon">📱</span>
-                                <input type="text" id="scCitLoginId" class="sc-input-control" required placeholder="e.g. 6306880179 or citizen@example.com" />
+                                <input type="text" id="scCitLoginId" class="sc-input-control" required placeholder="e.g. 9876543210 or citizen@example.com" />
                             </div>
                         </div>
                         <div class="sc-field-group">
@@ -1703,7 +1866,7 @@ const SmartCityAuth = (() => {
                             <label class="sc-field-label">10-Digit Mobile Number <span class="req">*</span></label>
                             <div class="sc-input-wrapper">
                                 <span class="sc-input-icon">📱</span>
-                                <input type="tel" id="scRegMobile" class="sc-input-control" required placeholder="e.g. 6306880179" />
+                                <input type="tel" id="scRegMobile" class="sc-input-control" required placeholder="e.g. 9876543210" />
                             </div>
                         </div>
                         <div class="sc-field-group">
@@ -2132,7 +2295,7 @@ const SmartCityAuth = (() => {
                             <p style="font-size:12px; color:#94a3b8; margin:0 0 14px 0;">Switch between verified roles with 1 click to test citizen and staff views:</p>
                             <div class="sc-persona-chips">
                                 <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
-                                    <span>🚗</span> Omkar (Citizen 1)
+                                    <span>🚗</span> Citizen (Verified)
                                 </button>
                                 <button type="button" class="sc-persona-btn sc-p-citizen2" onclick="SmartCityAuth.quickLoginPersona('citizen2')">
                                     <span>👤</span> Demo (Citizen 2)
@@ -2191,7 +2354,7 @@ const SmartCityAuth = (() => {
         // Sync local header elements if present on page
         const navUserName = document.getElementById("navUserName") || document.getElementById("profileName") || document.getElementById("profileNavName") || document.getElementById("profCardName");
         if (navUserName) {
-            navUserName.textContent = user ? (user.name || "Omkar Yadav") : "Sign In";
+            navUserName.textContent = user ? (user.name || "Citizen") : "Sign In";
         }
         const navLoginBtn = document.getElementById("navLoginBtn");
         if (navLoginBtn) {

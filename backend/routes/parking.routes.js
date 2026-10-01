@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const db = require("../config/db");
 const { authenticateToken, optionalToken, requireRole } = require("../middleware/auth.middleware");
 const { emitParkingUpdate } = require("../sockets/index");
+const { isValidVehicleNumber } = require("../validators/parking.validator");
 
 // Configurable QR Entry Timing Windows (Asia/Kolkata / IST)
 const ENTRY_EARLY_WINDOW_MINUTES = 30; // Can enter up to 30 mins before booking start
@@ -468,6 +469,11 @@ router.post("/api/parking/staff-book", authenticateToken, requireRole(["staff", 
     const cleanLot = String(lotId).trim();
     const cleanSlot = String(slotNumber).trim().toUpperCase();
     const cleanPlate = String(vehicleNumber).trim().toUpperCase();
+
+    if (!isValidVehicleNumber(cleanPlate)) {
+        return res.status(400).json({ success: false, message: "Please provide a valid vehicle registration number (e.g. UP-53-AB-1234)." });
+    }
+
     const cleanName = customerName ? String(customerName).trim() : "Citizen Driver";
     const cleanPhone = customerPhone ? String(customerPhone).trim() : "N/A";
     const hours = Math.max(1, Math.min(Number(durationHours || 2), 24));
@@ -610,8 +616,8 @@ router.post(["/api/parking/book", "/api/parking/:id/book"], (req, res) => {
     const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || "LOT-001";
     const { userId, vehicleNumber, durationHours } = req.body;
 
-    if (!vehicleNumber) {
-        return res.status(400).json({ message: "Vehicle number is required." });
+    if (!vehicleNumber || !isValidVehicleNumber(vehicleNumber)) {
+        return res.status(400).json({ success: false, message: "Please provide a valid vehicle registration number (e.g. UP-53-AB-1234)." });
     }
 
     const { clause, value } = parseLotIdentifier(id);
@@ -896,6 +902,13 @@ router.post("/api/parking/:id/book-slot", optionalToken, async (req, res) => {
         return res.status(400).json({
             success: false,
             message: "Slot Number and Vehicle Number are required to book."
+        });
+    }
+
+    if (!isValidVehicleNumber(vehicleNumber)) {
+        return res.status(400).json({
+            success: false,
+            message: "Please provide a valid vehicle registration number (e.g. UP-53-AB-1234)."
         });
     }
 
