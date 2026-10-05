@@ -104,26 +104,37 @@ router.post("/api/doctor/login", async (req, res) => {
 
 // GET ALL DOCTORS
 router.get("/api/doctors", (req, res) => {
-    const sql = `
+    const { hospitalId } = req.query;
+    let sql = `
         SELECT
-            id,
-            doctor_id,
-            hospital_id,
-            name,
-            specialization,
-            department,
-            qualification,
-            experience,
-            mobile,
-            email,
-            consultation_fee,
-            status,
-            created_at
-        FROM doctors
-        ORDER BY name ASC
+            d.id,
+            d.doctor_id,
+            d.hospital_id,
+            d.name,
+            d.specialization,
+            d.department,
+            d.qualification,
+            d.experience,
+            d.mobile,
+            d.email,
+            d.consultation_fee,
+            d.opd_room_no,
+            d.available_days,
+            d.consultation_timings,
+            d.status,
+            d.created_at,
+            h.hospital_name
+        FROM doctors d
+        LEFT JOIN hospitals h ON d.hospital_id = h.hospital_id
     `;
+    const params = [];
+    if (hospitalId) {
+        sql += ` WHERE d.hospital_id = ?`;
+        params.push(hospitalId);
+    }
+    sql += ` ORDER BY d.name ASC`;
 
-    db.query(sql, (err, results) => {
+    db.query(sql, params, (err, results) => {
         if (err) {
             console.error("Get doctors error:", err);
             return res.status(500).json({
@@ -138,10 +149,11 @@ router.get("/api/doctors", (req, res) => {
     });
 });
 
-// ADD DOCTOR
-router.post("/api/doctors", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
-    const {
+// ADD DOCTOR (Hospital Admin or Super Admin)
+router.post("/api/doctors", authenticateToken, requireRole(["staff", "admin"]), async (req, res) => {
+    let {
         doctorId,
+        hospitalId,
         name,
         specialization,
         department,
@@ -153,33 +165,48 @@ router.post("/api/doctors", authenticateToken, requireRole(["staff", "admin"]), 
         status
     } = req.body;
 
-    if (!doctorId || !name) {
+    const userRole = (req.user.role || req.user.type || "").toLowerCase();
+    const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+
+    // Enforce Hospital Admin Data Isolation
+    if (userRole !== "admin") {
+        if (!staffHospitalId) {
+            return res.status(403).json({ success: false, message: "Access denied. Not authorized for hospital doctor management." });
+        }
+        if (hospitalId && String(hospitalId).toLowerCase() !== String(staffHospitalId).toLowerCase()) {
+            return res.status(403).json({ success: false, message: `Access denied. You can only manage doctors in your hospital (${staffHospitalId}).` });
+        }
+        hospitalId = staffHospitalId;
+    }
+
+    if (!doctorId || !name || !hospitalId) {
         return res.status(400).json({
-            message: "Doctor ID and name are required."
+            message: "Doctor ID, name, and hospital ID are required."
         });
     }
 
-    const sql = `
-        INSERT INTO doctors
-        (
-            doctor_id,
-            name,
-            specialization,
-            department,
-            qualification,
-            experience,
-            mobile,
-            email,
-            consultation_fee,
-            status
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    try {
+        const sql = `
+            INSERT INTO doctors
+            (
+                doctor_id,
+                hospital_id,
+                name,
+                specialization,
+                department,
+                qualification,
+                experience,
+                mobile,
+                email,
+                consultation_fee,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
-    db.query(
-        sql,
-        [
+        const [result] = await db.promise().query(sql, [
             doctorId,
+            hospitalId,
             name,
             specialization || null,
             department || null,
@@ -189,43 +216,46 @@ router.post("/api/doctors", authenticateToken, requireRole(["staff", "admin"]), 
             email || null,
             Number(consultationFee || 0),
             status || "Available"
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Add doctor error:", err);
-                if (err.code === "ER_DUP_ENTRY") {
-                    return res.status(409).json({
-                        message: "Doctor ID already exists."
-                    });
-                }
-                return res.status(500).json({
-                    message: "Database error."
-                });
-            }
+        ]);
 
-            res.status(201).json({
-                message: "Doctor added successfully.",
-                doctor: {
-                    id: result.insertId,
-                    doctorId,
-                    name,
-                    specialization,
-                    department,
-                    qualification,
-                    experience: Number(experience || 0),
-                    mobile,
-                    email,
-                    consultationFee: Number(consultationFee || 0),
-                    status: status || "Available"
-                }
-            });
+        // Auto-seed default OPD schedule for new doctor
+        for (let day = 1; day <= 6; day++) {
+            await db.promise().query(
+                "INSERT INTO doctor_schedules (doctor_id, hospital_id, day_of_week, start_time, end_time, slot_duration, is_active) VALUES (?, ?, ?, '09:00:00', '14:00:00', 30, 1)",
+                [doctorId, hospitalId, day]
+            ).catch(() => {});
         }
-    );
+
+        res.status(201).json({
+            message: "Doctor added successfully.",
+            doctor: {
+                id: result.insertId,
+                doctorId,
+                hospitalId,
+                name,
+                specialization,
+                department,
+                qualification,
+                experience: Number(experience || 0),
+                mobile,
+                email,
+                consultationFee: Number(consultationFee || 0),
+                status: status || "Available"
+            }
+        });
+    } catch (err) {
+        console.error("Add doctor error:", err);
+        if (err.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({ message: "Doctor ID already exists." });
+        }
+        return res.status(500).json({ message: "Database error." });
+    }
 });
 
 // UPDATE DOCTOR
 router.put("/api/doctors/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
+    const numericId = !isNaN(id) ? Number(id) : 0;
     const {
         name,
         specialization,
@@ -238,81 +268,109 @@ router.put("/api/doctors/:id", authenticateToken, requireRole(["staff", "admin"]
         status
     } = req.body;
 
-    const sql = `
-        UPDATE doctors
-        SET
-            name = COALESCE(?, name),
-            specialization = COALESCE(?, specialization),
-            department = COALESCE(?, department),
-            qualification = COALESCE(?, qualification),
-            experience = COALESCE(?, experience),
-            mobile = COALESCE(?, mobile),
-            email = COALESCE(?, email),
-            consultation_fee = COALESCE(?, consultation_fee),
-            status = COALESCE(?, status)
-        WHERE id = ?
-    `;
+    const performDoctorUpdate = () => {
+        const sql = `
+            UPDATE doctors
+            SET
+                name = COALESCE(?, name),
+                specialization = COALESCE(?, specialization),
+                department = COALESCE(?, department),
+                qualification = COALESCE(?, qualification),
+                experience = COALESCE(?, experience),
+                mobile = COALESCE(?, mobile),
+                email = COALESCE(?, email),
+                consultation_fee = COALESCE(?, consultation_fee),
+                status = COALESCE(?, status)
+            WHERE id = ? OR doctor_id = ?
+        `;
 
-    db.query(
-        sql,
-        [
-            name || null,
-            specialization || null,
-            department || null,
-            qualification || null,
-            experience != null ? Number(experience) : null,
-            mobile || null,
-            email || null,
-            consultationFee != null ? Number(consultationFee) : null,
-            status || null,
-            id
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Update doctor error:", err);
-                return res.status(500).json({
-                    message: "Database error."
+        db.query(
+            sql,
+            [
+                name || null,
+                specialization || null,
+                department || null,
+                qualification || null,
+                experience != null ? Number(experience) : null,
+                mobile || null,
+                email || null,
+                consultationFee != null ? Number(consultationFee) : null,
+                status || null,
+                numericId,
+                id
+            ],
+            (err, result) => {
+                if (err) {
+                    console.error("Update doctor error:", err);
+                    return res.status(500).json({ message: "Database error." });
+                }
+
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: "Doctor not found." });
+                }
+
+                res.json({ message: "Doctor updated successfully." });
+            }
+        );
+    };
+
+    db.query("SELECT * FROM doctors WHERE id = ? OR doctor_id = ? LIMIT 1", [numericId, id], (findErr, findRows) => {
+        if (findErr) return res.status(500).json({ message: "Database error." });
+        if (findRows.length === 0) return res.status(404).json({ message: "Doctor not found." });
+
+        const doc = findRows[0];
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+
+        if (userRole === "staff") {
+            const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+            if (staffHospitalId && doc.hospital_id && String(doc.hospital_id).toLowerCase() !== String(staffHospitalId).toLowerCase()) {
+                return res.status(403).json({
+                    message: `Access denied. Hospital staff can only manage doctors for their assigned hospital (${staffHospitalId}).`
                 });
             }
-
-            if (result.affectedRows === 0) {
-                return res.status(404).json({
-                    message: "Doctor not found."
-                });
-            }
-
-            res.json({
-                message: "Doctor updated successfully."
-            });
         }
-    );
+
+        performDoctorUpdate();
+    });
 });
 
 // DELETE DOCTOR
 router.delete("/api/doctors/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
+    const numericId = !isNaN(id) ? Number(id) : 0;
 
-    const sql = `
-        DELETE FROM doctors
-        WHERE id = ?
-    `;
+    db.query("SELECT * FROM doctors WHERE id = ? OR doctor_id = ? LIMIT 1", [numericId, id], (findErr, findRows) => {
+        if (findErr) return res.status(500).json({ message: "Database error." });
+        if (findRows.length === 0) return res.status(404).json({ message: "Doctor not found." });
 
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Delete doctor error:", err);
-            return res.status(500).json({
-                message: "Database error."
-            });
+        const doc = findRows[0];
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+
+        if (userRole === "staff") {
+            const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+            if (staffHospitalId && doc.hospital_id && String(doc.hospital_id).toLowerCase() !== String(staffHospitalId).toLowerCase()) {
+                return res.status(403).json({
+                    message: `Access denied. Hospital staff can only delete doctors for their assigned hospital (${staffHospitalId}).`
+                });
+            }
         }
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                message: "Doctor not found."
-            });
-        }
+        const sql = `
+            DELETE FROM doctors
+            WHERE id = ? OR doctor_id = ?
+        `;
 
-        res.json({
-            message: "Doctor deleted successfully."
+        db.query(sql, [numericId, id], (err, result) => {
+            if (err) {
+                console.error("Delete doctor error:", err);
+                return res.status(500).json({ message: "Database error." });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: "Doctor not found." });
+            }
+
+            res.json({ message: "Doctor deleted successfully." });
         });
     });
 });
@@ -359,11 +417,13 @@ router.get("/api/doctor-slots", (req, res) => {
 // GET SLOTS OF ONE DOCTOR
 router.get("/api/doctors/:doctorId/slots", (req, res) => {
     const doctorId = req.params.doctorId;
+    const { date, hospitalId } = req.query;
 
-    const sql = `
+    let sql = `
         SELECT
             id,
             doctor_id,
+            hospital_id,
             slot_date,
             start_time,
             end_time,
@@ -371,11 +431,22 @@ router.get("/api/doctors/:doctorId/slots", (req, res) => {
             booked_patients,
             status
         FROM doctor_slots
-        WHERE doctor_id = ?
-        ORDER BY slot_date ASC, start_time ASC
+        WHERE (doctor_id = ? OR doctor_id = (SELECT doctor_id FROM doctors WHERE id = ?))
     `;
+    const params = [doctorId, isNaN(doctorId) ? -1 : parseInt(doctorId, 10)];
 
-    db.query(sql, [doctorId], (err, results) => {
+    if (date) {
+        sql += ` AND slot_date = ?`;
+        params.push(date);
+    }
+    if (hospitalId) {
+        sql += ` AND (hospital_id = ? OR hospital_id IS NULL)`;
+        params.push(hospitalId);
+    }
+
+    sql += ` ORDER BY slot_date ASC, start_time ASC`;
+
+    db.query(sql, params, (err, results) => {
         if (err) {
             console.error("Doctor slots error:", err);
             return res.status(500).json({
@@ -384,6 +455,8 @@ router.get("/api/doctors/:doctorId/slots", (req, res) => {
         }
 
         res.json({
+            success: true,
+            count: results.length,
             slots: results
         });
     });
@@ -399,79 +472,113 @@ router.post("/api/doctor-slots", authenticateToken, requireRole(["staff", "admin
         });
     }
 
-    const sql = `
-        INSERT INTO doctor_slots
-        (
-            doctor_id,
-            slot_date,
-            start_time,
-            end_time,
-            max_patients,
-            status
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
+    const userRole = (req.user.role || req.user.type || "").toLowerCase();
+    const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
 
-    db.query(
-        sql,
-        [
-            doctorId,
-            slotDate,
-            startTime,
-            endTime,
-            Number(maxPatients || 1),
-            "Available"
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Add slot error:", err);
-                return res.status(500).json({
-                    message: "Database error."
+    const performAddSlot = () => {
+        const sql = `
+            INSERT INTO doctor_slots
+            (
+                doctor_id,
+                slot_date,
+                start_time,
+                end_time,
+                max_patients,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        db.query(
+            sql,
+            [
+                doctorId,
+                slotDate,
+                startTime,
+                endTime,
+                Number(maxPatients || 1),
+                "Available"
+            ],
+            (err, result) => {
+                if (err) {
+                    console.error("Add slot error:", err);
+                    return res.status(500).json({
+                        message: "Database error."
+                    });
+                }
+
+                res.status(201).json({
+                    success: true,
+                    message: "Doctor slot created successfully.",
+                    slot: {
+                        id: result.insertId,
+                        doctorId,
+                        slotDate,
+                        startTime,
+                        endTime,
+                        maxPatients: Number(maxPatients || 1),
+                        bookedPatients: 0,
+                        status: "Available"
+                    }
                 });
             }
+        );
+    };
 
-            res.status(201).json({
-                message: "Doctor slot created successfully.",
-                slot: {
-                    id: result.insertId,
-                    doctorId,
-                    slotDate,
-                    startTime,
-                    endTime,
-                    maxPatients: Number(maxPatients || 1),
-                    bookedPatients: 0,
-                    status: "Available"
+    if (userRole === "staff" && staffHospitalId) {
+        db.query("SELECT hospital_id FROM doctors WHERE doctor_id = ? OR id = ? LIMIT 1", [doctorId, !isNaN(doctorId) ? Number(doctorId) : 0], (dErr, dRows) => {
+            if (!dErr && dRows.length > 0) {
+                const docHospitalId = dRows[0].hospital_id;
+                if (docHospitalId && String(docHospitalId).toLowerCase() !== String(staffHospitalId).toLowerCase()) {
+                    return res.status(403).json({
+                        message: `Access denied. Hospital staff can only manage slots for doctors in their assigned hospital (${staffHospitalId}).`
+                    });
                 }
-            });
-        }
-    );
+            }
+            performAddSlot();
+        });
+    } else {
+        performAddSlot();
+    }
 });
 
 // DELETE SLOT
 router.delete("/api/doctor-slots/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
 
-    const sql = `
-        DELETE FROM doctor_slots
-        WHERE id = ?
-    `;
+    db.query("SELECT s.*, d.hospital_id FROM doctor_slots s LEFT JOIN doctors d ON s.doctor_id = d.doctor_id WHERE s.id = ? LIMIT 1", [id], (sErr, sRows) => {
+        if (sErr) return res.status(500).json({ message: "Database error." });
+        if (sRows.length === 0) return res.status(404).json({ message: "Slot not found." });
 
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Delete slot error:", err);
-            return res.status(500).json({
-                message: "Database error."
-            });
+        const slot = sRows[0];
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+        const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+
+        if (userRole === "staff" && staffHospitalId && slot.hospital_id) {
+            if (String(slot.hospital_id).toLowerCase() !== String(staffHospitalId).toLowerCase()) {
+                return res.status(403).json({
+                    message: `Access denied. Hospital staff can only delete slots for doctors in their assigned hospital (${staffHospitalId}).`
+                });
+            }
         }
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                message: "Slot not found."
-            });
-        }
+        const sql = `
+            DELETE FROM doctor_slots
+            WHERE id = ?
+        `;
 
-        res.json({
-            message: "Doctor slot deleted successfully."
+        db.query(sql, [id], (err, result) => {
+            if (err) {
+                console.error("Delete slot error:", err);
+                return res.status(500).json({
+                    message: "Database error."
+                });
+            }
+
+            res.json({
+                success: true,
+                message: "Doctor slot deleted successfully."
+            });
         });
     });
 });
@@ -625,8 +732,20 @@ router.get("/api/doctor/patient-history/:patientId", authenticateToken, requireD
  * POST /api/doctor/consultation
  * Doctor saves clinical consultation notes, diagnosis, and treatment for a patient.
  */
-router.post("/api/doctor/consultation", authenticateToken, requireDoctorOrStaff, async (req, res) => {
-    let { patientId, doctorId, doctorName, appointmentId, diagnosis, symptoms, treatment, notes, recordDate } = req.body;
+router.post(["/api/doctor/consultation", "/api/doctor/consultations/complete"], authenticateToken, requireDoctorOrStaff, async (req, res) => {
+    let { 
+        patientId, 
+        doctorId, 
+        doctorName, 
+        appointmentId, 
+        diagnosis, 
+        symptoms, 
+        treatment, 
+        notes, 
+        advice, 
+        followUpDate, 
+        recordDate 
+    } = req.body;
 
     if (!patientId || (!diagnosis && !treatment && !notes)) {
         return res.status(400).json({
@@ -636,37 +755,93 @@ router.post("/api/doctor/consultation", authenticateToken, requireDoctorOrStaff,
     }
 
     try {
-        // Auto-lookup doctor name if doctorId was provided
-        if (!doctorName && doctorId) {
-            const [docRows] = await db.promise().query(
-                "SELECT name, specialization FROM doctors WHERE doctor_id = ? OR id = ? LIMIT 1",
-                [doctorId, doctorId]
+        const pool = db.promise();
+        let hospitalId = "HOSP-001";
+        let docSpecialization = "Clinical Consultant";
+        let docDepartment = "General Medicine";
+
+        // 1. Resolve Doctor & Hospital Details
+        if (doctorId || doctorName) {
+            const [docRows] = await pool.query(
+                "SELECT doctor_id, name, specialization, department, hospital_id FROM doctors WHERE doctor_id = ? OR id = ? OR name = ? LIMIT 1",
+                [doctorId || "", doctorId || "", doctorName || ""]
             );
             if (docRows.length) {
                 doctorName = docRows[0].name;
+                doctorId = docRows[0].doctor_id;
+                docSpecialization = docRows[0].specialization || docSpecialization;
+                docDepartment = docRows[0].department || docDepartment;
+                if (docRows[0].hospital_id) hospitalId = docRows[0].hospital_id;
             }
         }
 
-        // Insert into patient_records
-        const insertSql = `
-            INSERT INTO patient_records
-            (patient_id, doctor_name, diagnosis, symptoms, treatment, notes, record_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
+        // Check appointment if hospitalId still default
+        if (appointmentId) {
+            const [appRows] = await pool.query("SELECT hospital_id, doctor, department FROM appointments WHERE id = ?", [appointmentId]);
+            if (appRows.length && appRows[0].hospital_id) {
+                hospitalId = appRows[0].hospital_id;
+                if (!docDepartment && appRows[0].department) docDepartment = appRows[0].department;
+            }
+        }
 
-        const [insertRes] = await db.promise().query(insertSql, [
+        const docTitle = doctorName || req.user.name || "Dr. Medical Officer";
+        const diagText = diagnosis || "Clinical OPD Consultation";
+        const treatText = treatment || "Symptomatic treatment advised";
+        const adviceText = advice || notes || "Rest, hydration, and adhere to prescription instructions.";
+        const consultDate = recordDate || new Date();
+
+        let hospitalLogoSnapshot = null;
+        try {
+            const [hRows] = await pool.query("SELECT logo FROM hospitals WHERE hospital_id = ? OR CAST(id AS CHAR) = ? LIMIT 1", [hospitalId, hospitalId]);
+            if (hRows.length && hRows[0].logo) {
+                hospitalLogoSnapshot = hRows[0].logo;
+            }
+        } catch (hErr) {}
+
+        // 2. Insert into `prescriptions` table (with historical hospital_logo snapshot)
+        const [rxRes] = await pool.query(`
+            INSERT INTO prescriptions
+            (patient_id, hospital_id, hospital_logo, doctor_id, appointment_id, prescription_file, doctor_name, diagnosis, medications_json, doctor_notes, advice, follow_up_date, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', NOW())
+        `, [
             patientId,
-            doctorName || req.user.name || "Dr. Medical Officer",
-            diagnosis || null,
-            symptoms || null,
-            treatment || null,
+            hospitalId,
+            hospitalLogoSnapshot,
+            doctorId || null,
+            appointmentId || null,
+            treatText,
+            docTitle,
+            diagText,
+            JSON.stringify({ treatment: treatText, diagnosis: diagText, advice: adviceText }),
             notes || null,
-            recordDate || new Date()
+            adviceText,
+            followUpDate || null
+        ]);
+        const prescriptionId = rxRes.insertId;
+
+        // 3. Insert into `patient_records` (Patient Permanent History)
+        const [insertRes] = await pool.query(`
+            INSERT INTO patient_records
+            (patient_id, hospital_id, doctor_id, appointment_id, doctor_name, diagnosis, symptoms, treatment, notes, advice, prescription_id, record_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            patientId,
+            hospitalId,
+            doctorId || null,
+            appointmentId || null,
+            docTitle,
+            diagText,
+            symptoms || null,
+            treatText,
+            notes || null,
+            adviceText,
+            prescriptionId,
+            consultDate
         ]);
 
-        // If an appointment ID was provided, mark it Completed
+        // 4. If appointment ID was provided, mark it Completed
         if (appointmentId) {
-            await db.promise().query(
+            await pool.query(
                 "UPDATE appointments SET status = 'Completed' WHERE id = ?",
                 [appointmentId]
             );
@@ -678,15 +853,18 @@ router.post("/api/doctor/consultation", authenticateToken, requireDoctorOrStaff,
                     appointmentId,
                     status: "Completed",
                     patientId,
-                    doctorId
+                    doctorId,
+                    hospitalId
                 });
             }
         }
 
         res.status(201).json({
             success: true,
-            message: "Consultation record saved and appointment completed.",
-            recordId: insertRes.insertId
+            message: "Consultation and prescription record saved permanently.",
+            recordId: insertRes.insertId,
+            prescriptionId: prescriptionId,
+            hospitalId: hospitalId
         });
     } catch (err) {
         console.error("[CONSULTATION SAVE ERROR]", err);

@@ -56,6 +56,18 @@ class HospitalController {
         }
     }
 
+    static async getBedAvailability(req, res) {
+        try {
+            const hospitalId = req.query.hospitalId || req.query.hospital_id || req.query.hospital || null;
+            const data = await HospitalModel.getGorakhpurBedAvailability({ hospitalId });
+            return apiSuccess(res, data, "Bed availability retrieved successfully.", 200, data);
+        } catch (err) {
+            console.error("HospitalController.getBedAvailability error:", err);
+            return apiError(res, "Unable to load bed availability.", 500, "BED_FETCH_ERROR", err.message);
+        }
+    }
+
+
     static async getDoctors(req, res) {
         try {
             const { hospitalId, hospital_id, department } = req.query;

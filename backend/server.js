@@ -20,6 +20,7 @@ const patientRoutes = require("./routes/patient.routes");
 const appointmentRoutes = require("./routes/appointment.routes");
 const doctorRoutes = require("./routes/doctor.routes");
 const hospitalRoutes = require("./routes/hospital.routes");
+const hospitalConfigRoutes = require("./routes/hospital_config.routes");
 const diagnosticsRoutes = require("./routes/diagnostics.routes");
 const ambulanceRoutes = require("./routes/ambulance.routes");
 const emergencyRoutes = require("./routes/emergency.routes");
@@ -133,8 +134,17 @@ app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Serve static frontend files (dashboard, subpages, CSS, JS, media)
-app.use(express.static(path.join(__dirname, "..", "frontend")));
-app.use("/frontend", express.static(path.join(__dirname, "..", "frontend")));
+const staticOptions = {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
+    }
+};
+app.use(express.static(path.join(__dirname, "..", "frontend"), staticOptions));
+app.use("/frontend", express.static(path.join(__dirname, "..", "frontend"), staticOptions));
 
 // Modular Socket.io real-time handler
 const { initSockets } = require("./sockets/index");
@@ -261,6 +271,7 @@ app.use(patientRoutes);
 app.use(appointmentRoutes);
 app.use(doctorRoutes);
 app.use(hospitalRoutes);
+app.use(hospitalConfigRoutes);
 app.use(diagnosticsRoutes);
 app.use(ambulanceRoutes);
 app.use(emergencyRoutes);

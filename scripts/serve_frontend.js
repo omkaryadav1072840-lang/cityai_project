@@ -81,7 +81,12 @@ const server = http.createServer((req, res) => {
         if (!err && stats.isFile()) {
             const ext = path.extname(filePath).toLowerCase();
             const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-            res.writeHead(200, { 'Content-Type': contentType });
+            res.writeHead(200, {
+                'Content-Type': contentType,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            });
             return fs.createReadStream(filePath).pipe(res);
         }
 
@@ -89,14 +94,24 @@ const server = http.createServer((req, res) => {
         const dirIndex = path.join(filePath, 'index.html');
         fs.stat(dirIndex, (err2, stats2) => {
             if (!err2 && stats2.isFile()) {
-                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                res.writeHead(200, {
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                });
                 return fs.createReadStream(dirIndex).pipe(res);
             }
 
             // SPA Fallback to index.html if not an asset request and no extension
             if (!path.extname(reqPath)) {
                 const fallback = path.join(FRONTEND_DIR, 'index.html');
-                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                res.writeHead(200, {
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                });
                 return fs.createReadStream(fallback).pipe(res);
             }
 

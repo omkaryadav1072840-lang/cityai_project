@@ -118,6 +118,7 @@ router.post("/api/emergency-departments", authenticateToken, requireRole(["staff
 // UPDATE EMERGENCY DEPARTMENT
 router.put("/api/emergency-departments/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
+    const numericId = !isNaN(id) ? Number(id) : 0;
     const {
         emergencyNumber,
         emergencyType,
@@ -128,44 +129,71 @@ router.put("/api/emergency-departments/:id", authenticateToken, requireRole(["st
         location
     } = req.body;
 
-    const sql = `
-        UPDATE emergency_departments
-        SET
-            emergency_number = ?,
-            emergency_type = ?,
-            available_doctors = ?,
-            available_beds = ?,
-            ambulances_available = ?,
-            status = ?,
-            location = ?
-        WHERE id = ?
-    `;
+    const performUpdate = (record) => {
+        const sql = `
+            UPDATE emergency_departments
+            SET
+                emergency_number = ?,
+                emergency_type = ?,
+                available_doctors = ?,
+                available_beds = ?,
+                ambulances_available = ?,
+                status = ?,
+                location = ?
+            WHERE id = ?
+        `;
 
-    db.query(
-        sql,
-        [
-            emergencyNumber || null,
-            emergencyType || null,
-            Number(availableDoctors || 0),
-            Number(availableBeds || 0),
-            Number(ambulancesAvailable || 0),
-            status || "Active",
-            location || null,
-            id
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Emergency update error:", err);
-                return res.status(500).json({ message: "Database error." });
+        db.query(
+            sql,
+            [
+                emergencyNumber !== undefined ? emergencyNumber : record.emergency_number,
+                emergencyType !== undefined ? emergencyType : record.emergency_type,
+                availableDoctors !== undefined ? Number(availableDoctors) : record.available_doctors,
+                availableBeds !== undefined ? Number(availableBeds) : record.available_beds,
+                ambulancesAvailable !== undefined ? Number(ambulancesAvailable) : record.ambulances_available,
+                status !== undefined ? status : record.status,
+                location !== undefined ? location : record.location,
+                record.id
+            ],
+            (err, result) => {
+                if (err) {
+                    console.error("Emergency update error:", err);
+                    return res.status(500).json({ message: "Database error." });
+                }
+
+                res.json({ success: true, message: "Emergency department updated successfully." });
             }
+        );
+    };
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ message: "Emergency department not found." });
+    db.query("SELECT * FROM emergency_departments WHERE id = ? OR hospital_name = ? LIMIT 1", [numericId, id], (findErr, findRows) => {
+        if (findErr) return res.status(500).json({ message: "Database error." });
+        if (findRows.length === 0) return res.status(404).json({ message: "Emergency department not found." });
+
+        const record = findRows[0];
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+
+        if (userRole === "staff") {
+            const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+            if (staffHospitalId) {
+                db.query("SELECT hospital_name FROM hospitals WHERE hospital_id = ? OR id = ? LIMIT 1", [staffHospitalId, !isNaN(staffHospitalId) ? Number(staffHospitalId) : 0], (hErr, hRows) => {
+                    if (!hErr && hRows.length > 0) {
+                        const assignedName = hRows[0].hospital_name;
+                        const normAssigned = assignedName.toLowerCase().replace(/hospital|trauma|center|emergency/gi, '').trim();
+                        const normRecord = (record.hospital_name || '').toLowerCase().replace(/hospital|trauma|center|emergency/gi, '').trim();
+                        if (normAssigned && !normRecord.includes(normAssigned) && !normAssigned.includes(normRecord)) {
+                            return res.status(403).json({
+                                message: `Access denied. Hospital staff can only update emergency departments for their assigned hospital (${assignedName}).`
+                            });
+                        }
+                    }
+                    performUpdate(record);
+                });
+                return;
             }
-
-            res.json({ message: "Emergency department updated successfully." });
         }
-    );
+        performUpdate(record);
+    });
 });
 
 // =========================================================

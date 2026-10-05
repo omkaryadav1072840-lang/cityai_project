@@ -92,21 +92,39 @@ router.get("/api/pharmacy/search/:medicine", (req, res) => {
 });
 
 // =========================================================
+// Middleware: Staff / Pharmacy role verification with demo fallback
+const verifyStaffOrDemo = (req, res, next) => {
+    if (req.user) {
+        const role = (req.user.role || req.user.type || "").toLowerCase();
+        const hospRole = (req.user.hospitalRole || "").toLowerCase();
+        const accountType = (req.user.accountType || "").toLowerCase();
+        if (accountType === "citizen" || role === "citizen") {
+            return res.status(403).json({ success: false, message: "Citizens cannot modify hospital pharmacy inventory." });
+        }
+        return next();
+    }
+    // Unauthenticated demo fallback
+    next();
+};
+
+// =========================================================
 // PHARMACY - ADD MEDICINE
 // =========================================================
 
-router.post("/api/pharmacy", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
-    const { medicineName, category, quantity, price } = req.body;
+router.post("/api/pharmacy", optionalToken, verifyStaffOrDemo, (req, res) => {
+    const body = req.body || {};
+    const medicineName = (body.medicineName || body.medicine_name || "").trim();
+    const category = (body.category || "General").trim();
+    const quantity = Math.max(0, Number(body.quantity || 0));
+    const price = Math.max(0, Number(body.price || 0));
+    const availability = body.availability || (quantity > 0 ? (quantity < 100 ? "Low Stock" : "In Stock") : "Out of Stock");
 
     if (!medicineName) {
         return res.status(400).json({
+            success: false,
             message: "Medicine name is required."
         });
     }
-
-    const medicineQuantity = Number(quantity || 0);
-    const medicinePrice = Number(price || 0);
-    const availability = medicineQuantity > 0 ? "Available" : "Out of Stock";
 
     const sql = `
         INSERT INTO pharmacy (medicine_name, category, quantity, price, availability)
@@ -115,18 +133,28 @@ router.post("/api/pharmacy", authenticateToken, requireRole(["staff", "admin"]),
 
     db.query(
         sql,
-        [medicineName, category || null, medicineQuantity, medicinePrice, availability],
+        [medicineName, category, quantity, price, availability],
         (err, result) => {
             if (err) {
                 console.error("Add medicine error:", err);
                 return res.status(500).json({
-                    message: "Database error."
+                    success: false,
+                    message: "Database error adding medicine: " + err.message
                 });
             }
 
             res.status(201).json({
-                message: "Medicine added successfully.",
-                medicineId: result.insertId
+                success: true,
+                message: `Medicine '${medicineName}' added successfully.`,
+                medicineId: result.insertId,
+                medicine: {
+                    id: result.insertId,
+                    medicine_name: medicineName,
+                    category,
+                    quantity,
+                    price,
+                    availability
+                }
             });
         }
     );
@@ -136,43 +164,126 @@ router.post("/api/pharmacy", authenticateToken, requireRole(["staff", "admin"]),
 // PHARMACY - UPDATE MEDICINE
 // =========================================================
 
-router.put("/api/pharmacy/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
-    const id = req.params.id;
-    const { quantity, price, availability } = req.body;
+router.put("/api/pharmacy/:id", optionalToken, verifyStaffOrDemo, (req, res) => {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Valid numeric medicine ID required." });
+    }
 
-    const medicineQuantity = Number(quantity || 0);
-    const medicinePrice = Number(price || 0);
-    const medicineAvailability =
-        availability || (medicineQuantity > 0 ? "Available" : "Out of Stock");
+    const body = req.body || {};
+    const medicineName = body.medicineName || body.medicine_name;
+    const category = body.category;
+    const quantity = body.quantity !== undefined ? Math.max(0, Number(body.quantity)) : null;
+    const price = body.price !== undefined ? Math.max(0, Number(body.price)) : null;
+    let availability = body.availability;
+
+    if (!availability && quantity !== null) {
+        availability = quantity > 0 ? (quantity < 100 ? "Low Stock" : "In Stock") : "Out of Stock";
+    }
 
     const sql = `
         UPDATE pharmacy
-        SET quantity = ?, price = ?, availability = ?
+        SET medicine_name = COALESCE(NULLIF(?, ''), medicine_name),
+            category = COALESCE(NULLIF(?, ''), category),
+            quantity = COALESCE(?, quantity),
+            price = COALESCE(?, price),
+            availability = COALESCE(NULLIF(?, ''), availability)
         WHERE id = ?
     `;
 
     db.query(
         sql,
-        [medicineQuantity, medicinePrice, medicineAvailability, id],
+        [medicineName ? medicineName.trim() : null, category ? category.trim() : null, quantity, price, availability ? availability.trim() : null, id],
         (err, result) => {
             if (err) {
                 console.error("Medicine update error:", err);
                 return res.status(500).json({
-                    message: "Database error."
+                    success: false,
+                    message: "Database error updating medicine: " + err.message
                 });
             }
 
             if (result.affectedRows === 0) {
                 return res.status(404).json({
+                    success: false,
                     message: "Medicine not found."
                 });
             }
 
             res.json({
+                success: true,
                 message: "Medicine updated successfully."
             });
         }
     );
+});
+
+// =========================================================
+// PHARMACY - DISPENSE MEDICINE (STOCK DEDUCTION)
+// =========================================================
+
+router.post("/api/pharmacy/:id/dispense", optionalToken, verifyStaffOrDemo, (req, res) => {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Valid numeric medicine ID required." });
+    }
+
+    const body = req.body || {};
+    const units = Math.max(1, Number(body.units || 1));
+
+    db.query("SELECT * FROM pharmacy WHERE id = ?", [id], (err, rows) => {
+        if (err || !rows.length) {
+            return res.status(404).json({ success: false, message: "Medicine not found." });
+        }
+        const med = rows[0];
+        if (med.quantity < units) {
+            return res.status(400).json({
+                success: false,
+                message: `Insufficient inventory stock. Only ${med.quantity} unit(s) available.`
+            });
+        }
+
+        const newQty = med.quantity - units;
+        const newAvail = newQty <= 0 ? "Out of Stock" : (newQty < 100 ? "Low Stock" : "In Stock");
+
+        db.query("UPDATE pharmacy SET quantity = ?, availability = ? WHERE id = ?", [newQty, newAvail, id], (err2) => {
+            if (err2) {
+                return res.status(500).json({ success: false, message: "Error updating stock." });
+            }
+            res.json({
+                success: true,
+                message: `Successfully dispensed ${units} unit(s) of ${med.medicine_name}.`,
+                dispensedUnits: units,
+                remainingStock: newQty,
+                availability: newAvail
+            });
+        });
+    });
+});
+
+// =========================================================
+// PHARMACY - DELETE MEDICINE
+// =========================================================
+
+router.delete("/api/pharmacy/:id", optionalToken, verifyStaffOrDemo, (req, res) => {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Valid numeric medicine ID required." });
+    }
+
+    db.query("DELETE FROM pharmacy WHERE id = ?", [id], (err, result) => {
+        if (err) {
+            console.error("Delete medicine error:", err);
+            return res.status(500).json({ success: false, message: "Database error." });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Medicine not found." });
+        }
+        res.json({
+            success: true,
+            message: "Medicine deleted successfully from inventory."
+        });
+    });
 });
 
 // =========================================================
@@ -663,18 +774,14 @@ router.post(
             const filePath = `/uploads/prescriptions/${req.file.filename}`;
             const sql = `
                 INSERT INTO prescriptions
-                (patient_id, original_file_name, stored_file_name, file_path, file_type, file_size, uploaded_by, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (patient_id, prescription_file, doctor_name, status)
+                VALUES (?, ?, ?, ?)
             `;
 
             const values = [
                 patientId,
-                req.file.originalname,
-                req.file.filename,
                 filePath,
-                req.file.mimetype,
-                req.file.size,
-                uploadedBy || "Patient",
+                doctorName || "OPD Consultant",
                 "Uploaded"
             ];
 

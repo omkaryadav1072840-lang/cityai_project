@@ -126,6 +126,12 @@ class HospitalModel {
         `, [patientId]);
         return rows;
     }
+
+    static async getGorakhpurBedAvailability(options = {}) {
+        const HospitalBedService = require("../services/hospital_bed_service");
+        return HospitalBedService.getGorakhpurBedAvailability(options);
+    }
 }
 
 module.exports = HospitalModel;
+

@@ -1119,6 +1119,12 @@ const SmartCityAuth = (() => {
                 if (profModal) profModal.remove();
                 renderUserHeader();
                 showToast(`Welcome back, ${data.user.name || 'User'}!`, "success");
+                const target = data.targetDashboard || (data.user && data.user.targetDashboard);
+                if (target && !["citizen", "citizen2"].includes(roleKey)) {
+                    setTimeout(() => {
+                        window.location.href = '/' + target.replace(/^\//, '');
+                    }, 500);
+                }
             } else {
                 showToast(data.message || "Login failed.", "error");
             }
@@ -1785,17 +1791,23 @@ const SmartCityAuth = (() => {
                         <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
                             <span>🚗</span> Citizen (Verified)
                         </button>
-                        <button type="button" class="sc-persona-btn sc-p-citizen2" onclick="SmartCityAuth.quickLoginPersona('citizen2')">
-                            <span>👤</span> Demo (Citizen 2)
-                        </button>
                         <button type="button" class="sc-persona-btn sc-p-traffic" onclick="SmartCityAuth.quickLoginPersona('traffic')">
                             <span>👮</span> Insp. Verma (Traffic)
                         </button>
-                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('hospital')">
-                            <span>🏥</span> STAFF-001 (Hospital)
+                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('pharmacy')">
+                            <span>💊</span> HOSP-PHARM (Pharmacy)
                         </button>
-                        <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('admin')">
-                            <span>🛡️</span> TR-ADMIN (ICCC)
+                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('hospital')">
+                            <span>🏥</span> HOSP-REC (Desk)
+                        </button>
+                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('doctor')">
+                            <span>🩺</span> DOC-101 (Doctor)
+                        </button>
+                        <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')">
+                            <span>👑</span> HOSP-ADMIN (AIIMS)
+                        </button>
+                        <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('super_admin')">
+                            <span>🛡️</span> Super Admin (ICCC)
                         </button>
                     </div>
                 </div>
@@ -1839,11 +1851,23 @@ const SmartCityAuth = (() => {
 
                     <!-- Staff Form -->
                     <form id="scStaffForm" class="sc-form" style="display: none;">
+                        <div class="sc-staff-presets" style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px dashed rgba(56, 189, 248, 0.25); border-radius: 8px; margin-bottom: 4px;">
+                            <div style="font-size: 11px; font-weight: 600; color: #94a3b8; display: flex; align-items: center; gap: 4px;">
+                                <span>⚡</span> Quick Fill Credentials:
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-PHARM'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">💊 HOSP-PHARM</button>
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-REC'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🏥 HOSP-REC</button>
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-ADMIN'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">👑 HOSP-ADMIN</button>
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='DOC-101'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🩺 DOC-101</button>
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='STAFF-001'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.35); color: #f472b6; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🛡️ STAFF-001</button>
+                            </div>
+                        </div>
                         <div class="sc-field-group">
                             <label class="sc-field-label">Official Staff / Officer ID <span class="req">*</span></label>
                             <div class="sc-input-wrapper">
                                 <span class="sc-input-icon">🪪</span>
-                                <input type="text" id="scStaffId" class="sc-input-control" required placeholder="e.g. TR-VERMA, STAFF-001, TR-ADMIN" />
+                                <input type="text" id="scStaffId" class="sc-input-control" required placeholder="e.g. HOSP-PHARM, HOSP-REC, HOSP-ADMIN, DOC-101" />
                             </div>
                         </div>
                         <div class="sc-field-group">
@@ -2036,6 +2060,9 @@ const SmartCityAuth = (() => {
                         modal.remove();
                         if (options && typeof options.onSuccess === "function") {
                             options.onSuccess(data.user, data.token);
+                        } else if (data.targetDashboard) {
+                            const dest = '/' + data.targetDashboard.replace(/^\//, '');
+                            window.location.href = dest;
                         }
                     }, 650);
                 } else {

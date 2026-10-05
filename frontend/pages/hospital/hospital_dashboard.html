@@ -505,6 +505,9 @@
                 <p>Medicine catalog, inventory stock alerts, and prescription fulfillment direct from OPD.</p>
             </div>
             <div class="hd-actions-row">
+                <button type="button" class="hd-btn hd-btn-primary" onclick="openAddMedicineModal()">
+                    ➕ Add New Medicine
+                </button>
                 <span class="hd-badge green">Pharmacy Desk Active</span>
             </div>
         </div>
@@ -549,6 +552,7 @@
                         <th>Service Description</th>
                         <th>Total Amount</th>
                         <th>Paid Amount</th>
+                        <th>Remaining Balance</th>
                         <th>Payment Method</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -593,35 +597,403 @@
     </section>
 
     <!-- PANEL 8: HOSPITAL ADMIN & SETTINGS -->
+    <!-- PANEL 8: HOSPITAL ADMIN & SETTINGS (SELF-SERVICE CONFIGURATION CONSOLE) -->
     <section class="hd-panel" id="panel-admin">
         <div class="hd-section-header">
             <div>
-                <h3>⚙️ Hospital Administration & Staff Control</h3>
-                <p>Manage hospital departments, authorized staff accounts, role permissions, and facility profile.</p>
+                <h3>⚙️ Hospital Administration &amp; Infrastructure Configuration</h3>
+                <p>Self-service management of hospital profile, official logo, clinical facilities, doctor OPD timings, ward/bed structure, ICU suites, diagnostic catalogue, staff, and audit history.</p>
             </div>
             <div class="hd-actions-row">
-                <button class="hd-btn hd-btn-primary" onclick="openAddStaffModal()">➕ Add Staff Member</button>
+                <span class="hd-badge green" id="adminFacilityActiveBadge">Facility: Selected Hospital</span>
             </div>
         </div>
 
-        <div class="hd-card">
-            <h4>Authorized Staff Members & Roles</h4>
-            <div class="hd-table-wrap" style="margin-top: 12px;">
-                <table class="hd-table">
-                    <thead>
-                        <tr>
-                            <th>Staff ID</th>
-                            <th>Name</th>
-                            <th>Department</th>
-                            <th>Hospital Role</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminStaffTableBody">
-                        <!-- Injected via JavaScript -->
-                    </tbody>
-                </table>
+        <!-- CONFIGURATION SUBTABS -->
+        <div class="hd-cat-filter-bar" id="adminConfigSubTabs" style="margin-bottom: 20px; overflow-x: auto; white-space: nowrap; gap: 8px;">
+            <button class="hd-cat-pill active" onclick="switchAdminConfigSubTab('profile', this)">🏥 Profile &amp; Official Logo</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('facilities', this)">🛠️ Facilities Configurator</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('doctors', this)">👨‍⚕️ Doctors &amp; OPD Timings</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('wards', this)">🛏️ Wards &amp; Beds Structure</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('icu', this)">🚨 ICU Specialty Suites</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('diagnostics', this)">🔬 Diagnostic Catalogue</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('staff', this)">👥 Staff Accounts &amp; Roles</button>
+            <button class="hd-cat-pill" onclick="switchAdminConfigSubTab('audit', this)">📜 Admin Audit History</button>
+        </div>
+
+        <!-- 1. SUBTAB: PROFILE & OFFICIAL LOGO -->
+        <div class="hd-admin-subtab" id="admin-subtab-profile">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Hospital Identity &amp; Branding Profile</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Official institution profile, verification accreditations, and logo displayed on dashboard and prescriptions.</p>
+                    </div>
+                    <button class="hd-btn hd-btn-primary" onclick="saveAdminHospitalProfile()">💾 Save Hospital Profile</button>
+                </div>
+
+                <form id="adminHospitalProfileForm" onsubmit="event.preventDefault(); saveAdminHospitalProfile();">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 14px;">
+                        <div class="hd-form-group">
+                            <label>Hospital Registered Name *</label>
+                            <input type="text" id="cfgHospName" class="hd-input" required>
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Hospital Code / Facility ID (Locked)</label>
+                            <input type="text" id="cfgHospCode" class="hd-input" readonly style="background: #f1f5f9; font-weight: 700; color: #2563eb;">
+                        </div>
+                    </div>
+
+                    <!-- OFFICIAL PNG LOGO PREVIEW & SELECTOR (STRICT PNG ONLY) -->
+                    <div style="display: grid; grid-template-columns: 110px 1fr; gap: 16px; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                        <div style="width: 110px; height: 110px; border-radius: 10px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; background: white;">
+                            <img id="cfgHospLogoPreview" src="" alt="Hospital Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 13px; font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">Official Hospital Logo (PNG Only) *</label>
+                            <p style="font-size: 11px; color: #64748b; margin-bottom: 8px;">Single source of truth for hospital brand identity across Dashboard, Prescriptions, Reports &amp; Billing.</p>
+                            
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                <input type="file" id="hospLogoFileInput" accept=".png,image/png" style="display:none;" onchange="handleHospitalLogoUpload(event)">
+                                <button type="button" class="hd-btn hd-btn-primary hd-btn-sm" onclick="document.getElementById('hospLogoFileInput').click()">
+                                    📁 Upload / Change PNG Logo
+                                </button>
+                                <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="color: #ef4444; border-color: #fca5a5;" onclick="handleRemoveHospitalLogo()">
+                                    🗑️ Remove Logo
+                                </button>
+                            </div>
+                            <input type="hidden" id="cfgHospLogo">
+                            <div id="logoUploadStatus" style="margin-top: 6px; font-size: 12px; font-weight: 600; display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+                        <div class="hd-form-group">
+                            <label>Hospital Type / Classification</label>
+                            <input type="text" id="cfgHospType" class="hd-input">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>City / Municipal Region</label>
+                            <input type="text" id="cfgHospCity" class="hd-input">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Accreditations &amp; Quality Certifications</label>
+                            <input type="text" id="cfgHospAccreditation" class="hd-input" placeholder="e.g. NABH Accredited • NABL Certified">
+                        </div>
+                    </div>
+
+                    <div class="hd-form-group">
+                        <label>Physical Address &amp; Landmark</label>
+                        <input type="text" id="cfgHospAddress" class="hd-input">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px;">
+                        <div class="hd-form-group">
+                            <label>General Phone</label>
+                            <input type="tel" id="cfgHospPhone" class="hd-input">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Emergency Line</label>
+                            <input type="tel" id="cfgHospEmergency" class="hd-input">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Official Email</label>
+                            <input type="email" id="cfgHospEmail" class="hd-input">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Official Website</label>
+                            <input type="url" id="cfgHospWebsite" class="hd-input">
+                        </div>
+                    </div>
+
+                    <div class="hd-form-group">
+                        <label>Detailed Description &amp; Specialty Care Overview</label>
+                        <textarea id="cfgHospDescription" class="hd-input" rows="3" style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+                        <button type="submit" class="hd-btn hd-btn-primary">💾 Save Hospital Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2. SUBTAB: FACILITIES CONFIGURATOR -->
+        <div class="hd-admin-subtab" id="admin-subtab-facilities" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Hospital Facilities &amp; Clinical Services Registry</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Enable or disable standard municipal facilities or add custom hospital wings.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminFacilities()">🔄 Refresh Facilities</button>
+                        <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openAddCustomFacilityModal()">➕ Add Custom Facility</button>
+                    </div>
+                </div>
+
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Facility Code</th>
+                                <th>Facility Name</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Action / Toggle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminFacilitiesTableBody">
+                            <tr><td colspan="5" style="text-align: center; padding: 24px;">Loading facilities...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. SUBTAB: DOCTORS & OPD TIMINGS -->
+        <div class="hd-admin-subtab" id="admin-subtab-doctors" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Doctors &amp; OPD Consultation Rosters</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Configure doctor room numbers, weekly OPD consultation days, timings, and consultation fees.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminDoctorsList()">🔄 Refresh Doctors</button>
+                        <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openAddDoctorOpdModal()">➕ Register New Doctor</button>
+                    </div>
+                </div>
+
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Department / Specialization</th>
+                                <th>OPD Room</th>
+                                <th>Available Days</th>
+                                <th>Consultation Hours</th>
+                                <th>Fee (₹)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminDoctorsTableBody">
+                            <tr><td colspan="8" style="text-align: center; padding: 24px;">Loading doctors...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. SUBTAB: WARDS & BEDS STRUCTURE (PHYSICAL SINGLE SOURCE OF TRUTH) -->
+        <div class="hd-admin-subtab" id="admin-subtab-wards" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                            <span>🏥 Complete Physical Hospital Structure</span>
+                            <span class="hd-badge green" style="font-size: 11px;">Single Source of Truth</span>
+                        </h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Configure Hospital → Building/Block → Floor → Ward/Room → Beds one time. All modules synchronize automatically.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="toggleAllAccordions(true)">⊞ Expand All</button>
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="toggleAllAccordions(false)">⊟ Collapse All</button>
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminWardStructure()">🔄 Refresh Structure</button>
+                        <button type="button" class="hd-btn hd-btn-primary hd-btn-sm" onclick="openConfigureWardRoomModal()">✨ Configure Ward / Room</button>
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="openAddWardBedModal()">➕ Add Single Bed</button>
+                    </div>
+                </div>
+
+                <!-- LIVE PHYSICAL CAPACITY DASHBOARD STRIP -->
+                <div id="adminPhysicalCapacityStrip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 18px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #64748b; font-weight: 600;">TOTAL BEDS</div>
+                        <div id="physTotalBeds" style="font-size: 20px; font-weight: 800; color: #0f172a;">-</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #16a34a; font-weight: 600;">AVAILABLE</div>
+                        <div id="physAvailBeds" style="font-size: 20px; font-weight: 800; color: #16a34a;">-</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #dc2626; font-weight: 600;">OCCUPIED</div>
+                        <div id="physOccBeds" style="font-size: 20px; font-weight: 800; color: #dc2626;">-</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #d97706; font-weight: 600;">RESERVED</div>
+                        <div id="physResBeds" style="font-size: 20px; font-weight: 800; color: #d97706;">-</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #7c3aed; font-weight: 600;">ICU BEDS</div>
+                        <div id="physIcuBeds" style="font-size: 20px; font-weight: 800; color: #7c3aed;">-</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #e11d48; font-weight: 600;">EMERGENCY</div>
+                        <div id="physEmgBeds" style="font-size: 20px; font-weight: 800; color: #e11d48;">-</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 600;">BUILDINGS / FLOORS</div>
+                        <div id="physBuildingFloorCount" style="font-size: 20px; font-weight: 800; color: #0284c7;">-</div>
+                    </div>
+                </div>
+
+                <!-- SEARCH & FILTER BAR -->
+                <div style="display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 220px; position: relative;">
+                        <input type="text" id="adminBedSearchInput" class="hd-input" placeholder="🔍 Search by Ward, Room, Bed #, or Patient..." oninput="filterAdminBeds(this.value)" style="width: 100%;">
+                    </div>
+                    <select id="adminBedStatusFilter" class="hd-select" onchange="filterAdminBedsByStatus(this.value)" style="width: 160px;">
+                        <option value="ALL">All Statuses</option>
+                        <option value="Available">🟢 Available</option>
+                        <option value="Occupied">🔴 Occupied</option>
+                        <option value="Reserved">🟡 Reserved</option>
+                        <option value="Maintenance">🔧 Maintenance</option>
+                        <option value="Blocked">🚫 Blocked</option>
+                    </select>
+                </div>
+
+                <!-- 4-TIER HIERARCHY TREE CONTAINER -->
+                <div id="adminWardStructureContainer">
+                    <p style="text-align: center; padding: 24px; color: var(--text-muted);">Loading physical hospital hierarchy...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. SUBTAB: ICU SPECIALTY SUITES -->
+        <div class="hd-admin-subtab" id="admin-subtab-icu" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Dedicated ICU Specialty Suites (General, CCU, NICU, PICU, Trauma)</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Manage specialized critical care suites and ensure capacity aligns with hospital quotas.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminIcuSuites()">🔄 Refresh ICU Suites</button>
+                        <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openAddIcuSuiteModal()">➕ Add ICU Suite</button>
+                    </div>
+                </div>
+
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Suite Code</th>
+                                <th>Specialty ICU Suite</th>
+                                <th>Total Beds</th>
+                                <th>Available Beds</th>
+                                <th>Ventilator Beds</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminIcuTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 24px;">Loading ICU suites...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. SUBTAB: DIAGNOSTIC CATALOGUE -->
+        <div class="hd-admin-subtab" id="admin-subtab-diagnostics" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Hospital Diagnostic Tests &amp; Investigation Catalogue</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Configure tests offered by this facility, turnaround times, sample requirements, and pricing.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminDiagnosticsList()">🔄 Refresh Catalogue</button>
+                        <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openAdminAddTestModal()">➕ Add Diagnostic Test</button>
+                    </div>
+                </div>
+
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Test Code</th>
+                                <th>Investigation Name</th>
+                                <th>Department</th>
+                                <th>Sample Type</th>
+                                <th>Turnaround Time</th>
+                                <th>Fee (₹)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminDiagnosticsTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 24px;">Loading catalogue...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. SUBTAB: STAFF ACCOUNTS & ROLES (EXISTING) -->
+        <div class="hd-admin-subtab" id="admin-subtab-staff" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Authorized Staff Members &amp; Roles</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Staff accounts created and verified for this hospital facility.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminStaffList()">🔄 Refresh Staff Directory</button>
+                        <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openAddStaffModal()">➕ Add New Staff</button>
+                    </div>
+                </div>
+
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Staff ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Assigned Modules</th>
+                                <th>Permissions</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminStaffTableBody">
+                            <tr><td colspan="8" style="text-align: center; padding: 24px;">Loading staff accounts...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. SUBTAB: AUDIT HISTORY -->
+        <div class="hd-admin-subtab" id="admin-subtab-audit" style="display: none;">
+            <div class="hd-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px;">Administrative Audit &amp; Configuration Log</h4>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Immutable trail of all configuration, doctor roster, ward, and capacity changes.</p>
+                    </div>
+                    <button class="hd-btn hd-btn-outline hd-btn-sm" onclick="loadAdminAuditLogs()">🔄 Refresh Audit Trail</button>
+                </div>
+
+                <div class="hd-table-wrap">
+                    <table class="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Admin User</th>
+                                <th>Action Taken</th>
+                                <th>Entity / Target</th>
+                                <th>Details / Changes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminAuditTableBody">
+                            <tr><td colspan="5" style="text-align: center; padding: 24px;">Loading audit logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </section>
@@ -935,6 +1307,82 @@
     </div>
 </div>
 
+<!-- MODAL: PROCESS PAYMENT AT BILLING COUNTER -->
+<div class="hd-modal" id="modalProcessPayment">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalProcessPayment')">✕</button>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <div style="font-size: 26px;">💳</div>
+            <div>
+                <h3 style="margin: 0; font-size: 18px; color: #1e293b;">Hospital Billing Counter</h3>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">Process partial or full patient payment.</p>
+            </div>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: #64748b;">Patient:</span>
+                <strong id="payModalPatientName" style="color: #1e293b;">-</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: #64748b;">Patient ID:</span>
+                <span id="payModalPatientId" style="font-family: monospace; font-weight: 700;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: #64748b;">Service / Bed:</span>
+                <span id="payModalService" style="font-weight: 600; color: #2563eb;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-top: 6px; border-top: 1px dashed #cbd5e1;">
+                <span style="color: #64748b;">Total Bill:</span>
+                <strong id="payModalTotalAmount" style="font-size: 15px;">₹0.00</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: #64748b;">Already Paid:</span>
+                <span id="payModalPaidAmount" style="color: #059669; font-weight: 700;">₹0.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: #dc2626; padding-top: 6px; border-top: 1px solid #cbd5e1;">
+                <span>Remaining Payable:</span>
+                <span id="payModalRemainingAmount">₹0.00</span>
+            </div>
+        </div>
+
+        <form id="processPaymentForm" onsubmit="handleProcessPaymentSubmit(event)">
+            <input type="hidden" id="payModalInvoiceId">
+            <div class="hd-form-group">
+                <label>Amount to Collect (₹) *</label>
+                <input type="number" id="payAmountInput" class="hd-input" step="0.01" min="1" required style="font-size: 18px; font-weight: 800; color: #047857;">
+                <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPay(1000)">+ ₹1,000</button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPay(2000)">+ ₹2,000</button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPayFull()">Full Balance</button>
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Payment Method *</label>
+                <select id="payMethodSelect" class="hd-input" required>
+                    <option value="Cash">💵 Cash Counter</option>
+                    <option value="UPI">📱 UPI / QR Code</option>
+                    <option value="Card">💳 Credit / Debit Card</option>
+                    <option value="Net Banking">🏦 Net Banking</option>
+                </select>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Transaction Reference / Notes</label>
+                <input type="text" id="payNotesInput" class="hd-input" placeholder="e.g. UPI-TXN-88492 or Cashier Receipt #">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalProcessPayment')">Cancel</button>
+                <button type="submit" id="btnSubmitPayment" class="hd-btn hd-btn-success" style="font-weight: 700; padding: 10px 22px;">
+                    ✅ Record Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- 6. MODAL: REGISTER WALK-IN PATIENT (OPD DESK) -->
 <div class="hd-modal" id="modalRegisterWalkIn">
     <div class="hd-modal-box">
@@ -1000,9 +1448,1080 @@
     </div>
 </div>
 
+<!-- =========================================================
+     STAFF MANAGEMENT MODALS (HOSPITAL ADMIN)
+========================================================= -->
+
+<!-- MODAL: ADD NEW STAFF MEMBER -->
+<div class="hd-modal" id="modalAddStaff">
+    <div class="hd-modal-box" style="max-width: 680px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddStaff')">✕</button>
+        <h3 style="margin-bottom: 4px;">➕ Register New Hospital Staff</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Issue official medical credentials. The new staff account will be permanently locked to your hospital facility.
+        </p>
+
+        <form id="addStaffForm" onsubmit="handleAddStaffSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Staff Full Name *</label>
+                    <input type="text" id="newStaffName" class="hd-input" required placeholder="e.g. Nurse Sunita Sharma">
+                </div>
+                <div class="hd-form-group">
+                    <label>Hospital Facility (Locked) *</label>
+                    <input type="text" id="newStaffHospitalLocked" class="hd-input" readonly style="background: #f1f5f9; color: #475569; font-weight: 700;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Staff / Employee ID *</label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="newStaffId" class="hd-input" required placeholder="e.g. STAFF-001">
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="generateAutoStaffId()">⚡ Auto</button>
+                    </div>
+                </div>
+                <div class="hd-form-group">
+                    <label>Initial Password *</label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="newStaffPassword" class="hd-input" required placeholder="e.g. Staff@2026">
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="generateAutoPassword()">⚡ Auto</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Hospital Role *</label>
+                    <select id="newStaffRole" class="hd-select" required onchange="onNewStaffRoleChange(this.value)">
+                        <option value="receptionist">👩‍💼 Receptionist / OPD Desk</option>
+                        <option value="doctor">👨‍⚕️ Consulting Doctor</option>
+                        <option value="nurse">👩‍⚕️ Nurse / Ward Staff</option>
+                        <option value="lab_technician">🔬 Lab Technician</option>
+                        <option value="radiologist">🩻 Radiologist</option>
+                        <option value="pharmacy">💊 Pharmacy Staff</option>
+                        <option value="billing">💳 Billing / Cashier</option>
+                        <option value="ambulance">🚑 Ambulance Dispatch</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Department *</label>
+                    <input type="text" id="newStaffDepartment" class="hd-input" required placeholder="e.g. Reception & OPD">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="newStaffEmail" class="hd-input" placeholder="e.g. staff@aiims.edu">
+                </div>
+                <div class="hd-form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="newStaffMobile" class="hd-input" placeholder="e.g. 9876543210">
+                </div>
+            </div>
+
+            <!-- ASSIGNED MODULES -->
+            <div style="margin-top: 10px; margin-bottom: 12px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 6px;">
+                    📦 Assigned Hospital Modules (What staff sees):
+                </label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;" id="newStaffModulesContainer">
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="patients" checked> 👥 Patients & Tokens
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="appointments" checked> 📋 Appointments
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="queue" checked> ⏳ Queue Mgmt
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="diagnostics"> 🧪 Diagnostics / Labs
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="clinical"> 👨‍⚕️ Clinical Desk
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="beds"> 🛏️ Beds & Wards
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="pharmacy"> 💊 Pharmacy
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="billing"> 💳 Billing & Cashier
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffModule" value="emergency"> 🚨 Ambulance / Fleet
+                    </label>
+                </div>
+            </div>
+
+            <!-- PERMISSIONS -->
+            <div style="margin-bottom: 16px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="font-size: 12px; font-weight: 700; color: #0f172a; display: block; margin-bottom: 6px;">
+                    🛡️ Staff Action Permissions:
+                </label>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffPerm" value="view" checked> 👁️ View Records
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffPerm" value="create" checked> ➕ Create / Register
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffPerm" value="update" checked> ✏️ Update / Edit
+                    </label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" name="newStaffPerm" value="delete"> 🗑️ Delete / Discharge
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddStaff')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Generate Credentials & Create Staff</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: CREATED CREDENTIALS SUCCESS DISPLAY -->
+<div class="hd-modal" id="modalStaffCredentialsSuccess">
+    <div class="hd-modal-box" style="max-width: 520px; text-align: center;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalStaffCredentialsSuccess')">✕</button>
+        <div style="font-size: 40px; margin-bottom: 8px;">✅</div>
+        <h3 style="margin-bottom: 6px;">Staff Credentials Generated!</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Securely copy or print these credentials for the staff member.
+        </p>
+
+        <div style="background: #0f172a; color: #f8fafc; padding: 18px; border-radius: 12px; text-align: left; font-family: monospace; font-size: 13px; line-height: 1.8; margin-bottom: 16px; border: 1px solid #334155;">
+            <div><span style="color: #94a3b8;">Staff Name:</span> <strong id="dispCredName" style="color: #38bdf8;">--</strong></div>
+            <div><span style="color: #94a3b8;">Staff ID:</span> <strong id="dispCredStaffId" style="color: #4ade80;">--</strong></div>
+            <div><span style="color: #94a3b8;">Password:</span> <strong id="dispCredPassword" style="color: #fbbf24;">--</strong></div>
+            <div><span style="color: #94a3b8;">Hospital:</span> <strong id="dispCredHospital" style="color: #f1f5f9;">--</strong></div>
+            <div><span style="color: #94a3b8;">Role:</span> <strong id="dispCredRole" style="color: #c084fc;">--</strong></div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button type="button" class="hd-btn hd-btn-primary" onclick="copyStaffCredentials()">📋 Copy Credentials</button>
+            <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalStaffCredentialsSuccess')">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EDIT STAFF ROLE & PERMISSIONS -->
+<div class="hd-modal" id="modalEditStaff">
+    <div class="hd-modal-box" style="max-width: 540px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalEditStaff')">✕</button>
+        <h3 style="margin-bottom: 6px;">✏️ Modify Staff Role & Permissions</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Update operational role, department, status, or module access.</p>
+
+        <form id="editStaffForm" onsubmit="handleEditStaffSubmit(event)">
+            <input type="hidden" id="editStaffId">
+            <div class="hd-form-group">
+                <label>Staff ID (Read-only)</label>
+                <input type="text" id="editStaffIdDisp" class="hd-input" readonly style="background: #f1f5f9; font-weight: 700;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Role *</label>
+                    <select id="editStaffRole" class="hd-select" required>
+                        <option value="receptionist">👩‍💼 Receptionist</option>
+                        <option value="doctor">👨‍⚕️ Doctor</option>
+                        <option value="nurse">👩‍⚕️ Nurse</option>
+                        <option value="lab_technician">🔬 Lab Technician</option>
+                        <option value="radiologist">🩻 Radiologist</option>
+                        <option value="pharmacy">💊 Pharmacy Staff</option>
+                        <option value="billing">💳 Billing Staff</option>
+                        <option value="ambulance">🚑 Ambulance Staff</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Account Status *</label>
+                    <select id="editStaffStatus" class="hd-select" required>
+                        <option value="Active">🟢 Active</option>
+                        <option value="Inactive">🔴 Inactive / Deactivated</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Department</label>
+                <input type="text" id="editStaffDepartment" class="hd-input">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalEditStaff')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: RESET STAFF PASSWORD -->
+<div class="hd-modal" id="modalResetStaffPassword">
+    <div class="hd-modal-box" style="max-width: 440px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalResetStaffPassword')">✕</button>
+        <h3 style="margin-bottom: 6px;">🔑 Reset Staff Password</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Set a new secure password for this staff account.</p>
+
+        <form id="resetStaffPasswordForm" onsubmit="handleResetStaffPasswordSubmit(event)">
+            <input type="hidden" id="resetPasswordStaffId">
+            <div class="hd-form-group">
+                <label>Staff ID</label>
+                <input type="text" id="resetPasswordStaffIdDisp" class="hd-input" readonly style="background: #f1f5f9; font-weight: 700;">
+            </div>
+            <div class="hd-form-group">
+                <label>New Password *</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="text" id="resetNewPasswordInput" class="hd-input" required placeholder="Enter new password">
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="generateAutoResetPassword()">⚡ Auto</button>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalResetStaffPassword')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-success">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD NEW MEDICINE -->
+<div class="hd-modal" id="modalAddMedicine" onclick="if(event.target===this) closeHdModal('modalAddMedicine')">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddMedicine')">✕</button>
+        <h3 style="margin-bottom: 6px;">💊 Add New Medicine to Inventory</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Register pharmaceutical stock for hospital dispensing and OPD fulfillment.
+        </p>
+
+        <form id="addMedicineForm" onsubmit="handleAddMedicineSubmit(event)">
+            <div class="hd-form-group">
+                <label>Medicine Name & Dosage *</label>
+                <input type="text" id="addMedName" class="hd-input" required placeholder="e.g. Paracetamol 650mg (Dolo 650)">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Category *</label>
+                    <input type="text" id="addMedCategory" class="hd-input" required placeholder="e.g. Antibiotic, Antipyretic" list="medCategoriesList">
+                    <datalist id="medCategoriesList">
+                        <option value="Antipyretic">
+                        <option value="Antibiotic">
+                        <option value="Antacid">
+                        <option value="Antiallergic">
+                        <option value="Antidiabetic">
+                        <option value="Antihypertensive">
+                        <option value="Electrolyte">
+                        <option value="Antiseptic">
+                        <option value="Immunity Supplement">
+                        <option value="Pain Relief & Anti-Inflammatory">
+                        <option value="Cardiovascular">
+                        <option value="Respiratory">
+                    </datalist>
+                </div>
+                <div class="hd-form-group">
+                    <label>Initial Stock Quantity *</label>
+                    <input type="number" id="addMedQuantity" class="hd-input" required min="0" value="100" placeholder="e.g. 250">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Unit Price (₹) *</label>
+                    <input type="number" id="addMedPrice" class="hd-input" required min="0" step="0.25" value="45.00" placeholder="e.g. 55.00">
+                </div>
+                <div class="hd-form-group">
+                    <label>Availability Status *</label>
+                    <select id="addMedAvailability" class="hd-select">
+                        <option value="In Stock">🟢 In Stock</option>
+                        <option value="Low Stock">🟡 Low Stock</option>
+                        <option value="Out of Stock">🔴 Out of Stock</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddMedicine')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">➕ Add Medicine to Stock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDIT MEDICINE -->
+<div class="hd-modal" id="modalEditMedicine" onclick="if(event.target===this) closeHdModal('modalEditMedicine')">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalEditMedicine')">✕</button>
+        <h3 style="margin-bottom: 6px;">✏️ Modify Medicine Inventory</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Update medicine details, pricing, available units, or inventory status.
+        </p>
+
+        <form id="editMedicineForm" onsubmit="handleEditMedicineSubmit(event)">
+            <input type="hidden" id="editMedId">
+
+            <div class="hd-form-group">
+                <label>Medicine Name & Dosage *</label>
+                <input type="text" id="editMedName" class="hd-input" required placeholder="Medicine Name">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Category *</label>
+                    <input type="text" id="editMedCategory" class="hd-input" required list="medCategoriesList">
+                </div>
+                <div class="hd-form-group">
+                    <label>Current Stock Units *</label>
+                    <input type="number" id="editMedQuantity" class="hd-input" required min="0">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Unit Price (₹) *</label>
+                    <input type="number" id="editMedPrice" class="hd-input" required min="0" step="0.25">
+                </div>
+                <div class="hd-form-group">
+                    <label>Availability Status *</label>
+                    <select id="editMedAvailability" class="hd-select">
+                        <option value="In Stock">🟢 In Stock</option>
+                        <option value="Low Stock">🟡 Low Stock</option>
+                        <option value="Out of Stock">🔴 Out of Stock</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalEditMedicine')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-success">💾 Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: DISPENSE MEDICINE -->
+<div class="hd-modal" id="modalDispenseMedicine" onclick="if(event.target===this) closeHdModal('modalDispenseMedicine')">
+    <div class="hd-modal-box" style="max-width: 440px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalDispenseMedicine')">✕</button>
+        <h3 style="margin-bottom: 6px;">💊 Dispense Medicine</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Record units dispensed to patient and automatically update inventory stock.
+        </p>
+
+        <form id="dispenseMedicineForm" onsubmit="handleDispenseMedicineSubmit(event)">
+            <input type="hidden" id="dispenseMedId">
+
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                <div style="font-size: 14px; font-weight: 700; color: #0f172a;" id="dispenseMedTitle">--</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                    Available Stock: <strong id="dispenseAvailStock" style="color: #10b981;">--</strong> | Unit Price: <strong id="dispenseUnitPrice" style="color: #0284c7;">--</strong>
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Units to Dispense *</label>
+                <input type="number" id="dispenseUnits" class="hd-input" required min="1" value="1" max="1000">
+            </div>
+
+            <div class="hd-form-group">
+                <label>Patient OPD Token / ID (Optional)</label>
+                <input type="text" id="dispensePatientId" class="hd-input" placeholder="e.g. PAT-2026-001 or OPD #14">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalDispenseMedicine')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Confirm Dispense</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =========================================================
+     HOSPITAL ADMIN CONFIGURATION MODALS
+========================================================= -->
+
+<!-- MODAL: ADD / EDIT DOCTOR & OPD TIMINGS -->
+<div class="hd-modal" id="modalAddDoctorOpd">
+    <div class="hd-modal-box" style="max-width: 640px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddDoctorOpd')">✕</button>
+        <h3 style="margin-bottom: 4px;" id="doctorModalTitle">👨‍⚕️ Register Doctor &amp; OPD Consultation Roster</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Configure doctor credentials, OPD consultation room, active days, and working hours.
+        </p>
+
+        <form id="addDoctorOpdForm" onsubmit="handleDoctorOpdSubmit(event)">
+            <input type="hidden" id="docOpdDoctorId">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Doctor Full Name *</label>
+                    <input type="text" id="docOpdName" class="hd-input" required placeholder="e.g. Dr. Ramesh Gupta">
+                </div>
+                <div class="hd-form-group">
+                    <label>Qualifications *</label>
+                    <input type="text" id="docOpdQualification" class="hd-input" required placeholder="e.g. MBBS, MD (Medicine), DM (Cardiology)">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Specialization / Department *</label>
+                    <input type="text" id="docOpdDepartment" class="hd-input" required placeholder="e.g. Cardiology, Orthopedics, Pediatrics">
+                </div>
+                <div class="hd-form-group">
+                    <label>OPD Consultation Room No *</label>
+                    <input type="text" id="docOpdRoomNo" class="hd-input" required placeholder="e.g. Room 104, OPD Wing B">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Consultation Fee (₹) *</label>
+                    <input type="number" id="docOpdFee" class="hd-input" required min="0" value="500">
+                </div>
+                <div class="hd-form-group">
+                    <label>Consultation Timings *</label>
+                    <input type="text" id="docOpdTimings" class="hd-input" required value="09:00 AM - 02:00 PM" placeholder="e.g. 09:00 AM - 02:00 PM">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Available OPD Days *</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Mon" checked> Mon</label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Tue" checked> Tue</label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Wed" checked> Wed</label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Thu" checked> Thu</label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Fri" checked> Fri</label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Sat" checked> Sat</label>
+                    <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" name="docDays" value="Sun"> Sun</label>
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Doctor Photo / Avatar URL</label>
+                <input type="url" id="docOpdAvatar" class="hd-input" placeholder="https://images.unsplash.com/...">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddDoctorOpd')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Save Doctor &amp; Roster</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD WARD -->
+<div class="hd-modal" id="modalAddWard">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddWard')">✕</button>
+        <h3 style="margin-bottom: 4px;">🛏️ Add Hospital Ward</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Create a new hospital ward section in the structural hierarchy.
+        </p>
+
+        <form id="addWardForm" onsubmit="handleAddWardSubmit(event)">
+            <div class="hd-form-group">
+                <label>Ward Name *</label>
+                <input type="text" id="wardName" class="hd-input" required placeholder="e.g. Ward 3B - Male Medical">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Ward Type *</label>
+                    <select id="wardType" class="hd-select" required>
+                        <option value="General">General Ward</option>
+                        <option value="Semi-Private">Semi-Private Ward</option>
+                        <option value="Private">Private AC Room</option>
+                        <option value="Emergency">Emergency / Trauma Ward</option>
+                        <option value="ICU">Intensive Care Unit</option>
+                        <option value="Isolation">Isolation Ward</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Department</label>
+                    <input type="text" id="wardDept" class="hd-input" placeholder="e.g. General Medicine">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Building / Wing</label>
+                    <input type="text" id="wardWing" class="hd-input" placeholder="e.g. Main Tower Wing A">
+                </div>
+                <div class="hd-form-group">
+                    <label>Floor</label>
+                    <input type="text" id="wardFloor" class="hd-input" placeholder="e.g. 2nd Floor">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Base Rate Per Day (₹)</label>
+                <input type="number" id="wardBaseRate" class="hd-input" min="0" value="800">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddWard')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Create Ward</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD BED TO WARD -->
+<div class="hd-modal" id="modalAddWardBed">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddWardBed')">✕</button>
+        <h3 style="margin-bottom: 4px;">🛏️ Provision Individual Bed</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Add a physical bed slot to a specific ward and room.
+        </p>
+
+        <form id="addWardBedForm" onsubmit="handleAddWardBedSubmit(event)">
+            <div class="hd-form-group">
+                <label>Select Ward *</label>
+                <select id="bedWardSelect" class="hd-select" required>
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Bed Number / Identifier *</label>
+                    <input type="text" id="bedNumber" class="hd-input" required placeholder="e.g. BED-301-A">
+                </div>
+                <div class="hd-form-group">
+                    <label>Room Number</label>
+                    <input type="text" id="bedRoomNumber" class="hd-input" placeholder="e.g. Room 301">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Bed Category *</label>
+                    <select id="bedCategorySelect" class="hd-select" required>
+                        <option value="General">General</option>
+                        <option value="Semi-Private">Semi-Private</option>
+                        <option value="Private">Private</option>
+                        <option value="ICU">ICU Bed</option>
+                        <option value="Emergency">Emergency</option>
+                        <option value="Isolation">Isolation</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Initial Status *</label>
+                    <select id="bedStatusSelect" class="hd-select" required>
+                        <option value="Available">🟢 Available</option>
+                        <option value="Maintenance">🟡 Maintenance</option>
+                        <option value="Cleaning">🧹 Cleaning / Sanitization</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddWardBed')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Add Bed to Ward</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: CONFIGURE COMPLETE WARD / ROOM WITH PHYSICAL BED GENERATOR -->
+<div class="hd-modal" id="modalConfigureWardRoom">
+    <div class="hd-modal-box" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalConfigureWardRoom')">✕</button>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <div style="font-size: 24px;">🏛️</div>
+            <div>
+                <h3 style="margin: 0; font-size: 18px;">Physical Hospital Structure &amp; Bed Builder</h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Configure Building → Floor → Ward/Room → Beds one-time as the single source of truth.</p>
+            </div>
+        </div>
+
+        <form id="configureWardRoomForm" onsubmit="handleConfigureWardRoomSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Building / Block Name *</label>
+                    <input type="text" id="cfgBuilding" class="hd-input" required placeholder="e.g. Block A, Main Tower, Block B" list="existingBuildingsList">
+                    <datalist id="existingBuildingsList"></datalist>
+                </div>
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Floor Number / Name *</label>
+                    <input type="text" id="cfgFloor" class="hd-input" required placeholder="e.g. 1st Floor, 3rd Floor, Ground Floor" list="existingFloorsList">
+                    <datalist id="existingFloorsList"></datalist>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Room / Ward Name *</label>
+                    <input type="text" id="cfgWardName" class="hd-input" required placeholder="e.g. Cardiac &amp; Neuro ICU, Male General Ward" oninput="suggestBedPrefix()">
+                </div>
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Ward / Room Type *</label>
+                    <select id="cfgWardType" class="hd-select" required onchange="onWardTypeChange(this.value)">
+                        <option value="ICU">Intensive Care Unit (ICU)</option>
+                        <option value="Emergency">Emergency / Trauma Ward</option>
+                        <option value="General">General Ward</option>
+                        <option value="Private">Executive Private Suite / Room</option>
+                        <option value="Semi-Private">Semi-Private Room</option>
+                        <option value="Isolation">Isolation / Quarantine Ward</option>
+                        <option value="NICU">Neonatal ICU (NICU)</option>
+                        <option value="PICU">Pediatric ICU (PICU)</option>
+                        <option value="Day Care">Day Care Unit</option>
+                        <option value="Custom">Custom Ward / Specialty</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Bed Category *</label>
+                    <select id="cfgBedCategory" class="hd-select" required>
+                        <option value="Cardiac & Neuro ICU">Cardiac &amp; Neuro ICU</option>
+                        <option value="Executive Private Suites">Executive Private Suites</option>
+                        <option value="Male General Ward">Male General Ward</option>
+                        <option value="Female General Ward">Female General Ward</option>
+                        <option value="Trauma Emergency Ward">Trauma Emergency Ward</option>
+                        <option value="General Ward">General Ward</option>
+                        <option value="ICU">ICU</option>
+                        <option value="Emergency">Emergency</option>
+                        <option value="Private">Private</option>
+                        <option value="Isolation">Isolation</option>
+                        <option value="Semi-Private">Semi-Private</option>
+                        <option value="Custom">Other Custom Category</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Daily Bed Charge (₹/day) *</label>
+                    <input type="number" id="cfgCharge" class="hd-input" min="0" value="1500" required>
+                </div>
+                <div class="hd-form-group">
+                    <label style="font-weight: 700; font-size: 12px;">Department</label>
+                    <input type="text" id="cfgDept" class="hd-input" placeholder="e.g. Critical Care, Cardiology, Trauma">
+                </div>
+            </div>
+
+            <!-- BED GENERATOR SECTION -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="font-size: 13px; color: #1e293b;">⚡ Bed Number Generation Engine</strong>
+                    <div style="display: flex; gap: 12px; font-size: 12px;">
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                            <input type="radio" name="cfgGenMode" value="auto" checked onchange="toggleBedGenMode(this.value)"> Automatic Generation
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                            <input type="radio" name="cfgGenMode" value="manual" onchange="toggleBedGenMode(this.value)"> Manual Custom List
+                        </label>
+                    </div>
+                </div>
+
+                <div id="cfgAutoParamsGrid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div class="hd-form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 11px; font-weight: 600;">Total Beds in Room *</label>
+                        <input type="number" id="cfgTotalBeds" class="hd-input" min="1" max="200" value="30" oninput="updateBedGeneratorPreview()">
+                    </div>
+                    <div class="hd-form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 11px; font-weight: 600;">Bed Code Prefix *</label>
+                        <input type="text" id="cfgBedPrefix" class="hd-input" value="ICU-3" placeholder="e.g. ICU-3, ER-1, GEN-M-2" oninput="updateBedGeneratorPreview()">
+                    </div>
+                    <div class="hd-form-group" style="margin-bottom: 0;">
+                        <label style="font-size: 11px; font-weight: 600;">Start Number *</label>
+                        <input type="number" id="cfgStartNum" class="hd-input" min="1" value="1" oninput="updateBedGeneratorPreview()">
+                    </div>
+                </div>
+
+                <div class="hd-form-group" style="margin-bottom: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="font-size: 11px; font-weight: 700; color: #334155;">
+                            Generated Bed Numbers (Editable: modify or add custom tags like ICU-VIP-01)
+                        </label>
+                        <span id="cfgBedCountBadge" class="hd-badge blue" style="font-size: 10px;">30 Beds</span>
+                    </div>
+                    <textarea id="cfgBedNumbersPreview" class="hd-input" rows="3" style="font-family: monospace; font-size: 12px; line-height: 1.5; resize: vertical;" placeholder="Comma or newline separated bed numbers" oninput="updateBedCountBadge()"></textarea>
+                    <small style="color: #64748b; font-size: 11px;">Admin can manually customize any bed numbers before saving (e.g. change ICU-301 to ICU-VIP-01). No fixed naming is forced.</small>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalConfigureWardRoom')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary" style="padding: 9px 20px;">💾 Save Complete Structure</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDIT WARD DETAILS -->
+<div class="hd-modal" id="modalEditWard">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalEditWard')">✕</button>
+        <h3 style="margin-bottom: 4px;">✏️ Edit Ward / Room Details</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Update building, floor, room name, department, or daily charge rate.
+        </p>
+
+        <form id="editWardForm" onsubmit="handleEditWardSubmit(event)">
+            <input type="hidden" id="editWardId">
+            <div class="hd-form-group">
+                <label>Ward / Room Name *</label>
+                <input type="text" id="editWardName" class="hd-input" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Building / Block</label>
+                    <input type="text" id="editWardWing" class="hd-input" required>
+                </div>
+                <div class="hd-form-group">
+                    <label>Floor</label>
+                    <input type="text" id="editWardFloor" class="hd-input" required>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Ward Type</label>
+                    <select id="editWardType" class="hd-select" required>
+                        <option value="ICU">ICU</option>
+                        <option value="Emergency">Emergency</option>
+                        <option value="General">General</option>
+                        <option value="Private">Private</option>
+                        <option value="Semi-Private">Semi-Private</option>
+                        <option value="Isolation">Isolation</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Daily Charge Rate (₹)</label>
+                    <input type="number" id="editWardBaseRate" class="hd-input" min="0" required>
+                </div>
+            </div>
+            <div class="hd-form-group">
+                <label>Department</label>
+                <input type="text" id="editWardDept" class="hd-input">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalEditWard')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Update Ward</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: BATCH GENERATE BEDS FOR EXISTING WARD -->
+<div class="hd-modal" id="modalBatchGenerateBeds">
+    <div class="hd-modal-box" style="max-width: 520px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalBatchGenerateBeds')">✕</button>
+        <h3 style="margin-bottom: 4px;">⚡ Add Multiple Beds to Ward</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Rapidly provision multiple bed slots with automatic numbering or custom names.
+        </p>
+
+        <form id="batchGenerateBedsForm" onsubmit="handleBatchGenerateBedsSubmit(event)">
+            <input type="hidden" id="batchWardId">
+            <div class="hd-form-group">
+                <label>Target Ward</label>
+                <input type="text" id="batchWardName" class="hd-input" readonly style="background: #f1f5f9; font-weight: 700;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                <div class="hd-form-group">
+                    <label>Number of Beds *</label>
+                    <input type="number" id="batchBedCount" class="hd-input" min="1" max="100" value="10" oninput="updateBatchBedPreview()">
+                </div>
+                <div class="hd-form-group">
+                    <label>Prefix *</label>
+                    <input type="text" id="batchBedPrefix" class="hd-input" value="BED-" oninput="updateBatchBedPreview()">
+                </div>
+                <div class="hd-form-group">
+                    <label>Start # *</label>
+                    <input type="number" id="batchStartNum" class="hd-input" min="1" value="1" oninput="updateBatchBedPreview()">
+                </div>
+            </div>
+            <div class="hd-form-group">
+                <label>Bed Numbers (Editable)</label>
+                <textarea id="batchBedNumbersPreview" class="hd-input" rows="3" style="font-family: monospace; font-size: 12px;"></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Bed Category</label>
+                    <input type="text" id="batchBedCategory" class="hd-input" placeholder="e.g. General, ICU">
+                </div>
+                <div class="hd-form-group">
+                    <label>Daily Charge (₹)</label>
+                    <input type="number" id="batchBedCharge" class="hd-input" min="0" value="800">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalBatchGenerateBeds')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Generate Beds</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD / EDIT ICU SUITE -->
+<div class="hd-modal" id="modalAddIcuSuite">
+    <div class="hd-modal-box" style="max-width: 480px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddIcuSuite')">✕</button>
+        <h3 style="margin-bottom: 4px;">🚨 Add / Edit ICU Specialty Suite</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Configure critical care capacity (General ICU, CCU, NICU, PICU, Neuro, Trauma).
+        </p>
+
+        <form id="addIcuSuiteForm" onsubmit="handleIcuSuiteSubmit(event)">
+            <div class="hd-form-group">
+                <label>ICU Suite Type / Code *</label>
+                <select id="icuSuiteCode" class="hd-select" required onchange="onIcuSuiteCodeSelect(this.value)">
+                    <option value="general_icu">General ICU</option>
+                    <option value="ccu">Coronary Care Unit (CCU)</option>
+                    <option value="nicu">Neonatal ICU (NICU)</option>
+                    <option value="picu">Pediatric ICU (PICU)</option>
+                    <option value="neuro_icu">Neuro ICU</option>
+                    <option value="surgical_icu">Surgical ICU (SICU)</option>
+                    <option value="trauma_icu">Trauma ICU</option>
+                    <option value="custom">Custom ICU Suite</option>
+                </select>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Suite Display Name *</label>
+                <input type="text" id="icuSuiteName" class="hd-input" required value="General ICU">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Total Beds Allocated *</label>
+                    <input type="number" id="icuSuiteTotalBeds" class="hd-input" required min="1" value="8">
+                </div>
+                <div class="hd-form-group">
+                    <label>Ventilator Beds *</label>
+                    <input type="number" id="icuSuiteVentilatorBeds" class="hd-input" required min="0" value="4">
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddIcuSuite')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Save ICU Suite</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD CUSTOM FACILITY -->
+<div class="hd-modal" id="modalAddCustomFacility">
+    <div class="hd-modal-box" style="max-width: 480px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddCustomFacility')">✕</button>
+        <h3 style="margin-bottom: 4px;">🛠️ Register Custom Facility</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Add a specialized unit or department facility to this hospital.
+        </p>
+
+        <form id="addCustomFacilityForm" onsubmit="handleAddCustomFacilitySubmit(event)">
+            <div class="hd-form-group">
+                <label>Facility Name *</label>
+                <input type="text" id="custFacName" class="hd-input" required placeholder="e.g. Advanced Robotic Surgery Suite">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Facility Code *</label>
+                    <input type="text" id="custFacCode" class="hd-input" required placeholder="e.g. robotic_surgery">
+                </div>
+                <div class="hd-form-group">
+                    <label>Category *</label>
+                    <input type="text" id="custFacCategory" class="hd-input" required placeholder="e.g. Surgical">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Description</label>
+                <input type="text" id="custFacDescription" class="hd-input" placeholder="State-of-the-art robotic assistance unit.">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddCustomFacility')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Add Facility</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD DIAGNOSTIC TEST (ADMIN CATALOGUE) -->
+<div class="hd-modal" id="modalAdminAddTest">
+    <div class="hd-modal-box" style="max-width: 580px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAdminAddTest')">✕</button>
+        <h3 style="margin-bottom: 4px;">🔬 Add Diagnostic Investigation to Catalogue</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            Offer a new laboratory or radiology test in the hospital diagnostic center.
+        </p>
+
+        <form id="adminAddTestForm" onsubmit="handleAdminAddTestSubmit(event)">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Test Name *</label>
+                    <input type="text" id="admTestName" class="hd-input" required placeholder="e.g. Troponin-I Quantitative Test">
+                </div>
+                <div class="hd-form-group">
+                    <label>Test Code *</label>
+                    <input type="text" id="admTestCode" class="hd-input" required placeholder="e.g. TROP-I">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Department / Category *</label>
+                    <select id="admTestDept" class="hd-select" required>
+                        <option value="Pathology">Pathology / Hematology</option>
+                        <option value="Biochemistry">Biochemistry</option>
+                        <option value="Radiology">Radiology &amp; Imaging (X-Ray, CT, MRI)</option>
+                        <option value="Microbiology">Microbiology &amp; Serology</option>
+                        <option value="Cardiology">Cardiology (ECG, ECHO, TMT)</option>
+                    </select>
+                </div>
+                <div class="hd-form-group">
+                    <label>Price (₹) *</label>
+                    <input type="number" id="admTestPrice" class="hd-input" required min="0" value="450">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Turnaround Time (TAT)</label>
+                    <input type="text" id="admTestTat" class="hd-input" value="4 Hours" placeholder="e.g. 2 Hours, 24 Hours">
+                </div>
+                <div class="hd-form-group">
+                    <label>Sample Type</label>
+                    <input type="text" id="admTestSample" class="hd-input" value="Blood" placeholder="e.g. Blood, Urine, Imaging">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Normal Reference Range Guidance</label>
+                <input type="text" id="admTestRange" class="hd-input" placeholder="e.g. < 0.04 ng/mL">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAdminAddTest')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Add Test to Catalogue</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =========================================================
+     OFFICIAL MEDICAL PRESCRIPTION DOCUMENT MODAL
+========================================================= -->
+<div class="hd-modal" id="modalViewPrescription">
+    <div class="hd-modal-box modal-lg" style="max-width: 820px; max-height: 92vh; overflow-y: auto;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalViewPrescription')">✕</button>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 24px;">📄</span>
+                <h3 style="margin: 0;">Official Medical Prescription Document</h3>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="printPrescriptionDocument()">🖨️ Print Prescription</button>
+                <button type="button" class="hd-btn hd-btn-primary hd-btn-sm" onclick="closeHdModal('modalViewPrescription')">Done</button>
+            </div>
+        </div>
+
+        <div class="prescription-paper" id="printablePrescriptionArea" style="background: white; border: 2px solid #0284c7; border-radius: 8px; padding: 24px; color: #0f172a; font-family: system-ui, -apple-system, sans-serif;">
+            <!-- HOSPITAL LETTERHEAD HEADER -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <img id="rxHospLogo" src="" alt="Hospital Logo" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid #cbd5e1;">
+                    <div>
+                        <h2 id="rxHospName" style="margin: 0 0 4px; font-size: 22px; color: #0369a1; font-weight: 800;">HOSPITAL NAME</h2>
+                        <div id="rxHospAddress" style="font-size: 11px; color: #64748b;">Gorakhpur, Uttar Pradesh</div>
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;" id="rxHospAccreditation">NABH Accredited • Ayushman Bharat Verified</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span class="hd-badge green" style="font-size: 11px;">OFFICIAL OPD DOSSIER</span>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Helpline: <strong id="rxHospPhone">102</strong></div>
+                    <div style="font-size: 10px; color: #94a3b8; font-family: monospace;" id="rxDocId">RX-2026-0001</div>
+                </div>
+            </div>
+
+            <!-- DOCTOR & PATIENT DETAILS GRID -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px;">
+                <div>
+                    <div style="color: #64748b; font-size: 11px;">Consulting Specialist:</div>
+                    <strong style="font-size: 14px; color: #0f172a;" id="rxDoctorName">Dr. Anand Verma</strong>
+                    <div style="color: #0284c7; font-weight: 600;" id="rxDoctorQual">MBBS, MD (General Medicine)</div>
+                    <div style="color: #475569;" id="rxDoctorRoom">Room 102, OPD Wing</div>
+                </div>
+                <div>
+                    <div style="color: #64748b; font-size: 11px;">Patient Information:</div>
+                    <strong style="font-size: 14px; color: #0f172a;" id="rxPatientName">Patient Name</strong>
+                    <div style="color: #475569;">Age/Sex: <span id="rxPatientAgeGender">--</span> | ID: <span id="rxPatientId" style="font-family: monospace;">--</span></div>
+                    <div style="color: #475569;">OPD Token: <strong id="rxPatientToken">--</strong> | Date: <span id="rxDate">--</span></div>
+                </div>
+            </div>
+
+            <!-- CLINICAL DIAGNOSIS & SYMPTOMS -->
+            <div style="margin-bottom: 16px; padding: 10px 14px; background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
+                <div style="font-size: 12px; font-weight: 700; color: #1e40af;">Clinical Diagnosis &amp; Symptoms:</div>
+                <div style="font-size: 13px; color: #1e293b; margin-top: 4px;" id="rxDiagnosis">Normal Consultation</div>
+                <div style="font-size: 11px; color: #475569; margin-top: 2px;" id="rxSymptoms">--</div>
+            </div>
+
+            <!-- MEDICATIONS TABLE (Rx) -->
+            <div style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                    <span style="font-size: 20px; font-weight: 900; color: #0284c7; font-family: serif;">℞</span>
+                    <strong style="font-size: 14px;">Prescribed Medications</strong>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left;">
+                            <th style="padding: 8px;">#</th>
+                            <th style="padding: 8px;">Medicine Name &amp; Strength</th>
+                            <th style="padding: 8px;">Dosage &amp; Frequency</th>
+                            <th style="padding: 8px;">Timing</th>
+                            <th style="padding: 8px;">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rxMedicationsTableBody">
+                        <!-- Medications rendered dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- DOCTOR ADVICE & INSTRUCTIONS -->
+            <div style="margin-bottom: 20px; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px; font-size: 12px;">
+                <strong>Physician's Advice &amp; Lifestyle Guidance:</strong>
+                <p id="rxAdvice" style="color: #475569; margin: 4px 0 0; line-height: 1.5;">Take medications on schedule. Review with reports if symptoms persist.</p>
+                <div style="margin-top: 6px; color: #64748b; font-size: 11px;">Follow-up Date: <strong id="rxFollowUpDate">As advised</strong></div>
+            </div>
+
+            <!-- FOOTER SIGNATURE & QR -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px dashed #cbd5e1; padding-top: 14px;">
+                <div style="font-size: 10px; color: #94a3b8; max-width: 380px;">
+                    This is a digitally generated municipal healthcare record authenticated under the Gorakhpur SmartCity Health Authority. Valid across all municipal pharmacies.
+                </div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div id="rxQRCode" style="width: 60px; height: 60px; background: #f8fafc; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center;">
+                        <!-- QR Code Container -->
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 20px; color: #0369a1;" id="rxSignature">Dr. Anand Verma</div>
+                        <strong style="font-size: 11px; color: #0f172a; display: block;" id="rxSignName">Dr. Anand Verma</strong>
+                        <small style="font-size: 10px; color: #64748b;">Authorized Medical Officer</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 </div> <!-- /#dashboardMainContent -->
 
-<script src="../../auth.js"></script>
-<script src="hospital_dashboard.js"></script>
+<script src="../../auth.js?v=2.3"></script>
+<script src="hospital_dashboard.js?v=2.3"></script>
 </body>
 </html>

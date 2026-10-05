@@ -174,7 +174,7 @@ router.put("/api/ambulances/:id/location", (req, res) => {
 
 // ADD AMBULANCE
 router.post("/api/ambulances", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
-    const {
+    let {
         ambulanceId,
         vehicleNumber,
         driverName,
@@ -193,52 +193,77 @@ router.post("/api/ambulances", authenticateToken, requireRole(["staff", "admin"]
         });
     }
 
-    const sql = `
-        INSERT INTO ambulances
-        (
-            ambulance_id, vehicle_number, driver_name, driver_mobile,
-            ambulance_type, hospital_name, location, status,
-            latitude, longitude
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    const userRole = (req.user.role || req.user.type || "").toLowerCase();
+    const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
 
-    db.query(
-        sql,
-        [
-            ambulanceId,
-            vehicleNumber,
-            driverName || null,
-            driverMobile || null,
-            ambulanceType || null,
-            hospitalName || null,
-            location || null,
-            status || "Available",
-            latitude || null,
-            longitude || null
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Add ambulance error:", err);
-                if (err.code === "ER_DUP_ENTRY") {
-                    return res.status(409).json({
-                        message: "Ambulance ID or vehicle number already exists."
+    const performInsert = (finalHospitalName) => {
+        const sql = `
+            INSERT INTO ambulances
+            (
+                ambulance_id, vehicle_number, driver_name, driver_mobile,
+                ambulance_type, hospital_name, location, status,
+                latitude, longitude
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.query(
+            sql,
+            [
+                ambulanceId,
+                vehicleNumber,
+                driverName || null,
+                driverMobile || null,
+                ambulanceType || null,
+                finalHospitalName || null,
+                location || null,
+                status || "Available",
+                latitude || null,
+                longitude || null
+            ],
+            (err, result) => {
+                if (err) {
+                    console.error("Add ambulance error:", err);
+                    if (err.code === "ER_DUP_ENTRY") {
+                        return res.status(409).json({
+                            message: "Ambulance ID or vehicle number already exists."
+                        });
+                    }
+                    return res.status(500).json({ message: "Database error." });
+                }
+
+                res.status(201).json({
+                    success: true,
+                    message: "Ambulance added successfully.",
+                    ambulanceId: result.insertId
+                });
+            }
+        );
+    };
+
+    if (userRole === "staff" && staffHospitalId) {
+        db.query("SELECT hospital_name FROM hospitals WHERE hospital_id = ? OR id = ? LIMIT 1", [staffHospitalId, !isNaN(staffHospitalId) ? Number(staffHospitalId) : 0], (hErr, hRows) => {
+            if (!hErr && hRows.length > 0) {
+                const assignedName = hRows[0].hospital_name;
+                if (hospitalName && hospitalName.toLowerCase() !== assignedName.toLowerCase()) {
+                    return res.status(403).json({
+                        message: `Access denied. Hospital staff can only add ambulances for their assigned hospital (${assignedName}).`
                     });
                 }
-                return res.status(500).json({ message: "Database error." });
+                performInsert(assignedName);
+                return;
             }
-
-            res.status(201).json({
-                message: "Ambulance added successfully.",
-                ambulanceId: result.insertId
-            });
-        }
-    );
+            performInsert(hospitalName);
+        });
+    } else {
+        performInsert(hospitalName);
+    }
 });
 
 // UPDATE AMBULANCE
 router.put("/api/ambulances/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
+    const numericId = !isNaN(id) ? Number(id) : 0;
     const {
         driverName,
         driverMobile,
@@ -250,48 +275,74 @@ router.put("/api/ambulances/:id", authenticateToken, requireRole(["staff", "admi
         longitude
     } = req.body;
 
-    const sql = `
-        UPDATE ambulances
-        SET
-            driver_name = ?,
-            driver_mobile = ?,
-            ambulance_type = ?,
-            hospital_name = ?,
-            location = ?,
-            status = ?,
-            latitude = ?,
-            longitude = ?
-        WHERE id = ?
-    `;
+    const performUpdate = (ambRecord) => {
+        const sql = `
+            UPDATE ambulances
+            SET
+                driver_name = ?,
+                driver_mobile = ?,
+                ambulance_type = ?,
+                hospital_name = ?,
+                location = ?,
+                status = ?,
+                latitude = ?,
+                longitude = ?
+            WHERE id = ?
+        `;
 
-    db.query(
-        sql,
-        [
-            driverName || null,
-            driverMobile || null,
-            ambulanceType || null,
-            hospitalName || null,
-            location || null,
-            status || "Available",
-            latitude || null,
-            longitude || null,
-            id
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Update ambulance error:", err);
-                return res.status(500).json({ message: "Database error." });
+        db.query(
+            sql,
+            [
+                driverName !== undefined ? driverName : ambRecord.driver_name,
+                driverMobile !== undefined ? driverMobile : ambRecord.driver_mobile,
+                ambulanceType !== undefined ? ambulanceType : ambRecord.ambulance_type,
+                hospitalName !== undefined ? hospitalName : ambRecord.hospital_name,
+                location !== undefined ? location : ambRecord.location,
+                status !== undefined ? status : ambRecord.status,
+                latitude !== undefined ? latitude : ambRecord.latitude,
+                longitude !== undefined ? longitude : ambRecord.longitude,
+                ambRecord.id
+            ],
+            (err, result) => {
+                if (err) {
+                    console.error("Update ambulance error:", err);
+                    return res.status(500).json({ message: "Database error." });
+                }
+
+                res.json({
+                    success: true,
+                    message: "Ambulance updated successfully."
+                });
             }
+        );
+    };
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ message: "Ambulance not found." });
+    db.query("SELECT * FROM ambulances WHERE id = ? OR ambulance_id = ? LIMIT 1", [numericId, id], (findErr, findRows) => {
+        if (findErr) return res.status(500).json({ message: "Database error." });
+        if (findRows.length === 0) return res.status(404).json({ message: "Ambulance not found." });
+
+        const ambRecord = findRows[0];
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+
+        if (userRole === "staff") {
+            const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+            if (staffHospitalId) {
+                db.query("SELECT hospital_name FROM hospitals WHERE hospital_id = ? OR id = ? LIMIT 1", [staffHospitalId, !isNaN(staffHospitalId) ? Number(staffHospitalId) : 0], (hErr, hRows) => {
+                    if (!hErr && hRows.length > 0) {
+                        const assignedName = hRows[0].hospital_name;
+                        if (ambRecord.hospital_name && ambRecord.hospital_name.toLowerCase() !== assignedName.toLowerCase()) {
+                            return res.status(403).json({
+                                message: `Access denied. Hospital staff can only manage ambulances for their assigned hospital (${assignedName}).`
+                            });
+                        }
+                    }
+                    performUpdate(ambRecord);
+                });
+                return;
             }
-
-            res.json({
-                message: "Ambulance updated successfully."
-            });
         }
-    );
+        performUpdate(ambRecord);
+    });
 });
 
 // UPDATE AMBULANCE STATUS
@@ -566,25 +617,52 @@ router.get("/api/ambulances/nearby/search", (req, res) => {
 // DELETE AMBULANCE
 router.delete("/api/ambulances/:id", authenticateToken, requireRole(["staff", "admin"]), (req, res) => {
     const id = req.params.id;
+    const numericId = !isNaN(id) ? Number(id) : 0;
 
-    const sql = `
-        DELETE FROM ambulances
-        WHERE id = ?
-    `;
+    const performDelete = (ambRecord) => {
+        const sql = `
+            DELETE FROM ambulances
+            WHERE id = ?
+        `;
 
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Delete ambulance error:", err);
-            return res.status(500).json({ message: "Database error." });
-        }
+        db.query(sql, [ambRecord.id], (err, result) => {
+            if (err) {
+                console.error("Delete ambulance error:", err);
+                return res.status(500).json({ message: "Database error." });
+            }
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Ambulance not found." });
-        }
-
-        res.json({
-            message: "Ambulance deleted successfully."
+            res.json({
+                success: true,
+                message: "Ambulance deleted successfully."
+            });
         });
+    };
+
+    db.query("SELECT * FROM ambulances WHERE id = ? OR ambulance_id = ? LIMIT 1", [numericId, id], (findErr, findRows) => {
+        if (findErr) return res.status(500).json({ message: "Database error." });
+        if (findRows.length === 0) return res.status(404).json({ message: "Ambulance not found." });
+
+        const ambRecord = findRows[0];
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+
+        if (userRole === "staff") {
+            const staffHospitalId = req.user.hospitalId || req.user.hospital_id;
+            if (staffHospitalId) {
+                db.query("SELECT hospital_name FROM hospitals WHERE hospital_id = ? OR id = ? LIMIT 1", [staffHospitalId, !isNaN(staffHospitalId) ? Number(staffHospitalId) : 0], (hErr, hRows) => {
+                    if (!hErr && hRows.length > 0) {
+                        const assignedName = hRows[0].hospital_name;
+                        if (ambRecord.hospital_name && ambRecord.hospital_name.toLowerCase() !== assignedName.toLowerCase()) {
+                            return res.status(403).json({
+                                message: `Access denied. Hospital staff can only delete ambulances for their assigned hospital (${assignedName}).`
+                            });
+                        }
+                    }
+                    performDelete(ambRecord);
+                });
+                return;
+            }
+        }
+        performDelete(ambRecord);
     });
 });
 

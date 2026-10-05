@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin — City Hospital Management | SmartCity Gorakhpur</title>
+    <link rel="stylesheet" href="hospital_dashboard.css">
+    <link rel="stylesheet" href="../../auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sa-header-badge {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .sa-search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .sa-admin-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid #cbd5e1;
+        }
+        .sa-admin-chip.unassigned {
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SUPER ADMIN AUTHORIZATION GATE -->
+<div id="superAdminGate" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 99999; align-items: center; justify-content: center; flex-direction: column; padding: 20px;">
+    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 440px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 12px;">🛡️</div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">Super Admin Portal Gate</h2>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Restricted to municipal system administrators only. Please sign in with system-wide credentials.</p>
+        
+        <form id="saGateForm" onsubmit="handleSuperAdminGateLogin(event)" style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Admin ID *</label>
+                <input type="text" id="saGateAdminId" class="hd-input" required placeholder="e.g. STAFF-001" style="width: 100%;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Password *</label>
+                <input type="password" id="saGatePassword" class="hd-input" required placeholder="••••••••" style="width: 100%;">
+            </div>
+            <div id="saGateErrorMsg" style="color: #ef4444; font-size: 12px; display: none;"></div>
+            <button type="submit" class="hd-btn hd-btn-primary" style="justify-content: center; padding: 12px; font-weight: 700; margin-top: 6px;">
+                🔓 Authenticate Super Admin
+            </button>
+        </form>
+        <div style="margin-top: 16px;">
+            <a href="hospital.html" class="hd-btn hd-btn-outline" style="text-decoration: none; justify-content: center; width: 100%;">
+                🏥 Return to Public Hospital Portal
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="superAdminContent">
+    <!-- NAVIGATION BAR -->
+    <header class="hd-navbar">
+        <div class="hd-nav-brand">
+            <div class="hd-brand-logo" style="background: #eff6ff; color: #0284c7;">🏛️</div>
+            <div class="hd-nav-meta">
+                <h1>SmartCity Gorakhpur <span class="sa-header-badge">Super Admin</span></h1>
+                <p>Municipal Hospital Directorate &amp; System Configuration</p>
+            </div>
+        </div>
+        <div class="hd-nav-actions">
+            <a href="hospital.html" class="hd-btn hd-btn-outline hd-btn-sm" style="text-decoration: none;">
+                🏥 Public Citizen Portal
+            </a>
+            <div class="hd-user-badge" id="navUserBadge" style="display: flex;">
+                <div class="hd-avatar" style="background: #0284c7;">👑</div>
+                <div class="hd-user-info">
+                    <strong id="saUserDisplayName">System Administrator</strong>
+                    <small>Municipal Super Admin</small>
+                </div>
+            </div>
+            <button class="hd-btn hd-btn-danger hd-btn-sm" onclick="handleSuperAdminLogout()">Sign Out</button>
+        </div>
+    </header>
+
+    <main class="hd-container" style="padding-top: 24px;">
+        <!-- BANNER -->
+        <section class="hd-hospital-banner" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border: 1px solid #334155;">
+            <div class="hd-banner-left">
+                <div class="hd-banner-avatar" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4);">🏥</div>
+                <div class="hd-banner-title">
+                    <h2 style="color: #f8fafc;">Gorakhpur Municipal Hospital Directorate</h2>
+                    <p style="color: #94a3b8;">
+                        <span>📍 Central Command Center, Gorakhpur Nagar Nigam</span>
+                        <span>⚡ System-wide Authority</span>
+                    </p>
+                </div>
+            </div>
+            <div class="hd-banner-badges">
+                <button class="hd-btn hd-btn-primary hd-btn-sm" onclick="openAddHospitalModal()">➕ Add New Hospital</button>
+                <button class="hd-btn hd-btn-outline hd-btn-sm" style="color: white; border-color: #64748b;" onclick="loadHospitalsDirectory()">🔄 Refresh Directory</button>
+            </div>
+        </section>
+
+        <!-- TOP METRICS GRID -->
+        <section class="hd-stats-grid">
+            <div class="hd-stat-card">
+                <div class="hd-stat-icon blue">🏥</div>
+                <div class="hd-stat-info">
+                    <span>Registered Hospitals</span>
+                    <strong id="statTotalHospitals">0</strong>
+                </div>
+            </div>
+            <div class="hd-stat-card">
+                <div class="hd-stat-icon green">🟢</div>
+                <div class="hd-stat-info">
+                    <span>Operational Facilities</span>
+                    <strong id="statActiveHospitals">0</strong>
+                </div>
+            </div>
+            <div class="hd-stat-card">
+                <div class="hd-stat-icon purple">🛏️</div>
+                <div class="hd-stat-info">
+                    <span>Total Bed Capacity</span>
+                    <strong id="statTotalBeds">0</strong>
+                </div>
+            </div>
+            <div class="hd-stat-card">
+                <div class="hd-stat-icon amber">👤</div>
+                <div class="hd-stat-info">
+                    <span>Assigned Admins</span>
+                    <strong id="statAssignedAdmins">0</strong>
+                </div>
+            </div>
+            <div class="hd-stat-card">
+                <div class="hd-stat-icon cyan">👨‍⚕️</div>
+                <div class="hd-stat-info">
+                    <span>Total Doctors Registered</span>
+                    <strong id="statTotalDoctors">0</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOSPITAL DIRECTORY TABLE CARD -->
+        <div class="hd-card" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h3 style="margin: 0 0 4px; font-size: 18px; font-weight: 800;">Hospital Facilities Registry</h3>
+                    <p style="margin: 0; font-size: 13px; color: var(--text-muted);">Manage hospital infrastructure, configure active statuses, and assign primary Hospital Administrators.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="hd-btn hd-btn-primary" onclick="openAddHospitalModal()">➕ Add Hospital</button>
+                </div>
+            </div>
+
+            <!-- SEARCH & FILTER BAR -->
+            <div class="sa-search-bar">
+                <input type="text" id="saSearchInput" class="hd-input" placeholder="🔍 Search hospitals by name, code, or address..." style="max-width: 380px;" oninput="filterHospitalsTable()">
+                <select id="saStatusFilter" class="hd-select" style="max-width: 180px;" onchange="filterHospitalsTable()">
+                    <option value="">All Statuses</option>
+                    <option value="Operational">Operational / Active</option>
+                    <option value="Inactive">Inactive / Suspended</option>
+                </select>
+                <select id="saTypeFilter" class="hd-select" style="max-width: 220px;" onchange="filterHospitalsTable()">
+                    <option value="">All Hospital Types</option>
+                    <option value="Autonomous">Autonomous / AIIMS</option>
+                    <option value="Medical College">Medical College (BRD)</option>
+                    <option value="District">District / Sadar</option>
+                    <option value="Private">Private / Multispecialty</option>
+                </select>
+            </div>
+
+            <!-- TABLE -->
+            <div class="hd-table-wrap">
+                <table class="hd-table">
+                    <thead>
+                        <tr>
+                            <th>Hospital ID</th>
+                            <th>Hospital Facility</th>
+                            <th>Category / Type</th>
+                            <th>Beds Capacity</th>
+                            <th>Doctors</th>
+                            <th>Primary Hospital Admin</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="superAdminHospitalsTableBody">
+                        <tr><td colspan="8" style="text-align: center; padding: 30px;">Loading city hospitals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. MODAL: ADD NEW HOSPITAL (FULL CONFIGURATION) -->
+<div class="hd-modal" id="modalAddHospital">
+    <div class="hd-modal-box" style="max-width: 820px; max-height: 90vh; overflow-y: auto;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAddHospital')">✕</button>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+            <div style="font-size: 28px;">🏥</div>
+            <div>
+                <h3 style="margin: 0; font-size: 20px;">Provision New Hospital Facility</h3>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0;">Complete municipal onboarding with branding, facilities, bed quotas, and administrative credentials.</p>
+            </div>
+        </div>
+
+        <form id="addHospitalForm" onsubmit="handleAddHospitalSubmit(event)" style="margin-top: 16px;">
+            <!-- SECTION 1: IDENTITY & LOGO -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                <div style="font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <span>🏷️</span> Facility Profile &amp; Official Logo
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                    <div class="hd-form-group">
+                        <label>Hospital Full Name *</label>
+                        <input type="text" id="newHospName" class="hd-input" required placeholder="e.g. Gorakhpur Heart &amp; Multispeciality Hospital" oninput="handleNewHospNameChange()">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Unique Code / Hospital ID</label>
+                        <input type="text" id="newHospId" class="hd-input" placeholder="e.g. HOSP-GKP-018">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 14px; align-items: center; margin-top: 10px;">
+                    <div style="width: 80px; height: 80px; border-radius: 10px; border: 2px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; background: white;">
+                        <img id="newHospLogoPreview" src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80" alt="Logo Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Official Hospital Logo URL *</label>
+                        <input type="url" id="newHospLogo" class="hd-input" placeholder="https://..." value="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80" oninput="updateLogoPreview('newHospLogo', 'newHospLogoPreview')" style="width: 100%;">
+                        <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                            <span style="font-size: 11px; color: #64748b; align-self: center;">Presets:</span>
+                            <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="font-size: 10px; padding: 2px 6px;" onclick="setPresetLogo('newHospLogo', 'newHospLogoPreview', 1)">General</button>
+                            <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="font-size: 10px; padding: 2px 6px;" onclick="setPresetLogo('newHospLogo', 'newHospLogoPreview', 2)">Cardiac</button>
+                            <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="font-size: 10px; padding: 2px 6px;" onclick="setPresetLogo('newHospLogo', 'newHospLogoPreview', 3)">Trauma</button>
+                            <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="font-size: 10px; padding: 2px 6px;" onclick="setPresetLogo('newHospLogo', 'newHospLogoPreview', 4)">Maternity</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                    <div class="hd-form-group">
+                        <label>City / Municipal Zone *</label>
+                        <input type="text" id="newHospCity" class="hd-input" value="Gorakhpur" required>
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Accreditation / Certification</label>
+                        <input type="text" id="newHospAccreditation" class="hd-input" value="NABH Accredited • Ayushman Bharat Verified">
+                    </div>
+                </div>
+
+                <div class="hd-form-group" style="margin-top: 10px;">
+                    <label>Description / Specialty Highlights</label>
+                    <input type="text" id="newHospDescription" class="hd-input" placeholder="Premier tertiary care center with advanced critical care capabilities.">
+                </div>
+            </div>
+
+            <!-- SECTION 2: CONTACT & OPERATIONAL CLASSIFICATION -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                <div style="font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 10px;">📍 Location, Contact &amp; Classification</div>
+                
+                <div class="hd-form-group">
+                    <label>Physical Address &amp; Landmark *</label>
+                    <input type="text" id="newHospAddress" class="hd-input" required placeholder="e.g. Medical College Road, Asuran Chowk, Gorakhpur">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div class="hd-form-group">
+                        <label>Phone / Reception</label>
+                        <input type="tel" id="newHospPhone" class="hd-input" placeholder="0551-2200000">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Emergency Line *</label>
+                        <input type="tel" id="newHospEmergency" class="hd-input" placeholder="102 or direct line" value="102">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Hospital Type *</label>
+                        <select id="newHospType" class="hd-select" required>
+                            <option value="Private Multispecialty">Private Multispecialty</option>
+                            <option value="Government Autonomous">Government Autonomous Institute</option>
+                            <option value="State Medical College">State Medical College &amp; Hospital</option>
+                            <option value="District General Hospital">District General Hospital (Sadar)</option>
+                            <option value="Charitable / Trust">Charitable / Trust Hospital</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px;">
+                    <div class="hd-form-group">
+                        <label>Official Email</label>
+                        <input type="email" id="newHospEmail" class="hd-input" placeholder="contact@hospital.org">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Official Website</label>
+                        <input type="url" id="newHospWebsite" class="hd-input" placeholder="https://hospital.org">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Operational Status *</label>
+                        <select id="newHospStatus" class="hd-select" required>
+                            <option value="Operational">🟢 Operational / Active</option>
+                            <option value="Inactive">🔴 Inactive / Suspended</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: BED QUOTAS & ICU SPECIALTY SUITES -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                <div style="font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 10px;">🛏️ Bed Capacity &amp; ICU Specialty Suites Quotas</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div class="hd-form-group">
+                        <label>Total Hospital Beds *</label>
+                        <input type="number" id="newHospTotalBeds" class="hd-input" min="1" value="120" required oninput="recalcIcuQuotas()">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Total ICU Beds (Combined) *</label>
+                        <input type="number" id="newHospIcuBeds" class="hd-input" min="0" value="24" required oninput="recalcIcuQuotas()">
+                    </div>
+                    <div class="hd-form-group">
+                        <label>Emergency &amp; Trauma Beds</label>
+                        <input type="number" id="newHospEmgBeds" class="hd-input" min="0" value="12">
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px;">Breakdown by ICU Specialty Suites:</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                        <div class="hd-form-group">
+                            <label style="font-size: 11px;">General ICU</label>
+                            <input type="number" id="newIcuGeneral" class="hd-input hd-input-sm" min="0" value="10">
+                        </div>
+                        <div class="hd-form-group">
+                            <label style="font-size: 11px;">Coronary (CCU)</label>
+                            <input type="number" id="newIcuCcu" class="hd-input hd-input-sm" min="0" value="6">
+                        </div>
+                        <div class="hd-form-group">
+                            <label style="font-size: 11px;">Neonatal (NICU)</label>
+                            <input type="number" id="newIcuNicu" class="hd-input hd-input-sm" min="0" value="4">
+                        </div>
+                        <div class="hd-form-group">
+                            <label style="font-size: 11px;">Trauma &amp; Neuro</label>
+                            <input type="number" id="newIcuTrauma" class="hd-input hd-input-sm" min="0" value="4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: INITIAL FACILITIES CHECKLIST -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #1e293b;">🛠️ Initial Facilities Configuration</div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="font-size: 11px;" onclick="toggleAllFacilities(true)">Select All</button>
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="font-size: 11px;" onclick="toggleAllFacilities(false)">Clear All</button>
+                    </div>
+                </div>
+                <div id="newHospFacilitiesContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 12px; max-height: 160px; overflow-y: auto; padding: 4px; background: white; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <!-- Checkboxes rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- SECTION 5: IMMEDIATE HOSPITAL ADMIN ONBOARDING -->
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="font-size: 13px; font-weight: 800; color: #1e40af; display: flex; align-items: center; gap: 6px;">
+                        <span>👤</span> Immediate Hospital Administrator Onboarding
+                    </div>
+                    <label style="font-size: 12px; font-weight: 700; color: #1e40af; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="assignAdminImmediately" checked onchange="toggleImmediateAdminFields()"> Assign Now
+                    </label>
+                </div>
+                <p style="font-size: 11px; color: #3b82f6; margin: 0 0 10px;">Create the primary administrative credential permanently bound to this hospital facility.</p>
+                
+                <div id="immediateAdminFields">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="hd-form-group">
+                            <label>Admin Full Name *</label>
+                            <input type="text" id="newAdminName" class="hd-input" placeholder="e.g. Dr. Rajesh Sharma">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Admin Staff ID *</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="newAdminStaffId" class="hd-input" placeholder="e.g. STAFF-HOSP-ADMIN">
+                                <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="autoGenerateNewAdminStaffId()">⚡ Auto</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 8px;">
+                        <div class="hd-form-group">
+                            <label>Initial Password *</label>
+                            <input type="text" id="newAdminPassword" class="hd-input" value="Admin@2026">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Admin Email</label>
+                            <input type="email" id="newAdminEmail" class="hd-input" placeholder="admin@hospital.org">
+                        </div>
+                        <div class="hd-form-group">
+                            <label>Admin Phone</label>
+                            <input type="tel" id="newAdminPhone" class="hd-input" placeholder="10-digit mobile">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAddHospital')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary" style="padding: 10px 24px; font-weight: 700;">
+                    🚀 Provision &amp; Launch Facility
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. MODAL: ASSIGN HOSPITAL ADMIN -->
+<div class="hd-modal" id="modalAssignAdmin">
+    <div class="hd-modal-box" style="max-width: 540px;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalAssignAdmin')">✕</button>
+        <h3 style="margin-bottom: 4px;">👤 Assign Primary Hospital Administrator</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+            The designated admin will be permanently bound to this hospital facility and granted complete management access.
+        </p>
+
+        <form id="assignAdminForm" onsubmit="handleAssignAdminSubmit(event)">
+            <input type="hidden" id="assignAdminHospId">
+            
+            <div class="hd-form-group">
+                <label>Assigned Hospital (Permanent Facility)</label>
+                <input type="text" id="assignAdminHospNameDisp" class="hd-input" readonly style="background: #f1f5f9; font-weight: 700;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Admin Full Name *</label>
+                    <input type="text" id="assignAdminName" class="hd-input" required placeholder="e.g. Dr. Alok Verma">
+                </div>
+                <div class="hd-form-group">
+                    <label>Admin Staff ID *</label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="assignAdminStaffId" class="hd-input" required placeholder="e.g. STAFF-ADMIN-01">
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="generateAutoAdminStaffId()">⚡ Auto</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Initial Password *</label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="assignAdminPassword" class="hd-input" required placeholder="e.g. Admin@2026">
+                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="generateAutoAdminPassword()">⚡ Auto</button>
+                    </div>
+                </div>
+                <div class="hd-form-group">
+                    <label>Official Email</label>
+                    <input type="email" id="assignAdminEmail" class="hd-input" placeholder="admin@hospital.org">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Mobile Number</label>
+                <input type="tel" id="assignAdminMobile" class="hd-input" placeholder="10-digit mobile">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalAssignAdmin')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-success">Confirm &amp; Bind Hospital Admin</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. MODAL: EDIT HOSPITAL DETAILS (WITH FULL CONFIGURATION) -->
+<div class="hd-modal" id="modalEditHospital">
+    <div class="hd-modal-box" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
+        <button class="hd-modal-close" onclick="closeHdModal('modalEditHospital')">✕</button>
+        <h3 style="margin-bottom: 4px;">✏️ Update Hospital Configuration</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Modify facility identity, official logo, contact, bed quotas, or active operational status.</p>
+
+        <form id="editHospitalForm" onsubmit="handleEditHospitalSubmit(event)">
+            <input type="hidden" id="editHospId">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Hospital ID (Locked)</label>
+                    <input type="text" id="editHospIdDisp" class="hd-input" readonly style="background: #f1f5f9; font-weight: 700;">
+                </div>
+                <div class="hd-form-group">
+                    <label>Hospital Status *</label>
+                    <select id="editHospStatus" class="hd-select" required>
+                        <option value="Operational">🟢 Operational</option>
+                        <option value="Inactive">🔴 Inactive / Suspended</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Hospital Name *</label>
+                <input type="text" id="editHospName" class="hd-input" required>
+            </div>
+
+            <!-- LOGO SECTION -->
+            <div style="display: grid; grid-template-columns: 60px 1fr; gap: 12px; align-items: center; margin: 10px 0;">
+                <div style="width: 60px; height: 60px; border-radius: 8px; border: 1px solid #cbd5e1; overflow: hidden; background: white;">
+                    <img id="editHospLogoPreview" src="" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="hd-form-group" style="margin: 0;">
+                    <label>Official Logo URL</label>
+                    <input type="url" id="editHospLogo" class="hd-input" placeholder="https://..." oninput="updateLogoPreview('editHospLogo', 'editHospLogoPreview')">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>City</label>
+                    <input type="text" id="editHospCity" class="hd-input">
+                </div>
+                <div class="hd-form-group">
+                    <label>Accreditation</label>
+                    <input type="text" id="editHospAccreditation" class="hd-input">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Address</label>
+                <input type="text" id="editHospAddress" class="hd-input">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                <div class="hd-form-group">
+                    <label>Phone / Helpline</label>
+                    <input type="tel" id="editHospPhone" class="hd-input">
+                </div>
+                <div class="hd-form-group">
+                    <label>Total Beds</label>
+                    <input type="number" id="editHospTotalBeds" class="hd-input" min="1">
+                </div>
+                <div class="hd-form-group">
+                    <label>ICU Beds</label>
+                    <input type="number" id="editHospIcuBeds" class="hd-input" min="0">
+                </div>
+            </div>
+
+            <div class="hd-form-group">
+                <label>Description</label>
+                <textarea id="editHospDescription" class="hd-input" rows="2" style="resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="closeHdModal('modalEditHospital')">Cancel</button>
+                <button type="submit" class="hd-btn hd-btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="../../auth.js"></script>
+<script src="superadmin_hospital.js"></script>
+</body>
+</html>

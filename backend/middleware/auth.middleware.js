@@ -138,15 +138,16 @@ function requireRole(allowedRoles = []) {
         }
 
         const userRole = (req.user.role || req.user.type || "").toLowerCase();
+        const accountType = (req.user.accountType || "").toLowerCase();
 
-        // Admins always have access to everything
-        if (userRole === "admin") {
+        // Admins and Super Admins always have access to everything
+        if (userRole === "admin" || userRole === "super_admin" || accountType === "super_admin") {
             return next();
         }
 
         const normalizedAllowed = allowedRoles.map(r => r.toLowerCase());
 
-        if (normalizedAllowed.includes(userRole)) {
+        if (normalizedAllowed.includes(userRole) || normalizedAllowed.includes(accountType)) {
             return next();
         }
 
@@ -168,7 +169,8 @@ function requireDepartment(allowedDepartments = []) {
         }
 
         const userRole = (req.user.role || req.user.type || "").toLowerCase();
-        if (userRole === "admin") {
+        const accountType = (req.user.accountType || "").toLowerCase();
+        if (userRole === "admin" || userRole === "super_admin" || accountType === "super_admin") {
             return next();
         }
 

@@ -118,6 +118,16 @@ function emitCityUpdate(cityData) {
     ioInstance.emit("city:status-updated", cityData);
 }
 
+/**
+ * Broadcast hospital bed availability updates (telemetry & ward sync)
+ */
+function emitHospitalBedUpdate(bedData) {
+    if (!ioInstance) return;
+    ioInstance.to("city-updates").emit("hospital:bed-updated", bedData);
+    ioInstance.emit("hospital:bed-updated", bedData);
+    ioInstance.emit("bed-updated", bedData);
+}
+
 module.exports = {
     initSockets,
     emitAmbulanceLocation,
@@ -127,5 +137,7 @@ module.exports = {
     emitEmergencyResolved,
     emitWaterUpdate,
     emitCityUpdate,
+    emitHospitalBedUpdate,
     getIO: () => ioInstance
 };
+

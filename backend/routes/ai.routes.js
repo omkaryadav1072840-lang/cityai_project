@@ -10,6 +10,7 @@ const grievanceAIService = require("../services/grievance_ai_service");
 const wasteAIService = require("../services/waste_ai_service");
 const waterAIService = require("../services/water_ai_service");
 const healthcareAIService = require("../services/healthcare_ai_service");
+const HospitalBedService = require("../services/hospital_bed_service");
 const parkingAIService = require("../services/parking_ai_service");
 const environmentDisasterAIService = require("../services/environment_disaster_ai_service");
 const commandCenterSimulationService = require("../services/command_center_simulation_service");
@@ -268,12 +269,46 @@ router.all("/api/ai/healthcare/analyze", async (req, res) => {
     try {
         const query = req.query || {};
         const body = req.body || {};
-        const hospitalId = String(query.hospital_id || body.hospital_id || "HOSP-AIIMS-01");
-        const totalBeds = Number(query.total_beds || body.total_beds || 500);
-        const occupiedBeds = Number(query.occupied_beds || body.occupied_beds || 410);
-        const icuBeds = Number(query.icu_beds || body.icu_beds || 60);
-        const occupiedIcu = Number(query.occupied_icu || body.occupied_icu || 45);
+        const requestedHospital = String(query.hospital_id || body.hospital_id || "HOSP-001").trim();
 
+        // 1. Fetch real-time live bed capacity & booked occupancy from MySQL Database
+        const bedData = await HospitalBedService.getGorakhpurBedAvailability({ hospitalId: requestedHospital });
+        
+        let target = null;
+        if (bedData && bedData.hospitals && bedData.hospitals.length > 0) {
+            target = bedData.hospitals.find(h => 
+                (h.hospitalId && h.hospitalId.toLowerCase() === requestedHospital.toLowerCase()) ||
+                (h.hospitalName && h.hospitalName.toLowerCase().includes(requestedHospital.toLowerCase()))
+            ) || bedData.hospitals[0];
+        }
+
+        // 2. Real-time live counts from database
+        const hospitalId = target ? target.hospitalId : requestedHospital;
+        const hospitalName = target ? target.hospitalName : "Gorakhpur Medical Facility";
+        let totalBeds = target ? Number(target.totalBeds || 0) : Number(query.total_beds || body.total_beds || 750);
+        let occupiedBeds = target ? Number(target.occupiedBeds || 0) : Number(query.occupied_beds || body.occupied_beds || 550);
+        let availableBeds = target ? Number(target.availableBeds || 0) : Math.max(0, totalBeds - occupiedBeds);
+
+        const icuCategory = target && target.categories && target.categories.icu;
+        let icuBeds = icuCategory ? Number(icuCategory.totalBeds || 0) : Number(query.icu_beds || body.icu_beds || 120);
+        let occupiedIcu = icuCategory ? Number(icuCategory.occupiedBeds || 0) : Number(query.occupied_icu || body.occupied_icu || 90);
+        let availableIcu = icuCategory ? Number(icuCategory.availableBeds || 0) : Math.max(0, icuBeds - occupiedIcu);
+
+        const genCategory = target && target.categories && target.categories.general;
+        const emgCategory = target && target.categories && target.categories.emergency;
+
+        // Staff / Admin simulation override (only if explicitly enabled via parameter)
+        const isSimulation = (query.simulate === "true" || body.simulate === true);
+        if (isSimulation) {
+            if (query.total_beds || body.total_beds) totalBeds = Number(query.total_beds || body.total_beds);
+            if (query.occupied_beds || body.occupied_beds) occupiedBeds = Number(query.occupied_beds || body.occupied_beds);
+            if (query.icu_beds || body.icu_beds) icuBeds = Number(query.icu_beds || body.icu_beds);
+            if (query.occupied_icu || body.occupied_icu) occupiedIcu = Number(query.occupied_icu || body.occupied_icu);
+            availableBeds = Math.max(0, totalBeds - occupiedBeds);
+            availableIcu = Math.max(0, icuBeds - occupiedIcu);
+        }
+
+        // 3. Run FastAPI ML Capacity Analysis based on actual live database booked beds
         const analysis = await aiClient.analyzeHealthcare({
             hospital_id: hospitalId,
             total_beds: totalBeds,
@@ -282,18 +317,49 @@ router.all("/api/ai/healthcare/analyze", async (req, res) => {
             occupied_icu: occupiedIcu
         });
 
+        // 4. Record audit prediction snapshot
         await logPrediction({
             modelId: analysis.model_version || "hospital-capacity-v2.0",
             version: "2.0.0",
             moduleName: "healthcare",
             entityRef: hospitalId,
-            inputSnapshot: { hospital_id: hospitalId, total_beds: totalBeds, occupied_beds: occupiedBeds },
+            inputSnapshot: {
+                hospital_id: hospitalId,
+                hospital_name: hospitalName,
+                total_beds: totalBeds,
+                occupied_beds: occupiedBeds,
+                available_beds: availableBeds,
+                icu_beds: icuBeds,
+                occupied_icu: occupiedIcu,
+                source: isSimulation ? "STAFF_SIMULATION" : "REALTIME_MYSQL_DATABASE"
+            },
             output: analysis,
             confidence: 0.95
         });
 
         res.json({
             success: true,
+            is_simulation: isSimulation,
+            data_source: isSimulation ? "STAFF_SIMULATION" : "REALTIME_MYSQL_DATABASE",
+            hospital: {
+                id: hospitalId,
+                name: hospitalName,
+                address: target ? target.address : "",
+                hospital_type: target ? target.hospitalType : "Government Hospital",
+                total_beds: totalBeds,
+                occupied_beds: occupiedBeds,
+                available_beds: availableBeds,
+                occupancy_rate_pct: Math.round((occupiedBeds / Math.max(1, totalBeds)) * 1000) / 10,
+                icu_beds: icuBeds,
+                occupied_icu: occupiedIcu,
+                available_icu: availableIcu,
+                icu_occupancy_pct: Math.round((occupiedIcu / Math.max(1, icuBeds)) * 1000) / 10,
+                general_beds: genCategory ? genCategory.totalBeds : 0,
+                occupied_general: genCategory ? genCategory.occupiedBeds : 0,
+                emergency_beds: emgCategory ? emgCategory.totalBeds : 0,
+                occupied_emergency: emgCategory ? emgCategory.occupiedBeds : 0,
+                last_updated: target ? target.updatedAt : new Date().toISOString()
+            },
             analysis
         });
     } catch (err) {
@@ -1016,7 +1082,7 @@ router.get(["/api/water/demand-forecast", "/api/ai/water/demand-forecast"], asyn
 });
 
 // Phase 8: Healthcare AI - Bed Surge Forecasting
-router.get(["/api/hospital/forecast", "/api/hospital/bed-surge", "/api/ai/hospital/bed-surge", "/api/ai/healthcare/analyze"], async (req, res) => {
+router.get(["/api/hospital/forecast", "/api/hospital/bed-surge", "/api/ai/hospital/bed-surge"], async (req, res) => {
     try {
         const { hospital_id } = req.query;
         const result = await healthcareAIService.forecastBedSurge({ hospital_id });

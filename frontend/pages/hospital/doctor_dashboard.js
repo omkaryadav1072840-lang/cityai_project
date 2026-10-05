@@ -519,6 +519,14 @@ function renderDossierContent(data) {
                                             📅 Recommended Follow-up: ${String(rec.followUpDate || rec.follow_up_date).split('T')[0]}
                                         </div>
                                     ` : ''}
+
+                                    ${rec.prescription_id ? `
+                                        <div style="margin-top: 8px;">
+                                            <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 3px 8px; border-radius: 4px; border: 1px solid #0284c7; color: #0284c7; background: #f0f9ff; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="viewOfficialPrescriptionDocument(${rec.prescription_id})">
+                                                📄 View Official Prescription (RX-${rec.prescription_id})
+                                            </button>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -571,6 +579,11 @@ function renderDossierContent(data) {
                                     <div class="rx-meta">
                                         <span>Consultant: Dr. ${med.doctor_name || med.doctorName || 'Attending Physician'}</span>
                                         <span>Date: ${med.created_at ? String(med.created_at).split('T')[0] : 'N/A'}</span>
+                                    </div>
+                                    <div style="margin-top: 8px;">
+                                        <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 10px; border-radius: 4px; border: 1px solid #0284c7; color: #0284c7; background: #f0f9ff; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="viewOfficialPrescriptionDocument(${med.prescription_id || med.id})">
+                                            📄 View / Print Official Prescription
+                                        </button>
                                     </div>
                                 </div>
                             `).join('')}
@@ -692,11 +705,15 @@ async function submitConsultation(event) {
         showToast('✅ Consultation saved and appointment completed successfully!', 'success');
         playChime('ding');
 
-        // Close modal after short delay and reload queue
+        // Close dossier modal and view generated official prescription
+        const rxId = data.prescriptionId;
         setTimeout(() => {
             closeDossierModal();
             loadDoctorQueue();
-        }, 800);
+            if (rxId) {
+                viewOfficialPrescriptionDocument(rxId);
+            }
+        }, 700);
 
     } catch (err) {
         console.error('Error saving consultation:', err);
@@ -760,4 +777,124 @@ function handleDoctorProfileClick() {
     }
 }
 window.handleDoctorProfileClick = handleDoctorProfileClick;
+
+// ================= OFFICIAL MEDICAL PRESCRIPTION DOCUMENT VIEWER =================
+async function viewOfficialPrescriptionDocument(prescriptionId) {
+    if (!prescriptionId) {
+        showToast('Invalid Prescription ID', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/api/prescriptions/${encodeURIComponent(prescriptionId)}/document`, {
+            headers: getAuthHeaders()
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Could not fetch prescription document');
+        }
+
+        const doc = data.document || data;
+        const h = doc.hospital || {};
+        const p = doc.patient || {};
+        const d = doc.doctor || {};
+        const rx = doc.prescription || {};
+
+        // Hospital Header
+        const logoUrl = h.logo || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80';
+        const logoEl = document.getElementById("rxHospLogo");
+        if (logoEl) {
+            logoEl.src = logoUrl;
+            logoEl.onerror = () => { logoEl.src = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80'; };
+        }
+        if (document.getElementById("rxHospName")) document.getElementById("rxHospName").textContent = (h.name || h.hospital_name || "MUNICIPAL HOSPITAL").toUpperCase();
+        if (document.getElementById("rxHospAddress")) document.getElementById("rxHospAddress").textContent = h.address || "Gorakhpur, Uttar Pradesh";
+        if (document.getElementById("rxHospAccreditation")) document.getElementById("rxHospAccreditation").textContent = h.accreditation || "NABH Accredited • Ayushman Bharat Verified";
+        if (document.getElementById("rxHospPhone")) document.getElementById("rxHospPhone").textContent = h.phone || "102";
+        if (document.getElementById("rxDocId")) document.getElementById("rxDocId").textContent = `RX-${String(rx.id || prescriptionId).padStart(5, '0')}`;
+
+        // Doctor Info
+        if (document.getElementById("rxDoctorName")) document.getElementById("rxDoctorName").textContent = d.name || "Attending Physician";
+        if (document.getElementById("rxDoctorQual")) document.getElementById("rxDoctorQual").textContent = `${d.qualification || 'MBBS, MD'} • ${d.specialization || d.department || 'Specialist'}`;
+        if (document.getElementById("rxDoctorRoom")) document.getElementById("rxDoctorRoom").textContent = `OPD Room: ${d.room_no || d.opd_room_no || 'OPD-101'}`;
+        if (document.getElementById("rxSignature")) document.getElementById("rxSignature").textContent = d.name || "Dr. Medical Officer";
+        if (document.getElementById("rxSignName")) document.getElementById("rxSignName").textContent = d.name || "Dr. Medical Officer";
+
+        // Patient Info
+        if (document.getElementById("rxPatientName")) document.getElementById("rxPatientName").textContent = p.name || "Patient";
+        if (document.getElementById("rxPatientAgeGender")) document.getElementById("rxPatientAgeGender").textContent = `${p.age || '--'} / ${p.gender || '--'}`;
+        if (document.getElementById("rxPatientId")) document.getElementById("rxPatientId").textContent = p.patient_id || "--";
+        if (document.getElementById("rxPatientToken")) document.getElementById("rxPatientToken").textContent = p.token_number || "--";
+        if (document.getElementById("rxDate")) document.getElementById("rxDate").textContent = rx.date || rx.created_at ? new Date(rx.date || rx.created_at).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN");
+
+        // Diagnosis
+        if (document.getElementById("rxDiagnosis")) document.getElementById("rxDiagnosis").textContent = rx.diagnosis || "Clinical OPD Consultation";
+        if (document.getElementById("rxSymptoms")) document.getElementById("rxSymptoms").textContent = rx.doctor_notes || "";
+        if (document.getElementById("rxAdvice")) document.getElementById("rxAdvice").textContent = rx.advice || "Continue prescribed medication schedule and rest.";
+        if (document.getElementById("rxFollowUpDate")) document.getElementById("rxFollowUpDate").textContent = rx.follow_up_date || "After 5 days or if symptoms worsen";
+
+        // Medications Table
+        const tbody = document.getElementById("rxMedicationsTableBody");
+        if (tbody) {
+            let meds = [];
+            if (Array.isArray(rx.medications)) {
+                meds = rx.medications;
+            } else if (typeof rx.medications === 'string') {
+                try {
+                    const parsed = JSON.parse(rx.medications);
+                    if (Array.isArray(parsed)) meds = parsed;
+                    else if (parsed.treatment) {
+                        meds = [{ name: parsed.treatment, dosage: 'As directed', timing: 'After meals', duration: '5 days' }];
+                    }
+                } catch (e) {
+                    meds = [{ name: rx.medications, dosage: 'As prescribed', timing: 'After meals', duration: 'As advised' }];
+                }
+            } else if (typeof rx.medications === 'object' && rx.medications !== null) {
+                if (rx.medications.treatment) {
+                    meds = [{ name: rx.medications.treatment, dosage: 'As directed', timing: 'After meals', duration: '5 days' }];
+                }
+            }
+
+            if (!meds.length) {
+                tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; color: #64748b;">Medications as verbally advised by consulting physician.</td></tr>`;
+            } else {
+                tbody.innerHTML = meds.map((m, idx) => `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 8px;">${idx + 1}</td>
+                        <td style="padding: 8px;"><strong>💊 ${escapeHtml(m.name || m.medicine || m.medicineName || 'Medicine')}</strong></td>
+                        <td style="padding: 8px;">${escapeHtml(m.dosage || m.dose || '1 tablet')} (${escapeHtml(m.frequency || 'OD')})</td>
+                        <td style="padding: 8px;">${escapeHtml(m.timing || 'After meals')}</td>
+                        <td style="padding: 8px;">${escapeHtml(m.duration || '5 days')}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // QR Code
+        const qrEl = document.getElementById("rxQRCode");
+        if (qrEl) {
+            qrEl.innerHTML = `<div style="font-size: 8px; text-align: center; color: #0284c7; font-weight: 700;">✅ VERIFIED<br>RX-${rx.id || prescriptionId}</div>`;
+        }
+
+        const modal = document.getElementById('modalViewPrescription');
+        if (modal) modal.style.display = 'flex';
+
+    } catch (err) {
+        console.error('Error opening prescription document:', err);
+        showToast('Failed to load prescription document: ' + err.message, 'error');
+    }
+}
+
+function closePrescriptionModal() {
+    const modal = document.getElementById('modalViewPrescription');
+    if (modal) modal.style.display = 'none';
+}
+
+function printPrescriptionDocument() {
+    window.print();
+}
+
+window.viewOfficialPrescriptionDocument = viewOfficialPrescriptionDocument;
+window.closePrescriptionModal = closePrescriptionModal;
+window.printPrescriptionDocument = printPrescriptionDocument;
 

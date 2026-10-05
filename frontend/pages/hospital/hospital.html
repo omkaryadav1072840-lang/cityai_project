@@ -28,18 +28,7 @@
 <link rel="stylesheet" href="../../components/ui_components.css">
 
 
-<style>
-.pharmacy-cart-bar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:20px 0;padding:15px 18px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
-.pharmacy-cart-bar span{font-weight:700;margin-left:8px}
-.cart-modal-box,.receipt-modal-box{max-width:700px}
-.cart-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
-.cart-item{display:grid;grid-template-columns:1fr auto auto;gap:15px;align-items:center;padding:15px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}
-.cart-item h3,.cart-item p{margin:4px 0}
-.cart-item button{margin:3px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);cursor:pointer}
-.cart-total{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:20px}
-.medicine-card .medicine-actions,.medicine-detail-card .medicine-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.medicine-card .medicine-actions button,.medicine-detail-card .medicine-actions button{flex:1;min-width:130px}.medicine-card .add-cart-btn,.medicine-detail-card .add-cart-btn{margin-top:0}.medicine-card .add-cart-btn:disabled,.medicine-detail-card .add-cart-btn:disabled{opacity:.5;cursor:not-allowed}
-.receipt-header{display:flex;align-items:center;gap:15px}.receipt-logo{font-size:42px}.receipt-header h2,.receipt-header p{margin:3px 0}.receipt-info p{display:flex;justify-content:space-between;gap:15px}.receipt-item{display:flex;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.1)}.receipt-total{display:flex;justify-content:space-between;font-size:22px;margin-top:18px}.receipt-thankyou{text-align:center;opacity:.7;margin-top:30px}.receipt-actions{display:flex;gap:12px;margin-top:22px}.receipt-actions button{flex:1}@media(max-width:600px){.pharmacy-cart-bar,.cart-total,.receipt-actions{flex-direction:column;align-items:stretch}.cart-item{grid-template-columns:1fr}.receipt-info p{flex-direction:column;gap:4px}}
-</style>
+<!-- Scoped pharmacy enhancements are managed cleanly via hospital.css -->
 
 </head>
 
@@ -83,6 +72,30 @@
 
         </div>
 
+
+        <a
+            href="hospital_dashboard.html"
+            class="back-home"
+            style="background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
+        >
+            🏥 Hospital Staff ERP
+        </a>
+
+        <a
+            href="hospital_dashboard.html?role=hospital_admin"
+            class="back-home"
+            style="background: #7c3aed; border: 1px solid #a78bfa; color: #ffffff; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
+        >
+            👑 Hospital Admin
+        </a>
+
+        <a
+            href="superadmin_hospital.html"
+            class="back-home"
+            style="background: #0f172a; border: 1px solid #38bdf8; color: #38bdf8; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
+        >
+            🛡️ Super Admin
+        </a>
 
         <a
             href="doctor_dashboard.html"
@@ -339,14 +352,17 @@
     <section class="ai-healthcare-panel" style="background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%); border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; border-radius: 14px; padding: 24px; margin-bottom: 30px; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
             <div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <h2 style="margin: 0; font-size: 20px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
                         <span>🏥</span> AI Clinical Bed Capacity & Surge Intelligence
                     </h2>
                     <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px;">FASTAPI ML ACTIVE</span>
+                    <span id="ai-db-sync-badge" style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                        <span style="width: 7px; height: 7px; background: #16a34a; border-radius: 50%; display: inline-block;"></span> REAL-TIME MYSQL SYNC
+                    </span>
                 </div>
                 <p style="font-size: 13px; color: #64748b; margin: 6px 0 0;">
-                    Decision-support capacity forecast (<code>hospital-capacity-v2.0</code>) • Real-time ICU saturation monitoring • Human-in-the-loop review
+                    Real-time bed occupancy & surge forecast (<code>hospital-capacity-v2.0</code>) • Data grounded directly in Gorakhpur Hospital Registry • Automated triage decision support
                 </p>
             </div>
             <div style="display: flex; gap: 10px;">
@@ -356,37 +372,58 @@
             </div>
         </div>
 
-        <!-- Predictive Capacity Parameters -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+        <!-- Predictive Capacity Parameters (Read-only Realtime Database Telemetry) -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 14px;">
             <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">HOSPITAL FACILITY:</label>
-                <select id="ai-hosp-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" onchange="onAIHospitalChange(this.value)">
-                    <option value="HOSP-AIIMS-01" data-total="500" data-occ="410" data-icu="60" data-icuo="45">AIIMS Gorakhpur (500 Beds)</option>
-                    <option value="HOSP-BRD-02" data-total="750" data-occ="690" data-icu="80" data-icuo="74">BRD Medical College (750 Beds)</option>
-                    <option value="HOSP-DIST-03" data-total="280" data-occ="195" data-icu="30" data-icuo="18">District Hospital Gorakhpur (280 Beds)</option>
-                    <option value="HOSP-FATIMA-04" data-total="220" data-occ="160" data-icu="25" data-icuo="14">Fatima Hospital (220 Beds)</option>
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span>HOSPITAL FACILITY:</span>
+                    <span style="font-size: 10px; color: #2563eb; font-weight: 700;">📡 SELECT TO SYNC</span>
+                </label>
+                <select id="ai-hosp-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600;" onchange="onAIHospitalChange(this.value)">
+                    <option value="HOSP-002" selected>BRD Medical College (900 Beds)</option>
+                    <option value="HOSP-001">AIIMS Gorakhpur (750 Beds)</option>
+                    <option value="HOSP-003">Gorakhpur District Hospital (Sadar) (300 Beds)</option>
+                    <option value="HOSP-004">Fatima Hospital (350 Beds)</option>
+                    <option value="HOSP-GKP-005">District Women Hospital (200 Beds)</option>
+                    <option value="HOSP-GKP-003">Park Hospital (500 Beds)</option>
+                    <option value="HOSP-GKP-010">Guru Shri Gorakshnath Hospital (350 Beds)</option>
+                    <option value="HOSP-GKP-012">Heritage Hospital (180 Beds)</option>
                 </select>
             </div>
             <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">TOTAL GENERAL BEDS:</label>
-                <input type="number" id="ai-hosp-total" value="500" min="10" max="2000" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span>TOTAL GENERAL BEDS:</span>
+                    <span style="font-size: 10px; color: #64748b; font-weight: 600;">🔒 Live DB</span>
+                </label>
+                <input type="number" id="ai-hosp-total" value="900" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: not-allowed;" title="Synchronized from MySQL hospital records">
             </div>
             <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">OCCUPIED BEDS:</label>
-                <input type="number" id="ai-hosp-occupied" value="410" min="0" max="2000" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span>BOOKED / OCCUPIED BEDS:</span>
+                    <span style="font-size: 10px; color: #dc2626; font-weight: 600;">🔒 Live DB</span>
+                </label>
+                <input type="number" id="ai-hosp-occupied" value="672" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; color: #dc2626; cursor: not-allowed;" title="Real-time occupied beds from admissions database">
             </div>
             <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">ICU BEDS (TOTAL / OCCUPIED):</label>
+                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span>ICU (TOTAL / BOOKED):</span>
+                    <span style="font-size: 10px; color: #2563eb; font-weight: 600;">🔒 Live DB</span>
+                </label>
                 <div style="display: flex; gap: 8px;">
-                    <input type="number" id="ai-hosp-icu" value="60" min="1" max="500" style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" title="Total ICU">
-                    <input type="number" id="ai-hosp-icuo" value="45" min="0" max="500" style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;" title="Occupied ICU">
+                    <input type="number" id="ai-hosp-icu" value="150" readonly style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: not-allowed;" title="Total ICU registered">
+                    <input type="number" id="ai-hosp-icuo" value="128" readonly style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; color: #dc2626; cursor: not-allowed;" title="Live occupied ICU beds">
                 </div>
             </div>
             <div style="display: flex; align-items: flex-end;">
-                <button type="button" class="primary-btn" style="width: 100%; height: 42px; font-weight: 700; cursor: pointer;" onclick="runAIHealthcareAnalysis()">
-                    ⚡ Run AI Surge Analysis
+                <button type="button" class="primary-btn" style="width: 100%; height: 42px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="runAIHealthcareAnalysis()">
+                    <span>⚡</span> <span>Sync & Run AI Surge</span>
                 </button>
             </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11px; color: #64748b; margin-bottom: 18px; padding: 0 4px;">
+            <span>ℹ️ Bed counts and admissions are synchronized live from MySQL database tables (<code>hospitals</code>, <code>hospital_beds</code>, <code>hospital_bed_categories</code>).</span>
+            <span style="font-style: italic;">Visitors cannot tamper with bed metrics.</span>
         </div>
 
         <!-- AI Output Cards Grid -->
@@ -502,171 +539,6 @@
                     </button>
                 </div>
             </div>
-<!-- =====================================================
-     DOCTOR FINDER MODAL
-===================================================== -->
-
-<div
-    class="modal"
-    id="doctorFinderModal"
->
-
-    <div class="modal-box doctor-finder-modal-box">
-
-        <!-- CLOSE -->
-
-        <button
-            type="button"
-            class="close-btn"
-            onclick="closeModal('doctorFinderModal')"
-        >
-            ×
-        </button>
-
-
-        <!-- HEADER -->
-
-        <div class="modal-title-icon">
-            👨‍⚕️
-        </div>
-
-        <h2>
-            Find Doctors
-        </h2>
-
-        <p class="modal-subtitle">
-            Search doctors and check their
-            appointment availability.
-        </p>
-
-
-        <!-- =================================================
-             SEARCH AREA
-        ================================================= -->
-
-        <div class="doctor-search-area">
-
-            <input
-                type="text"
-                id="doctorSearch"
-                placeholder="🔎 Search doctor by name..."
-                autocomplete="off"
-            >
-
-
-            <select
-                id="doctorDepartment"
-            >
-
-                <option value="">
-                    All Departments
-                </option>
-
-                <option value="General Physician">
-                    General Physician
-                </option>
-
-                <option value="Cardiologist">
-                    Cardiology
-                </option>
-
-                <option value="Orthopedic">
-                    Orthopedic
-                </option>
-
-                <option value="Neurologist">
-                    Neurology
-                </option>
-
-                <option value="Dermatologist">
-                    Dermatology
-                </option>
-
-            </select>
-
-
-            <select
-                id="doctorAvailability"
-            >
-
-                <option value="">
-                    All Doctors
-                </option>
-
-                <option value="Available">
-                    Available Now
-                </option>
-
-                <option value="Busy">
-                    Currently Busy
-                </option>
-
-            </select>
-
-
-            <button
-                type="button"
-                class="primary-btn"
-                onclick="searchDoctors()"
-            >
-                🔍 Search
-            </button>
-
-        </div>
-
-
-        <!-- =================================================
-             DOCTOR LIST
-        ================================================= -->
-
-        <div
-            id="doctorFinderList"
-            class="doctor-finder-list"
-        >
-
-            <div class="loading-card">
-
-                👨‍⚕️
-
-                <p>
-                    Loading doctors...
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- =================================================
-             DOCTOR DETAILS
-        ================================================= -->
-
-        <div
-            id="doctorDetailsSection"
-            class="doctor-details-section"
-            style="display:none;"
-        >
-
-            <button
-                type="button"
-                class="secondary-btn"
-                onclick="closeDoctorDetails()"
-            >
-                ← Back to Doctors
-            </button>
-
-
-            <div
-                id="doctorDetailsContent"
-                class="doctor-details-content"
-            ></div>
-
-        </div>
-
-    </div>
-
-</div>
-
 
             <!-- 3. DOCTOR APPOINTMENT -->
             <div class="service-card" data-service-cat="clinical" onclick="openDoctorBooking()">
@@ -1078,93 +950,11 @@
             id="doctorList"
             class="doctor-grid"
         >
-
-
-            <div class="doctor-card">
-
-                <div class="doctor-avatar">
-                    👨‍⚕️
-                </div>
-
-                <h3>
-                    Dr. Rahul Sharma
-                </h3>
-
-                <p>
-                    General Physician
-                </p>
-
-                <div class="doctor-status">
-                    ● Available
-                </div>
-
-                <button
-                    type="button"
-                    onclick="bookSpecificDoctor('Dr. Rahul Sharma')"
-                >
-                    Book Slot
-                </button>
-
+            <div class="doctor-loading-skeleton" style="grid-column: 1 / -1; text-align: center; padding: 36px 20px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 14px;">
+                <div style="font-size: 28px; margin-bottom: 8px;">🩺</div>
+                <h4 style="margin: 0 0 6px 0; font-size: 15px; color: #1e293b; font-weight: 700;">Loading Verified Hospital Specialists...</h4>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">Synchronizing available doctors from Gorakhpur Health Registry.</p>
             </div>
-
-
-
-            <div class="doctor-card">
-
-                <div class="doctor-avatar">
-                    👩‍⚕️
-                </div>
-
-                <h3>
-                    Dr. Priya Singh
-                </h3>
-
-                <p>
-                    Cardiologist
-                </p>
-
-                <div class="doctor-status">
-                    ● Available
-                </div>
-
-                <button
-                    type="button"
-                    onclick="bookSpecificDoctor('Dr. Priya Singh')"
-                >
-                    Book Slot
-                </button>
-
-            </div>
-
-
-
-            <div class="doctor-card">
-
-                <div class="doctor-avatar">
-                    👨‍⚕️
-                </div>
-
-                <h3>
-                    Dr. Amit Verma
-                </h3>
-
-                <p>
-                    Orthopedic Specialist
-                </p>
-
-                <div class="doctor-status busy-text">
-                    ● In Consultation
-                </div>
-
-                <button
-                    type="button"
-                    onclick="bookSpecificDoctor('Dr. Amit Verma')"
-                >
-                    Book Slot
-                </button>
-
-            </div>
-
         </div>
 
     </section>
@@ -1175,7 +965,7 @@
          BEDS
     ================================================= -->
 
-    <section class="content-section">
+    <section class="content-section" id="bedSection">
 
         <div class="section-heading">
 
@@ -1191,97 +981,168 @@
 
             </div>
 
+            <div class="bed-heading-controls">
+                <span id="bedLiveIndicator" class="bed-live-indicator">🟢 Live Database</span>
+                <select id="bedHospitalFilter" class="bed-hospital-filter" onchange="handleBedHospitalFilterChange(this.value)" aria-label="Select Hospital for Bed Availability">
+                    <option value="all">📍 All Gorakhpur Hospitals (Citywide Total)</option>
+                </select>
+                <button type="button" id="bedRefreshBtn" class="bed-refresh-btn" onclick="fetchBedAvailability(true)" title="Refresh Live Bed Data">
+                    🔄 Refresh
+                </button>
+                <button type="button" id="btnOpenCitizenBedBooking" class="bed-refresh-btn" style="background: #2563eb; color: #ffffff; border-color: #3b82f6; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);" onclick="openCitizenBedBookingModal()" title="Reserve an Available Bed">
+                    🛏️ Book Bed Now
+                </button>
+            </div>
+
         </div>
 
+        <!-- TOTAL GORAKHPUR BED CAPACITY SUMMARY CARD -->
+        <div class="bed-summary-card" id="bedSummaryCard">
+            <div class="bed-summary-header">
+                <div>
+                    <span class="bed-summary-badge" id="bedSummaryBadge">📍 GORAKHPUR METROPOLITAN REGION</span>
+                    <h3 id="bedSummaryTitle">Total Gorakhpur Bed Capacity</h3>
+                    <p id="bedSummarySubtitle">Sum of total bed capacity across all 14 Gorakhpur Smart City hospitals</p>
+                </div>
+            </div>
+            <div class="bed-summary-metrics">
+                <div class="bed-metric-box">
+                    <span class="bed-metric-label">TOTAL CAPACITY</span>
+                    <strong class="bed-metric-val" id="totalGorakhpurBeds">--</strong>
+                    <small class="bed-metric-sub">Sum of all hospital beds</small>
+                </div>
+                <div class="bed-metric-box green">
+                    <span class="bed-metric-label">AVAILABLE</span>
+                    <strong class="bed-metric-val" id="totalGorakhpurAvailable">--</strong>
+                    <small class="bed-metric-sub" id="totalGorakhpurAvailablePct">--% available</small>
+                </div>
+                <div class="bed-metric-box amber">
+                    <span class="bed-metric-label">OCCUPIED</span>
+                    <strong class="bed-metric-val" id="totalGorakhpurOccupied">--</strong>
+                    <small class="bed-metric-sub" id="totalGorakhpurOccupiedPct">--% occupied</small>
+                </div>
+            </div>
+        </div>
 
-        <div class="bed-grid">
+        <!-- STATUS MESSAGE CONTAINER (Loading / Error / Empty states) -->
+        <div id="bedAlertBox" class="bed-alert-box" style="display:none;" role="status"></div>
 
-            <div class="bed-card">
+        <!-- 4 CATEGORY CARDS (General, ICU, Emergency, Private) -->
+        <div class="bed-grid" id="bedCategoryGrid">
 
-                <span>
-                    General
-                </span>
-
+            <div class="bed-card" id="cardGeneral">
+                <div class="bed-card-header">
+                    <span>General</span>
+                    <span class="bed-card-badge" id="generalBadge">Ward</span>
+                </div>
                 <strong id="generalBedDisplay">
-                    184
+                    --
                 </strong>
-
-                <div class="progress">
-                    <i style="width:62%;"></i>
+                <div class="bed-stats" id="generalBedStats">
+                    <span>Total: <strong id="generalTotalDisplay">--</strong></span>
+                    <span>Occupied: <strong id="generalOccupiedDisplay">--</strong></span>
+                    <span>Available: <strong id="generalAvailStatDisplay">--</strong></span>
                 </div>
-
-                <small>
-                    Available beds
+                <div class="progress">
+                    <i id="generalProgressBar" style="width:0%;"></i>
+                </div>
+                <small id="generalBedFooter">
+                    Loading bed data...
                 </small>
-
             </div>
 
-
-
-            <div class="bed-card">
-
-                <span>
-                    ICU
-                </span>
-
+            <div class="bed-card" id="cardICU">
+                <div class="bed-card-header">
+                    <span>ICU</span>
+                    <span class="bed-card-badge red" id="icuBadge">Critical</span>
+                </div>
                 <strong id="icuBedDisplay">
-                    38
+                    --
                 </strong>
-
-                <div class="progress">
-                    <i style="width:35%;"></i>
+                <div class="bed-stats" id="icuBedStats">
+                    <span>Total: <strong id="icuTotalDisplay">--</strong></span>
+                    <span>Occupied: <strong id="icuOccupiedDisplay">--</strong></span>
+                    <span>Available: <strong id="icuAvailStatDisplay">--</strong></span>
                 </div>
-
-                <small>
-                    Available beds
+                <div class="progress">
+                    <i id="icuProgressBar" style="width:0%;"></i>
+                </div>
+                <small id="icuBedFooter">
+                    Loading bed data...
                 </small>
-
             </div>
 
-
-
-            <div class="bed-card">
-
-                <span>
-                    Emergency
-                </span>
-
+            <div class="bed-card" id="cardEmergency">
+                <div class="bed-card-header">
+                    <span>Emergency</span>
+                    <span class="bed-card-badge amber" id="emergencyBadge">Trauma</span>
+                </div>
                 <strong id="emergencyBedDisplay">
-                    21
+                    --
                 </strong>
-
-                <div class="progress">
-                    <i style="width:24%;"></i>
+                <div class="bed-stats" id="emergencyBedStats">
+                    <span>Total: <strong id="emergencyTotalDisplay">--</strong></span>
+                    <span>Occupied: <strong id="emergencyOccupiedDisplay">--</strong></span>
+                    <span>Available: <strong id="emergencyAvailStatDisplay">--</strong></span>
                 </div>
-
-                <small>
-                    Available beds
+                <div class="progress">
+                    <i id="emergencyProgressBar" style="width:0%;"></i>
+                </div>
+                <small id="emergencyBedFooter">
+                    Loading bed data...
                 </small>
-
             </div>
 
-
-
-            <div class="bed-card">
-
-                <span>
-                    Private
-                </span>
-
+            <div class="bed-card" id="cardPrivate">
+                <div class="bed-card-header">
+                    <span>Private</span>
+                    <span class="bed-card-badge purple" id="privateBadge">Suites</span>
+                </div>
                 <strong id="privateBedDisplay">
-                    84
+                    --
                 </strong>
-
-                <div class="progress">
-                    <i style="width:51%;"></i>
+                <div class="bed-stats" id="privateBedStats">
+                    <span>Total: <strong id="privateTotalDisplay">--</strong></span>
+                    <span>Occupied: <strong id="privateOccupiedDisplay">--</strong></span>
+                    <span>Available: <strong id="privateAvailStatDisplay">--</strong></span>
                 </div>
-
-                <small>
-                    Available beds
+                <div class="progress">
+                    <i id="privateProgressBar" style="width:0%;"></i>
+                </div>
+                <small id="privateBedFooter">
+                    Loading bed data...
                 </small>
-
             </div>
 
+        </div>
+
+        <!-- HOSPITAL-WISE VERIFICATION SECTION -->
+        <div class="bed-verification-card" id="bedVerificationCard">
+            <details class="bed-verification-details" id="bedVerificationDetails">
+                <summary class="bed-verification-summary">
+                    <span class="bed-verification-title">📋 Hospital-Wise Bed Verification (<span id="bedVerificationCount">14 Hospitals</span>)</span>
+                    <span class="bed-verification-toggle-icon">▼ Click to inspect</span>
+                </summary>
+                <div class="bed-verification-table-wrap">
+                    <table class="bed-verification-table" id="bedVerificationTable">
+                        <thead>
+                            <tr>
+                                <th>Hospital Name</th>
+                                <th>Total Beds</th>
+                                <th>Available</th>
+                                <th>Occupied</th>
+                                <th>General</th>
+                                <th>ICU</th>
+                                <th>Emergency</th>
+                                <th>Private</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bedVerificationTableBody">
+                            <!-- Populated dynamically from backend -->
+                        </tbody>
+                    </table>
+                </div>
+            </details>
         </div>
 
     </section>
@@ -1507,8 +1368,76 @@
 
 
 <!-- =====================================================
-     DOCTOR BOOKING MODAL
+     DOCTOR FINDER MODAL (STANDALONE DEDICATED MODAL)
 ===================================================== -->
+<div class="modal" id="doctorFinderModal">
+    <div class="modal-box doctor-finder-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('doctorFinderModal')" aria-label="Close Doctor Finder">×</button>
+
+        <div class="appt-modal-header">
+            <div class="appt-header-left">
+                <div class="appt-brand-badge" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <div class="appt-meta-tags">
+                        <span class="status-live-pill"><span class="pulse-indicator"></span> Verified MDs</span>
+                        <span class="grid-active-tag">Gorakhpur Health Grid</span>
+                    </div>
+                    <h2>Find Doctors & Specialists</h2>
+                    <p class="modal-subtitle">Search registered physicians across AIIMS, BRD, Sadar, and private hospitals. View clinical credentials and book instant OPD slots.</p>
+                </div>
+            </div>
+            <div class="appt-header-right">
+                <span class="appt-count-chip" id="doctorFinderCount">33 Doctors</span>
+            </div>
+        </div>
+
+        <!-- SEARCH AREA -->
+        <div class="doctor-search-area">
+            <input type="text" id="doctorSearch" placeholder="Search doctor by name, specialty, or hospital..." oninput="searchDoctors()" autocomplete="off">
+            <select id="doctorDepartment" onchange="searchDoctors()">
+                <option value="">All Specializations</option>
+                <option value="General Physician">General Physician / Medicine</option>
+                <option value="Cardiologist">Cardiology</option>
+                <option value="Orthopedic">Orthopedic Surgery</option>
+                <option value="Neurologist">Neurology</option>
+                <option value="Dermatologist">Dermatology</option>
+                <option value="Gynecologist">Gynecology & Obstetrics</option>
+                <option value="Pediatrician">Pediatrics</option>
+                <option value="General Surgeon">General Surgery</option>
+            </select>
+            <select id="doctorAvailability" onchange="searchDoctors()">
+                <option value="">All Availabilities</option>
+                <option value="Available">Available Today</option>
+                <option value="Busy">Currently in OPD</option>
+            </select>
+            <button type="button" class="btn-appt-search" onclick="resetDoctorFilters()" style="background:#475569;">
+                Reset
+            </button>
+        </div>
+
+        <!-- DOCTOR LIST -->
+        <div id="doctorFinderList" class="doctor-finder-list">
+            <div class="loading-card">
+                <div class="skeleton-spinner"></div>
+                <p>Loading verified doctors...</p>
+            </div>
+        </div>
+
+        <!-- DOCTOR DETAILS SECTION -->
+        <div id="doctorDetailsSection" class="doctor-details-section" style="display:none;">
+            <button type="button" class="secondary-btn" onclick="closeDoctorDetails()" style="margin-bottom: 14px;">
+                ← Back to Doctor Directory
+            </button>
+            <div id="doctorDetailsContent" class="doctor-details-content"></div>
+        </div>
+    </div>
+</div>
+
 <!-- =====================================================
      DOCTOR BOOKING MODAL (RECONFIGURED)
 ===================================================== -->
@@ -1559,57 +1488,96 @@
 
 
 <!-- =====================================================
-     MY APPOINTMENTS MODAL
+     MY APPOINTMENTS & OPD PASSES MODAL
 ===================================================== -->
+<div class="modal" id="appointmentsModal">
+    <div class="modal-box my-appointments-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('appointmentsModal')" aria-label="Close Appointments">×</button>
 
-<div
-    class="modal"
-    id="appointmentsModal"
->
+        <!-- Modern Clinical Header -->
+        <div class="appt-modal-header">
+            <div class="appt-header-left">
+                <div class="appt-brand-badge">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <path d="m9 16 2 2 4-4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="appt-meta-tags">
+                        <span class="status-live-pill"><span class="pulse-indicator"></span> OPD Telemetry</span>
+                        <span class="grid-active-tag">Gorakhpur Health Grid</span>
+                    </div>
+                    <h2>My Clinical Appointments & OPD Passes</h2>
+                    <p class="modal-subtitle">Track consultation schedules, specialist OPD tokens, hospital verification, and download digital appointment slips.</p>
+                </div>
+            </div>
+            <div class="appt-header-right">
+                <span class="appt-count-chip" id="apptTotalCount">0 Bookings</span>
+            </div>
+        </div>
 
-    <div class="modal-box">
+        <!-- Smart Search & Patient ID Verification Toolbar -->
+        <div class="appt-search-container">
+            <div class="appt-input-row">
+                <div class="appt-input-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <input type="text" id="myAppointmentPatientId" placeholder="Enter Patient ID (e.g. SC-2026-318028)" onkeydown="if(event.key==='Enter') loadMyAppointments()">
+                    <button type="button" class="clear-search-btn" id="apptPatientClearBtn" onclick="clearAppointmentPatientInput()" style="display:none;" aria-label="Clear Patient ID">×</button>
+                </div>
+                <button type="button" class="btn-appt-search" onclick="loadMyAppointments()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span>View Appointments</span>
+                </button>
+            </div>
+            <div class="appt-quick-assist-bar">
+                <span class="assist-note">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    Synced with Gorakhpur Patient UHID Registry.
+                </span>
+                <button type="button" class="btn-quick-fill-patient" id="btnQuickFillPatient" onclick="useCurrentPatientForAppointments()" style="display:none;">
+                    Use My ID: <strong id="quickFillPatientLabel"></strong>
+                </button>
+            </div>
 
-        <button
-            type="button"
-            class="close-btn"
-            onclick="closeModal('appointmentsModal')"
-        >
-            ×
-        </button>
+            <!-- Integrated Filter Tabs -->
+            <div class="appt-filter-tabs" id="apptFilterTabs">
+                <button type="button" class="appt-tab active" data-filter="all" onclick="filterAppointmentsList('all', this)">All Appointments (<span id="countTabAll">0</span>)</button>
+                <button type="button" class="appt-tab" data-filter="upcoming" onclick="filterAppointmentsList('upcoming', this)">Upcoming & Confirmed (<span id="countTabUpcoming">0</span>)</button>
+                <button type="button" class="appt-tab" data-filter="completed" onclick="filterAppointmentsList('completed', this)">Completed (<span id="countTabCompleted">0</span>)</button>
+                <button type="button" class="appt-tab" data-filter="cancelled" onclick="filterAppointmentsList('cancelled', this)">Cancelled (<span id="countTabCancelled">0</span>)</button>
+            </div>
+        </div>
 
+        <!-- Appointment Results Grid -->
+        <div id="myAppointmentsResult" class="appointment-result-grid">
+            <div class="appt-initial-state">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <h3>Enter Patient ID to Fetch Consultations</h3>
+                <p>Enter your unique Patient ID above or click "Use My ID" to view scheduled appointments, OPD tokens, and doctors.</p>
+            </div>
+        </div>
 
-        <h2>
-            📅 My Appointments
-        </h2>
-
-        <p>
-            Enter your Patient ID to view your appointments.
-        </p>
-
-
-        <input
-            type="text"
-            id="myAppointmentPatientId"
-            placeholder="Enter Patient ID"
-        >
-
-
-        <button
-            type="button"
-            class="primary-btn full"
-            onclick="loadMyAppointments()"
-        >
-            🔍 VIEW APPOINTMENTS
-        </button>
-
-
-        <div
-            id="myAppointmentsResult"
-            class="appointment-result"
-        ></div>
-
+        <!-- Modal Footer -->
+        <div class="appt-modal-footer">
+            <div class="appt-footer-support">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                <span>Need immediate rescheduling assistance? Call Gorakhpur OPD Desk at <strong>0551-2205555</strong> (Toll-Free Emergency: <strong>108</strong>)</span>
+            </div>
+            <button type="button" class="btn-bed-close" onclick="closeModal('appointmentsModal')">Close Window</button>
+        </div>
     </div>
-
 </div>
 
 
@@ -1685,137 +1653,357 @@
 
 
 
+
+<!-- =====================================================
+     HOSPITALS DIRECTORY & CLINICAL NETWORK MODAL
+===================================================== -->
+<div class="modal" id="hospitalDataModal">
+    <div class="modal-box hospital-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('hospitalDataModal')" aria-label="Close Directory">×</button>
+
+        <!-- Modern Healthcare Header -->
+        <div class="hospital-modal-header">
+            <div class="hospital-header-left">
+                <div class="hospital-brand-badge">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1m-2 4v-4"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="hospital-meta-tags">
+                        <span class="status-live-pill"><span class="pulse-indicator"></span> Verified Healthcare Grid</span>
+                        <span class="grid-active-tag">24/7 Trauma Centers</span>
+                    </div>
+                    <h2>Gorakhpur Hospital Directory & Clinical Network</h2>
+                    <p class="modal-subtitle">Browse accredited hospitals, specialized medical departments, ICU capacities, emergency hotlines, and clinical management consoles.</p>
+                </div>
+            </div>
+            <div class="hospital-header-counter">
+                <span class="hosp-count-chip" id="hospDirectoryTotalCount">12 Verified Hospitals</span>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="hospital-filter-toolbar">
+            <div class="hospital-search-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="hospitalSearch" placeholder="Search by hospital name, address, specialty, or facility..." oninput="filterAndSortHospitals()">
+                <button type="button" class="clear-search-btn" id="hospSearchClearBtn" onclick="clearHospitalSearch()" style="display:none;" aria-label="Clear Search">×</button>
+            </div>
+
+            <div class="hospital-select-group">
+                <div class="custom-select-wrap">
+                    <select id="hospitalTypeFilter" onchange="filterAndSortHospitals()">
+                        <option value="">All Ownership Types</option>
+                        <option value="Autonomous">Autonomous / Apex (AIIMS)</option>
+                        <option value="Government">Government Medical College</option>
+                        <option value="Super Specialty">Super Specialty Hospitals</option>
+                        <option value="Private">Private Healthcare Centers</option>
+                        <option value="Maternity">General & Maternity</option>
+                    </select>
+                </div>
+
+                <div class="custom-select-wrap">
+                    <select id="hospitalSort" onchange="filterAndSortHospitals()">
+                        <option value="name">Sort by Name (A-Z)</option>
+                        <option value="beds">Highest Bed Capacity</option>
+                        <option value="icu">Most ICU Capacity</option>
+                        <option value="distance">Nearest to Me</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Filter Category Chips -->
+        <div class="hospital-quick-chips">
+            <span class="chips-label">Quick Filter:</span>
+            <button type="button" class="hosp-chip active" data-filter="all" onclick="applyQuickHospitalFilter('all', this)">All Hospitals</button>
+            <button type="button" class="hosp-chip" data-filter="government" onclick="applyQuickHospitalFilter('government', this)">🏛️ Govt & Apex</button>
+            <button type="button" class="hosp-chip" data-filter="icu" onclick="applyQuickHospitalFilter('icu', this)">🩺 High ICU Units</button>
+            <button type="button" class="hosp-chip" data-filter="emergency" onclick="applyQuickHospitalFilter('emergency', this)">🚨 24x7 Trauma</button>
+            <button type="button" class="hosp-chip" data-filter="private" onclick="applyQuickHospitalFilter('private', this)">🏥 Multi-Specialty</button>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="hospitalDataResult" class="hospital-directory-result">
+            <!-- Rendered by renderHospitals() -->
+        </div>
+
+        <!-- Footer -->
+        <div class="hospital-modal-footer">
+            <div class="hosp-footer-info">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Gorakhpur Smart City Health Grid • Directly integrated with National Health Mission & District Trauma Desk.</span>
+            </div>
+            <button type="button" class="btn-bed-close" onclick="closeModal('hospitalDataModal')">Close Window</button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     BED AVAILABILITY & PATIENT ROOM LOCATOR MODAL
+===================================================== -->
+<div class="modal" id="bedModal">
+    <div class="modal-box bed-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('bedModal')" aria-label="Close Bed Portal">×</button>
+
+        <!-- Modern Healthcare Header -->
+        <div class="bed-modal-header">
+            <div class="bed-header-left">
+                <div class="bed-brand-badge">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 4v16"></path>
+                        <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
+                        <path d="M2 17h20"></path>
+                        <path d="M6 8v9"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="bed-meta-tags">
+                        <span class="status-live-pill"><span class="pulse-indicator"></span> Real-Time Ward Telemetry</span>
+                        <span class="staff-sync-tag">⚡ Live Staff Console Synced</span>
+                    </div>
+                    <h2>Bed Availability & Patient Room Locator</h2>
+                    <p class="modal-subtitle">Live ward capacity across Gorakhpur hospitals. Patients can enter their Patient ID / UHID to instantly check allocated room, bed, and floor.</p>
+                </div>
+            </div>
+            <div class="bed-header-actions">
+                <button type="button" class="btn-bed-refresh" id="bedHeaderRefreshBtn" onclick="refreshBedDataWithFeedback()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Live Sync</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="bed-nav-tabs">
+            <button type="button" class="bed-tab-btn active" id="tabBtnBedAvailability" onclick="switchBedModalTab('availability')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/></svg>
+                <span>Live Hospital Bed Capacity</span>
+            </button>
+            <button type="button" class="bed-tab-btn" id="tabBtnPatientLookup" onclick="switchBedModalTab('patient')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <span>Patient Room & Bed Locator</span>
+                <span class="tab-badge-new">Search UHID</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: LIVE BED CAPACITY -->
+        <div id="bedTabAvailability" class="bed-tab-content active">
+            <!-- Filter & Action Bar -->
+            <div class="bed-filter-toolbar">
+                <div class="bed-filter-group">
+                    <label for="bedHospitalSelect">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1m-2 4v-4"/></svg>
+                        Select Hospital:
+                    </label>
+                    <select id="bedHospitalSelect" onchange="handleBedHospitalChange()"></select>
+                </div>
+
+                <div class="bed-filter-actions">
+                    <button type="button" class="btn-quick-reserve" onclick="openCitizenBedBookingModal(document.getElementById('bedHospitalSelect')?.value)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Reserve / Book Bed</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selected Hospital Comprehensive Details Banner -->
+            <div id="bedHospitalDetailBanner" class="hospital-info-banner">
+                <!-- Dynamically rendered -->
+            </div>
+
+            <!-- Section Header -->
+            <div class="bed-section-header">
+                <div>
+                    <h3 id="bedGridSectionTitle">Live Ward & Specialty Bed Inventory</h3>
+                    <p id="bedGridSectionSubtitle">Real-time telemetry directly synced with ward nursing desks. Numbers update automatically on patient admission/discharge.</p>
+                </div>
+                <div class="bed-live-counter" id="bedLiveSyncStatus">
+                    <span class="live-dot"></span> Telemetry live (auto-sync 10s)
+                </div>
+            </div>
+
+            <!-- Cards Container -->
+            <div id="bedResult" class="bed-cards-container">
+                <div class="bed-loading-skeleton">
+                    <span>Loading real-time bed capacity...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PATIENT ROOM & BED LOCATOR -->
+        <div id="bedTabPatientLookup" class="bed-tab-content" style="display:none;">
+            <div class="patient-lookup-wrapper">
+                <div class="patient-lookup-hero">
+                    <div class="lookup-hero-icon">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                    <div>
+                        <h3>Patient Room & Bed Tracker</h3>
+                        <p>Admitted patients or family members can enter their <strong>Patient ID / UHID</strong> to view the allocated room number, bed ID, floor, wing, and attending doctor.</p>
+                    </div>
+                </div>
+
+                <div class="patient-lookup-input-bar">
+                    <div class="input-with-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="patientLookupInput" placeholder="Enter Patient ID / UHID (e.g. PAT-RAHUL-10231 or 1)" onkeypress="if(event.key==='Enter') lookupPatientRoom()">
+                    </div>
+                    <button type="button" class="btn-lookup-submit" onclick="lookupPatientRoom()">
+                        <span>Find Room & Bed</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <div class="patient-lookup-samples">
+                    <span class="samples-label">Quick test UHID:</span>
+                    <button type="button" class="chip-sample-uhid" onclick="fillAndLookupPatient('PAT-RAHUL-10231')">📋 PAT-RAHUL-10231 (Rahul Sharma)</button>
+                    <button type="button" class="chip-sample-uhid" onclick="fillAndLookupPatient('1')">📋 ID: 1</button>
+                </div>
+
+                <div id="patientRoomLookupResult" class="patient-lookup-result">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer Notice -->
+        <div class="bed-modal-footer">
+            <div class="footer-notice">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span>Gorakhpur Smart City Health Grid • Directly connected to Hospital Ward Management Consoles.</span>
+            </div>
+            <button type="button" class="btn-bed-close" onclick="closeModal('bedModal')">Close Window</button>
+        </div>
+    </div>
+</div>
+
 <!-- =====================================================
      PHARMACY / MEDICINE MODAL
 ===================================================== -->
 
-<div
-    class="modal"
-    id="pharmacyModal"
->
-
+<div class="modal" id="pharmacyModal">
     <div class="modal-box pharmacy-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('pharmacyModal')" aria-label="Close Pharmacy">×</button>
 
-        <button
-            type="button"
-            class="close-btn"
-            onclick="closeModal('pharmacyModal')"
-        >
-            ×
-        </button>
-
-        <div class="modal-title-icon">
-            💊
-        </div>
-
-        <h2>
-            Pharmacy & Medicines
-        </h2>
-
-        <p class="modal-subtitle">
-            Search medicines, check availability, view details and add medicines to your cart.
-        </p>
-
-        <div class="patient-pharmacy-login" id="pharmacyPatientLogin">
-
-    <h3>👤 Patient Login</h3>
-
-    <p>
-        Medicine purchase karne ke liye
-        Patient ID enter karein.
-    </p>
-
-    <div style="display:flex; gap:10px;">
-
-        <input
-            type="text"
-            id="pharmacyPatientId"
-            placeholder="Enter Patient ID"
-            autocomplete="off"
-        >
-
-        <button
-            type="button"
-            onclick="verifyPharmacyPatient()"
-        >
-            🔐 Verify
-        </button>
-
-    </div>
-
-    <div
-        id="pharmacyPatientStatus"
-        style="margin-top:10px;"
-    ></div>
-
-</div>
-        <div class="medicine-search">
-
-            <input
-                type="text"
-                id="medicineSearch"
-                placeholder="🔎 Search medicine..."
-                oninput="searchMedicines()"
-                autocomplete="off"
-            >
-
-        </div>
-
-
-        <div id="medicineResult">
-
-            <div class="loading-card">
-                💊 Opening pharmacy...
+        <!-- Modern Healthcare Header -->
+        <div class="pharmacy-modal-header">
+            <div class="pharmacy-header-left">
+                <div class="pharmacy-brand-badge">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path>
+                        <path d="m8.5 8.5 7 7"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="pharmacy-meta-tags">
+                        <span class="status-live-pill"><span class="pulse-indicator"></span> SmartCity Formulary</span>
+                        <span class="gov-subsidized-tag">Jan Aushadhi Scheme</span>
+                    </div>
+                    <h2>Gorakhpur Smart Pharmacy</h2>
+                    <p class="modal-subtitle">Direct hospital formulary with real-time stock availability, verified drugs, and OPD subsidized rates.</p>
+                </div>
             </div>
-
-        </div>
-
-
-        <div class="pharmacy-cart-bar">
-
-            <div>
-                <strong>🛒 Medicine Cart</strong>
-                <span id="cartCount">0</span> items
-            </div>
-
-            <button
-                type="button"
-                class="primary-btn"
-                onclick="openCart()"
-            >
-                🛒 View Cart
-            </button>
-
-        </div>
-
-
-        <div class="pharmacy-upload-section">
-
-            <div class="pharmacy-upload-text">
-
-                <strong>
-                    Have a prescription?
-                </strong>
-
-                <span>
-                    Upload it to process your medicines.
+            <div class="pharmacy-trust-badges">
+                <span class="trust-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Live Stock
                 </span>
+                <span class="trust-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    OPD Rates
+                </span>
+                <span class="trust-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Counter Pickup
+                </span>
+            </div>
+        </div>
 
+        <div class="pharmacy-modal-body">
+            <!-- Patient Verification Card -->
+            <div class="patient-pharmacy-login-card" id="pharmacyPatientLogin">
+                <!-- Dynamically populated by updatePharmacyLoginUI() -->
             </div>
 
+            <!-- Search and Category Filters -->
+            <div class="pharmacy-controls">
+                <div class="pharmacy-search-bar">
+                    <svg class="search-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input
+                        type="text"
+                        id="medicineSearch"
+                        placeholder="Search medicines by brand, generic salt, or category (e.g. Amlodipine, Antibiotic)..."
+                        oninput="searchMedicines()"
+                        autocomplete="off"
+                    >
+                    <button type="button" class="search-clear-btn" id="medicineSearchClear" onclick="clearMedicineSearch()" style="display:none;" title="Clear search">×</button>
+                </div>
 
-            <button
-                type="button"
-                class="primary-btn"
-                onclick="openPrescriptionUpload()"
-            >
-                📤 Upload Prescription
-            </button>
+                <div class="pharmacy-chip-bar" id="pharmacyChips">
+                    <button type="button" class="pharmacy-chip active" onclick="filterMedicineCategory('all')">All Medicines</button>
+                    <button type="button" class="pharmacy-chip" onclick="filterMedicineCategory('Antibiotic')">Antibiotics</button>
+                    <button type="button" class="pharmacy-chip" onclick="filterMedicineCategory('Antihypertensive')">Cardiac & BP</button>
+                    <button type="button" class="pharmacy-chip" onclick="filterMedicineCategory('Analgesic')">Pain & Fever</button>
+                    <button type="button" class="pharmacy-chip" onclick="filterMedicineCategory('Antiseptic')">Skin & Antiseptic</button>
+                    <button type="button" class="pharmacy-chip" onclick="filterMedicineCategory('instock')">In Stock Only</button>
+                </div>
+            </div>
 
+            <!-- Medicine Results Container -->
+            <div id="medicineResult" class="pharmacy-results-wrapper">
+                <div class="loading-card">
+                    <div class="pharmacy-loader-spinner"></div>
+                    <p>Loading pharmacy formulary...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Bottom Bar: Cart Summary & Prescription Upload -->
+        <div class="pharmacy-footer-bar">
+            <div class="pharmacy-rx-teaser" onclick="openPrescriptionUpload()">
+                <div class="rx-teaser-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="rx-teaser-info">
+                    <strong>Have a Doctor's Prescription?</strong>
+                    <span>Upload slip for rapid dispensary verification</span>
+                </div>
+                <span class="rx-teaser-action">Upload Rx →</span>
+            </div>
+
+            <div class="pharmacy-cart-action-pill" id="pharmacyCartBar" onclick="openCart()">
+                <div class="cart-pill-left">
+                    <div class="cart-pill-icon-box">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="8" cy="21" r="1"></circle>
+                            <circle cx="19" cy="21" r="1"></circle>
+                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                        </svg>
+                        <span class="cart-count-badge" id="cartCount">0</span>
+                    </div>
+                    <div class="cart-pill-text">
+                        <span class="cart-pill-sub">Dispensary Cart</span>
+                        <strong class="cart-pill-price" id="cartBarTotal">₹0.00</strong>
+                    </div>
+                </div>
+                <button type="button" class="cart-pill-btn" onclick="event.stopPropagation(); openCart()">
+                    <span>View Cart & Order</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
         </div>
 
     </div>
-
 </div>
 
 
@@ -1824,49 +2012,33 @@
      PHARMACY CART MODAL
 ===================================================== -->
 
-<div
-    class="modal"
-    id="cartModal"
->
-
+<div class="modal" id="cartModal">
     <div class="modal-box cart-modal-box">
+        <button type="button" class="close-btn" onclick="closeModal('cartModal')">×</button>
 
-        <button
-            type="button"
-            class="close-btn"
-            onclick="closeModal('cartModal')"
-        >
-            ×
-        </button>
-
-        <div class="modal-title-icon">🛒</div>
-
-        <h2>Medicine Cart</h2>
-
-        <p class="modal-subtitle">
-            Review medicines and generate your pharmacy receipt.
-        </p>
-
-        <label for="cartPatientId">Patient ID</label>
-
-        <input
-            type="text"
-            id="cartPatientId"
-            placeholder="Enter Patient ID"
-        >
-
-        <div id="cartResult">
-
-            <div class="empty-state">
-                🛒
-                <h3>Cart is Empty</h3>
-                <p>Add medicines from the pharmacy.</p>
+        <div class="cart-header">
+            <div class="cart-header-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="8" cy="21" r="1"></circle>
+                    <circle cx="19" cy="21" r="1"></circle>
+                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                </svg>
             </div>
-
+            <div>
+                <h2>Medicine Dispensing Cart</h2>
+                <p class="modal-subtitle">Review prescribed items, adjust quantities, and generate your pharmacy order.</p>
+            </div>
         </div>
 
-    </div>
+        <div id="cartPatientBanner" class="cart-patient-banner"></div>
 
+        <div id="cartResult">
+            <div class="empty-state">
+                <h3>Your Cart is Empty</h3>
+                <p>Browse the pharmacy catalog to add prescribed medicines.</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -1892,10 +2064,14 @@
         <div id="receiptContent">
 
             <div class="receipt-header">
-                <div class="receipt-logo">🏥</div>
+                <div class="receipt-logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                    </svg>
+                </div>
                 <div>
-                    <h2>SmartCity AI</h2>
-                    <p>Smart Healthcare Pharmacy</p>
+                    <h2>SmartCity AI Healthcare</h2>
+                    <p>Official Digital Pharmacy & Dispensary Bill</p>
                 </div>
             </div>
 
@@ -1903,8 +2079,8 @@
 
             <div class="receipt-info">
                 <p><strong>Receipt No:</strong> <span id="receiptNumber">--</span></p>
-                <p><strong>Date:</strong> <span id="receiptDate">--</span></p>
-                <p><strong>Patient ID:</strong> <span id="receiptPatientId">--</span></p>
+                <p><strong>Date & Time:</strong> <span id="receiptDate">--</span></p>
+                <p><strong>Patient UHID:</strong> <span id="receiptPatientId">--</span></p>
             </div>
 
             <div id="receiptItems"></div>
@@ -1912,12 +2088,12 @@
             <hr>
 
             <div class="receipt-total">
-                <span>Total</span>
+                <span>Total Amount Paid</span>
                 <strong id="receiptTotal">₹0.00</strong>
             </div>
 
             <p class="receipt-thankyou">
-                Thank you for using SmartCity AI Healthcare Services.
+                Government of UP & SmartCity AI Healthcare Network • Keep for OPD Reference
             </p>
 
         </div>
@@ -1928,7 +2104,7 @@
                 class="primary-btn"
                 onclick="printReceipt()"
             >
-                🖨️ Print Receipt
+                Print Receipt
             </button>
 
             <button
@@ -1954,82 +2130,216 @@
     id="prescriptionModal"
 >
 
-    <div class="modal-box prescription-modal-box">
+    <div class="modal-box prescription-modal-box rx-pro-modal">
 
         <button
             type="button"
-            class="close-btn"
+            class="close-btn rx-close-btn"
             onclick="closeModal('prescriptionModal')"
+            title="Close"
         >
-            ×
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
         </button>
 
-
-        <div class="modal-title-icon">
-            📤
+        <!-- Professional Clinical Header -->
+        <div class="rx-header">
+            <div class="rx-header-top">
+                <div class="rx-icon-shield">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="rx-compliance-badge">
+                    <span class="rx-pulse-dot"></span>
+                    <span>ABDM Integrated • 256-Bit EMR</span>
+                </div>
+            </div>
+            <h2 class="rx-title">Upload Doctor's Prescription</h2>
+            <p class="rx-subtitle">
+                Upload your OPD prescription slip to link medicines, schedule automated dosage alerts, and fulfill orders with the Gorakhpur Smart Dispensary.
+            </p>
         </div>
-
-
-        <h2>
-            Upload Prescription
-        </h2>
-
-
-        <p class="modal-subtitle">
-            Upload your prescription using your Patient ID.
-        </p>
-
 
         <form
             id="prescriptionForm"
             enctype="multipart/form-data"
+            class="rx-form"
         >
+            <!-- Patient ID Input with Icon & Status -->
+            <div class="rx-field-group">
+                <div class="rx-label-row">
+                    <label for="prescriptionPatientId" class="rx-field-label">
+                        Patient UHID / Health ID
+                    </label>
+                    <span class="rx-verified-tag" id="rxUhidBadge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Auto-linked Profile
+                    </span>
+                </div>
+                <div class="rx-input-wrapper">
+                    <span class="rx-input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                            <line x1="7" y1="8" x2="17" y2="8"></line>
+                            <line x1="7" y1="12" x2="13" y2="12"></line>
+                            <circle cx="8" cy="16" r="1"></circle>
+                        </svg>
+                    </span>
+                    <input
+                        type="text"
+                        id="prescriptionPatientId"
+                        name="patientId"
+                        class="rx-text-input"
+                        placeholder="e.g. SC-2026-318028 or PAT-10291"
+                        required
+                    >
+                </div>
+            </div>
 
-            <label for="prescriptionPatientId">
-                Patient ID
-            </label>
+            <!-- Doctor Name (Optional) -->
+            <div class="rx-field-group">
+                <div class="rx-label-row">
+                    <label for="prescriptionDoctorName" class="rx-field-label">
+                        Consulting Doctor / Clinic
+                    </label>
+                    <span class="rx-optional-tag">Optional</span>
+                </div>
+                <div class="rx-input-wrapper">
+                    <span class="rx-input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </span>
+                    <input
+                        type="text"
+                        id="prescriptionDoctorName"
+                        name="doctorName"
+                        class="rx-text-input"
+                        placeholder="e.g. Dr. Alok Nath Tripathi (AIIMS Gorakhpur)"
+                    >
+                </div>
+            </div>
 
-            <input
-                type="text"
-                id="prescriptionPatientId"
-                name="patientId"
-                placeholder="Enter Patient ID"
-                required
-            >
+            <!-- Modern Interactive Drag & Drop Zone -->
+            <div class="rx-field-group">
+                <div class="rx-label-row">
+                    <label class="rx-field-label">
+                        Prescription Document (Scan / Photo)
+                    </label>
+                    <span class="rx-format-pills">PDF, JPG, PNG, WEBP</span>
+                </div>
 
+                <div class="rx-dropzone" id="rxDropzone">
+                    <input
+                        type="file"
+                        id="prescriptionFile"
+                        name="prescriptionFile"
+                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        class="rx-file-input"
+                        required
+                    >
 
-            <label for="prescriptionFile">
-                Prescription File
-            </label>
+                    <!-- Idle / Empty State inside Dropzone -->
+                    <div class="rx-dropzone-empty" id="rxDropEmpty">
+                        <div class="rx-upload-cloud">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="rx-drop-prompt">
+                            <strong>Drag & drop your prescription slip here</strong>
+                            <span>or <span class="rx-browse-link">browse files</span> from your device</span>
+                        </div>
+                        <div class="rx-size-limit">
+                            Supported: PDF, JPG, PNG (Max 10 MB)
+                        </div>
+                    </div>
 
-            <input
-                type="file"
-                id="prescriptionFile"
-                name="prescription"
-                accept=".jpg,.jpeg,.png,.pdf"
-                required
-            >
+                    <!-- Selected File Preview Inside Dropzone -->
+                    <div class="rx-dropzone-preview" id="rxDropPreview" style="display: none;">
+                        <div class="rx-file-icon" id="rxFileIcon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="rx-file-details">
+                            <span class="rx-file-name" id="rxFileName">prescription.pdf</span>
+                            <span class="rx-file-meta" id="rxFileMeta">1.8 MB • Ready for submission</span>
+                        </div>
+                        <button type="button" class="rx-file-remove-btn" id="rxRemoveFileBtn" title="Remove selected file">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Clinical Feature Checklist Strip -->
+            <div class="rx-feature-strip">
+                <div class="rx-feature-item">
+                    <span class="rx-feature-check">✓</span>
+                    <span>Doctor sign & letterhead</span>
+                </div>
+                <div class="rx-feature-item">
+                    <span class="rx-feature-check">✓</span>
+                    <span>AI auto-extracts medicines</span>
+                </div>
+                <div class="rx-feature-item">
+                    <span class="rx-feature-check">✓</span>
+                    <span>Smart dispensary sync</span>
+                </div>
+            </div>
 
-            <small class="file-help">
-                Accepted formats: JPG, JPEG, PNG and PDF
-            </small>
-
-
+            <!-- Submit Button -->
             <button
                 type="submit"
-                class="primary-btn full"
+                id="prescriptionSubmitBtn"
+                class="rx-submit-btn"
             >
-                📤 UPLOAD PRESCRIPTION
+                <span class="rx-btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 11 12 14 22 4"></polyline>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                </span>
+                <span class="rx-btn-text">Submit Prescription for Verification</span>
             </button>
-
         </form>
 
-
+        <!-- Result Container (hidden when empty) -->
         <div
             id="prescriptionResult"
-            class="appointment-result"
+            class="appointment-result rx-result-box"
         ></div>
+
+        <!-- Recent Prescriptions Quick Strip -->
+        <div class="rx-recent-section" id="rxRecentSection" style="display: none;">
+            <div class="rx-recent-header">
+                <div class="rx-recent-title">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Prescriptions on Record</span>
+                </div>
+                <button type="button" class="rx-view-all-link" onclick="openRecordsModal(); if(typeof renderRecordTab==='function') renderRecordTab('prescriptions');">
+                    All EMR Records →
+                </button>
+            </div>
+            <div class="rx-recent-list" id="rxRecentList"></div>
+        </div>
 
     </div>
 
@@ -2542,12 +2852,26 @@
     <!-- GATEKEEPER CARD (SHOWN TO CITIZENS / GUESTS) -->
     <div class="layer-gatekeeper-card" id="staffGatekeeper">
         <div class="gatekeeper-icon">🔒</div>
-        <h3>Medical Staff Operations Access Restricted</h3>
+        <h3>Medical Staff Operations & Ward Console</h3>
         <p>
             Access to patient admission registry, OPD token queuing, lab test intake, and ward updates is restricted to verified healthcare staff.
         </p>
-        <button class="primary-btn" onclick="promptHospitalStaffLogin()">
-            ⚡ Log in as Hospital Staff (STAFF-001)
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px;">
+            <a href="hospital_dashboard.html" class="primary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #0284c7;">
+                🏥 Open Full Hospital Staff ERP →
+            </a>
+            <a href="doctor_dashboard.html" class="primary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #2563eb;">
+                👨‍⚕️ Doctor OPD Console →
+            </a>
+        </div>
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 10px; font-weight: 600;">⚡ 1-Click Instant Staff Persona:</div>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;">
+            <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.quickLoginPersona('pharmacy')" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #0284c7; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer;">💊 Pharmacist (HOSP-PHARM)</button>
+            <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.quickLoginPersona('hospital')" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); color: #4f46e5; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer;">🏥 Receptionist (HOSP-REC)</button>
+            <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.quickLoginPersona('doctor')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #059669; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer;">🩺 Doctor (DOC-101)</button>
+        </div>
+        <button class="secondary-btn" onclick="promptHospitalStaffLogin()">
+            🔑 Official Staff Sign-In Modal
         </button>
     </div>
 
@@ -2874,12 +3198,25 @@
     <!-- GATEKEEPER CARD (SHOWN TO NON-ADMINS) -->
     <div class="layer-gatekeeper-card" id="adminGatekeeper">
         <div class="gatekeeper-icon">🔒</div>
-        <h3>Hospital Administration & Asset Management Restricted</h3>
+        <h3>Hospital Administration & Asset Management</h3>
         <p>
-            ICCC healthcare governance, city-wide oxygen logistics, bed quota allocations, and hospital inspection analytics require director-level administrative credentials.
+            ICCC healthcare governance, staff provisioning, role-based permissions, doctor slot management, and bed quota allocations.
         </p>
-        <button class="primary-btn" onclick="promptHospitalAdminLogin()">
-            ⚡ Log in as Health Admin (HOSP-ADMIN)
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px;">
+            <a href="hospital_dashboard.html?role=hospital_admin" class="primary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #7c3aed;">
+                👑 Open Hospital Admin Console →
+            </a>
+            <a href="superadmin_hospital.html" class="primary-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #0f172a; border: 1px solid #38bdf8;">
+                🛡️ Open Super Admin Hospital Registry →
+            </a>
+        </div>
+        <div style="font-size: 12px; color: #64748b; margin-bottom: 10px; font-weight: 600;">⚡ 1-Click Instant Admin Persona:</div>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;">
+            <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #b45309; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer;">👑 Hospital Admin (HOSP-ADMIN)</button>
+            <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.quickLoginPersona('super_admin')" style="background: rgba(15, 23, 42, 0.1); border: 1px solid #0f172a; color: #0f172a; border-radius: 999px; padding: 6px 14px; font-weight: 700; cursor: pointer;">🛡️ Super Admin (STAFF-001)</button>
+        </div>
+        <button class="secondary-btn" onclick="promptHospitalAdminLogin()">
+            🔑 Official Admin Sign-In Modal
         </button>
     </div>
 
@@ -2900,23 +3237,23 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
                     <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Total District Beds</div>
-                    <div style="font-size: 28px; font-weight: 800; color: #0284c7; margin: 6px 0;">1,420</div>
-                    <div style="font-size: 12px; color: #10b981;">● 84% Operational Efficiency</div>
+                    <div id="adminTotalDistrictBeds" style="font-size: 28px; font-weight: 800; color: #0284c7; margin: 6px 0;">4,215</div>
+                    <div id="adminBedsSubtitle" style="font-size: 12px; color: #10b981;">● Live Telemetry Active</div>
                 </div>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
                     <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Ventilator ICUs Free</div>
-                    <div style="font-size: 28px; font-weight: 800; color: #059669; margin: 6px 0;">38 / 92</div>
-                    <div style="font-size: 12px; color: #059669;">● Adequate Reserve</div>
+                    <div id="adminVentilatorsFree" style="font-size: 28px; font-weight: 800; color: #059669; margin: 6px 0;">-- / --</div>
+                    <div id="adminIcuSubtitle" style="font-size: 12px; color: #059669;">● Adequate Reserve</div>
                 </div>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
                     <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Emergency Trauma Bays</div>
-                    <div style="font-size: 28px; font-weight: 800; color: #ea580c; margin: 6px 0;">14 Active</div>
-                    <div style="font-size: 12px; color: #ea580c;">● 4 High Alert Inbound</div>
+                    <div id="adminEmergencyBays" style="font-size: 28px; font-weight: 800; color: #ea580c; margin: 6px 0;">-- Active</div>
+                    <div id="adminEmergencySubtitle" style="font-size: 12px; color: #ea580c;">● 24x7 High Alert Ready</div>
                 </div>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
                     <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">Liquid O2 Supply Buffer</div>
-                    <div style="font-size: 28px; font-weight: 800; color: #2563eb; margin: 6px 0;">94.2%</div>
-                    <div style="font-size: 12px; color: #2563eb;">● 72-hour Reserve Ready</div>
+                    <div id="adminO2Buffer" style="font-size: 28px; font-weight: 800; color: #2563eb; margin: 6px 0;">96.4%</div>
+                    <div id="adminO2Subtitle" style="font-size: 12px; color: #2563eb;">● 72-hour Reserve Ready</div>
                 </div>
             </div>
         </section>
@@ -3065,6 +3402,150 @@
 
 </div>
 
+<!-- =====================================================
+     CITIZEN BED BOOKING MODAL (INLINE TOAST, NO REFRESH, BILLING INTEGRATION)
+===================================================== -->
+<div class="modal" id="citizenBedBookingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div class="modal-box" style="background:#ffffff; border-radius:16px; padding:28px; width:92%; max-width:540px; box-shadow:0 20px 40px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto; position:relative;">
+        <button type="button" class="close-btn" onclick="closeModal('citizenBedBookingModal')" style="position:absolute; top:18px; right:18px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; color:#475569; display:flex; align-items:center; justify-content:center;">×</button>
+        
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="width:44px; height:44px; border-radius:10px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:22px;">🛏️</div>
+            <div>
+                <h3 style="margin:0; font-size:20px; font-weight:800; color:#0f172a;">Reserve Hospital Bed</h3>
+                <p style="margin:2px 0 0 0; font-size:12px; color:#64748b;">Instant bed reservation linked to hospital billing without page refresh.</p>
+            </div>
+        </div>
+
+        <form id="citizenBedBookingForm" onsubmit="submitCitizenBedBooking(event)">
+            <!-- 1. HOSPITAL SELECTION -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Select Hospital *</label>
+                <select id="cbHospitalSelect" class="form-control" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px; font-weight:600;" onchange="handleCitizenBookingHospitalChange(this.value)" required>
+                    <option value="">-- Choose Hospital --</option>
+                </select>
+            </div>
+
+            <!-- 2. WARD / SPECIALTY CATEGORY -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Ward / Care Specialty *</label>
+                <select id="cbWardSelect" class="form-control" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px; font-weight:600;" onchange="handleCitizenBookingWardChange(this.value)" required>
+                    <option value="">-- Select Ward Specialty --</option>
+                </select>
+            </div>
+
+            <!-- 3. AVAILABLE BED SELECTOR -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Available Physical Bed *</label>
+                <select id="cbBedSelect" class="form-control" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px; font-weight:700; color:#1d4ed8;" onchange="handleCitizenBedOptionSelected(this.value)" required>
+                    <option value="">-- Select Available Bed --</option>
+                </select>
+                <div id="cbBedInfoNotice" style="margin-top:6px; font-size:12px; color:#16a34a; font-weight:700; display:none;"></div>
+            </div>
+
+            <!-- BED CHARGE & REAL BILLING NOTICE (Requirement 5, 6, 7) -->
+            <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#166534;">Daily Hospital Charge:</span>
+                    <strong id="cbDailyChargeDisplay" style="font-size:18px; color:#15803d; font-weight:900;">₹3,500/day</strong>
+                </div>
+                <p style="margin:4px 0 0 0; font-size:11px; color:#15803d; line-height:1.4;">
+                    💳 <strong>Real Billing Transaction:</strong> Bed cost is automatically added to the patient's hospital billing record upon reservation. You can pay partially or in full at the hospital Billing Counter.
+                </p>
+            </div>
+
+            <!-- 4. PATIENT DETAILS -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Patient Full Name *</label>
+                    <input type="text" id="cbPatientName" class="form-control" required placeholder="e.g. Rahul" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Patient Mobile *</label>
+                    <input type="tel" id="cbPatientMobile" class="form-control" required placeholder="e.g. 9876543210" pattern="[0-9]{10}" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Patient ID (Optional)</label>
+                    <input type="text" id="cbPatientId" class="form-control" placeholder="e.g. P-10231 (Auto if empty)" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                </div>
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Gender Policy / Gender</label>
+                    <select id="cbPatientGender" class="form-control" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Admission Notes / Reason</label>
+                <input type="text" id="cbNotes" class="form-control" placeholder="e.g. Admitted for cardiac telemetry observation" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13px;">
+            </div>
+
+            <!-- INLINE NOTIFICATION / STATUS CONTAINER (NO JAVASCRIPT ALERT) -->
+            <div id="cbInlineStatus" style="display:none; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:700; margin-bottom:14px;"></div>
+
+            <!-- SUBMIT BUTTONS -->
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" onclick="closeModal('citizenBedBookingModal')" style="padding:10px 16px; border:1px solid #cbd5e1; background:#f8fafc; color:#475569; border-radius:8px; font-weight:600; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="submit" id="btnSubmitCitizenBedBooking" style="padding:10px 22px; background:#2563eb; color:#ffffff; border:none; border-radius:8px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(37,99,235,0.3);">
+                    ✓ Confirm Bed Booking
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =====================================================
+     CITIZEN BILLING HISTORY MODAL (COUNTER STATEMENT)
+===================================================== -->
+<div class="modal" id="citizenBillingHistoryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center;">
+    <div class="modal-box" style="background:#ffffff; border-radius:16px; padding:28px; width:92%; max-width:680px; box-shadow:0 20px 40px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto; position:relative;">
+        <button type="button" class="close-btn" onclick="closeModal('citizenBillingHistoryModal')" style="position:absolute; top:18px; right:18px; border:none; background:#f1f5f9; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; color:#475569; display:flex; align-items:center; justify-content:center;">×</button>
+        
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+            <div id="cbhHospLogoWrap" style="width:48px; height:48px; border-radius:8px; overflow:hidden; background:#f8fafc; border:1px solid #e2e8f0; display:flex; align-items:center; justify-content:center;">
+                <img id="cbhHospLogo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3Cpolyline points='9 22 9 12 15 12 15 22'/%3E%3C/svg%3E" alt="Hospital Logo" style="width:100%; height:100%; object-fit:contain;">
+            </div>
+            <div>
+                <h3 id="cbhHospName" style="margin:0; font-size:18px; font-weight:800; color:#0f172a;">Hospital Billing Counter</h3>
+                <p id="cbhPatientMeta" style="margin:2px 0 0 0; font-size:12px; color:#64748b;">Patient Statement &amp; Real-time Payment Ledger</p>
+            </div>
+        </div>
+
+        <div id="cbhSummaryMetrics" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:18px;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; text-align:center;">
+                <span style="font-size:11px; font-weight:700; color:#64748b; display:block;">TOTAL BILLED</span>
+                <strong id="cbhTotalBilled" style="font-size:16px; color:#1e293b;">₹0.00</strong>
+            </div>
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px; text-align:center;">
+                <span style="font-size:11px; font-weight:700; color:#166534; display:block;">TOTAL PAID</span>
+                <strong id="cbhTotalPaid" style="font-size:16px; color:#15803d;">₹0.00</strong>
+            </div>
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:12px; text-align:center;">
+                <span style="font-size:11px; font-weight:700; color:#991b1b; display:block;">REMAINING PAYABLE</span>
+                <strong id="cbhTotalRemaining" style="font-size:16px; color:#dc2626;">₹0.00</strong>
+            </div>
+        </div>
+
+        <h4 style="margin:14px 0 8px 0; font-size:14px; font-weight:700; color:#1e293b;">Hospital Invoices &amp; Bed Charges</h4>
+        <div id="cbhInvoicesList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+            <!-- Injected via JavaScript -->
+        </div>
+
+        <h4 style="margin:14px 0 8px 0; font-size:14px; font-weight:700; color:#1e293b;">Recorded Payments &amp; Receipts</h4>
+        <div id="cbhPaymentsList" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Injected via JavaScript -->
+        </div>
+    </div>
+</div>
+
 
 
 <!-- =====================================================
@@ -3090,7 +3571,7 @@
 <script src="../../components/smartcity_map.js"></script>
 <script src="../../api/client.js"></script>
 <script src="../../api/hospital.api.js"></script>
-<script src="../../auth.js"></script>
+<script src="../../auth.js?v=2.2"></script>
 <script src="../../realtime.js"></script>
 
 
@@ -3099,14 +3580,52 @@
 ===================================================== -->
 
 <script
-    src="hospital.js"
+    src="hospital.js?v=2.2"
 ></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+        if (typeof runAIHealthcareAnalysis === "function") {
+            runAIHealthcareAnalysis();
+        }
         if (typeof loadAIHealthcareAuditTable === "function") {
             loadAIHealthcareAuditTable();
         }
+        if (window.location.hash.includes("#prescription") || window.location.search.includes("open=prescription") || window.location.search.includes("tab=prescription")) {
+            if (typeof openPrescriptionUpload === "function") openPrescriptionUpload();
+        }
+        if (window.location.hash === "#pharmacy" || window.location.search.includes("open=pharmacy") || window.location.search.includes("tab=pharmacy")) {
+            if (typeof showPharmacy === "function") showPharmacy();
+        }
+        if (window.location.hash.includes("#doctors") || window.location.search.includes("open=doctors") || window.location.search.includes("tab=doctors")) {
+            if (typeof openDoctorFinder === "function") openDoctorFinder();
+        }
+        if (window.location.hash.includes("#appointments") || window.location.search.includes("open=appointments") || window.location.search.includes("tab=appointments")) {
+            if (typeof openMyAppointments === "function") openMyAppointments();
+        }
+        if (window.location.hash.includes("#hospitals") || window.location.search.includes("open=hospitals") || window.location.search.includes("tab=hospitals")) {
+            if (typeof showHospitals === "function") showHospitals();
+        }
+        if (window.location.hash.includes("#beds") || window.location.search.includes("open=beds") || window.location.search.includes("tab=beds")) {
+            if (typeof showBeds === "function") {
+                showBeds().then(() => {
+                    if (window.location.hash.includes("patient") || window.location.search.includes("patient")) {
+                        if (typeof switchBedModalTab === "function") switchBedModalTab('patient');
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const queryUhid = urlParams.get("uhid") || "PAT-RAHUL-10231";
+                        if (typeof fillAndLookupPatient === "function") fillAndLookupPatient(queryUhid);
+                    }
+                });
+            }
+        }
+        window.addEventListener("hashchange", () => {
+            if (window.location.hash.includes("#prescription") && typeof openPrescriptionUpload === "function") openPrescriptionUpload();
+            if (window.location.hash.includes("#doctors") && typeof openDoctorFinder === "function") openDoctorFinder();
+            if (window.location.hash.includes("#appointments") && typeof openMyAppointments === "function") openMyAppointments();
+            if (window.location.hash.includes("#hospitals") && typeof showHospitals === "function") showHospitals();
+            if (window.location.hash.includes("#beds") && typeof showBeds === "function") showBeds();
+            if (window.location.hash.includes("#pharmacy") && typeof showPharmacy === "function") showPharmacy();
+        });
     });
 </script>
 
