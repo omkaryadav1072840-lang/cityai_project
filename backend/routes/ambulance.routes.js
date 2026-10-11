@@ -14,7 +14,10 @@ const AMBULANCE_DETAIL_COLUMNS = `
 
 // GET ALL AMBULANCES
 router.get(["/api/ambulances", "/api/emergency/ambulances"], optionalToken, (req, res) => {
-    const isStaffOrAdmin = req.user && (["staff", "admin", "doctor"].includes(req.user.role) || ["staff", "admin", "doctor"].includes(req.user.type));
+    const isStaffOrAdmin = req.user && (
+        ["staff", "admin", "doctor", "super_admin", "hospital_admin", "superadmin"].includes(String(req.user.role || "").toLowerCase()) ||
+        ["staff", "admin", "doctor", "super_admin", "hospital_admin", "superadmin"].includes(String(req.user.type || "").toLowerCase())
+    );
 
     const sql = `
         SELECT 
@@ -43,7 +46,10 @@ router.get(["/api/ambulances", "/api/emergency/ambulances"], optionalToken, (req
 // GET SINGLE AMBULANCE
 router.get("/api/ambulances/:id", optionalToken, (req, res) => {
     const id = req.params.id;
-    const isStaffOrAdmin = req.user && (["staff", "admin", "doctor"].includes(req.user.role) || ["staff", "admin", "doctor"].includes(req.user.type));
+    const isStaffOrAdmin = req.user && (
+        ["staff", "admin", "doctor", "super_admin", "hospital_admin", "superadmin"].includes(String(req.user.role || "").toLowerCase()) ||
+        ["staff", "admin", "doctor", "super_admin", "hospital_admin", "superadmin"].includes(String(req.user.type || "").toLowerCase())
+    );
 
     const sql = `
         SELECT

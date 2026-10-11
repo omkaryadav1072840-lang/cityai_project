@@ -239,6 +239,8 @@ function renderQueue(appts) {
         const apptDate = appt.appointment_date ? String(appt.appointment_date).split('T')[0] : (appt.appointmentDate ? String(appt.appointmentDate).split('T')[0] : 'Today');
         const apptTime = appt.appointment_time || appt.appointmentTime || appt.timeSlot || 'Scheduled';
         const statusClass = (appt.status || 'Confirmed').toLowerCase().replace(/\s+/g, '-');
+        const apptIdDisplay = appt.appointment_id || (appt.id ? `APT-${100000 + appt.id}` : '');
+        const hospDisplay = appt.hospital_name || appt.hospital_id || (currentDoctor?.hospital_name || 'Hospital');
 
         card.innerHTML = `
             <div class="queue-card-top">
@@ -257,6 +259,8 @@ function renderQueue(appts) {
                     <h4>${pName}</h4>
                     <div class="patient-meta-tags">
                         <span>🆔 ${pId}</span>
+                        ${apptIdDisplay ? `<span>📋 ${apptIdDisplay}</span>` : ''}
+                        <span>🏥 ${hospDisplay}</span>
                         ${pAge ? `<span>Age: ${pAge}</span>` : ''}
                         ${pGender ? `<span>${pGender}</span>` : ''}
                         ${pBlood ? `<span>🩸 ${pBlood}</span>` : ''}

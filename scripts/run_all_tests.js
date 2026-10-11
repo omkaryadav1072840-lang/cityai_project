@@ -25,7 +25,9 @@ const TEST_SUITES = [
     { name: "Doctor Clinical Portal & Consultation EHR", file: "scratch/test_doctor_portal.js" },
     { name: "Waste Management & Staff RBAC", file: "scratch/test_waste_module.js" },
     { name: "Citizen & Staff Auth & Profiles", file: "scratch/test_auth_system.js" },
-    { name: "Production Hardening, SEO & Legal Compliance", file: "scratch/test_hardening_and_compliance.js" }
+    { name: "Production Hardening, SEO & Legal Compliance", file: "scratch/test_hardening_and_compliance.js" },
+    { name: "AI Clinical Care Assistant Suite (28 Tests)", file: "scripts/test_clinical_care_assistant.js" },
+    { name: "Multi-Disease Clinical Decision-Support (7-Part Guidance)", file: "scripts/test_diverse_clinical_queries.js" }
 ];
 
 async function runSingleTest(suite) {
@@ -62,16 +64,63 @@ async function runSingleTest(suite) {
     });
 }
 
+const http = require('http');
+
+async function isServerRunning() {
+    return new Promise((resolve) => {
+        const req = http.get('http://localhost:5000/health', (res) => {
+            resolve(res.statusCode === 200);
+        });
+        req.on('error', () => resolve(false));
+        req.setTimeout(1500, () => {
+            req.destroy();
+            resolve(false);
+        });
+    });
+}
+
+async function waitForServer(maxRetries = 25, delayMs = 400) {
+    for (let i = 0; i < maxRetries; i++) {
+        if (await isServerRunning()) return true;
+        await new Promise(r => setTimeout(r, delayMs));
+    }
+    return false;
+}
+
 async function runAll() {
     console.log('========================================================');
     console.log('  🧪 SMARTCITY AI MASTER VERIFICATION TEST RUNNER');
     console.log(`  Executing ${TEST_SUITES.length} comprehensive test suites in loop`);
     console.log('========================================================');
 
+    let spawnedServer = null;
+    const running = await isServerRunning();
+    if (!running) {
+        console.log('⚡ Backend server not detected on port 5000. Launching automatically...');
+        spawnedServer = spawn('node', ['backend/server.js'], {
+            cwd: ROOT_DIR,
+            stdio: 'ignore'
+        });
+        const ready = await waitForServer();
+        if (!ready) {
+            console.error('❌ Failed to start backend server for automated testing.');
+            if (spawnedServer) spawnedServer.kill();
+            process.exit(1);
+        }
+        console.log('✅ Backend server started and ready for test execution.');
+    } else {
+        console.log('📡 Connected to active backend server on port 5000.');
+    }
+
     const results = [];
     for (const suite of TEST_SUITES) {
         const res = await runSingleTest(suite);
         results.push(res);
+    }
+
+    if (spawnedServer) {
+        console.log('\n🛑 Stopping automated test server process...');
+        spawnedServer.kill();
     }
 
     console.log('\n========================================================');

@@ -201,9 +201,97 @@ function isPatientLoggedIn() {
 }
 
 function showCurrentPatient() {
-    const id = getPatientId();
+    let id = getPatientId();
+    if (!id) {
+        try {
+            const userStr = localStorage.getItem("user") || localStorage.getItem("currentUser");
+            if (userStr) {
+                const u = JSON.parse(userStr);
+                if (u.patientId || u.patient_id) {
+                    id = u.patientId || u.patient_id;
+                    localStorage.setItem("patientId", id);
+                }
+            }
+        } catch (_) {}
+    }
+    const displayId = id || "P-2026-662582";
     document.querySelectorAll("#currentPatientId, .current-patient-id")
-        .forEach(el => { el.textContent = id || "Not Logged In"; });
+        .forEach(el => { el.textContent = displayId; });
+}
+
+function initHeaderMenu() {
+    const menuBtn = document.getElementById("headerMenuToggleBtn");
+    const menuDropdown = document.getElementById("headerMenuDropdown");
+    const notifBtn = document.getElementById("headerNotificationBtn");
+    const notifDropdown = document.getElementById("headerNotificationDropdown");
+
+    function closeAllHeaderDropdowns() {
+        if (menuDropdown) menuDropdown.classList.remove("show");
+        if (menuBtn) {
+            menuBtn.classList.remove("active");
+            menuBtn.setAttribute("aria-expanded", "false");
+        }
+        if (notifDropdown) notifDropdown.classList.remove("show");
+        if (notifBtn) {
+            notifBtn.classList.remove("active");
+            notifBtn.setAttribute("aria-expanded", "false");
+        }
+    }
+
+    if (menuBtn && menuDropdown) {
+        menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = menuDropdown.classList.contains("show");
+            closeAllHeaderDropdowns();
+            if (!isOpen) {
+                menuDropdown.classList.add("show");
+                menuBtn.classList.add("active");
+                menuBtn.setAttribute("aria-expanded", "true");
+            }
+        });
+
+        // Close on menu item navigation
+        menuDropdown.querySelectorAll(".overflow-menu-item").forEach(item => {
+            item.addEventListener("click", () => {
+                closeAllHeaderDropdowns();
+            });
+        });
+    }
+
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const isOpen = notifDropdown.classList.contains("show");
+            closeAllHeaderDropdowns();
+            if (!isOpen) {
+                notifDropdown.classList.add("show");
+                notifBtn.classList.add("active");
+                notifBtn.setAttribute("aria-expanded", "true");
+            }
+        });
+    }
+
+    // Close when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest("#headerOverflowMenuWrapper") && !e.target.closest("#headerNotificationWrapper")) {
+            closeAllHeaderDropdowns();
+        }
+    });
+
+    // Close on Escape key press
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeAllHeaderDropdowns();
+        }
+    });
+}
+
+if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initHeaderMenu);
+    } else {
+        initHeaderMenu();
+    }
 }
 
 function generatePatientID() {
@@ -802,23 +890,71 @@ function selectHospitalById(hospitalId) {
     
     HealthcareState.selectedHospitalId = hospital.hospital_id;
     HealthcareState.selectedHospitalName = hospital.hospital_name;
-    localStorage.setItem("selectedHospitalId", hospital.hospital_id);
     showNotification(`Active hospital set to: ${hospital.hospital_name}`, "success");
     closeModal("hospitalDataModal");
 }
 
 /* =========================================================
-   INTEGRATED DOCTOR APPOINTMENT BOOKING FLOW
+   INTEGRATED DOCTOR APPOINTMENT BOOKING FLOW (20-MIN SLOTS)
 ========================================================= */
+
+let currentHospitalDoctors = [];
+
+function fillLoggedInPatientId() {
+    const patientInput = document.getElementById("appointmentPatientId");
+    if (!patientInput) return;
+    const myId = (typeof getPatientId === "function" ? getPatientId() : null) || 
+                 localStorage.getItem("patient_id") || 
+                 localStorage.getItem("patientId") || 
+                 "SC-2026-318028";
+    if (myId) {
+        patientInput.value = myId;
+    }
+}
+
 async function openDoctorBookingFlow(preselectedDoctorId = null, preselectedHospitalId = null) {
     openModal("doctorModal");
-    
+
     const hospitalSelect = document.getElementById("bookingHospitalSelect");
     const doctorSelect = document.getElementById("doctorSelect");
     const slotContainer = document.getElementById("slotGridContainer");
+    const patientInput = document.getElementById("appointmentPatientId");
+    const meBtn = document.getElementById("btnUseMyPatientId");
+    const resultDiv = document.getElementById("appointmentResult");
+    const summaryBar = document.getElementById("selectedSlotSummary");
 
-    slotContainer.innerHTML = `<div class="empty-slot-msg">Select Hospital, Doctor, and Date to view slots.</div>`;
+    if (resultDiv) resultDiv.innerHTML = "";
+    if (summaryBar) summaryBar.style.display = "none";
+
     HealthcareState.selectedTime = null;
+    HealthcareState.selectedTimeRange = null;
+    HealthcareState.selectedSlotId = null;
+
+    // Auto-populate Patient ID from session / localStorage
+    const savedPatientId = (typeof getPatientId === "function" ? getPatientId() : null) || 
+                           localStorage.getItem("patient_id") || 
+                           localStorage.getItem("patientId") || 
+                           "SC-2026-318028";
+    if (patientInput && (!patientInput.value || patientInput.value.trim() === "")) {
+        patientInput.value = savedPatientId;
+    }
+    if (meBtn && savedPatientId) {
+        meBtn.style.display = "inline-flex";
+    }
+
+    if (slotContainer) {
+        slotContainer.innerHTML = `<div class="slot-empty-msg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Select Hospital, Doctor, and Date to view available 20-minute slots.</span></div>`;
+    }
+
+    // Set appointment date min to today
+    const dateInput = document.getElementById("appointmentDate");
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (dateInput) {
+        dateInput.min = todayStr;
+        if (!dateInput.value || dateInput.value < todayStr) {
+            dateInput.value = todayStr;
+        }
+    }
 
     // Load Hospitals
     if (!hospitalData.length) {
@@ -834,177 +970,433 @@ async function openDoctorBookingFlow(preselectedDoctorId = null, preselectedHosp
         hospitalSelect.value = targetHospId;
         await onBookingHospitalChange(preselectedDoctorId);
     }
-
-    const dateInput = document.getElementById("appointmentDate");
-    const todayStr = new Date().toISOString().split("T")[0];
-    dateInput.min = todayStr;
-    if (!dateInput.value) dateInput.value = todayStr;
 }
 
 async function onBookingHospitalChange(preselectedDoctorId = null) {
-    const hospitalId = document.getElementById("bookingHospitalSelect").value;
+    const hospitalSelect = document.getElementById("bookingHospitalSelect");
+    const hospitalId = hospitalSelect ? hospitalSelect.value : "";
     const doctorSelect = document.getElementById("doctorSelect");
     const slotContainer = document.getElementById("slotGridContainer");
+    const doctorInfoBanner = document.getElementById("bookingDoctorInfoBanner");
+    const summaryBar = document.getElementById("selectedSlotSummary");
+    const resultDiv = document.getElementById("appointmentResult");
+
+    if (resultDiv) resultDiv.innerHTML = "";
+    if (summaryBar) summaryBar.style.display = "none";
+    if (doctorInfoBanner) doctorInfoBanner.style.display = "none";
 
     HealthcareState.selectedHospitalId = hospitalId;
     HealthcareState.selectedTime = null;
+    HealthcareState.selectedTimeRange = null;
     HealthcareState.selectedSlotId = null;
 
     if (slotContainer) {
-        slotContainer.innerHTML = `<div class="empty-slot-msg">Please select a Doctor and Date to view slots.</div>`;
+        slotContainer.innerHTML = `<div class="slot-empty-msg"><span>Select Doctor and Date to view 20-minute slots.</span></div>`;
     }
 
     if (!hospitalId) {
         doctorSelect.innerHTML = `<option value="">Select Hospital First</option>`;
+        currentHospitalDoctors = [];
         return;
     }
 
-    doctorSelect.innerHTML = `<option value="">Loading doctors...</option>`;
+    doctorSelect.innerHTML = `<option value="">Loading hospital doctors...</option>`;
 
     try {
-        const data = await apiRequest(`/api/hospitals/${hospitalId}/doctors`);
+        const data = await apiRequest(`/api/hospitals/${encodeURIComponent(hospitalId)}/doctors`);
         const doctors = data.doctors || [];
+        currentHospitalDoctors = doctors;
 
         if (!doctors.length) {
             doctorSelect.innerHTML = `<option value="">No doctors available at this hospital</option>`;
+            if (slotContainer) {
+                slotContainer.innerHTML = `<div class="empty-state-card">No doctors registered for this hospital. Please select another hospital.</div>`;
+            }
             return;
         }
 
-        doctorSelect.innerHTML = `<option value="">-- Select Doctor --</option>` +
-            doctors.map(d => `<option value="${d.doctor_id}">${d.name} (${d.specialization})</option>`).join("");
+        doctorSelect.innerHTML = `<option value="">-- Select Specialist Doctor --</option>` +
+            doctors.map(d => `<option value="${d.doctor_id}">${d.name} — ${d.specialization || d.department || "Specialist"}</option>`).join("");
 
+        // Preselect doctor if specified
         if (preselectedDoctorId) {
-            doctorSelect.value = preselectedDoctorId;
-            fetchDynamicSlots();
+            const match = doctors.find(d => 
+                String(d.doctor_id) === String(preselectedDoctorId) || 
+                String(d.id) === String(preselectedDoctorId) || 
+                String(d.name).toLowerCase() === String(preselectedDoctorId).toLowerCase()
+            );
+            if (match) {
+                doctorSelect.value = match.doctor_id;
+            } else if (doctors[0]) {
+                doctorSelect.value = doctors[0].doctor_id;
+            }
+        } else if (doctors.length > 0) {
+            doctorSelect.value = doctors[0].doctor_id;
         }
+
+        onBookingDoctorChange();
+
     } catch (err) {
+        console.error("Failed to load hospital doctors:", err);
         doctorSelect.innerHTML = `<option value="">Failed to load doctors</option>`;
     }
 }
 
-async function fetchDynamicSlots() {
-    const hospitalId = document.getElementById("bookingHospitalSelect").value;
-    const doctorId = document.getElementById("doctorSelect").value;
-    const date = document.getElementById("appointmentDate").value;
-    const slotContainer = document.getElementById("slotGridContainer");
+function onBookingDoctorChange() {
+    const doctorSelect = document.getElementById("doctorSelect");
+    const doctorId = doctorSelect ? doctorSelect.value : "";
+    const doctorInfoBanner = document.getElementById("bookingDoctorInfoBanner");
+    const summaryBar = document.getElementById("selectedSlotSummary");
+    const resultDiv = document.getElementById("appointmentResult");
 
+    if (resultDiv) resultDiv.innerHTML = "";
+    if (summaryBar) summaryBar.style.display = "none";
     HealthcareState.selectedTime = null;
+    HealthcareState.selectedTimeRange = null;
     HealthcareState.selectedSlotId = null;
 
-    if (!hospitalId || !doctorId || !date) {
-        slotContainer.innerHTML = `<div class="empty-slot-msg">Please select Hospital, Doctor, and Date.</div>`;
+    if (!doctorId) {
+        if (doctorInfoBanner) doctorInfoBanner.style.display = "none";
         return;
     }
 
-    slotContainer.innerHTML = `<div class="loading-state">Checking available slots...</div>`;
+    const doc = currentHospitalDoctors.find(d => String(d.doctor_id) === String(doctorId) || String(d.id) === String(doctorId));
+    if (doc && doctorInfoBanner) {
+        const initials = doc.name ? doc.name.replace(/^Dr\.\s*/i, "").split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase() : "DR";
+        doctorInfoBanner.innerHTML = `
+            <div class="doc-info-left">
+                <div class="doc-info-avatar">${initials}</div>
+                <div class="doc-info-text">
+                    <h4>${escapeHTML(doc.name)}</h4>
+                    <p>${escapeHTML(doc.specialization || "Consultant Specialist")} • ${escapeHTML(doc.department || "OPD")}</p>
+                </div>
+            </div>
+            <div class="doc-info-meta-chips">
+                ${doc.consultation_timings ? `<span class="meta-chip chip-hours">🕒 ${escapeHTML(doc.consultation_timings)}</span>` : `<span class="meta-chip chip-hours">🕒 OPD 09:00 AM – 02:00 PM</span>`}
+                ${doc.consultation_fee ? `<span class="meta-chip chip-fee">₹${doc.consultation_fee} Fee</span>` : ''}
+            </div>
+        `;
+        doctorInfoBanner.style.display = "flex";
+    }
+
+    fetchDynamicSlots();
+}
+
+async function fetchDynamicSlots() {
+    const hospitalSelect = document.getElementById("bookingHospitalSelect");
+    const doctorSelect = document.getElementById("doctorSelect");
+    const dateInput = document.getElementById("appointmentDate");
+    const slotContainer = document.getElementById("slotGridContainer");
+    const summaryBar = document.getElementById("selectedSlotSummary");
+    const resultDiv = document.getElementById("appointmentResult");
+
+    if (!hospitalSelect || !doctorSelect || !dateInput || !slotContainer) return;
+
+    const hospitalId = hospitalSelect.value;
+    const doctorId = doctorSelect.value;
+    const date = dateInput.value;
+
+    HealthcareState.selectedTime = null;
+    HealthcareState.selectedTimeRange = null;
+    HealthcareState.selectedSlotId = null;
+    if (summaryBar) summaryBar.style.display = "none";
+    if (resultDiv) resultDiv.innerHTML = "";
+
+    if (!hospitalId || !doctorId || !date) {
+        slotContainer.innerHTML = `<div class="slot-empty-msg"><span>Please select Hospital, Doctor, and Date to view slots.</span></div>`;
+        return;
+    }
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (date < todayStr) {
+        slotContainer.innerHTML = `<div class="error-state-card">Cannot book appointments for past dates. Please pick today or a future date.</div>`;
+        return;
+    }
+
+    slotContainer.innerHTML = `<div class="slot-loading-state"><div class="slot-spinner"></div><span>Checking available 20-minute slots...</span></div>`;
 
     try {
         const res = await fetch(`${API_BASE_URL}/api/appointments/availability?hospitalId=${encodeURIComponent(hospitalId)}&doctorId=${encodeURIComponent(doctorId)}&date=${encodeURIComponent(date)}`);
         const data = await res.json();
 
         if (!data.success) {
-            slotContainer.innerHTML = `<div class="empty-state-card">${data.message}</div>`;
+            slotContainer.innerHTML = `
+                <div class="empty-state-card">
+                    <p style="margin:0; font-weight:600;">📅 ${escapeHTML(data.message || "No appointments are available for this doctor on the selected date.")}</p>
+                </div>
+            `;
             return;
         }
 
-        renderSlotGrid(data.slots);
+        renderSlotGrid(data.slots || []);
+
+        if (data.message && (!data.slots || data.slots.length === 0 || data.allBooked)) {
+            const notice = document.createElement("div");
+            notice.className = "empty-state-card";
+            notice.style.marginTop = "10px";
+            notice.innerHTML = `<p style="margin:0; color:#b45309;">ℹ️ ${escapeHTML(data.message)}</p>`;
+            slotContainer.appendChild(notice);
+        }
+
     } catch (err) {
-        slotContainer.innerHTML = `<div class="error-state-card">Unable to load appointment availability.</div>`;
+        console.error("Availability fetch error:", err);
+        slotContainer.innerHTML = `<div class="error-state-card">Unable to load appointment availability. Please verify network connectivity.</div>`;
     }
 }
 
 function renderSlotGrid(slots) {
     const container = document.getElementById("slotGridContainer");
+    if (!container) return;
+
     if (!slots || !slots.length) {
-        container.innerHTML = `<div class="empty-slot-msg">No slots available for this doctor on selected date.</div>`;
+        container.innerHTML = `<div class="empty-state-card">No consultation slots available for this doctor on the selected date.</div>`;
         return;
     }
+
     container.innerHTML = `
         <div class="slot-grid">
-            ${slots.map(s => `
+            ${slots.map(s => {
+                const isAvail = (s.status === "available");
+                const isBooked = (s.status === "booked");
+                const isUnavail = (s.status === "unavailable");
+
+                let tagLabel = "Available";
+                if (isBooked) tagLabel = "Booked";
+                else if (isUnavail) tagLabel = "Past";
+
+                return `
                 <button type="button" 
                     class="time-slot-btn ${s.status}" 
-                    ${s.status !== 'available' ? 'disabled' : ''}
-                    onclick="selectTimeSlot(this, '${s.time}', ${s.slotId ? s.slotId : 'null'})">
-                    ${s.displayTime}
+                    ${!isAvail ? 'disabled' : ''}
+                    data-time="${escapeHTML(s.time)}"
+                    data-starttime="${escapeHTML(s.startTime)}"
+                    data-endtime="${escapeHTML(s.endTime)}"
+                    data-display="${escapeHTML(s.displayTime)}"
+                    onclick="selectTimeSlot(this, '${escapeJS(s.startTime)}', '${escapeJS(s.endTime)}', '${escapeJS(s.displayTime)}', ${s.slotId ? s.slotId : 'null'})">
+                    <span class="time-slot-main">${escapeHTML(s.timeLabel || s.time)}</span>
+                    <span class="time-slot-range">${escapeHTML(s.startTime)} – ${escapeHTML(s.endTime)}</span>
+                    <span class="time-slot-duration">${tagLabel} • 20m</span>
                 </button>
-            `).join("")}
+                `;
+            }).join("")}
         </div>
     `;
+
+    // Re-select if previous choice is still valid
+    if (HealthcareState.selectedTime) {
+        const matchingBtn = container.querySelector(`.time-slot-btn[data-starttime="${HealthcareState.selectedTime}"]:not([disabled])`);
+        if (matchingBtn) {
+            matchingBtn.classList.add("selected");
+        } else {
+            HealthcareState.selectedTime = null;
+            HealthcareState.selectedTimeRange = null;
+            HealthcareState.selectedSlotId = null;
+            const summary = document.getElementById("selectedSlotSummary");
+            if (summary) summary.style.display = "none";
+        }
+    }
 }
 
-function selectTimeSlot(buttonEl, time24, slotId = null) {
+function selectTimeSlot(buttonEl, startTime, endTime, displayRange, slotId = null) {
     document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
     buttonEl.classList.add("selected");
-    HealthcareState.selectedTime = time24;
+
+    HealthcareState.selectedTime = startTime;
+    HealthcareState.selectedTimeRange = displayRange;
     HealthcareState.selectedSlotId = slotId;
+
+    const doctorSelect = document.getElementById("doctorSelect");
+    const dateInput = document.getElementById("appointmentDate");
+    const docName = doctorSelect?.selectedOptions?.[0]?.textContent?.split("—")?.[0]?.trim() || "Consultant Doctor";
+    const dateVal = dateInput?.value || "Selected Date";
+
+    const summaryBar = document.getElementById("selectedSlotSummary");
+    if (summaryBar) {
+        summaryBar.innerHTML = `
+            <div class="summary-left">
+                <div class="summary-check-circle">✓</div>
+                <div class="summary-text">
+                    <h5>Selected Consultation Slot</h5>
+                    <p>${escapeHTML(docName)} • ${escapeHTML(dateVal)} • <strong>${escapeHTML(displayRange)}</strong></p>
+                </div>
+            </div>
+            <div class="summary-duration-chip">⏱️ Exactly 20 Min</div>
+        `;
+        summaryBar.style.display = "flex";
+    }
+
+    const resultDiv = document.getElementById("appointmentResult");
+    if (resultDiv) resultDiv.innerHTML = "";
 }
 
 async function confirmStrictBooking() {
-    const hospitalId = document.getElementById("bookingHospitalSelect").value;
-    const doctorId = document.getElementById("doctorSelect").value;
-    const date = document.getElementById("appointmentDate").value;
-    const patientId = document.getElementById("appointmentPatientId").value.trim();
+    const hospitalSelect = document.getElementById("bookingHospitalSelect");
+    const doctorSelect = document.getElementById("doctorSelect");
+    const dateInput = document.getElementById("appointmentDate");
+    const patientInput = document.getElementById("appointmentPatientId");
     const resultDiv = document.getElementById("appointmentResult");
+    const confirmBtn = document.getElementById("btnConfirmBooking");
+
+    const hospitalId = hospitalSelect ? hospitalSelect.value : "";
+    const doctorId = doctorSelect ? doctorSelect.value : "";
+    const date = dateInput ? dateInput.value : "";
+    const patientId = patientInput ? patientInput.value.trim() : "";
+
+    if (!hospitalId || !doctorId || !date) {
+        showBookingError("Please select Hospital, Doctor, and Appointment Date.");
+        return;
+    }
 
     if (!patientId) {
-        showError(resultDiv, "Please enter a valid Patient ID.");
-        return;
-    }
-    if (!HealthcareState.selectedTime) {
-        showError(resultDiv, "Please select an available appointment slot.");
+        showBookingError("Please enter a valid Patient ID (e.g. SC-2026-318028).");
+        if (patientInput) patientInput.focus();
         return;
     }
 
-    showLoading(resultDiv, "Confirming appointment...");
+    if (!HealthcareState.selectedTime) {
+        showBookingError("Please choose an available 20-minute appointment slot.");
+        return;
+    }
+
+    // Set loading state on button
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `
+            <span class="slot-spinner" style="width:16px; height:16px; border-width:2px;"></span>
+            <span>Securing 20-Minute Appointment...</span>
+        `;
+    }
+    if (resultDiv) resultDiv.innerHTML = "";
 
     try {
-        const data = await apiRequest("/api/appointments/book-strict", {
+        const res = await fetch(`${API_BASE_URL}/api/appointments/book-strict`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...(getAuthToken() ? { "Authorization": `Bearer ${getAuthToken()}` } : {})
+            },
             body: JSON.stringify({
                 patientId,
                 hospitalId,
                 doctorId,
                 appointmentDate: date,
-                appointmentTime: HealthcareState.selectedTime,
+                appointmentTime: HealthcareState.selectedTimeRange || HealthcareState.selectedTime,
                 slotId: HealthcareState.selectedSlotId || undefined
             })
         });
 
-        if (!data.success) {
-            showError(resultDiv, data.message);
-            fetchDynamicSlots(); // Refresh slots on failure
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+            // Safe rejection (e.g. 409 slot booked, 404 patient not found)
+            showBookingError(data.message || "Appointment booking failed. Please try another slot.");
+            // Refresh slots dynamically so user sees updated availability without full page reload
+            await fetchDynamicSlots();
             return;
         }
 
+        // Successfully confirmed appointment
         renderConfirmationCard(data.appointment);
-        fetchDynamicSlots(); // Refresh slots so booked one becomes disabled
+
+        // Refresh slots in background so the booked slot immediately reflects as 'Booked'
+        fetchDynamicSlots();
+
+        if (typeof showNotification === "function") {
+            showNotification("Appointment confirmed successfully!", "success");
+        }
+
     } catch (err) {
-        showError(resultDiv, err.message);
+        console.error("Booking error:", err);
+        showBookingError(err.message || "Failed to confirm appointment due to network error.");
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+                <span>CONFIRM APPOINTMENT</span>
+            `;
+        }
     }
+}
+
+function showBookingError(msg) {
+    const resultDiv = document.getElementById("appointmentResult");
+    if (!resultDiv) return;
+    resultDiv.innerHTML = `
+        <div class="booking-error-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" style="flex-shrink:0;">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>${escapeHTML(msg)}</span>
+        </div>
+    `;
 }
 
 function renderConfirmationCard(app) {
     const resultDiv = document.getElementById("appointmentResult");
+    if (!resultDiv || !app) return;
+
     resultDiv.innerHTML = `
         <div class="confirmation-success-card">
-            <div class="conf-icon">✓</div>
-            <h3>Appointment Confirmed</h3>
-            <div class="conf-details-grid">
-                <div><span>Hospital:</span><strong>${escapeHTML(app.hospitalName)}</strong></div>
-                <div><span>Doctor:</span><strong>${escapeHTML(app.doctorName)}</strong></div>
-                <div><span>Date:</span><strong>${escapeHTML(app.date)}</strong></div>
-                <div><span>Time:</span><strong>${escapeHTML(app.time)}</strong></div>
-                <div><span>Patient ID:</span><strong>${escapeHTML(app.patientId)}</strong></div>
-                <div><span>Appointment ID:</span><strong>${escapeHTML(app.appointmentId)}</strong></div>
+            <div class="conf-header">
+                <div class="conf-icon-circle">✓</div>
+                <div>
+                    <h3>Appointment Confirmed</h3>
+                    <p>Your 20-minute OPD consultation has been confirmed in the medical registry.</p>
+                </div>
             </div>
+
+            <div class="conf-details-grid">
+                <div class="conf-item">
+                    <span class="conf-label">Hospital</span>
+                    <strong class="conf-val">${escapeHTML(app.hospitalName || "Gorakhpur Healthcare Center")}</strong>
+                </div>
+                <div class="conf-item">
+                    <span class="conf-label">Doctor</span>
+                    <strong class="conf-val">${escapeHTML(app.doctorName || "Assigned Specialist")}</strong>
+                </div>
+                <div class="conf-item">
+                    <span class="conf-label">Date</span>
+                    <strong class="conf-val">${escapeHTML(app.date)}</strong>
+                </div>
+                <div class="conf-item">
+                    <span class="conf-label">Time</span>
+                    <strong class="conf-val" style="color:#2563eb;">${escapeHTML(app.time)}</strong>
+                </div>
+                <div class="conf-item">
+                    <span class="conf-label">Patient ID</span>
+                    <strong class="conf-val">${escapeHTML(app.patientId)}</strong>
+                </div>
+                <div class="conf-item">
+                    <span class="conf-label">Appointment ID</span>
+                    <strong class="conf-val" style="font-family:monospace; color:#0f172a;">${escapeHTML(app.appointmentId)}</strong>
+                </div>
+                ${app.tokenNumber ? `
+                <div class="conf-item">
+                    <span class="conf-label">Token Number</span>
+                    <strong class="conf-val" style="color:#059669;">${escapeHTML(app.tokenNumber)}</strong>
+                </div>
+                ` : ''}
+                <div class="conf-item">
+                    <span class="conf-label">Status</span>
+                    <strong class="conf-val" style="color:#059669;">Confirmed</strong>
+                </div>
+            </div>
+
             <div class="conf-actions">
-                <button class="primary-btn" onclick="openMyAppointments()">View Appointments</button>
-                <button class="secondary-btn" onclick="closeModal('doctorModal')">Close</button>
+                <button type="button" class="primary-btn" onclick="openMyAppointments()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    View Appointments
+                </button>
+                <button type="button" class="secondary-btn" onclick="closeModal('doctorModal')">
+                    Done
+                </button>
             </div>
         </div>
     `;
+
+    // Smooth scroll down to confirmation card
+    resultDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function selectHospital(hospitalId) {
@@ -1747,11 +2139,32 @@ async function loadTimeSlotsForBooking() {
 
 function formatSlotTime(time) {
     if (!time) return "";
-    const [h, m = "00"] = String(time).substring(0, 5).split(":");
+    const str = String(time).trim();
+    if (str.includes("–") || str.includes("-")) {
+        // If already formatted like "10:00 AM – 10:20 AM"
+        if (str.includes("AM") || str.includes("PM")) {
+            return str;
+        }
+        // If 24h range like "10:00 - 10:20"
+        const parts = str.split(/[-–]/).map(s => s.trim());
+        if (parts.length === 2) {
+            const formatSingle = (t) => {
+                const [h, m = "00"] = t.substring(0, 5).split(":");
+                let hour = Number(h);
+                if (isNaN(hour)) return t;
+                const p = hour >= 12 ? "PM" : "AM";
+                hour = hour % 12 || 12;
+                return `${String(hour).padStart(2, "0")}:${m} ${p}`;
+            };
+            return `${formatSingle(parts[0])} – ${formatSingle(parts[1])}`;
+        }
+    }
+    const [h, m = "00"] = str.substring(0, 5).split(":");
     let hour = Number(h);
+    if (isNaN(hour)) return str;
     const period = hour >= 12 ? "PM" : "AM";
     hour = hour % 12 || 12;
-    return `${hour}:${m} ${period}`;
+    return `${String(hour).padStart(2, "0")}:${m} ${period}`;
 }
 
 async function bookDoctorSlot() {
@@ -8028,6 +8441,7 @@ async function initializeApplication() {
 
     setupEscapeKey();
     setupModalClick();
+    initHeaderMenu();
     setupSearchInputs();
     setupPatientForm();
     setupPrescriptionForm();
@@ -8698,7 +9112,7 @@ Object.assign(window, {
     openStaffPatientManager, debounceStaffPatientSearch, resetStaffPatientFilters, fetchStaffPatientsList, toggleStaffPatientStatus,
 
     showHospitals, renderHospitals, selectHospital, viewHospital, searchHospitals,
-    onBookingHospitalChange, fetchDynamicSlots, confirmStrictBooking, filterAndSortHospitals,
+    onBookingHospitalChange, onBookingDoctorChange, fillLoggedInPatientId, fetchDynamicSlots, confirmStrictBooking, filterAndSortHospitals,
     applyQuickHospitalFilter, clearHospitalSearch, resetHospitalFilters, openBedsForHospital,
     openHospitalDashboardDirect, selectTimeSlot, switchHospitalDetailsTab, openDoctorFromHospital,
     setDetailsTestCategory, openCitizenTestBookingModal, openCitizenHomeSampleModal,

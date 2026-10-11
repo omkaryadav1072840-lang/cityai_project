@@ -1,0 +1,1128 @@
+/**
+ * AI Clinical Care Assistant - Stylesheet
+ * SmartCity AI Hospital Portal
+ * Aesthetic: Clean Hospital-Grade Clinical Design System
+ */
+
+:root {
+    --cca-primary: #2563eb;
+    --cca-primary-hover: #1d4ed8;
+    --cca-primary-light: #eff6ff;
+    --cca-primary-border: #bfdbfe;
+    --cca-slate-900: #0f172a;
+    --cca-slate-800: #1e293b;
+    --cca-slate-700: #334155;
+    --cca-slate-600: #475569;
+    --cca-slate-500: #64748b;
+    --cca-slate-200: #e2e8f0;
+    --cca-slate-100: #f1f5f9;
+    --cca-slate-50: #f8fafc;
+    --cca-emerald-600: #059669;
+    --cca-emerald-50: #ecfdf5;
+    --cca-amber-600: #d97706;
+    --cca-amber-50: #fffbeb;
+    --cca-rose-600: #e11d48;
+    --cca-rose-50: #fff1f2;
+    --cca-radius-xl: 16px;
+    --cca-radius-lg: 12px;
+    --cca-radius-md: 8px;
+    --cca-radius-sm: 6px;
+    --cca-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* Master Section Wrapper */
+.ai-clinical-care-section {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    border: 1px solid #bfdbfe;
+    border-left: 6px solid #2563eb;
+    border-radius: var(--cca-radius-xl);
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: var(--cca-shadow);
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+    color: var(--cca-slate-800);
+}
+
+/* Header Area */
+.cca-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--cca-slate-200);
+    margin-bottom: 20px;
+}
+
+.cca-title-group h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cca-slate-900);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cca-title-icon {
+    font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dbeafe;
+    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+}
+
+.cca-subtitle {
+    font-size: 13px;
+    color: var(--cca-slate-500);
+    margin: 6px 0 10px 0;
+    line-height: 1.4;
+}
+
+.cca-badges-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cca-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--cca-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.3px;
+}
+
+.cca-badge-active {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.cca-badge-pulse {
+    width: 7px;
+    height: 7px;
+    background: #2563eb;
+    border-radius: 50%;
+    animation: ccaPulse 1.8s infinite;
+}
+
+.cca-badge-data {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.cca-badge-rx {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+@keyframes ccaPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.cca-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cca-lang-switch {
+    display: inline-flex;
+    background: var(--cca-slate-100);
+    border-radius: var(--cca-radius-sm);
+    padding: 3px;
+    border: 1px solid var(--cca-slate-200);
+}
+
+.cca-lang-btn {
+    border: none;
+    background: transparent;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cca-slate-600);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.cca-lang-btn.active {
+    background: #ffffff;
+    color: var(--cca-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cca-btn-sm {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--cca-radius-sm);
+    cursor: pointer;
+    border: 1px solid var(--cca-slate-200);
+    background: #ffffff;
+    color: var(--cca-slate-700);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.cca-btn-sm:hover {
+    background: var(--cca-slate-50);
+    border-color: #cbd5e1;
+}
+
+.cca-btn-doctor {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.cca-btn-doctor:hover {
+    background: #dbeafe;
+}
+
+/* Two-Column Responsive Layout */
+.cca-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 992px) {
+    .cca-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   CHATBOX CONTAINER (LEFT COLUMN)
+========================================================= */
+.cca-chat-card {
+    background: #ffffff;
+    border: 1px solid var(--cca-slate-200);
+    border-radius: var(--cca-radius-lg);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 640px;
+}
+
+.cca-chat-header {
+    background: var(--cca-slate-50);
+    border-bottom: 1px solid var(--cca-slate-200);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cca-chat-assistant-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cca-assistant-avatar {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.cca-assistant-info strong {
+    font-size: 13px;
+    color: var(--cca-slate-900);
+    display: block;
+}
+
+.cca-assistant-info span {
+    font-size: 11px;
+    color: #059669;
+    font-weight: 600;
+}
+
+.cca-chat-header-actions {
+    display: flex;
+    gap: 6px;
+}
+
+/* Chat Messages Scroll Area */
+.cca-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    background: #fbfdff;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-behavior: smooth;
+}
+
+.cca-message-item {
+    display: flex;
+    flex-direction: column;
+    max-width: 88%;
+    animation: ccaFadeIn 0.25s ease-out;
+}
+
+@keyframes ccaFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.cca-message-item.user {
+    align-self: flex-end;
+}
+
+.cca-message-item.assistant {
+    align-self: flex-start;
+}
+
+.cca-message-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--cca-slate-500);
+}
+
+.cca-message-bubble {
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    position: relative;
+    word-break: break-word;
+}
+
+.cca-message-item.user .cca-message-bubble {
+    background: #2563eb;
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.cca-message-item.assistant .cca-message-bubble {
+    background: #ffffff;
+    color: var(--cca-slate-800);
+    border: 1px solid #cbd5e1;
+    border-bottom-left-radius: 2px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.cca-bubble-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    letter-spacing: 0.3px;
+}
+
+.cca-bubble-tag.guidance {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.cca-bubble-tag.prescription {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.cca-bubble-tag.emergency {
+    background: #fee2e2;
+    color: #991b1b;
+    animation: ccaBlink 1.5s infinite;
+}
+
+@keyframes ccaBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.cca-message-time {
+    font-size: 10px;
+    color: var(--cca-slate-500);
+    margin-top: 4px;
+}
+
+.cca-message-item.user .cca-message-time {
+    text-align: right;
+}
+
+/* Typing Indicator */
+.cca-typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    align-self: flex-start;
+}
+
+.cca-typing-dot {
+    width: 6px;
+    height: 6px;
+    background: #94a3b8;
+    border-radius: 50%;
+    animation: ccaBounce 1.4s infinite ease-in-out both;
+}
+
+.cca-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.cca-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes ccaBounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* Error & Retry State */
+.cca-error-bar {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 8px 18px;
+}
+
+/* Quick Prompts Bar */
+.cca-quick-prompts-bar {
+    padding: 10px 18px;
+    background: #ffffff;
+    border-top: 1px solid var(--cca-slate-100);
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+}
+
+.cca-prompt-chip {
+    background: var(--cca-slate-50);
+    border: 1px solid var(--cca-slate-200);
+    color: var(--cca-slate-700);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.cca-prompt-chip:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+/* 10 Smart Quick Actions Bar */
+.cca-quick-actions-grid {
+    padding: 10px 18px;
+    background: #f8fafc;
+    border-top: 1px solid var(--cca-slate-200);
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.cca-action-pill {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--cca-slate-800);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.cca-action-pill:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.cca-action-pill.emergency {
+    border-color: #fca5a5;
+    background: #fff1f2;
+    color: #b91c1c;
+}
+
+/* Chat Input Bar */
+.cca-input-container {
+    padding: 12px 18px;
+    background: #ffffff;
+    border-top: 1px solid var(--cca-slate-200);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.cca-voice-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--cca-radius-md);
+    border: 1px solid var(--cca-slate-200);
+    background: var(--cca-slate-50);
+    color: var(--cca-slate-700);
+    font-size: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.cca-voice-btn:hover {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+
+.cca-voice-btn.listening {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #dc2626;
+    animation: ccaVoicePulse 1.2s infinite;
+}
+
+@keyframes ccaVoicePulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.cca-chat-input {
+    flex: 1;
+    height: 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--cca-radius-md);
+    padding: 0 14px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.cca-chat-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.cca-send-btn {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: var(--cca-radius-md);
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.cca-send-btn:hover {
+    background: #1d4ed8;
+}
+
+.cca-disclaimer-footer {
+    padding: 8px 18px;
+    background: #f8fafc;
+    border-top: 1px solid var(--cca-slate-100);
+    font-size: 11px;
+    color: var(--cca-slate-500);
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* =========================================================
+   RIGHT COLUMN: PATIENT CONTEXT & MEDICATION SCHEDULE
+========================================================= */
+.cca-side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Patient Context Card */
+.cca-patient-context-card {
+    background: #ffffff;
+    border: 1px solid var(--cca-slate-200);
+    border-radius: var(--cca-radius-lg);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.cca-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--cca-slate-100);
+    padding-bottom: 8px;
+}
+
+.cca-card-head h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--cca-slate-900);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cca-patient-badge {
+    font-size: 10px;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.cca-patient-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.cca-p-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.cca-p-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cca-slate-500);
+    text-transform: uppercase;
+}
+
+.cca-p-val {
+    font-weight: 700;
+    color: var(--cca-slate-800);
+    margin-top: 1px;
+}
+
+.cca-allergy-alert {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #9f1239;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.cca-patient-links-row {
+    display: flex;
+    gap: 6px;
+    font-size: 11px;
+}
+
+.cca-patient-links-row a,
+.cca-patient-links-row button {
+    flex: 1;
+    text-align: center;
+    padding: 5px;
+    border: 1px solid var(--cca-slate-200);
+    background: var(--cca-slate-50);
+    color: #2563eb;
+    border-radius: 4px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+/* Today's Medication Schedule Card */
+.cca-schedule-card {
+    background: #ffffff;
+    border: 1px solid var(--cca-slate-200);
+    border-radius: var(--cca-radius-lg);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.cca-adherence-meter {
+    background: var(--cca-slate-100);
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+    margin: 8px 0 12px 0;
+}
+
+.cca-adherence-fill {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    height: 100%;
+    transition: width 0.4s ease;
+}
+
+.cca-slots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.cca-slot-box {
+    background: var(--cca-slate-50);
+    border: 1px solid var(--cca-slate-200);
+    border-radius: var(--cca-radius-md);
+    padding: 10px 12px;
+}
+
+.cca-slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.cca-slot-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--cca-slate-700);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cca-med-item {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.cca-med-meta strong {
+    font-size: 12px;
+    color: var(--cca-slate-900);
+    display: block;
+}
+
+.cca-med-meta span {
+    font-size: 10px;
+    color: var(--cca-slate-500);
+    display: block;
+}
+
+.cca-status-pill {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.cca-status-pill.taken {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.cca-status-pill.due-now {
+    background: #fef3c7;
+    color: #92400e;
+    animation: ccaBlink 2s infinite;
+}
+
+.cca-status-pill.upcoming {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.cca-status-pill.missed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.cca-take-btn {
+    border: none;
+    background: #10b981;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.cca-take-btn:hover {
+    background: #059669;
+}
+
+/* Modals for Doctor Dossier & Hospital Admin Stats */
+.cca-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.cca-modal-box {
+    background: #ffffff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 780px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #cbd5e1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cca-modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--cca-slate-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cca-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--cca-slate-900);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cca-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--cca-slate-500);
+}
+
+.cca-modal-body {
+    padding: 20px;
+}
+
+.cca-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.cca-table th {
+    background: var(--cca-slate-50);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--cca-slate-600);
+    border-bottom: 1px solid var(--cca-slate-200);
+}
+
+.cca-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--cca-slate-100);
+    color: var(--cca-slate-800);
+}
+
+/* Explainability Accordion ("Why this answer?") */
+.cca-why-accordion {
+    margin-top: 10px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+}
+
+.cca-why-accordion summary {
+    font-weight: 700;
+    color: #1e3a8a;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+}
+
+.cca-why-accordion summary:hover {
+    color: #2563eb;
+}
+
+.cca-why-body {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #cbd5e1;
+    color: #334155;
+    line-height: 1.4;
+}
+
+/* Pending Action Buttons (Consent Gate & Confirmations) */
+.cca-pending-actions-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.cca-confirm-btn {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cca-confirm-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.cca-cancel-btn {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cca-cancel-btn:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.cca-saved-item {
+    transition: background-color 0.2s;
+}
+
+.cca-saved-item:hover {
+    background-color: #f1f5f9;
+}
+
+/* =========================================================
+   INTEGRATED IN-CHAT MEDICINE & PRECAUTION CARD
+========================================================= */
+.cca-medicine-card {
+    margin-top: 12px;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.cca-med-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e40af;
+    background: #dbeafe;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.cca-med-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cca-med-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #334155;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 8px;
+}
+
+.cca-med-details span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cca-med-precaution {
+    font-size: 11px;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.cca-med-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.cca-btn-reminder {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.cca-btn-reminder:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.cca-pharmacy-pill {
+    font-size: 11px;
+    color: #059669;
+    font-weight: 700;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+/* AI Feedback Rating Bar */
+.cca-feedback-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #e2e8f0;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.cca-thumb-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cca-thumb-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #94a3b8;
+}
+
+.cca-thumb-btn.active-positive {
+    background: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #166534 !important;
+}
+
+.cca-thumb-btn.active-negative {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #991b1b !important;
+}

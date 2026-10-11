@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SmartCity AI</string>
+    <string name="title_activity_main">SmartCity AI</string>
+    <string name="package_name">in.gov.gorakhpur.smartcity</string>
+    <string name="custom_url_scheme">in.gov.gorakhpur.smartcity</string>
+</resources>

@@ -3797,4 +3797,109 @@ main {
     border-radius: 18px;
     padding: 28px;
 }
+
+/* =========================================================
+   MOBILE APP & RESPONSIVE ADAPTATION (ANDROID APK & MOBILE)
+========================================================= */
+
+body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 900px) {
+    .sc-top-announcement {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 8px 16px;
+        font-size: 11px;
+    }
+
+    .navbar {
+        height: auto;
+        min-height: 56px;
+        padding: 10px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .nav-links {
+        order: 3;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        gap: 12px;
+        padding: 6px 0;
+        scrollbar-width: none;
+    }
+
+    .nav-links::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-links a {
+        display: inline-block;
+        background: #f1f5f9;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .sc-hero-headline {
+        font-size: 32px !important;
+        line-height: 1.25 !important;
+    }
+
+    .sc-hero-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .sc-hero-actions a,
+    .sc-hero-actions button {
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+    .sc-hero-kpi-bar {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .features {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .logo {
+        font-size: 20px;
+    }
+
+    .sc-hero-headline {
+        font-size: 26px !important;
+    }
+
+    .sc-hero-kpi-bar {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .modal-content,
+    .sc-modal-content {
+        width: 95% !important;
+        max-width: 95% !important;
+        margin: 10px auto !important;
+        padding: 16px !important;
+    }
+}
+
 

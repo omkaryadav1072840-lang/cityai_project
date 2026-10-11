@@ -195,6 +195,8 @@ function tickSimulation() {
             isCritical: !!amb.isCritical,
             destinationHospital: amb.destinationHospital || amb.hospital_name || "BRD Medical College",
             routeWaypoints: route,
+            data_source: "SIMULATED",
+            provenance: "SIMULATED",
             updated_at: new Date().toISOString()
         };
 

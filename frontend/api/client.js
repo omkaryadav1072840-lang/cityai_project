@@ -6,7 +6,12 @@
  */
 
 (function () {
-    const API_BASE = ""; // Relative base for local proxy / domain gateway
+    function getApiBase() {
+        if (typeof window !== "undefined" && window.API_BASE_URL !== undefined) {
+            return window.API_BASE_URL;
+        }
+        return "";
+    }
     const DEFAULT_TIMEOUT_MS = 15000;
     const MAX_RETRIES = 2;
 
@@ -54,7 +59,8 @@
             timeoutMs = DEFAULT_TIMEOUT_MS,
             retries = 0
         } = {}) {
-            const url = endpoint.startsWith("http") ? endpoint : `${API_BASE}${endpoint}`;
+            const base = getApiBase();
+            const url = endpoint.startsWith("http") ? endpoint : `${base}${endpoint}`;
             const reqHeaders = {
                 "Accept": "application/json",
                 ...headers

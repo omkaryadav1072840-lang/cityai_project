@@ -612,9 +612,12 @@ function broadcastLotState(idOrCode) {
 // BOOK A PARKING SLOT (Decrements available_slots atomically)
 // =========================================================
 
-router.post(["/api/parking/book", "/api/parking/:id/book"], (req, res) => {
+router.post(["/api/parking/book", "/api/parking/:id/book"], optionalToken, (req, res) => {
     const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || "LOT-001";
-    const { userId, vehicleNumber, durationHours } = req.body;
+    const { vehicleNumber, durationHours } = req.body;
+    const resolvedUserId = (req.user && (req.user.id || req.user.userId))
+        ? (req.user.id || req.user.userId)
+        : (req.body.userId || "guest");
 
     if (!vehicleNumber || !isValidVehicleNumber(vehicleNumber)) {
         return res.status(400).json({ success: false, message: "Please provide a valid vehicle registration number (e.g. UP-53-AB-1234)." });
@@ -681,7 +684,7 @@ router.post(["/api/parking/book", "/api/parking/:id/book"], (req, res) => {
                     `INSERT INTO parking_bookings
                      (booking_id, lot_id, user_id, vehicle_number, start_time, duration_hours, total_amount, status)
                      VALUES (?, ?, ?, ?, NOW(), ?, ?, 'Active')`,
-                    [bookingId, lot.parking_code, userId || "guest", vehicleNumber, hours, totalAmount],
+                    [bookingId, lot.parking_code, resolvedUserId, vehicleNumber, hours, totalAmount],
                     (bookErr) => {
                         if (bookErr) console.error("Booking record error:", bookErr);
                     }

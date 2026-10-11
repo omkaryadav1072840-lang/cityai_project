@@ -610,7 +610,7 @@ function verifyHospitalStaffAccess(req, hospitalId, allowedRoles = null) {
     const effectiveRole = hospRole || role;
 
     // 1. System/Super Admin has access to all hospitals
-    if (role === "admin" || effectiveRole === "admin") {
+    if (role === "admin" || effectiveRole === "admin" || role === "super_admin" || effectiveRole === "super_admin" || role === "superadmin") {
         return true;
     }
 

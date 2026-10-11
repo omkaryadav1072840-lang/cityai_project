@@ -40,6 +40,7 @@ const adminRoutes = require("./routes/admin.routes");
 const searchRoutes = require("./routes/search.routes");
 const mapRoutes = require("./routes/map.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
+const clinicalCareRoutes = require("./routes/clinical_care_assistant.routes");
 const trafficEngine = require("./services/traffic_engine");
 const slaEngine = require("./services/sla_engine");
 
@@ -238,7 +239,7 @@ app.use("/api/", globalApiRateLimiter);
 
 // Specific rate limiters
 app.use(["/api/login", "/api/register", "/api/staff-login", "/api/auth/demo-login"], authRateLimiter);
-app.use(["/api/ai/chat", "/api/ai/assistant"], aiRateLimiter);
+app.use(["/api/ai/chat", "/api/ai/assistant", "/api/ai/clinical-care/chat"], aiRateLimiter);
 app.use("/api/emergency/sos", sosRateLimiter);
 
 // =========================================================
@@ -291,6 +292,7 @@ app.use(adminRoutes);
 app.use(searchRoutes);
 app.use(mapRoutes);
 app.use(analyticsRoutes);
+app.use(clinicalCareRoutes);
 
 
 // =========================================================

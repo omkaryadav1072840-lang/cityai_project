@@ -72,7 +72,7 @@
         const user = getCurrentUser();
         if (!user) return false;
         const role = (user.role || user.type || "").toLowerCase();
-        if (role === "admin" || role === "superadmin") return true;
+        if (role === "admin" || role === "superadmin" || role === "super_admin") return true;
         if (role === "staff") {
             const dept = (user.department || "").toLowerCase();
             const editable = user.editable || [];

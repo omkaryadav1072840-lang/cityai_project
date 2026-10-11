@@ -137,17 +137,34 @@ function requireRole(allowedRoles = []) {
             });
         }
 
-        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+        const userRole = (req.user.role || "").toLowerCase();
+        const userType = (req.user.type || "").toLowerCase();
         const accountType = (req.user.accountType || "").toLowerCase();
 
-        // Admins and Super Admins always have access to everything
-        if (userRole === "admin" || userRole === "super_admin" || accountType === "super_admin") {
+        // Admins, Super Admins, and Hospital Admins always have administrative access
+        if (
+            userRole === "admin" ||
+            userRole === "super_admin" ||
+            userRole === "superadmin" ||
+            userRole === "hospital_admin" ||
+            userType === "admin" ||
+            userType === "super_admin" ||
+            userType === "hospital_admin" ||
+            accountType === "super_admin" ||
+            accountType === "hospital_admin"
+        ) {
             return next();
         }
 
         const normalizedAllowed = allowedRoles.map(r => r.toLowerCase());
 
-        if (normalizedAllowed.includes(userRole) || normalizedAllowed.includes(accountType)) {
+        if (
+            normalizedAllowed.includes(userRole) ||
+            normalizedAllowed.includes(userType) ||
+            normalizedAllowed.includes(accountType) ||
+            (normalizedAllowed.includes("staff") && (userType === "staff" || Boolean(req.user.hospitalRole) || Boolean(req.user.hospitalId))) ||
+            (normalizedAllowed.includes("admin") && (userRole.includes("admin") || accountType.includes("admin")))
+        ) {
             return next();
         }
 
@@ -197,8 +214,14 @@ function requireDoctorOrStaff(req, res, next) {
         });
     }
 
-    const role = (req.user.role || req.user.type || "").toLowerCase();
-    if (["admin", "staff", "doctor"].includes(role)) {
+    const role = (req.user.role || "").toLowerCase();
+    const type = (req.user.type || "").toLowerCase();
+    const allowed = [
+        "admin", "super_admin", "staff", "doctor",
+        "hospital_admin", "receptionist", "nurse", "lab_technician", "radiologist", "pharmacy", "billing"
+    ];
+
+    if (allowed.includes(role) || allowed.includes(type) || Boolean(req.user.hospitalId) || Boolean(req.user.hospitalRole)) {
         return next();
     }
 

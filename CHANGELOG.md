@@ -2,6 +2,24 @@
 
 All notable changes, bug fixes, refactorings, and architectural additions to the Gorakhpur SmartCity AI project are documented in this file chronologically.
 
+## [2.5.0] - 2026-10-11
+
+### Security & Concurrency Hardening
+- **Doctor Appointment Concurrency**: Handled MySQL `ER_DUP_ENTRY` (errno 1062) in `backend/routes/appointment.routes.js` to catch database-level unique constraint collisions and cleanly return `HTTP 409 Conflict` with an explanatory message, preventing unexpected server errors.
+- **Parking IDOR Elimination**: Added `optionalToken` to `POST /api/parking/book` in `backend/routes/parking.routes.js`, binding `user_id` strictly to `req.user.id` to prevent unauthenticated users from spoofing arbitrary citizen IDs.
+- **Telemetry Provenance Transparency**: Explicitly tagged all simulated telemetry feeds in `backend/services/ambulance_simulator.js` and `backend/services/traffic_engine.js` with `provenance: "SIMULATED"` and `data_source: "SIMULATED"` to maintain data integrity.
+- **Command Center Public Fallback**: Updated `frontend/script.js` so `#scCommandCenterModal` gracefully serves verified public city metrics from `GET /api/city-status` when accessed by non-administrative users.
+
+### AI & Clinical Decision Support
+- **7-Part Multi-Disease Clinical Reasoning**: Integrated comprehensive 7-part clinical guidance across 7 diverse medical queries (Emesis/Gastric, Typhoid, Diabetes, Dengue, Cephalea/Migraine, Hypertension, Renal Calculi) referencing verified Gorakhpur healthcare institutions (AIIMS Gorakhpur, BRD Medical College, Sadar Hospital).
+- **Medication Adherence Engine**: Implemented daily patient prescription schedule queries and pill intake compliance logging with patient ownership validation.
+
+### Documentation & Verification
+- **Master Project Report**: Added `docs/SMARTCITY_MASTER_PROJECT_REPORT.md` containing academic & enterprise dissertation, architectural specifications, and mathematical formulations.
+- **Complete Functional Summary**: Added `docs/PROJECT_COMPLETE_FUNCTIONAL_SUMMARY.md` documenting all 14 modules, APIs, database tables, AI tools, and workflows.
+- **Viva Voce & Presentation Package**: Added `docs/PROJECT_VIVA_AND_PRESENTATION_PACKAGE.md` with Top 15 Viva Q&A and 12-slide presentation script.
+- **Automated Test Coverage**: Scaled master test runner to 19 test suites (`scripts/run_all_tests.js`) and 10 Python FastAPI test suites (`ai_service/tests`), achieving a 100% pass rate.
+
 ---
 
 ## [2.1.0] - 2026-09-29

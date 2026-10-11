@@ -15,7 +15,7 @@ The platform combines:
 1. **High-Concurrency Node.js / Express 5 Application Gateway** (Port `5000`)
 2. **Grounded AI Orchestration Engine** with 17 allowlisted municipal database tools
 3. **High-Performance Python FastAPI Microservices Layer** (Port `8000`)
-4. **Relational MySQL 8.0 State Store** with 101 active tables and dedicated **AI Prediction & Audit Ledgers**
+4. **Relational MySQL 8.0 State Store** with 117 active tables and dedicated **AI Prediction & Audit Ledgers**
 5. **Universal Floating AI Assistant** accessible in English and Hindi across every interface
 6. **Real-Time Telemetry Daemons** (Webster IRC:93 traffic signal cycles, 6-ambulance live GPS tracking with 600m Green Wave preemption, and municipal SLA grievance escalation)
 
@@ -278,6 +278,18 @@ To demonstrate the platform's key operational capabilities:
 
 ## 11. Important Documentation Links
 
+### Master Deliverables & Reports (October 2026)
+- **Complete Functional Summary (14 Modules)**: [docs/PROJECT_COMPLETE_FUNCTIONAL_SUMMARY.md](file:///d:/cityai_project%20-%20Copy/docs/PROJECT_COMPLETE_FUNCTIONAL_SUMMARY.md)
+- **Master Project Report & Dissertation**: [docs/SMARTCITY_MASTER_PROJECT_REPORT.md](file:///d:/cityai_project%20-%20Copy/docs/SMARTCITY_MASTER_PROJECT_REPORT.md)
+- **AI & ML API Reference (FastAPI + Node.js)**: [AI_API.md](file:///d:/cityai_project%20-%20Copy/AI_API.md)
+- **Master Function Inventory (1,000+ Functions)**: [docs/FUNCTION_INVENTORY.md](file:///d:/cityai_project%20-%20Copy/docs/FUNCTION_INVENTORY.md)
+- **API Inventory & Route Directory (593 Routes)**: [docs/API_INVENTORY.md](file:///d:/cityai_project%20-%20Copy/docs/API_INVENTORY.md)
+- **Security & RBAC Audit**: [docs/SECURITY_AUDIT.md](file:///d:/cityai_project%20-%20Copy/docs/SECURITY_AUDIT.md)
+- **Viva Voce & Presentation Package**: [docs/PROJECT_VIVA_AND_PRESENTATION_PACKAGE.md](file:///d:/cityai_project%20-%20Copy/docs/PROJECT_VIVA_AND_PRESENTATION_PACKAGE.md)
+- **Master Test Report & Benchmarks**: [docs/TEST_REPORT.md](file:///d:/cityai_project%20-%20Copy/docs/TEST_REPORT.md)
+- **Implementation Audit & Feature Matrix**: [docs/IMPLEMENTATION_AUDIT.md](file:///d:/cityai_project%20-%20Copy/docs/IMPLEMENTATION_AUDIT.md)
+
+### Technical Guides & Architecture
 - **Engineering Guidelines**: [PROJECT_GUIDELINES.md](file:///d:/cityai_project%20-%20Copy/PROJECT_GUIDELINES.md)
 - **Current Project Status**: [PROJECT_STATUS.md](file:///d:/cityai_project%20-%20Copy/PROJECT_STATUS.md)
 - **Comprehensive Project Map**: [PROJECT_MAP.md](file:///d:/cityai_project%20-%20Copy/PROJECT_MAP.md)

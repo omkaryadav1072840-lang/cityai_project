@@ -14,7 +14,13 @@
     "docker:dev": "docker compose up",
     "docker:down": "docker compose down",
     "docker:test": "docker compose exec backend npm test",
-    "init-db": "node backend/database/init_db.js"
+    "init-db": "node backend/database/init_db.js",
+    "mobile:sync": "cap sync android",
+    "mobile:copy": "cap copy android",
+    "mobile:open": "cap open android",
+    "mobile:build": "cap sync android",
+    "build:apk": "node -e \"require('child_process').execSync('npx cap sync android', {stdio: 'inherit'})\"",
+    "open:android": "cap open android"
   },
   "keywords": [
     "smartcity",
@@ -26,5 +32,15 @@
     "express"
   ],
   "author": "SmartCity AI Team",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  }
 }

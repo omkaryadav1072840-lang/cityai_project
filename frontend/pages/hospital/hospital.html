@@ -25,6 +25,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <link rel="stylesheet" href="hospital.css">
+<link rel="stylesheet" href="clinical_care_assistant.css">
 <link rel="stylesheet" href="../../components/ui_components.css">
 
 
@@ -73,44 +74,121 @@
         </div>
 
 
-        <a
-            href="hospital_dashboard.html"
-            class="back-home"
-            style="background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
-        >
-            🏥 Hospital Staff ERP
-        </a>
+        <!-- Patient ID Pill Badge -->
+        <div class="header-patient-chip" id="headerPatientBadge" title="Active Patient Identity">
+            <span class="patient-chip-icon">🪪</span>
+            <span class="patient-chip-label">Patient ID:</span>
+            <strong id="headerPatientId" class="current-patient-id">P-2026-662582</strong>
+        </div>
 
-        <a
-            href="hospital_dashboard.html?role=hospital_admin"
-            class="back-home"
-            style="background: #7c3aed; border: 1px solid #a78bfa; color: #ffffff; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
-        >
-            👑 Hospital Admin
-        </a>
+        <!-- Notification Bell Dropdown Wrapper -->
+        <div class="header-notification-wrapper" id="headerNotificationWrapper">
+            <button 
+                class="header-action-btn notification-btn" 
+                id="headerNotificationBtn" 
+                type="button" 
+                title="Notifications" 
+                aria-label="View notifications"
+                aria-haspopup="true"
+                aria-expanded="false"
+            >
+                <span class="btn-icon">🔔</span>
+                <span class="notification-badge-dot" id="headerNotificationDot"></span>
+            </button>
+            <div class="notification-dropdown" id="headerNotificationDropdown" role="region" aria-label="Notifications panel">
+                <div class="notification-dropdown-header">
+                    <span class="notif-dropdown-title">System & Hospital Notifications</span>
+                    <span class="notif-badge-live">LIVE</span>
+                </div>
+                <div class="notification-dropdown-list">
+                    <div class="notification-dropdown-item">
+                        <span class="notif-item-icon">🏥</span>
+                        <div class="notif-item-body">
+                            <strong class="notif-item-title">OPD 20-Min Slots Active</strong>
+                            <p class="notif-item-desc">Dynamic scheduling live for AIIMS, BRD & all city hospitals</p>
+                        </div>
+                    </div>
+                    <div class="notification-dropdown-item">
+                        <span class="notif-item-icon">🚑</span>
+                        <div class="notif-item-body">
+                            <strong class="notif-item-title">Emergency Ambulance Network</strong>
+                            <p class="notif-item-desc">Live GPS telemetry tracking connected across Gorakhpur</p>
+                        </div>
+                    </div>
+                    <div class="notification-dropdown-item">
+                        <span class="notif-item-icon">💊</span>
+                        <div class="notif-item-body">
+                            <strong class="notif-item-title">Digital Pharmacy & Prescription</strong>
+                            <p class="notif-item-desc">E-Prescription delivery & inventory operational</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <a
-            href="superadmin_hospital.html"
-            class="back-home"
-            style="background: #0f172a; border: 1px solid #38bdf8; color: #38bdf8; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
-        >
-            🛡️ Super Admin
-        </a>
+        <!-- Professional 3-Dot Overflow Menu -->
+        <div class="overflow-menu-wrapper" id="headerOverflowMenuWrapper">
+            <button 
+                class="overflow-menu-btn" 
+                id="headerMenuToggleBtn" 
+                type="button" 
+                aria-label="Navigation Menu" 
+                aria-haspopup="true" 
+                aria-expanded="false"
+                title="Portals & Dashboard Navigation"
+            >
+                <span class="three-dots-icon">⋮</span>
+            </button>
 
-        <a
-            href="doctor_dashboard.html"
-            class="back-home"
-            style="background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; font-weight: 700; margin-right: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;"
-        >
-            👨‍⚕️ Doctor Portal & OPD
-        </a>
+            <div class="overflow-menu-dropdown" id="headerMenuDropdown" role="menu" aria-orientation="vertical">
+                <div class="overflow-menu-header">
+                    <span class="menu-header-title">Healthcare Portals</span>
+                    <span class="menu-header-tag">Navigation</span>
+                </div>
 
-        <a
-            href="../../index.html"
-            class="back-home"
-        >
-            ← Main Dashboard
-        </a>
+                <a href="hospital_dashboard.html" class="overflow-menu-item" role="menuitem">
+                    <span class="menu-item-icon">🏥</span>
+                    <div class="menu-item-content">
+                        <span class="menu-item-title">Hospital Staff ERP</span>
+                        <span class="menu-item-desc">Ward, OPD & Staff Operations</span>
+                    </div>
+                </a>
+
+                <a href="hospital_dashboard.html?role=hospital_admin" class="overflow-menu-item" role="menuitem">
+                    <span class="menu-item-icon">👑</span>
+                    <div class="menu-item-content">
+                        <span class="menu-item-title">Hospital Admin</span>
+                        <span class="menu-item-desc">Bed Inventory & Operations</span>
+                    </div>
+                </a>
+
+                <a href="superadmin_hospital.html" class="overflow-menu-item" role="menuitem">
+                    <span class="menu-item-icon">🛡️</span>
+                    <div class="menu-item-content">
+                        <span class="menu-item-title">Super Admin</span>
+                        <span class="menu-item-desc">City-wide Hospital Governance</span>
+                    </div>
+                </a>
+
+                <a href="doctor_dashboard.html" class="overflow-menu-item" role="menuitem">
+                    <span class="menu-item-icon">👨‍⚕️</span>
+                    <div class="menu-item-content">
+                        <span class="menu-item-title">Doctor Portal & OPD</span>
+                        <span class="menu-item-desc">Live Queue & Clinical Console</span>
+                    </div>
+                </a>
+
+                <div class="overflow-menu-divider"></div>
+
+                <a href="../../index.html" class="overflow-menu-item overflow-menu-back" role="menuitem">
+                    <span class="menu-item-icon">←</span>
+                    <div class="menu-item-content">
+                        <span class="menu-item-title">Main Dashboard</span>
+                        <span class="menu-item-desc">Return to Smart City Portal</span>
+                    </div>
+                </a>
+            </div>
+        </div>
 
     </div>
 
@@ -345,112 +423,200 @@
 
 
 <!-- =====================================================
-     AI CLINICAL BED CAPACITY & SURGE INTELLIGENCE
+     AI CLINICAL CARE ASSISTANT
 ====================================================== -->
 <main class="hospital-container">
 
-    <section class="ai-healthcare-panel" style="background: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%); border: 1px solid #bfdbfe; border-left: 5px solid #2563eb; border-radius: 14px; padding: 24px; margin-bottom: 30px; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.06);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <h2 style="margin: 0; font-size: 20px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
-                        <span>🏥</span> AI Clinical Bed Capacity & Surge Intelligence
-                    </h2>
-                    <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px;">FASTAPI ML ACTIVE</span>
-                    <span id="ai-db-sync-badge" style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                        <span style="width: 7px; height: 7px; background: #16a34a; border-radius: 50%; display: inline-block;"></span> REAL-TIME MYSQL SYNC
+    <section class="ai-clinical-care-section" id="aiClinicalCareSection">
+        <!-- Section Header -->
+        <div class="cca-header">
+            <div class="cca-title-group">
+                <h2>
+                    <span class="cca-title-icon">🏥</span>
+                    <span>AI Clinical Care Assistant</span>
+                </h2>
+                <p class="cca-subtitle">
+                    Prescription guidance, symptom support, medication reminders &amp; preventive care — grounded in verified hospital data.
+                </p>
+                <div class="cca-badges-row">
+                    <span class="cca-badge cca-badge-active">
+                        <span class="cca-badge-pulse"></span>
+                        AI ASSISTANT ACTIVE
+                    </span>
+                    <span class="cca-badge cca-badge-data">
+                        <span>🟢</span>
+                        LIVE HOSPITAL DATA
+                    </span>
+                    <span class="cca-badge cca-badge-rx">
+                        <span>📋</span>
+                        DOCTOR-VERIFIED PRESCRIPTIONS
                     </span>
                 </div>
-                <p style="font-size: 13px; color: #64748b; margin: 6px 0 0;">
-                    Real-time bed occupancy & surge forecast (<code>hospital-capacity-v2.0</code>) • Data grounded directly in Gorakhpur Hospital Registry • Automated triage decision support
-                </p>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="button" class="secondary-btn" onclick="loadAIHealthcareAuditTable()" style="font-size: 12px; padding: 8px 14px; cursor: pointer;">
-                    🔄 Refresh Audit Stream
+
+            <!-- Top Header Controls & Language Switcher -->
+            <div class="cca-controls-row">
+                <div class="cca-lang-switch">
+                    <button type="button" id="ccaLangEn" class="cca-lang-btn active" onclick="AIClinicalCare.setLanguage('en')">English</button>
+                    <button type="button" id="ccaLangHi" class="cca-lang-btn" onclick="AIClinicalCare.setLanguage('hi')">हिंदी</button>
+                </div>
+                <button type="button" class="cca-btn-sm" onclick="AIClinicalCare.clearChat()" title="Reset Conversation">
+                    <span>🔄</span> Clear Conversation
+                </button>
+                <button type="button" class="cca-btn-sm" onclick="AIClinicalCare.openSavedMemoriesModal()" title="View and manage saved health notes">
+                    <span>📝</span> Saved for Me
+                </button>
+                <button type="button" class="cca-btn-sm" onclick="AIClinicalCare.openHealthSummaryModal()" title="My Health Summary">
+                    <span>📋</span> My Health Summary
+                </button>
+                <button type="button" class="cca-btn-sm" onclick="AIClinicalCare.openAdminStatsModal()" title="Aggregated Statistics">
+                    <span>📊</span> Hospital Stats
                 </button>
             </div>
         </div>
 
-        <!-- Predictive Capacity Parameters (Read-only Realtime Database Telemetry) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 14px;">
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span>HOSPITAL FACILITY:</span>
-                    <span style="font-size: 10px; color: #2563eb; font-weight: 700;">📡 SELECT TO SYNC</span>
-                </label>
-                <select id="ai-hosp-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600;" onchange="onAIHospitalChange(this.value)">
-                    <option value="HOSP-002" selected>BRD Medical College (900 Beds)</option>
-                    <option value="HOSP-001">AIIMS Gorakhpur (750 Beds)</option>
-                    <option value="HOSP-003">Gorakhpur District Hospital (Sadar) (300 Beds)</option>
-                    <option value="HOSP-004">Fatima Hospital (350 Beds)</option>
-                    <option value="HOSP-GKP-005">District Women Hospital (200 Beds)</option>
-                    <option value="HOSP-GKP-003">Park Hospital (500 Beds)</option>
-                    <option value="HOSP-GKP-010">Guru Shri Gorakshnath Hospital (350 Beds)</option>
-                    <option value="HOSP-GKP-012">Heritage Hospital (180 Beds)</option>
-                </select>
-            </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span>TOTAL GENERAL BEDS:</span>
-                    <span style="font-size: 10px; color: #64748b; font-weight: 600;">🔒 Live DB</span>
-                </label>
-                <input type="number" id="ai-hosp-total" value="900" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: not-allowed;" title="Synchronized from MySQL hospital records">
-            </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span>BOOKED / OCCUPIED BEDS:</span>
-                    <span style="font-size: 10px; color: #dc2626; font-weight: 600;">🔒 Live DB</span>
-                </label>
-                <input type="number" id="ai-hosp-occupied" value="672" readonly style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; color: #dc2626; cursor: not-allowed;" title="Real-time occupied beds from admissions database">
-            </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <span>ICU (TOTAL / BOOKED):</span>
-                    <span style="font-size: 10px; color: #2563eb; font-weight: 600;">🔒 Live DB</span>
-                </label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="number" id="ai-hosp-icu" value="150" readonly style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; cursor: not-allowed;" title="Total ICU registered">
-                    <input type="number" id="ai-hosp-icuo" value="128" readonly style="width: 50%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 13px; font-weight: 700; color: #dc2626; cursor: not-allowed;" title="Live occupied ICU beds">
+        <!-- Main Two-Column Grid: Left Chatbox | Right Patient Context & Schedule -->
+        <div class="cca-main-grid">
+            <!-- Left Area: Main AI Clinical Chat Interface -->
+            <div class="cca-chat-card">
+                <div class="cca-chat-header">
+                    <div class="cca-chat-assistant-meta">
+                        <div class="cca-assistant-avatar">🤖</div>
+                        <div class="cca-assistant-info">
+                            <strong>AI Clinical Care Assistant</strong>
+                            <span>● Online &amp; Grounded in MySQL EHR</span>
+                        </div>
+                    </div>
+                    <div class="cca-chat-header-actions">
+                        <button type="button" class="cca-btn-sm" onclick="AIClinicalCare.clearChat()" style="padding: 4px 8px; font-size: 11px;">
+                            <span>✨</span> New Chat
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scrollable Messages Area -->
+                <div class="cca-messages-area" id="ccaMessagesArea">
+                    <!-- Populated dynamically via AIClinicalCare -->
+                </div>
+
+                <!-- Error & Retry State Banner -->
+                <div id="ccaErrorBar" class="cca-error-bar" style="display: none;"></div>
+
+                <!-- Example Quick Prompts Bar -->
+                <div class="cca-quick-prompts-bar">
+                    <span style="font-size: 11px; font-weight: 700; color: #64748b; display: flex; align-items: center;">💡 Suggestions:</span>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('Explain my prescription')">Explain my prescription</button>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('When should I take my medicines?')">When should I take my medicines?</button>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('I have a fever')">I have a fever</button>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('What should I avoid?')">What should I avoid?</button>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('Check my medicine schedule')">Check my medicine schedule</button>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('What symptoms require a doctor?')">What symptoms require a doctor?</button>
+                    <button type="button" class="cca-prompt-chip" onclick="AIClinicalCare.sendChatMessage('Help me prevent this problem')">Help me prevent this problem</button>
+                </div>
+
+                <!-- 10 Smart Quick Action Buttons -->
+                <div class="cca-quick-actions-grid">
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('prescriptions')">
+                        <span>💊</span> My Prescription
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('schedule')">
+                        <span>⏰</span> Medicine Schedule
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('symptom')">
+                        <span>🩺</span> Report a Symptom
+                    </button>
+                    <button type="button" class="cca-action-pill emergency" onclick="AIClinicalCare.quickAction('emergency')">
+                        <span>⚠️</span> Emergency Help
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('avoid')">
+                        <span>🚫</span> What Should I Avoid?
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('reports')">
+                        <span>📋</span> Explain My Report
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('doctor')">
+                        <span>👨‍⚕️</span> Contact Doctor
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('appointment')">
+                        <span>📅</span> Follow-up
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('prevention')">
+                        <span>❤️</span> Prevention Tips
+                    </button>
+                    <button type="button" class="cca-action-pill" onclick="AIClinicalCare.quickAction('health')">
+                        <span>💬</span> Health Question
+                    </button>
+                </div>
+
+                <!-- Input Box Toolbar -->
+                <div class="cca-input-container">
+                    <button type="button" id="ccaVoiceBtn" class="cca-voice-btn" onclick="AIClinicalCare.toggleVoiceInput()" title="Voice Input (Speech-to-Text)">
+                        🎙️
+                    </button>
+                    <input type="text" id="ccaChatInput" class="cca-chat-input" placeholder="Type your health question (e.g. 'Explain my prescription', 'I have fever', 'What should I avoid?')..." autocomplete="off">
+                    <button type="button" class="cca-send-btn" onclick="AIClinicalCare.handleSendMessage()">
+                        <span>Send</span>
+                        <span>➤</span>
+                    </button>
+                </div>
+
+                <!-- Safety Disclaimer Footer -->
+                <div class="cca-disclaimer-footer">
+                    ⚖️ AI provides decision-support and educational information. It does not replace diagnosis, prescription, or treatment by a qualified healthcare professional.
                 </div>
             </div>
-            <div style="display: flex; align-items: flex-end;">
-                <button type="button" class="primary-btn" style="width: 100%; height: 42px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="runAIHealthcareAnalysis()">
-                    <span>⚡</span> <span>Sync & Run AI Surge</span>
-                </button>
+
+            <!-- Right Area: Patient Context & Today's Medication Schedule -->
+            <div class="cca-side-column">
+                <!-- Patient Context Card -->
+                <div class="cca-patient-context-card" id="ccaPatientContextCard">
+                    <!-- Loaded dynamically via AIClinicalCare -->
+                </div>
+
+                <!-- Today's Medication Schedule -->
+                <div class="cca-schedule-card" id="ccaMedicationScheduleCard">
+                    <!-- Loaded dynamically via AIClinicalCare -->
+                </div>
             </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 11px; color: #64748b; margin-bottom: 18px; padding: 0 4px;">
-            <span>ℹ️ Bed counts and admissions are synchronized live from MySQL database tables (<code>hospitals</code>, <code>hospital_beds</code>, <code>hospital_bed_categories</code>).</span>
-            <span style="font-style: italic;">Visitors cannot tamper with bed metrics.</span>
+
+        <!-- Hospital Admin Statistics Modal -->
+        <div id="ccaAdminModalBackdrop" class="cca-modal-backdrop" onclick="if(event.target===this) AIClinicalCare.closeModal('ccaAdminModalBackdrop')">
+            <div class="cca-modal-box" style="max-width: 620px;">
+                <div class="cca-modal-header">
+                    <h3><span>📊</span> Hospital AI Clinical Assistant Statistics</h3>
+                    <button type="button" class="cca-modal-close" onclick="AIClinicalCare.closeModal('ccaAdminModalBackdrop')">&times;</button>
+                </div>
+                <div class="cca-modal-body" id="ccaAdminStatsBody">
+                    <!-- Populated via openAdminStatsModal -->
+                </div>
+            </div>
         </div>
 
-        <!-- AI Output Cards Grid -->
-        <div id="ai-healthcare-result-box" style="margin-bottom: 18px;"></div>
+        <!-- Saved for Me (Patient Notes & Reminders) Modal -->
+        <div id="ccaSavedModalBackdrop" class="cca-modal-backdrop" onclick="if(event.target===this) AIClinicalCare.closeModal('ccaSavedModalBackdrop')">
+            <div class="cca-modal-box" style="max-width: 680px;">
+                <div class="cca-modal-header">
+                    <h3><span>📝</span> Saved for Me — Health Diary &amp; Reminders</h3>
+                    <button type="button" class="cca-modal-close" onclick="AIClinicalCare.closeModal('ccaSavedModalBackdrop')">&times;</button>
+                </div>
+                <div class="cca-modal-body" id="ccaSavedModalBody">
+                    <!-- Populated dynamically via openSavedMemoriesModal -->
+                </div>
+            </div>
+        </div>
 
-        <!-- Audit & Review Stream -->
-        <div style="margin-top: 14px;">
-            <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">
-                📋 Clinical Decision Support Audit Stream & Human Approvals
-            </h4>
-            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow-x: auto; max-height: 250px;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
-                            <th style="padding: 10px 14px;">ID</th>
-                            <th style="padding: 10px 14px;">Hospital Facility</th>
-                            <th style="padding: 10px 14px;">Projected Occupancy</th>
-                            <th style="padding: 10px 14px;">Critical Care Status</th>
-                            <th style="padding: 10px 14px;">Timestamp</th>
-                            <th style="padding: 10px 14px;">Operator Review</th>
-                            <th style="padding: 10px 14px;">Clinical Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ai-healthcare-tbody">
-                        <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Click "Refresh Audit Stream" or run an analysis to view log.</td></tr>
-                    </tbody>
-                </table>
+        <!-- My Health Summary (EHR Overview) Modal -->
+        <div id="ccaSummaryModalBackdrop" class="cca-modal-backdrop" onclick="if(event.target===this) AIClinicalCare.closeModal('ccaSummaryModalBackdrop')">
+            <div class="cca-modal-box" style="max-width: 720px;">
+                <div class="cca-modal-header">
+                    <h3><span>📋</span> My Health Summary (EHR Overview)</h3>
+                    <button type="button" class="cca-modal-close" onclick="AIClinicalCare.closeModal('ccaSummaryModalBackdrop')">&times;</button>
+                </div>
+                <div class="cca-modal-body" id="ccaSummaryModalBody">
+                    <!-- Populated dynamically via openHealthSummaryModal -->
+                </div>
             </div>
         </div>
     </section>
@@ -1439,49 +1605,132 @@
 </div>
 
 <!-- =====================================================
-     DOCTOR BOOKING MODAL (RECONFIGURED)
+     DOCTOR BOOKING MODAL (PROFESSIONAL 20-MIN CLINICAL APPOINTMENT SYSTEM)
 ===================================================== -->
 <div class="modal" id="doctorModal">
     <div class="modal-box doctor-modal-wide">
-        <button type="button" class="close-btn" onclick="closeModal('doctorModal')">×</button>
+        <button type="button" class="close-btn" onclick="closeModal('doctorModal')" aria-label="Close Booking Modal">×</button>
 
-        <div class="modal-title-icon">📅</div>
-        <h2>Book Doctor Appointment</h2>
-        <p class="modal-subtitle">Choose hospital, doctor, and an open time slot.</p>
+        <!-- Professional Clinical Modal Header -->
+        <div class="booking-modal-header">
+            <div class="booking-header-icon-wrap">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <circle cx="12" cy="16" r="2"></circle>
+                </svg>
+            </div>
+            <div class="booking-header-text">
+                <div class="booking-header-top-row">
+                    <h2>Book Doctor Appointment</h2>
+                    <span class="system-status-pill">
+                        <span class="pulse-dot"></span> Live 20-Min Slots
+                    </span>
+                </div>
+                <p class="modal-subtitle">Schedule a confirmed 20-minute OPD consultation with a certified hospital specialist.</p>
+            </div>
+        </div>
 
+        <!-- Flow Steps Indicator -->
+        <div class="booking-stepper-bar">
+            <span class="step-chip step-active"><span>1</span> Hospital</span>
+            <span class="step-divider">›</span>
+            <span class="step-chip step-active"><span>2</span> Doctor</span>
+            <span class="step-divider">›</span>
+            <span class="step-chip step-active"><span>3</span> Date</span>
+            <span class="step-divider">›</span>
+            <span class="step-chip step-active"><span>4</span> Patient ID</span>
+            <span class="step-divider">›</span>
+            <span class="step-chip step-active"><span>5</span> Available Slots</span>
+            <span class="step-divider">›</span>
+            <span class="step-chip step-active"><span>6</span> Confirm</span>
+        </div>
+
+        <!-- 4-Field Selection Grid -->
         <div class="booking-form-grid">
-            <div class="form-group">
-                <label>Select Hospital</label>
-                <select id="bookingHospitalSelect" onchange="onBookingHospitalChange()"></select>
+            <div class="form-group booking-field-card">
+                <label for="bookingHospitalSelect">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><path d="M3 21h18M5 21V7l8-4v18M13 21V3l6 4v14M9 10v2M9 15v2M17 11v2M17 16v2"/></svg>
+                    Hospital <span class="req-star">*</span>
+                </label>
+                <div class="select-wrap">
+                    <select id="bookingHospitalSelect" onchange="onBookingHospitalChange()"></select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Select Doctor</label>
-                <select id="doctorSelect" onchange="fetchDynamicSlots()">
-                    <option value="">Select Hospital First</option>
-                </select>
+            <div class="form-group booking-field-card">
+                <label for="doctorSelect">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+                    Doctor <span class="req-star">*</span>
+                </label>
+                <div class="select-wrap">
+                    <select id="doctorSelect" onchange="onBookingDoctorChange()">
+                        <option value="">Select Hospital First</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Select Date</label>
-                <input type="date" id="appointmentDate" onchange="fetchDynamicSlots()">
+            <div class="form-group booking-field-card">
+                <label for="appointmentDate">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Appointment Date <span class="req-star">*</span>
+                </label>
+                <div class="input-wrap">
+                    <input type="date" id="appointmentDate" onchange="fetchDynamicSlots()">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Patient ID</label>
-                <input type="text" id="appointmentPatientId" placeholder="e.g. PAT-12345678">
+            <div class="form-group booking-field-card">
+                <label for="appointmentPatientId">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Patient ID <span class="req-star">*</span>
+                </label>
+                <div class="patient-input-wrap">
+                    <input type="text" id="appointmentPatientId" placeholder="e.g. SC-2026-318028">
+                    <button type="button" class="btn-use-my-id" id="btnUseMyPatientId" onclick="fillLoggedInPatientId()" title="Use my logged-in Patient ID" style="display:none;">
+                        Me
+                    </button>
+                </div>
             </div>
         </div>
 
+        <!-- Active Doctor Information Banner -->
+        <div id="bookingDoctorInfoBanner" class="booking-doctor-info-banner" style="display:none;"></div>
+
+        <!-- 20-Minute Slots Section -->
         <div class="slots-section">
-            <label class="section-label">Available Slots</label>
-            <div id="slotGridContainer"></div>
+            <div class="slots-header-bar">
+                <div class="slots-title-group">
+                    <label class="section-label">Available Slots</label>
+                    <span class="slot-duration-tag">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Exactly 20 Minutes
+                    </span>
+                </div>
+                <div class="slot-legend">
+                    <span class="legend-item"><span class="legend-dot dot-available"></span> Available</span>
+                    <span class="legend-item"><span class="legend-dot dot-selected"></span> Selected</span>
+                    <span class="legend-item"><span class="legend-dot dot-booked"></span> Booked</span>
+                    <span class="legend-item"><span class="legend-dot dot-unavailable"></span> Unavailable</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Slot Grid Container -->
+            <div id="slotGridContainer" class="slot-grid-container"></div>
         </div>
 
-        <button type="button" class="primary-btn full-btn" onclick="confirmStrictBooking()">
-            CONFIRM APPOINTMENT
+        <!-- Live Selected Slot Summary Bar -->
+        <div id="selectedSlotSummary" class="selected-slot-summary" style="display:none;"></div>
+
+        <!-- Confirmation Action Button -->
+        <button type="button" class="primary-btn full-btn confirm-booking-btn" id="btnConfirmBooking" onclick="confirmStrictBooking()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 12 2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+            <span>CONFIRM APPOINTMENT</span>
         </button>
 
+        <!-- Result / Confirmation Section -->
         <div id="appointmentResult"></div>
     </div>
 </div>
@@ -3582,6 +3831,7 @@
 <script
     src="hospital.js?v=2.2"
 ></script>
+<script src="clinical_care_assistant.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {

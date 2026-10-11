@@ -11,6 +11,86 @@ const { authenticateToken, optionalToken, requireRole } = require("../middleware
 // DYNAMIC APPOINTMENT AVAILABILITY ENGINE
 // =========================================================
 
+// =========================================================
+// TIME & SCHEDULE UTILITIES FOR DYNAMIC 20-MINUTE SLOTS
+// =========================================================
+
+/**
+ * Normalizes any time string (e.g. "09:00", "09:00:00", "09:00 AM",
+ * "09:00 AM – 09:20 AM", "09:00 - 09:20") into a clean 24h "HH:mm" start time.
+ */
+function normalizeToHHMM(timeStr) {
+    if (!timeStr) return "";
+    let s = String(timeStr).trim().toUpperCase();
+    if (s.includes("–") || s.includes("-")) {
+        s = s.split(/[-–]/)[0].trim();
+    }
+    const isPM = s.includes("PM");
+    const isAM = s.includes("AM");
+    const digits = s.replace(/[^\d:]/g, "");
+    let [h, m = "00"] = digits.split(":");
+    let hour = parseInt(h, 10);
+    if (isNaN(hour)) return "";
+    if (isPM && hour < 12) hour += 12;
+    if (isAM && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * Formats 24h minutes into 12-hour AM/PM string, e.g. 540 -> "09:00 AM"
+ */
+function formatMinutesTo12h(totalMinutes) {
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    const period = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    return `${String(h12).padStart(2, "0")}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+/**
+ * Determines doctor working hours (in minutes from midnight) from:
+ * 1) doctor_schedules table
+ * 2) doctors.consultation_timings
+ * 3) Default clinical standard 09:00 - 14:00 (9:00 AM – 2:00 PM)
+ */
+function parseDoctorWorkingHours(doc, schedule) {
+    let startMinutes = 9 * 60;  // 09:00 AM (540m)
+    let endMinutes = 14 * 60;   // 02:00 PM (840m)
+
+    if (schedule && schedule.start_time && schedule.end_time) {
+        const [sh, sm] = String(schedule.start_time).split(":").map(Number);
+        const [eh, em] = String(schedule.end_time).split(":").map(Number);
+        if (!isNaN(sh) && !isNaN(eh)) {
+            startMinutes = sh * 60 + (sm || 0);
+            endMinutes = eh * 60 + (em || 0);
+            return { startMinutes, endMinutes, source: "schedule" };
+        }
+    }
+
+    if (doc && doc.consultation_timings) {
+        const parts = String(doc.consultation_timings).split(/[-–—to]+/i);
+        if (parts.length === 2) {
+            const parseTimePart = (str) => {
+                const s = str.trim().toUpperCase();
+                const isPM = s.includes("PM");
+                const isAM = s.includes("AM");
+                const digits = s.replace(/[^\d:]/g, "");
+                let [h, m = 0] = digits.split(":").map(Number);
+                if (isPM && h < 12) h += 12;
+                if (isAM && h === 12) h = 0;
+                return h * 60 + (m || 0);
+            };
+            const sMin = parseTimePart(parts[0]);
+            const eMin = parseTimePart(parts[1]);
+            if (!isNaN(sMin) && !isNaN(eMin) && eMin > sMin) {
+                return { startMinutes: sMin, endMinutes: eMin, source: "timings" };
+            }
+        }
+    }
+
+    return { startMinutes, endMinutes, source: "default" };
+}
+
 router.get("/api/appointments/availability", async (req, res) => {
     const { hospitalId, doctorId, date } = req.query;
 
@@ -28,7 +108,9 @@ router.get("/api/appointments/availability", async (req, res) => {
 
         // 1. Verify doctor exists, belongs to this hospital, and is active
         const [docRows] = await p.query(`
-            SELECT d.id, d.doctor_id, d.name, d.status, d.hospital_id, h.hospital_name, h.status AS hospital_status
+            SELECT d.id, d.doctor_id, d.name, d.status, d.hospital_id, d.department, d.specialization,
+                   d.consultation_timings, d.available_days, d.consultation_fee,
+                   h.hospital_name, h.status AS hospital_status
             FROM doctors d
             LEFT JOIN hospitals h ON (d.hospital_id = h.hospital_id OR d.hospital_id = CAST(h.id AS CHAR))
             WHERE (d.doctor_id = ? OR d.id = ?)
@@ -63,133 +145,188 @@ router.get("/api/appointments/availability", async (req, res) => {
             });
         }
 
-        // Parse date safely
+        // Validate date
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(date)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format. Expected YYYY-MM-DD."
+            });
+        }
+
         const [year, month, day] = date.split('-').map(Number);
         const targetDate = new Date(year, month - 1, day);
-        const dayOfWeek = targetDate.getDay();
-
-        // 2. Fetch existing booked appointments for this doctor on this date
-        const [bookedRows] = await p.query(`
-            SELECT appointment_time 
-            FROM appointments 
-            WHERE (doctor_id = ? OR doctor_id = ?) AND appointment_date = ? AND status NOT IN ('Cancelled', 'Rejected')
-        `, [doc.doctor_id, doctorId, date]);
-        const bookedTimes = (bookedRows || []).map(b => String(b.appointment_time).substring(0, 5));
+        const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const fullDayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const targetDayName = fullDayNames[dayOfWeek];
 
         const now = new Date();
         const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         const isToday = (todayStr === date);
+        const isPastDate = (date < todayStr);
         const currentDayMinutes = now.getHours() * 60 + now.getMinutes();
 
-        // 3. Check for specific date slots in doctor_slots first
+        if (isPastDate) {
+            return res.json({
+                success: false,
+                message: "Cannot book appointments for past dates. Please select today or a future date."
+            });
+        }
+
+        // 2. Check doctor's recurring weekly schedule or consultation timings
+        const [schedRows] = await p.query(`
+            SELECT start_time, end_time, slot_duration, is_active
+            FROM doctor_schedules 
+            WHERE doctor_id = ? 
+              AND (hospital_id = ? OR hospital_id IS NULL OR hospital_id = '')
+              AND (day_of_week = ? OR day_of_week = ? OR day_of_week = ?)
+              AND is_active = 1
+            LIMIT 1
+        `, [doc.doctor_id, hospitalId, dayOfWeek, dayNames[dayOfWeek], targetDayName]);
+
+        const schedule = schedRows[0] || null;
+
+        // Check if doctor is closed on this day
+        if (!schedule) {
+            if (doc.available_days) {
+                const availStr = String(doc.available_days).toLowerCase();
+                const shortMatches = availStr.includes(dayNames[dayOfWeek].toLowerCase());
+                const fullMatches = availStr.includes(targetDayName.toLowerCase());
+                if (!shortMatches && !fullMatches) {
+                    return res.json({
+                        success: false,
+                        message: `Dr. ${doc.name} OPD is closed on ${targetDayName}s.`
+                    });
+                }
+            } else if (dayOfWeek === 0) {
+                // Sunday closed by default unless explicitly scheduled
+                return res.json({
+                    success: false,
+                    message: `Dr. ${doc.name} OPD is closed on Sundays.`
+                });
+            }
+        }
+
+        // Determine working hours in minutes
+        const { startMinutes, endMinutes } = parseDoctorWorkingHours(doc, schedule);
+
+        // 3. Fetch existing booked appointments for this doctor on this date
+        const [bookedRows] = await p.query(`
+            SELECT appointment_time 
+            FROM appointments 
+            WHERE (doctor_id = ? OR doctor_id = ? OR doctor = ?) 
+              AND appointment_date = ? 
+              AND status NOT IN ('Cancelled', 'Rejected')
+        `, [doc.doctor_id, doctorId, doc.name, date]);
+
+        const bookedSet = new Set(
+            (bookedRows || []).map(b => normalizeToHHMM(b.appointment_time)).filter(Boolean)
+        );
+
+        // 4. Check doctor_slots table for matching date slots / capacities
         const [dbSlots] = await p.query(`
-            SELECT id, slot_date, start_time, end_time, max_patients, booked_patients, status
+            SELECT id, start_time, end_time, max_patients, booked_patients, status
             FROM doctor_slots
             WHERE doctor_id = ? AND slot_date = ?
-            ORDER BY start_time ASC
         `, [doc.doctor_id, date]);
 
-        let slots = [];
+        const slotMap = new Map();
+        for (const s of (dbSlots || [])) {
+            const cleanT = normalizeToHHMM(s.start_time);
+            if (cleanT) slotMap.set(cleanT, s);
+        }
 
-        if (dbSlots.length > 0) {
-            // Use database slots from doctor_slots
-            slots = dbSlots.map(s => {
-                const startTimeStr = String(s.start_time).substring(0, 5);
-                const [hStr, mStr] = startTimeStr.split(':');
-                const h = parseInt(hStr, 10);
-                const m = parseInt(mStr, 10);
-                const currentMinutes = h * 60 + m;
+        // 5. GENERATE DYNAMIC EXACT 20-MINUTE SLOTS
+        const SLOT_DURATION = 20; // Exactly 20 minutes
+        const slots = [];
+        let currentMinutes = startMinutes;
 
-                const period = h >= 12 ? 'PM' : 'AM';
-                const h12 = h % 12 || 12;
-                const displayTime = `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
+        while (currentMinutes + SLOT_DURATION <= endMinutes) {
+            const slotStart = currentMinutes;
+            const slotEnd = currentMinutes + SLOT_DURATION;
 
-                const isPast = isToday && (currentMinutes <= currentDayMinutes);
-                const isBooked = bookedTimes.includes(startTimeStr) || 
-                                 s.booked_patients >= s.max_patients || 
-                                 ['booked', 'full'].includes(String(s.status).toLowerCase());
+            const startH = Math.floor(slotStart / 60);
+            const startM = slotStart % 60;
+            const startTime24 = `${String(startH).padStart(2, "0")}:${String(startM).padStart(2, "0")}`;
 
-                let slotStatus = "available";
-                if (isBooked) slotStatus = "booked";
-                else if (isPast) slotStatus = "unavailable";
+            const endH = Math.floor(slotEnd / 60);
+            const endM = slotEnd % 60;
+            const endTime24 = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
 
-                return {
-                    slotId: s.id,
-                    time: startTimeStr,
-                    displayTime,
-                    status: slotStatus,
-                    maxPatients: s.max_patients,
-                    bookedPatients: s.booked_patients
-                };
+            const startDisplay = formatMinutesTo12h(slotStart);
+            const endDisplay = formatMinutesTo12h(slotEnd);
+            const displayTimeRange = `${startDisplay} – ${endDisplay}`;
+
+            // Check if slot has already passed today
+            const isPast = isToday && (slotStart <= currentDayMinutes);
+
+            // Check if slot is booked in appointments table
+            let isBooked = bookedSet.has(startTime24);
+
+            // Check if doctor_slots has booked/full status
+            const dbSlotMatch = slotMap.get(startTime24);
+            let slotId = null;
+            if (dbSlotMatch) {
+                slotId = dbSlotMatch.id;
+                const maxP = Number(dbSlotMatch.max_patients || 1);
+                const bookedP = Number(dbSlotMatch.booked_patients || 0);
+                if (bookedP >= maxP || ["booked", "full"].includes(String(dbSlotMatch.status || "").toLowerCase())) {
+                    isBooked = true;
+                }
+            }
+
+            let slotStatus = "available";
+            if (isBooked) {
+                slotStatus = "booked";
+            } else if (isPast) {
+                slotStatus = "unavailable";
+            }
+
+            slots.push({
+                slotId,
+                time: startTime24,
+                startTime: startTime24,
+                endTime: endTime24,
+                duration: SLOT_DURATION,
+                timeLabel: startDisplay,
+                displayTime: displayTimeRange,
+                status: slotStatus
             });
-        } else {
-            // 4. Check doctor_schedules for recurring weekly schedule
-            const [schedRows] = await p.query(`
-                SELECT start_time, end_time, slot_duration 
-                FROM doctor_schedules 
-                WHERE doctor_id = ? AND hospital_id = ? AND day_of_week = ? AND is_active = 1
-                LIMIT 1
-            `, [doc.doctor_id, hospitalId, dayOfWeek]);
 
-            let start_time = "09:00:00";
-            let end_time = "14:00:00";
-            let slot_duration = 30;
-
-            if (schedRows.length > 0) {
-                start_time = schedRows[0].start_time;
-                end_time = schedRows[0].end_time;
-                slot_duration = schedRows[0].slot_duration || 30;
-            } else if (dayOfWeek === 0) {
-                // Sunday closed unless scheduled
-                return res.json({ success: false, message: "Doctor OPD is closed on Sundays." });
-            }
-
-            let [startH, startM] = start_time.split(':').map(Number);
-            let [endH, endM] = end_time.split(':').map(Number);
-            let currentMinutes = startH * 60 + startM;
-            const endMinutes = endH * 60 + endM;
-
-            while (currentMinutes < endMinutes) {
-                const h = Math.floor(currentMinutes / 60);
-                const m = currentMinutes % 60;
-                const time24 = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-
-                const period = h >= 12 ? 'PM' : 'AM';
-                const h12 = h % 12 || 12;
-                const displayTime = `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${period}`;
-
-                const isPast = isToday && (currentMinutes <= currentDayMinutes);
-                const isBooked = bookedTimes.includes(time24);
-
-                let slotStatus = "available";
-                if (isBooked) slotStatus = "booked";
-                else if (isPast) slotStatus = "unavailable";
-
-                slots.push({
-                    time: time24,
-                    displayTime,
-                    status: slotStatus
-                });
-
-                currentMinutes += (slot_duration || 30);
-            }
+            currentMinutes += SLOT_DURATION;
         }
 
-        const remaining = slots.filter(s => s.status === "available");
-        if (isToday && remaining.length === 0 && slots.every(s => s.status === 'unavailable')) {
-            return res.json({ success: false, message: "No remaining slots for today." });
-        }
-        if (slots.length > 0 && slots.every(s => s.status === 'booked')) {
-            return res.json({ success: false, message: "All slots are already booked for this date." });
+        const availableSlots = slots.filter(s => s.status === "available");
+        const allBooked = slots.length > 0 && slots.every(s => s.status === "booked");
+        const allPast = isToday && slots.length > 0 && slots.every(s => s.status === "unavailable");
+
+        let advisoryMessage = null;
+        if (allPast) {
+            advisoryMessage = "All appointment slots for today have already passed. Please select a future date.";
+        } else if (allBooked) {
+            advisoryMessage = "All appointment slots are currently booked for this doctor on the selected date.";
+        } else if (slots.length === 0) {
+            advisoryMessage = "No consultation slots scheduled for this doctor on the selected date.";
         }
 
         res.json({
             success: true,
             hospitalId,
+            hospitalName: doc.hospital_name,
             doctorId: doc.doctor_id,
             doctorName: doc.name,
+            department: doc.department || "General Medicine",
+            specialization: doc.specialization || "Consultant",
+            consultationFee: doc.consultation_fee || 0,
             date,
+            dayOfWeek: targetDayName,
+            workingHours: `${formatMinutesTo12h(startMinutes)} – ${formatMinutesTo12h(endMinutes)}`,
+            slotDuration: SLOT_DURATION,
             count: slots.length,
+            availableCount: availableSlots.length,
+            allBooked,
+            message: advisoryMessage,
             slots
         });
 
@@ -200,7 +337,7 @@ router.get("/api/appointments/availability", async (req, res) => {
 });
 
 // =========================================================
-// STRICT APPOINTMENT BOOKING API (With Validation & Double Booking Prevention)
+// STRICT APPOINTMENT BOOKING API (With 20-Min Validation & Double Booking Prevention)
 // =========================================================
 
 router.post("/api/appointments/book-strict", optionalToken, async (req, res) => {
@@ -230,22 +367,22 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
     if (!patientId || !hospitalId || !doctorId || !appointmentDate || !appointmentTime) {
         return res.status(400).json({
             success: false,
-            message: "Patient ID, Hospital ID, Doctor ID, Date, and Time are required."
+            message: "Patient ID, Hospital ID, Doctor ID, Date, and 20-minute Time Slot are required."
         });
     }
 
     try {
         const p = db.promise();
 
-        // 1. Validate Patient ID
+        // 1. Validate Patient ID in registry
         const [pRows] = await p.query(
-            "SELECT id, name, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            "SELECT id, name, patient_id, mobile, age, gender FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
             [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
         );
         if (!pRows.length) {
             return res.status(404).json({
                 success: false,
-                message: "Patient ID not found. Please register the patient first."
+                message: `Patient ID "${patientId}" not found in patient registry. Please enter a valid registered Patient ID.`
             });
         }
         const resolvedPatientId = pRows[0].patient_id || patientId;
@@ -253,7 +390,8 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
 
         // 2. Fetch Doctor and validate exact Hospital relationship
         const [dRows] = await p.query(`
-            SELECT d.id, d.doctor_id, d.name AS doctor_name, d.hospital_id, d.department, d.status AS doctor_status,
+            SELECT d.id, d.doctor_id, d.name AS doctor_name, d.hospital_id, d.department, d.specialization,
+                   d.status AS doctor_status,
                    h.hospital_id AS validated_hosp_id, h.hospital_name, h.status AS hospital_status
             FROM doctors d
             LEFT JOIN hospitals h ON (d.hospital_id = h.hospital_id OR d.hospital_id = CAST(h.id AS CHAR))
@@ -269,7 +407,7 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
         const targetHosp = String(hospitalId).trim().toLowerCase();
         const docHosp = String(doc.hospital_id || "").trim().toLowerCase();
 
-        // STRICT RELATIONSHIP VALIDATION: doctor.hospital_id === selectedHospitalId
+        // STRICT RELATIONSHIP VALIDATION: doctor belongs to selected hospital
         if (docHosp && docHosp !== targetHosp) {
             return res.status(400).json({
                 success: false,
@@ -294,86 +432,117 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
             });
         }
 
-        // 3. Validate Slot if slotId provided
+        // 3. Normalize 20-minute slot times & validate date
+        const cleanStartTime = normalizeToHHMM(appointmentTime);
+        if (!cleanStartTime) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid appointment time slot specified."
+            });
+        }
+
+        const [startH, startM] = cleanStartTime.split(":").map(Number);
+        const slotStartMin = startH * 60 + startM;
+        const slotEndMin = slotStartMin + 20; // 20-minute slot duration
+        const endH = Math.floor(slotEndMin / 60);
+        const endM = slotEndMin % 60;
+        const cleanEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+
+        const startPeriod = startH >= 12 ? "PM" : "AM";
+        const startH12 = startH % 12 || 12;
+        const startDisplay = `${String(startH12).padStart(2, "0")}:${String(startM).padStart(2, "0")} ${startPeriod}`;
+
+        const endPeriod = endH >= 12 ? "PM" : "AM";
+        const endH12 = endH % 12 || 12;
+        const endDisplay = `${String(endH12).padStart(2, "0")}:${String(endM).padStart(2, "0")} ${endPeriod}`;
+
+        // Exactly "10:00 AM – 10:20 AM"
+        const displayTimeRange = `${startDisplay} – ${endDisplay}`;
+
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        const currentDayMinutes = now.getHours() * 60 + now.getMinutes();
+
+        if (appointmentDate < todayStr) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot book appointments for past dates."
+            });
+        }
+
+        if (appointmentDate === todayStr && slotStartMin <= currentDayMinutes) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot book an appointment slot that has already passed."
+            });
+        }
+
+        // 4. Validate Slot in doctor_slots if slotId provided
         if (slotId) {
             const [sRows] = await p.query(
                 "SELECT * FROM doctor_slots WHERE id = ? LIMIT 1",
                 [slotId]
             );
-            if (!sRows.length) {
-                return res.status(404).json({ success: false, message: "Specified appointment slot not found." });
-            }
-            const slot = sRows[0];
-
-            // Validate slot.doctor_id === selectedDoctorId
-            if (String(slot.doctor_id).toLowerCase() !== String(doc.doctor_id).toLowerCase()) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Slot does not belong to the selected doctor."
-                });
-            }
-
-            // Validate slot.hospital_id === selectedHospitalId
-            if (slot.hospital_id && String(slot.hospital_id).toLowerCase() !== targetHosp) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Slot does not belong to the selected hospital."
-                });
-            }
-
-            // Validate slot is available
-            const maxP = Number(slot.max_patients || 1);
-            const bookedP = Number(slot.booked_patients || 0);
-            if (bookedP >= maxP || ["full", "booked"].includes(String(slot.status).toLowerCase())) {
-                return res.status(409).json({
-                    success: false,
-                    message: "This appointment slot is already fully booked."
-                });
+            if (sRows.length > 0) {
+                const slot = sRows[0];
+                const maxP = Number(slot.max_patients || 1);
+                const bookedP = Number(slot.booked_patients || 0);
+                if (bookedP >= maxP || ["full", "booked"].includes(String(slot.status).toLowerCase())) {
+                    return res.status(409).json({
+                        success: false,
+                        conflict: true,
+                        message: "This appointment slot is already fully booked. Please select another slot."
+                    });
+                }
             }
         }
 
-        // 4. Check for double booking for this doctor on this date/time
-        const cleanTime = String(appointmentTime).substring(0, 5);
-        const [existingAppt] = await p.query(`
-            SELECT id, patient_id FROM appointments 
-            WHERE (doctor_id = ? OR doctor_id = ?) 
-              AND hospital_id = ? 
+        // 5. PREVENT DOUBLE BOOKING: doctor + date + 20-minute slot
+        const [existingAppts] = await p.query(`
+            SELECT id, patient_id, appointment_time FROM appointments 
+            WHERE (doctor_id = ? OR doctor_id = ? OR doctor = ?) 
               AND appointment_date = ? 
-              AND (appointment_time = ? OR appointment_time LIKE ?) 
               AND status NOT IN ('Cancelled', 'Rejected')
-            LIMIT 1
-        `, [doc.doctor_id, doctorId, doc.hospital_id, appointmentDate, cleanTime, `${cleanTime}%`]);
+        `, [doc.doctor_id, doctorId, doc.doctor_name, appointmentDate]);
 
-        if (existingAppt.length > 0) {
-            if (existingAppt[0].patient_id === resolvedPatientId) {
+        const conflictAppt = existingAppts.find(a => normalizeToHHMM(a.appointment_time) === cleanStartTime);
+
+        if (conflictAppt) {
+            if (conflictAppt.patient_id === resolvedPatientId) {
                 return res.status(200).json({
                     success: true,
                     message: "Appointment already confirmed for this patient.",
                     appointment: {
-                        appointmentId: `APT-${100000 + existingAppt[0].id}`,
+                        appointmentId: `APT-${100000 + conflictAppt.id}`,
+                        tokenNumber: `T-${String(conflictAppt.id).padStart(2, "0")}`,
                         patientId: resolvedPatientId,
+                        patientName: resolvedPatientName,
                         hospitalName: doc.hospital_name,
                         doctorName: doc.doctor_name,
                         date: appointmentDate,
-                        time: appointmentTime
+                        time: displayTimeRange,
+                        startTime: cleanStartTime,
+                        endTime: cleanEndTime,
+                        duration: 20
                     }
                 });
             }
             return res.status(409).json({
                 success: false,
-                message: "This appointment slot has already been booked for this doctor."
+                conflict: true,
+                message: "Sorry, this 20-minute slot has already been booked by another patient. Please select another available slot."
             });
         }
 
-        // 5. Generate token number
+        // 6. Generate token number
         const [tokCount] = await p.query(
-            "SELECT COUNT(*) AS total FROM appointments WHERE doctor_id = ? AND appointment_date = ?",
-            [doc.doctor_id, appointmentDate]
+            "SELECT COUNT(*) AS total FROM appointments WHERE (doctor_id = ? OR doctor_id = ?) AND appointment_date = ?",
+            [doc.doctor_id, doctorId, appointmentDate]
         );
         const tokenNum = (tokCount[0]?.total || 0) + 1;
         const tokenString = `T-${String(tokenNum).padStart(2, "0")}`;
 
-        // 6. Insert Appointment
+        // 7. Insert Appointment with proper 20-minute duration time representation
         const insertSql = `
             INSERT INTO appointments 
             (patient_id, hospital_id, doctor_id, doctor, department, slot_id, appointment_date, appointment_time, status, token_number, checkin_status)
@@ -385,16 +554,16 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
             doc.hospital_id,
             doc.doctor_id,
             doc.doctor_name,
-            doc.department || "General Medicine",
+            doc.department || doc.specialization || "General Medicine",
             slotId || null,
             appointmentDate,
-            cleanTime,
+            displayTimeRange,
             tokenString
         ]);
 
         const appointmentId = `APT-${100000 + insRes.insertId}`;
 
-        // 7. Update doctor_slots if slotId provided or matching by doctor, date, time
+        // 8. Update doctor_slots capacity if matching row exists
         if (slotId) {
             await p.query(`
                 UPDATE doctor_slots 
@@ -409,10 +578,10 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                     status = CASE WHEN booked_patients + 1 >= max_patients THEN 'Full' ELSE status END
                 WHERE doctor_id = ? AND slot_date = ? AND (start_time = ? OR start_time LIKE ?)
                 LIMIT 1
-            `, [doc.doctor_id, appointmentDate, cleanTime, `${cleanTime}%`]);
+            `, [doc.doctor_id, appointmentDate, cleanStartTime, `${cleanStartTime}%`]);
         }
 
-        // Broadcast real-time appointment event for Doctor Dashboard
+        // 9. Broadcast real-time appointment event for Doctor & Hospital Dashboards
         const io = req.app.get("io");
         if (io) {
             io.emit("appointment:new", {
@@ -423,8 +592,12 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                 hospitalName: doc.hospital_name,
                 doctorName: doc.doctor_name,
                 doctorId: doc.doctor_id,
+                department: doc.department || "General Medicine",
                 date: appointmentDate,
-                time: cleanTime,
+                time: displayTimeRange,
+                startTime: cleanStartTime,
+                endTime: cleanEndTime,
+                duration: 20,
                 tokenNumber: tokenString,
                 status: "Confirmed"
             });
@@ -437,15 +610,26 @@ router.post("/api/appointments/book-strict", optionalToken, async (req, res) => 
                 appointmentId,
                 tokenNumber: tokenString,
                 patientId: resolvedPatientId,
+                patientName: resolvedPatientName,
                 hospitalName: doc.hospital_name,
                 doctorName: doc.doctor_name,
                 date: appointmentDate,
-                time: cleanTime
+                time: displayTimeRange,
+                startTime: cleanStartTime,
+                endTime: cleanEndTime,
+                duration: 20
             }
         });
 
     } catch (err) {
         console.error("[BOOK STRICT ERROR]", err);
+        if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
+            return res.status(409).json({
+                success: false,
+                conflict: true,
+                message: "Sorry, this 20-minute slot has already been booked by another patient. Please select another available slot."
+            });
+        }
         res.status(500).json({ success: false, message: "Appointment booking failed due to server error." });
     }
 });
@@ -580,6 +764,13 @@ router.post("/api/appointments", async (req, res) => {
             });
         } catch (err) {
             console.error("[DIRECT APPOINTMENT BOOKING ERROR]", err);
+            if (err.code === "ER_DUP_ENTRY" || err.errno === 1062) {
+                return res.status(409).json({
+                    success: false,
+                    conflict: true,
+                    message: "Sorry, this appointment slot has already been booked by another patient. Please select another available slot."
+                });
+            }
             return res.status(500).json({ success: false, message: "Appointment booking failed due to server error." });
         }
     }

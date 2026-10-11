@@ -59,7 +59,7 @@ function requireWasteStaff(req, res, next) {
         return res.status(401).json({ success: false, message: "Authentication required." });
     }
     const role = (req.user.role || req.user.type || "").toLowerCase();
-    if (role === "admin") return next();
+    if (role === "admin" || role === "super_admin" || role === "superadmin") return next();
 
     if (role === "staff") {
         const dept = (req.user.department || "").toLowerCase();

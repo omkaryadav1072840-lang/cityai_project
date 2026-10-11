@@ -5369,6 +5369,21 @@ async function fetchCommandCenterData() {
                         </div>
                     `).join("");
                 }
+            } else {
+                // Non-admin citizen view: load live verified public city metrics
+                try {
+                    const publicRes = await fetch(`${BACKEND_URL}/api/city-status`);
+                    if (publicRes.ok) {
+                        const cityData = await publicRes.json();
+                        const elAQI = document.getElementById("ccMetricAQI");
+                        const elAQIStatus = document.getElementById("ccMetricAQIStatus");
+                        if (elAQI && cityData.aqi) elAQI.textContent = cityData.aqi;
+                        if (elAQIStatus && cityData.aqi) {
+                            elAQIStatus.textContent = cityData.aqi > 200 ? "Poor / Unhealthy" : (cityData.aqi > 100 ? "Moderate" : "Good");
+                            elAQIStatus.style.color = cityData.aqi > 200 ? "#f87171" : (cityData.aqi > 100 ? "#fbbf24" : "#34d399");
+                        }
+                    }
+                } catch (pe) {}
             }
         } catch (e) {
             console.warn("Municipal telemetry fallback:", e.message);

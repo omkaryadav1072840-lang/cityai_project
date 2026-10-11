@@ -4,32 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Police Management | SmartCity AI</title>
+    <title>Police Management & Public Safety | SmartCity AI Gorakhpur</title>
 
     <link rel="stylesheet" href="police.css">
     <link rel="stylesheet" href="../../components/ui_components.css">
+    <!-- Leaflet GIS Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
 
 <!-- ================= NAVBAR ================= -->
-
 <nav class="navbar">
-
     <div class="logo">
-        Smart<span>City AI</span>
+        Smart<span>City AI</span> <small style="font-size:12px; font-weight:700; color:#1e3a8a; background:#e0e7ff; padding:2px 8px; border-radius:12px; margin-left:8px;">POLICE</small>
     </div>
 
     <div class="nav-right">
-        <a href="../../index.html">
-            ← Dashboard
-        </a>
+        <a href="../../index.html">← City Dashboard</a>
+        <a href="../emergency/emergency.html" style="color:#dc2626;">🚨 Emergency 112</a>
+        <div id="userBadgeContainer"></div>
     </div>
-
 </nav>
 
-
-<!-- ================= 3-LAYER NAVIGATION TABS (MATCHING PARKING/TRAFFIC/WATER) ================= -->
+<!-- ================= 3-LAYER NAVIGATION TABS ================= -->
 <div class="layer-tabs-container">
     <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchPoliceLayer('citizen')">
         <span>👤</span> 1. Citizen Police Services & Public FIR
@@ -57,171 +55,328 @@
 ========================================================= -->
 <div id="layer-citizen-content">
 
-<!-- ================= HERO ================= -->
+    <!-- ================= HERO ================= -->
+    <section class="police-hero">
+        <div class="hero-content">
+            <span class="hero-label">UP POLICE • DIAL 112 • MISSION SHAKTI</span>
+            <h1>
+                Gorakhpur Police &<br>
+                <span>Smart Public Safety</span>
+            </h1>
+            <p>
+                Real-time CCTNS public services, emergency geo-beacon dispatch, 
+                precinct beat patrol navigation, women safety ride tracking, and rapid cyber fraud freezing.
+            </p>
 
-<section class="police-hero">
-
-    <div class="hero-content">
-
-        <span class="hero-label">
-            SMART POLICING SYSTEM
-        </span>
-
-        <h1>
-            Police &
-            <span>Public Safety</span>
-        </h1>
-
-        <p>
-            Monitor verified police incidents, access emergency helplines,
-            and connect with Gorakhpur precinct stations in real time.
-        </p>
-
-        <div class="hero-buttons">
-
-            <button onclick="scrollToIncidents()">
-                🚨 View Incidents
-            </button>
-
-            <button
-                class="secondary-btn"
-                onclick="switchPoliceLayer('staff')"
-            >
-                👮 Police Staff Access
-            </button>
-
+            <div class="hero-buttons">
+                <button onclick="triggerOneTapSos()" class="sos-action-btn">
+                    🚨 One-Tap Emergency SOS
+                </button>
+                <button onclick="openComplaintModal()" class="primary-btn">
+                    📝 Register e-Complaint
+                </button>
+                <button class="secondary-btn" onclick="scrollToPrecinctMap()">
+                    🗺️ Precinct Map & Units
+                </button>
+            </div>
         </div>
 
-    </div>
+        <div class="hero-visual">
+            <div class="police-badge-card">
+                <div class="badge-icon">🛡️</div>
+                <div class="badge-title">GORAKHPUR POLICE</div>
+                <div class="badge-sub">सुरक्षा • सेवा • सहयोग</div>
+                <div class="badge-status-pill">● DIAL 112 ACTIVE</div>
+            </div>
+        </div>
+    </section>
 
-
-    <div class="hero-visual">
-
-        <div class="police-circle">
-
+    <!-- ================= STATS ================= -->
+    <section class="stats-section">
+        <div class="stat-card">
+            <div class="stat-icon">🚨</div>
             <div>
-                👮
+                <span>ACTIVE CASES</span>
+                <h2 id="activeCases">0</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🏢</div>
+            <div>
+                <span>PRECINCT STATIONS</span>
+                <h2 id="activeStationsCount">8</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🚔</div>
+            <div>
+                <span>DIAL 112 PRV UNITS</span>
+                <h2 id="activeUnits">5</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">⚠️</div>
+            <div>
+                <span>HIGH PRIORITY</span>
+                <h2 id="highPriority">0</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= EMERGENCY SOS & QUICK HELPLINES ================= -->
+    <section class="citizen-sos-section">
+        <div class="sos-banner-card">
+            <div class="sos-card-content">
+                <div class="sos-pill-badge">🚨 RAPID GEO-BEACON DISPATCH</div>
+                <h2>Gorakhpur Emergency SOS & Safety Dispatch</h2>
+                <p>
+                    In imminent danger? Tap below to broadcast your live GPS coordinates directly to the nearest Gorakhpur Police Station and patrol vehicle (PRV Dial 112).
+                </p>
+
+                <div class="sos-controls-row">
+                    <button class="mega-sos-btn" id="megaSosBtn" onclick="triggerOneTapSos()">
+                        <span class="sos-pulse-ring"></span>
+                        <span class="sos-text">🚨 SEND INSTANT SOS BEACON</span>
+                    </button>
+
+                    <div class="sos-silent-toggle">
+                        <label class="switch">
+                            <input type="checkbox" id="silentSosToggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="toggle-label">
+                            <strong>Silent Covert SOS</strong>
+                            <small>No siren or flashing lights on screen</small>
+                        </span>
+                    </div>
+                </div>
+
+                <div id="nearestStationBadge" class="nearest-station-indicator" style="display:none;">
+                    📍 Detecting nearest police station...
+                </div>
             </div>
 
-            <span>
-                POLICE
-            </span>
+            <div class="helplines-grid-subcard">
+                <h3>📞 24x7 Emergency Helplines</h3>
+                <div class="helplines-list">
+                    <a href="tel:112" class="hl-item hl-112">
+                        <span class="hl-num">112</span>
+                        <span class="hl-lbl">Police / Dial 112 (All Emergencies)</span>
+                    </a>
+                    <a href="tel:1090" class="hl-item hl-1090">
+                        <span class="hl-num">1090</span>
+                        <span class="hl-lbl">Women PowerLine (Mission Shakti)</span>
+                    </a>
+                    <a href="tel:1930" class="hl-item hl-1930">
+                        <span class="hl-num">1930</span>
+                        <span class="hl-lbl">National Cyber Crime Fraud Helpline</span>
+                    </a>
+                    <a href="tel:1073" class="hl-item hl-traffic">
+                        <span class="hl-num">1073</span>
+                        <span class="hl-lbl">Traffic Police Control Room</span>
+                    </a>
+                    <a href="tel:05512200100" class="hl-item hl-city">
+                        <span class="hl-num">0551-2200100</span>
+                        <span class="hl-lbl">Gorakhpur City Police Control Room</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- ================= INTERACTIVE GORAKHPUR POLICE PRECINCTS & BEAT PATROL GIS MAP ================= -->
+    <section class="precincts-map-section" id="precinctMapSection">
+        <div class="section-title">
+            <span>GIS PRECINCTS & PATROL FLEET</span>
+            <h2>Gorakhpur Police Precinct Stations & Live Dial 112 Fleet</h2>
+            <p>Explore all 8 city police stations, view jurisdiction areas, Station Officers (SHO), and monitor real-time Dial 112 PRV units on active beat patrols.</p>
         </div>
 
-    </div>
+        <div class="precinct-map-layout">
+            <div class="map-wrapper-card">
+                <div class="map-controls-bar">
+                    <div class="map-legend">
+                        <span class="legend-badge station-leg">🏢 Police Stations (8)</span>
+                        <span class="legend-badge prv-leg">🚔 Dial 112 PRVs (5)</span>
+                        <span class="legend-badge pink-leg">🌸 Pink Patrol (1)</span>
+                    </div>
+                    <div class="map-actions">
+                        <button onclick="locateUserOnMap()" class="map-tool-btn">📍 Find My Nearest Thana</button>
+                        <button onclick="refreshPrvPositions()" class="map-tool-btn">↻ Refresh PRV Fleet</button>
+                    </div>
+                </div>
 
-</section>
+                <div id="policePrecinctMap" class="police-leaflet-container" style="height: 480px; width: 100%; border-radius: 12px; z-index: 10;"></div>
+            </div>
 
+            <!-- PRECINCT STATIONS DIRECTORY LIST -->
+            <div class="precinct-directory-card">
+                <div class="directory-header">
+                    <h3>🏢 Police Stations Directory</h3>
+                    <span id="stationCountPill" class="badge-pill">8 Stations</span>
+                </div>
+                <div class="directory-search">
+                    <input type="text" id="stationSearchInput" placeholder="Filter by station name or area..." onkeyup="filterStationList()">
+                </div>
+                <div class="station-cards-scroll" id="stationCardsContainer">
+                    <!-- Populated dynamically via police.js -->
+                    <div class="loading-spinner">Loading police stations...</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<!-- ================= STATS ================= -->
-
-<section class="stats-section">
-
-    <div class="stat-card">
-
-        <div class="stat-icon">
-            🚨
+    <!-- ================= CITIZEN E-COMPLAINT & CCTNS LIVE TRACKER ================= -->
+    <section class="complaint-tracker-section" id="complaintsSection">
+        <div class="section-title">
+            <span>UP POLICE CCTNS INTEGRATION</span>
+            <h2>Citizen e-Complaint & Digital FIR Desk</h2>
+            <p>Register non-cognizable reports, stolen property notices, or check live status of existing complaints.</p>
         </div>
 
-        <div>
-            <span>ACTIVE CASES</span>
-            <h2 id="activeCases">0</h2>
+        <div class="complaint-desk-grid">
+            <!-- SEARCH / TRACK CARD -->
+            <div class="desk-card">
+                <div class="desk-card-header">
+                    <h3>🔍 Live Complaint / FIR Status Lookup</h3>
+                    <span class="cctns-pill">CCTNS PORTAL</span>
+                </div>
+                <p>Enter your <strong>Complaint ID (e.g. CMP-...)</strong> or registered <strong>10-digit mobile number</strong> to retrieve current investigation status.</p>
+                
+                <div class="track-input-group">
+                    <input type="text" id="citizenComplaintInput" placeholder="Enter Reference No or Mobile (e.g. CMP-MUOD... or 9876543210)">
+                    <button onclick="trackCitizenComplaint()" class="primary-btn">Track Status</button>
+                </div>
+
+                <!-- LIVE RESULT CONTAINER -->
+                <div id="complaintResultContainer" style="display:none; margin-top: 20px;"></div>
+            </div>
+
+            <!-- REGISTER NEW COMPLAINT ACTION CARD -->
+            <div class="desk-card highlight-card">
+                <div class="desk-card-header">
+                    <h3>📝 Register New e-Complaint</h3>
+                    <span class="official-pill">OFFICIAL CIVIC PORTAL</span>
+                </div>
+                <p>Report incidents online without visiting the police station immediately. Receive digital tracking ID and official printable acknowledgement receipt.</p>
+                <ul class="c-features-list">
+                    <li>✓ Theft, Loss of Mobile/Documents & Harassment reports</li>
+                    <li>✓ Automatic assignment to local Gorakhpur precinct</li>
+                    <li>✓ Real-time status updates via SMS and dashboard</li>
+                </ul>
+                <button onclick="openComplaintModal()" class="action-register-btn">
+                    + Register e-Complaint Now
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= SPECIALIZED SAFETY HUBS: MISSION SHAKTI, CYBER 1930 & HOTLIST ================= -->
+    <section class="specialized-safety-grid">
+        <!-- 1. MISSION SHAKTI & WOMEN SAFETY -->
+        <div class="safety-module-card pink-theme">
+            <div class="module-header">
+                <div class="mod-icon">🌸</div>
+                <div>
+                    <span class="mod-sub">UP POLICE SPECIAL INITIATIVE</span>
+                    <h3>Mission Shakti & Women Safety</h3>
+                </div>
+            </div>
+            <p>Specialized protection, Pink Booth support, and automated night travel monitoring across Gorakhpur city.</p>
+
+            <div class="shakti-actions">
+                <button onclick="openSafeRideModal()" class="shakti-btn">
+                    🚶‍♀️ Track My Night Ride / Safe Walk
+                </button>
+                <div class="pink-booth-preview">
+                    <strong>Gorakhpur Pink Booths:</strong>
+                    <span>• Golghar Market Central</span>
+                    <span>• Nauka Vihar Ramgarh Tal</span>
+                    <span>• University Gate Chauraha</span>
+                </div>
+                <a href="tel:1090" class="call-1090-link">📞 Dial 1090 Women Powerline (24x7 Direct)</a>
+            </div>
         </div>
 
-    </div>
+        <!-- 2. CYBER CRIME 1930 RAPID FREEZE -->
+        <div class="safety-module-card blue-theme">
+            <div class="module-header">
+                <div class="mod-icon">💻</div>
+                <div>
+                    <span class="mod-sub">NATIONAL CYBER CRIME 1930</span>
+                    <h3>Cyber Crime "Golden Hour" Freeze</h3>
+                </div>
+            </div>
+            <p>Victim of online banking, UPI fraud, or digital arrest scam? File immediate freeze request within the golden hour to freeze fraudulent bank accounts.</p>
 
-
-    <div class="stat-card">
-
-        <div class="stat-icon">
-            🚔
+            <div class="cyber-actions">
+                <button onclick="openCyberFreezeModal()" class="cyber-freeze-btn">
+                    ⚡ Urgent Fraud Transaction Freeze
+                </button>
+                <div class="cyber-tips">
+                    <small>⚠️ Never share OTP or download remote screen-sharing APKs like AnyDesk/TeamViewer.</small>
+                </div>
+                <a href="tel:1930" class="call-1930-link">📞 Dial 1930 Cyber Fraud Helpline</a>
+            </div>
         </div>
 
-        <div>
-            <span>ACTIVE UNITS</span>
-            <h2 id="activeUnits">0</h2>
+        <!-- 3. STOLEN VEHICLE & HOTLIST SEARCH -->
+        <div class="safety-module-card amber-theme">
+            <div class="module-header">
+                <div class="mod-icon">🔍</div>
+                <div>
+                    <span class="mod-sub">STOLEN PROPERTY VERIFICATION</span>
+                    <h3>Stolen Vehicle & Property Hotlist</h3>
+                </div>
+            </div>
+            <p>Buying a used bike/car or verifying suspicious vehicles? Search Gorakhpur Police stolen vehicle and blocked mobile database.</p>
+
+            <div class="hotlist-search-box">
+                <div class="search-row">
+                    <input type="text" id="hotlistSearchInput" placeholder="Vehicle Reg (e.g. UP53BL8940) or IMEI">
+                    <button onclick="searchPoliceHotlist()" class="amber-btn">Verify</button>
+                </div>
+                <div id="hotlistResultBox" style="display:none; margin-top: 12px;"></div>
+            </div>
         </div>
 
-    </div>
+        <!-- 4. TENANT & DOMESTIC HELP VERIFICATION -->
+        <div class="safety-module-card green-theme">
+            <div class="module-header">
+                <div class="mod-icon">📜</div>
+                <div>
+                    <span class="mod-sub">CITIZEN VERIFICATION</span>
+                    <h3>Tenant & Domestic Help Police Verification</h3>
+                </div>
+            </div>
+            <p>Submit online verification requests for new tenants, domestic helpers, drivers, or security guards before hiring or leasing.</p>
 
+            <div class="verification-actions">
+                <button onclick="openVerificationModal()" class="green-btn">
+                    📋 Submit Verification Request
+                </button>
+                <button onclick="checkVerificationStatusPrompt()" class="green-outline-btn">
+                    🔍 Track Verification Application
+                </button>
+            </div>
+        </div>
+    </section>
 
-    <div class="stat-card">
-
-        <div class="stat-icon">
-            ⚠️
+    <!-- ================= POLICE INCIDENTS & PUBLIC ADVISORIES ================= -->
+    <section class="incident-section" id="incidentsSection">
+        <div class="section-title">
+            <span>PUBLIC ADVISORIES</span>
+            <h2>Active Police Incidents & Notices</h2>
+            <p>Verified public notices, traffic diversions, and alert advisories issued by Gorakhpur Police Commissionerate.</p>
         </div>
 
-        <div>
-            <span>HIGH PRIORITY</span>
-            <h2 id="highPriority">0</h2>
+        <div class="incident-grid" id="incidentGrid">
+            <!-- Rendered by police.js -->
         </div>
-
-    </div>
-
-
-    <div class="stat-card">
-
-        <div class="stat-icon">
-            📊
-        </div>
-
-        <div>
-            <span>LAST UPDATED</span>
-            <h2 id="lastUpdated">--</h2>
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ================= CITIZEN POLICE ADVISORY & QUICK HELPLINES ================= -->
-<section style="max-width: min(1400px, 94%); margin: 0 auto 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #1e3a8a; border-radius: 14px; padding: 20px;">
-        <h3 style="font-size: 15px; color: #1e3a8a; margin-bottom: 6px;">📞 Emergency Police Helplines</h3>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Direct hotline connections for immediate assistance across Gorakhpur district.</p>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <span style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 13px;">🚨 Dial 112 (Emergency)</span>
-            <span style="background: #fdf2f8; border: 1px solid #fbcfe8; color: #9d174d; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 13px;">👩 Women PowerLine: 1090</span>
-            <span style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 13px;">💻 Cyber Crime: 1930</span>
-        </div>
-    </div>
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid #059669; border-radius: 14px; padding: 20px;">
-        <h3 style="font-size: 15px; color: #065f46; margin-bottom: 6px;">🛡️ Citizen e-FIR & Complaint Desk</h3>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Track registered non-cognizable reports, lost property reports, and police clearance status.</p>
-        <div style="display: flex; gap: 8px;">
-            <input type="text" id="citizenFirInput" placeholder="Enter FIR / Complaint Reference No..." style="flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
-            <button onclick="alert('FIR status lookup connected to UP Police CCTNS portal. Status: Active & Under Processing.')" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;">Check Status</button>
-        </div>
-    </div>
-</section>
-
-
-<!-- ================= POLICE INCIDENTS ================= -->
-
-<section class="incident-section" id="incidentsSection">
-
-    <div class="section-title">
-
-        <span>
-            PUBLIC ADVISORIES
-        </span>
-
-        <h2>
-            Active Police Incidents & Notices
-        </h2>
-
-    </div>
-
-
-    <div
-        class="incident-grid"
-        id="incidentGrid"
-    >
-    </div>
-
-</section>
+    </section>
 
 </div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
 
@@ -235,9 +390,7 @@
     <div class="layer-gatekeeper-card" id="staffGatekeeper">
         <div class="gatekeeper-icon">🔒</div>
         <h3>Police Staff Operations Access Restricted</h3>
-        <p>
-            This layer is reserved for verified Gorakhpur Police department officers, station duty officers, and rapid response units.
-        </p>
+        <p>This layer is reserved for verified Gorakhpur Police department officers, station duty officers, and rapid response units.</p>
         <button class="primary-btn" onclick="promptPoliceStaffLogin()">
             ⚡ Log in as Police Staff (POL001)
         </button>
@@ -246,374 +399,159 @@
     <!-- STAFF OPERATIONS MAIN CONTAINER -->
     <div id="staffOperationsMain" style="display:none;">
 
-        <!-- ================= POLICE STAFF CONTROL ================= -->
+        <!-- ================= LIVE SOS DISPATCH FEED ================= -->
+        <section class="staff-sos-feed-section" style="margin-bottom: 25px;">
+            <div class="section-title" style="text-align: left; margin-bottom: 15px;">
+                <span>REAL-TIME DISPATCH</span>
+                <h2>🚨 Incoming Emergency SOS Alerts</h2>
+            </div>
+            <div class="staff-table-card">
+                <table class="staff-data-table" id="staffSosTable">
+                    <thead>
+                        <tr>
+                            <th>Alert ID</th>
+                            <th>Citizen</th>
+                            <th>Mobile</th>
+                            <th>Nearest Station</th>
+                            <th>Distance</th>
+                            <th>Dispatched Unit</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffSosTableBody">
+                        <tr><td colspan="8" style="text-align:center;">Loading SOS alerts...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-        <section
-            class="staff-section"
-            id="policeControl"
-        >
-
+        <!-- ================= POLICE STAFF CONTROL PANEL ================= -->
+        <section class="staff-section" id="policeControl">
             <div class="section-title">
-
-                <span>
-                    POLICE STAFF
-                </span>
-
-                <h2>
-                    Police Control Center
-                </h2>
-
-                <p id="staffAccessText">
-                    Checking permissions...
-                </p>
-
+                <span>POLICE STAFF</span>
+                <h2>Police Incident Control Center</h2>
+                <p id="staffAccessText">Checking permissions...</p>
             </div>
 
-
-            <div
-                class="staff-control-panel"
-                id="staffControlPanel"
-            >
-
+            <div class="staff-control-panel" id="staffControlPanel">
                 <div class="control-header">
-
                     <div>
-
-                        <span>
-                            AUTHORIZED ACCESS
-                        </span>
-
-                        <h3>
-                            Police Incident Management
-                        </h3>
-
+                        <span>AUTHORIZED ACCESS</span>
+                        <h3>Police Incident Management</h3>
                     </div>
-
-                    <div class="control-status">
-                        ● CONTROL ENABLED
-                    </div>
-
+                    <div class="control-status">● CONTROL ENABLED</div>
                 </div>
-
 
                 <!-- SELECT CASE -->
-
                 <div class="control-group">
-
-                    <label>
-                        Select Incident
-                    </label>
-
+                    <label>Select Incident</label>
                     <select id="incidentSelect">
-
-                        <option value="">
-                            Select incident
-                        </option>
-
+                        <option value="">Select incident</option>
                     </select>
-
                 </div>
-
 
                 <div class="control-grid">
-
-
                     <!-- STATUS -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            🚦
-                        </div>
-
-                        <h4>
-                            Incident Status
-                        </h4>
-
-                        <p>
-                            Update police incident status.
-                        </p>
-
+                        <div class="control-icon">🚦</div>
+                        <h4>Incident Status</h4>
+                        <p>Update police incident status.</p>
                         <select id="incidentStatus">
-
-                            <option value="REPORTED">
-                                REPORTED
-                            </option>
-
-                            <option value="INVESTIGATING">
-                                INVESTIGATING
-                            </option>
-
-                            <option value="POLICE_DISPATCHED">
-                                POLICE DISPATCHED
-                            </option>
-
-                            <option value="ON_SCENE">
-                                ON SCENE
-                            </option>
-
-                            <option value="RESOLVED">
-                                RESOLVED
-                            </option>
-
+                            <option value="REPORTED">REPORTED</option>
+                            <option value="INVESTIGATING">INVESTIGATING</option>
+                            <option value="POLICE_DISPATCHED">POLICE DISPATCHED</option>
+                            <option value="ON_SCENE">ON SCENE</option>
+                            <option value="RESOLVED">RESOLVED</option>
                         </select>
-
                     </div>
-
 
                     <!-- PRIORITY -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            ⚠️
-                        </div>
-
-                        <h4>
-                            Priority
-                        </h4>
-
-                        <p>
-                            Change case priority.
-                        </p>
-
+                        <div class="control-icon">⚠️</div>
+                        <h4>Priority</h4>
+                        <p>Change case priority.</p>
                         <select id="incidentPriority">
-
-                            <option value="LOW">
-                                🟢 LOW
-                            </option>
-
-                            <option value="MEDIUM">
-                                🟡 MEDIUM
-                            </option>
-
-                            <option value="HIGH">
-                                🟠 HIGH
-                            </option>
-
-                            <option value="CRITICAL">
-                                🔴 CRITICAL
-                            </option>
-
+                            <option value="LOW">🟢 LOW</option>
+                            <option value="MEDIUM">🟡 MEDIUM</option>
+                            <option value="HIGH">🟠 HIGH</option>
+                            <option value="CRITICAL">🔴 CRITICAL</option>
                         </select>
-
                     </div>
-
 
                     <!-- POLICE UNIT -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            🚔
-                        </div>
-
-                        <h4>
-                            Police Unit
-                        </h4>
-
-                        <p>
-                            Assign police response unit.
-                        </p>
-
+                        <div class="control-icon">🚔</div>
+                        <h4>Police Unit</h4>
+                        <p>Assign police response unit.</p>
                         <select id="policeUnit">
-
-                            <option value="">
-                                No Unit
-                            </option>
-
-                            <option value="PATROL-01">
-                                Patrol Unit 01
-                            </option>
-
-                            <option value="PATROL-02">
-                                Patrol Unit 02
-                            </option>
-
-                            <option value="TRAFFIC-01">
-                                Traffic Unit 01
-                            </option>
-
-                            <option value="CRIME-01">
-                                Crime Investigation Unit
-                            </option>
-
+                            <option value="">No Unit</option>
+                            <option value="PRV-0241">PRV-0241 (Golghar)</option>
+                            <option value="PRV-0242">PRV-0242 (Mohaddipur)</option>
+                            <option value="PRV-0245">PRV-0245 (Medical)</option>
+                            <option value="PRV-0248">PRV-0248 (Pink Patrol)</option>
+                            <option value="PRV-0250">PRV-0250 (Cantt)</option>
                         </select>
-
                     </div>
-
 
                     <!-- LOCATION -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            📍
-                        </div>
-
-                        <h4>
-                            Location
-                        </h4>
-
-                        <p>
-                            Update incident location.
-                        </p>
-
-                        <input
-                            type="text"
-                            id="incidentLocation"
-                            placeholder="Incident location"
-                        >
-
-                        <button onclick="getPoliceLocation()">
-                            📍 Use My Location
-                        </button>
-
+                        <div class="control-icon">📍</div>
+                        <h4>Location</h4>
+                        <p>Update incident location.</p>
+                        <input type="text" id="incidentLocation" placeholder="Incident location">
+                        <button onclick="getPoliceLocation()">📍 Use My Location</button>
                     </div>
-
 
                     <!-- TEAM -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            👮
-                        </div>
-
-                        <h4>
-                            Response Team
-                        </h4>
-
-                        <p>
-                            Update responsible police team.
-                        </p>
-
-                        <input
-                            type="text"
-                            id="responseTeam"
-                            placeholder="Team name / ID"
-                        >
-
+                        <div class="control-icon">👮</div>
+                        <h4>Response Team</h4>
+                        <p>Update responsible police team.</p>
+                        <input type="text" id="responseTeam" placeholder="Team name / ID">
                     </div>
-
 
                     <!-- CASE TYPE -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            📋
-                        </div>
-
-                        <h4>
-                            Case Category
-                        </h4>
-
-                        <p>
-                            Update incident category.
-                        </p>
-
+                        <div class="control-icon">📋</div>
+                        <h4>Case Category</h4>
+                        <p>Update incident category.</p>
                         <select id="caseCategory">
-
-                            <option value="THEFT">
-                                Theft
-                            </option>
-
-                            <option value="ROBBERY">
-                                Robbery
-                            </option>
-
-                            <option value="ASSAULT">
-                                Assault
-                            </option>
-
-                            <option value="CYBER">
-                                Cyber Crime
-                            </option>
-
-                            <option value="TRAFFIC">
-                                Traffic Violation
-                            </option>
-
-                            <option value="OTHER">
-                                Other
-                            </option>
-
+                            <option value="THEFT">Theft</option>
+                            <option value="ROBBERY">Robbery</option>
+                            <option value="ASSAULT">Assault</option>
+                            <option value="CYBER">Cyber Crime</option>
+                            <option value="TRAFFIC">Traffic Violation</option>
+                            <option value="OTHER">Other</option>
                         </select>
-
                     </div>
-
 
                     <!-- RESOLVE -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            ✅
-                        </div>
-
-                        <h4>
-                            Resolve Case
-                        </h4>
-
-                        <p>
-                            Close the selected police incident.
-                        </p>
-
-                        <button
-                            class="resolve-btn"
-                            onclick="resolvePoliceCase()"
-                        >
-                            ✓ Resolve / Close
-                        </button>
-
+                        <div class="control-icon">✅</div>
+                        <h4>Resolve Case</h4>
+                        <p>Close the selected police incident.</p>
+                        <button class="resolve-btn" onclick="resolvePoliceCase()">✓ Resolve / Close</button>
                     </div>
-
 
                     <!-- CASE NOTE -->
-
                     <div class="control-card">
-
-                        <div class="control-icon">
-                            📝
-                        </div>
-
-                        <h4>
-                            Case Note
-                        </h4>
-
-                        <p>
-                            Add internal response note.
-                        </p>
-
-                        <input
-                            type="text"
-                            id="caseNote"
-                            placeholder="Enter case note"
-                        >
-
+                        <div class="control-icon">📝</div>
+                        <h4>Case Note</h4>
+                        <p>Add internal response note.</p>
+                        <input type="text" id="caseNote" placeholder="Enter case note">
                     </div>
-
                 </div>
-
 
                 <div class="control-footer">
-
-                    <button
-                        class="save-control-btn"
-                        onclick="savePoliceIncident()"
-                    >
+                    <button class="save-control-btn" onclick="savePoliceIncident()">
                         💾 Save Police Changes
                     </button>
-
                 </div>
-
             </div>
-
         </section>
 
     </div>
-
 </div> <!-- ================= END LAYER 2 (STAFF) ================= -->
 
 
@@ -626,9 +564,7 @@
     <div class="layer-gatekeeper-card" id="adminGatekeeper">
         <div class="gatekeeper-icon">🔒</div>
         <h3>Police Crime Intelligence & Admin Restricted</h3>
-        <p>
-            Access to Gorakhpur crime trends, area distribution analytics, and station management is restricted to senior police administrators.
-        </p>
+        <p>Access to Gorakhpur crime trends, area distribution analytics, and station management is restricted to senior police administrators.</p>
         <button class="primary-btn" onclick="promptPoliceAdminLogin()">
             ⚡ Log in as Police Admin
         </button>
@@ -638,201 +574,335 @@
     <div id="adminAssetsMain" style="display:none;">
 
         <!-- ================= CRIME ANALYTICS ================= -->
-
-        <section
-            class="analytics-section"
-            id="analytics"
-        >
-
+        <section class="analytics-section" id="analytics">
             <div class="section-title">
-
-                <span>
-                    GORAKHPUR CRIME INTELLIGENCE
-                </span>
-
-                <h2>
-                    Crime Analytics & Predictive Patterns
-                </h2>
-
-                <p>
-                    Month-wise crime trend and area-wise
-                    crime distribution for Gorakhpur.
-                </p>
-
+                <span>GORAKHPUR CRIME INTELLIGENCE</span>
+                <h2>Crime Analytics & Predictive Patterns</h2>
+                <p>Month-wise crime trend and area-wise crime distribution for Gorakhpur district.</p>
             </div>
-
 
             <!-- DATA SOURCE -->
-
             <div class="data-source-box">
-
                 <div>
-
-                    <strong>
-                        DATA SOURCE
-                    </strong>
-
-                    <p id="dataSourceText">
-                        Waiting for verified crime-data source
-                    </p>
-
+                    <strong>DATA SOURCE</strong>
+                    <p id="dataSourceText">Gorakhpur Police Statistics Registry (MySQL / CCTNS)</p>
                 </div>
-
-
                 <div class="source-right">
-
-                    <span id="dataStatus">
-                        ● NOT CONNECTED
-                    </span>
-
-                    <button onclick="refreshCrimeData()">
-                        ↻ Refresh Data
-                    </button>
-
+                    <span id="dataStatus">● LIVE CONNECTED</span>
+                    <button onclick="refreshCrimeData()">↻ Refresh Data</button>
                 </div>
-
             </div>
-
 
             <div class="analytics-grid">
-
-
                 <!-- MONTHLY TREND -->
-
                 <div class="chart-card">
-
                     <div class="chart-header">
-
                         <div>
-
-                            <span>
-                                LAST 6 MONTHS
-                            </span>
-
-                            <h3>
-                                Gorakhpur Crime Trend
-                            </h3>
-
+                            <span>LAST 6 MONTHS</span>
+                            <h3>Gorakhpur Crime Trend</h3>
                         </div>
-
-                        <span class="chart-badge">
-                            LIVE DATA
-                        </span>
-
+                        <span class="chart-badge">LIVE DATA</span>
                     </div>
-
-
                     <div class="chart-wrapper">
-
-                        <canvas
-                            id="crimeTrendChart"
-                        ></canvas>
-
+                        <canvas id="crimeTrendChart"></canvas>
                     </div>
-
                 </div>
-
 
                 <!-- AREA ANALYSIS -->
-
                 <div class="chart-card">
-
                     <div class="chart-header">
-
                         <div>
-
-                            <span>
-                                AREA ANALYSIS
-                            </span>
-
-                            <h3>
-                                Crime by Area
-                            </h3>
-
+                            <span>AREA ANALYSIS</span>
+                            <h3>Crime by Area</h3>
                         </div>
-
-                        <span class="chart-badge">
-                            VERIFIED
-                        </span>
-
+                        <span class="chart-badge">VERIFIED</span>
                     </div>
-
-
                     <div class="chart-wrapper">
-
-                        <canvas
-                            id="areaCrimeChart"
-                        ></canvas>
-
+                        <canvas id="areaCrimeChart"></canvas>
                     </div>
-
                 </div>
-
             </div>
-
 
             <!-- CATEGORY -->
-
             <div class="category-card">
-
                 <div class="chart-header">
-
                     <div>
-
-                        <span>
-                            CRIME CATEGORY
-                        </span>
-
-                        <h3>
-                            Crime Distribution
-                        </h3>
-
+                        <span>CRIME CATEGORY</span>
+                        <h3>Crime Distribution</h3>
                     </div>
-
                 </div>
-
-
-                <div
-                    class="category-grid"
-                    id="categoryGrid"
-                >
-                </div>
-
+                <div class="category-grid" id="categoryGrid"></div>
             </div>
-
-
-            <div class="data-warning">
-
-                ⚠️
-                <span>
-                    Crime statistics shown here must come from
-                    an authorized/verified data source.
-                    Demo fallback values are never presented
-                    as official Gorakhpur crime statistics.
-                </span>
-
-            </div>
-
         </section>
-
     </div>
-
 </div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
 
-<!-- ================= TOAST ================= -->
+<!-- =========================================================
+     MODALS: SOS, COMPLAINT, SAFE RIDE, CYBER, VERIFICATION
+========================================================= -->
 
-<div
-    id="toast"
-    class="toast"
->
+<!-- 1. SOS CONFIRMATION MODAL -->
+<div id="sosModal" class="police-modal-overlay" style="display:none;">
+    <div class="police-modal-box sos-modal-box">
+        <div class="modal-header">
+            <h3>🚨 EMERGENCY SOS DISPATCH ACTIVATED</h3>
+            <button class="close-modal-btn" onclick="closeModal('sosModal')">✕</button>
+        </div>
+        <div class="modal-body" id="sosModalBody">
+            <!-- Dynamic content via police.js -->
+        </div>
+        <div class="modal-footer">
+            <a href="tel:112" class="modal-call-btn">📞 Call Dial 112 Directly</a>
+            <button class="secondary-btn" onclick="closeModal('sosModal')">Close</button>
+        </div>
+    </div>
 </div>
 
+<!-- 2. E-COMPLAINT REGISTRATION MODAL -->
+<div id="complaintModal" class="police-modal-overlay" style="display:none;">
+    <div class="police-modal-box">
+        <div class="modal-header">
+            <h3>📝 Register Citizen e-Complaint / e-FIR</h3>
+            <button class="close-modal-btn" onclick="closeModal('complaintModal')">✕</button>
+        </div>
+        <form id="eComplaintForm" onsubmit="submitCitizenComplaint(event)" class="modal-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Your Full Name *</label>
+                    <input type="text" id="cmpCitizenName" required placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number *</label>
+                    <input type="tel" id="cmpMobile" required placeholder="10-digit Mobile" pattern="[0-9]{10}">
+                </div>
+            </div>
 
-<!-- Chart.js -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Complaint Category *</label>
+                    <select id="cmpCategory" required>
+                        <option value="Theft">Theft / Larceny</option>
+                        <option value="Cybercrime">Cyber Crime / Online Fraud</option>
+                        <option value="Harassment">Harassment / Eve Teasing</option>
+                        <option value="Missing Person">Missing Person</option>
+                        <option value="Traffic Violation">Traffic Violation / Hit & Run</option>
+                        <option value="Property Dispute">Property / Land Dispute</option>
+                        <option value="Assault">Physical Assault</option>
+                        <option value="Other">Other Grievance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Jurisdiction Police Station *</label>
+                    <select id="cmpStation" required>
+                        <option value="1">Kotwali Police Station</option>
+                        <option value="2">Civil Lines Police Station</option>
+                        <option value="3">Cantt Police Station</option>
+                        <option value="4">Sahjanwa Police Station</option>
+                        <option value="5">Gorakhpur Junction Post</option>
+                        <option value="6">Medical College Outpost</option>
+                        <option value="7">Gola Bazar Police Station</option>
+                        <option value="8">AIIMS Security Post</option>
+                    </select>
+                </div>
+            </div>
 
+            <div class="form-group">
+                <label>Subject / Summary *</label>
+                <input type="text" id="cmpSubject" required placeholder="Brief title (e.g. Mobile stolen near Golghar market)">
+            </div>
+
+            <div class="form-group">
+                <label>Detailed Description of Incident *</label>
+                <textarea id="cmpDescription" rows="4" required placeholder="Describe what happened, date, time, suspects, or item details..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="primary-btn">Submit e-Complaint</button>
+                <button type="button" class="secondary-btn" onclick="closeModal('complaintModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 3. SAFE RIDE REGISTRATION MODAL -->
+<div id="safeRideModal" class="police-modal-overlay" style="display:none;">
+    <div class="police-modal-box">
+        <div class="modal-header">
+            <h3>🌸 Mission Shakti: Track My Night Ride / Safe Walk</h3>
+            <button class="close-modal-btn" onclick="closeModal('safeRideModal')">✕</button>
+        </div>
+        <form id="safeRideForm" onsubmit="submitSafeRide(event)" class="modal-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Citizen Name *</label>
+                    <input type="text" id="srName" required placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label>Your Mobile Number *</label>
+                    <input type="tel" id="srMobile" required placeholder="10-digit Mobile" pattern="[0-9]{10}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Starting Point (Origin) *</label>
+                    <input type="text" id="srOrigin" required placeholder="e.g. Gorakhpur Railway Station">
+                </div>
+                <div class="form-group">
+                    <label>Destination *</label>
+                    <input type="text" id="srDestination" required placeholder="e.g. BRD Medical College Hostel">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Emergency Contact (Family/Friend) *</label>
+                    <input type="tel" id="srEmergencyContact" required placeholder="Emergency Phone" pattern="[0-9]{10}">
+                </div>
+                <div class="form-group">
+                    <label>Vehicle / Transport Details</label>
+                    <input type="text" id="srVehicle" placeholder="e.g. Auto UP53T 1234 / Ola Cab / Walking">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Estimated Travel Minutes</label>
+                <input type="number" id="srEta" value="25" min="5" max="180">
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="shakti-btn">Activate Safe Ride Monitoring</button>
+                <button type="button" class="secondary-btn" onclick="closeModal('safeRideModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 4. CYBER CRIME RAPID FREEZE MODAL -->
+<div id="cyberFreezeModal" class="police-modal-overlay" style="display:none;">
+    <div class="police-modal-box">
+        <div class="modal-header">
+            <h3>💻 1930 Cyber Fraud Rapid Freeze Desk</h3>
+            <button class="close-modal-btn" onclick="closeModal('cyberFreezeModal')">✕</button>
+        </div>
+        <form id="cyberFreezeForm" onsubmit="submitCyberFreeze(event)" class="modal-form">
+            <div class="alert-box-urgent">
+                ⚡ <strong>GOLDEN HOUR ALERT:</strong> Urgent reporting allows police cyber cell to instruct payment gateways & banks to place lien/hold on beneficiary accounts before cash withdrawal.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Victim Full Name *</label>
+                    <input type="text" id="cybName" required placeholder="Account Holder Name">
+                </div>
+                <div class="form-group">
+                    <label>Contact Mobile *</label>
+                    <input type="tel" id="cybMobile" required placeholder="10-digit Mobile" pattern="[0-9]{10}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Transaction Reference (UTR / UPI Ref No) *</label>
+                    <input type="text" id="cybUtr" required placeholder="12-digit UTR or Transaction ID">
+                </div>
+                <div class="form-group">
+                    <label>Amount Lost (₹) *</label>
+                    <input type="number" id="cybAmount" required placeholder="e.g. 25000">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Your Bank Name *</label>
+                    <input type="text" id="cybBank" required placeholder="e.g. SBI, HDFC, PNB, Paytm">
+                </div>
+                <div class="form-group">
+                    <label>Fraud Type *</label>
+                    <select id="cybType">
+                        <option value="UPI QR Scam">UPI QR Code Scam</option>
+                        <option value="Digital Arrest / Police Impersonation">Digital Arrest / Video Call Extortion</option>
+                        <option value="Part-time Job Telegram Scam">Part-time Job / Telegram Investment Scam</option>
+                        <option value="Electricity Bill Cutoff Scam">Electricity Bill Disconnection Scam</option>
+                        <option value="Credit Card / OTP Compromise">Credit Card / OTP Compromise</option>
+                        <option value="Other Financial Fraud">Other Financial Fraud</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Suspect Details (Phone number / UPI ID / Account Number if known)</label>
+                <input type="text" id="cybSuspect" placeholder="e.g. UPI ID: fraudster@ybl, Ph: 98765...">
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="cyber-freeze-btn">⚡ Submit Urgent Freeze Alert</button>
+                <button type="button" class="secondary-btn" onclick="closeModal('cyberFreezeModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 5. TENANT VERIFICATION MODAL -->
+<div id="verificationModal" class="police-modal-overlay" style="display:none;">
+    <div class="police-modal-box">
+        <div class="modal-header">
+            <h3>📋 Tenant & Domestic Help Police Verification</h3>
+            <button class="close-modal-btn" onclick="closeModal('verificationModal')">✕</button>
+        </div>
+        <form id="verificationForm" onsubmit="submitPoliceVerification(event)" class="modal-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Landlord / Employer Name *</label>
+                    <input type="text" id="verAppName" required placeholder="Applicant Name">
+                </div>
+                <div class="form-group">
+                    <label>Landlord Contact Mobile *</label>
+                    <input type="tel" id="verAppMobile" required placeholder="10-digit Mobile" pattern="[0-9]{10}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Candidate (Tenant / Worker) Name *</label>
+                    <input type="text" id="verCandName" required placeholder="Candidate Full Name">
+                </div>
+                <div class="form-group">
+                    <label>Candidate Role *</label>
+                    <select id="verCandType">
+                        <option value="Tenant">Tenant (किरायेदार)</option>
+                        <option value="Domestic Help">Domestic Help (घरेलू सहायक)</option>
+                        <option value="Driver">Driver (चालक)</option>
+                        <option value="Security Guard">Security Guard (सुरक्षा गार्ड)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Candidate Aadhaar Number *</label>
+                    <input type="text" id="verCandAadhar" required placeholder="12-digit Aadhaar" pattern="[0-9]{12}">
+                </div>
+                <div class="form-group">
+                    <label>Police Station Jurisdiction *</label>
+                    <select id="verStation">
+                        <option value="PS-001">Kotwali Police Station</option>
+                        <option value="PS-002">Civil Lines Police Station</option>
+                        <option value="PS-003">Cantt Police Station</option>
+                        <option value="PS-004">Sahjanwa Police Station</option>
+                        <option value="PS-006">Medical College Outpost</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Rental / Employment Address in Gorakhpur *</label>
+                <textarea id="verAddress" rows="2" required placeholder="Complete house address, ward, landmark..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="green-btn">Submit Verification Application</button>
+                <button type="button" class="secondary-btn" onclick="closeModal('verificationModal')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= TOAST NOTIFICATION ================= -->
+<div id="toast" class="toast"></div>
+
+<!-- ================= EXTERNAL SCRIPTS ================= -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../../components/ui_components.js"></script>
 <script src="../../api/client.js"></script>
 <script src="../../api/police.api.js"></script>

@@ -257,6 +257,8 @@ class TrafficEngine {
                 this.io.emit("traffic:congestion_updated", {
                     timestamp: Date.now(),
                     source: "CCTV_AI_OPTICAL_SENSORS",
+                    provenance: "SIMULATED",
+                    data_source: "SIMULATED",
                     junctions: updatedJunctions
                 });
             }
