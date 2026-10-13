@@ -44,10 +44,19 @@
         <span>👤</span> 1. Citizen Water Services
     </button>
     <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchWaterLayer('staff')">
-        <span>⚡</span> 2. Water Staff Operations
+        <span>⚡</span> 2. Staff Work Orders Desk
+    </button>
+    <button id="tab-btn-flow" class="layer-tab-btn" onclick="switchWaterLayer('flow')">
+        <span>🌊</span> 3. Flow Control Desk
+    </button>
+    <button id="tab-btn-faults" class="layer-tab-btn" onclick="switchWaterLayer('faults')">
+        <span>🔍</span> 4. Faults & Provenance Desk
     </button>
     <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchWaterLayer('admin')">
-        <span>⚙️</span> 3. Water Infrastructure & SCADA
+        <span>⚙️</span> 5. Water Assets & SCADA
+    </button>
+    <button id="tab-btn-sewage" class="layer-tab-btn" onclick="switchWaterLayer('sewage')">
+        <span>📐</span> 6. Water & Sewage Planner
     </button>
 </div>
 
@@ -133,37 +142,107 @@
     <!-- ================= SHARED LIVE WATER MAP ================= -->
     <section class="section-card">
 
-        <div class="section-heading">
+        <div class="section-heading" style="flex-wrap: wrap; gap: 14px;">
             <div>
                 <span class="section-label">
-                    LIVE TELEMETRY
+                    LIVE SCADA TELEMETRY & 3D DIGITAL TWIN
                 </span>
                 <h2>
                     🗺️ Water Infrastructure & Pipeline Map
                 </h2>
             </div>
 
-            <div class="map-legend">
-                <span>
-                    <i class="dot blue-dot"></i>
-                    Water Tank
+            <!-- 2D / 3D Switcher & Telemetry Mode Pill -->
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="view-switch-group">
+                    <button type="button" id="btnView2D" class="view-switch-btn active" onclick="toggleWaterDimension('2d')">
+                        🗺️ 2D Geographic GIS
+                    </button>
+                    <button type="button" id="btnView3D" class="view-switch-btn" onclick="toggleWaterDimension('3d')">
+                        🧊 3D Pipeline Explorer
+                    </button>
+                </div>
+                <span id="telemetryModeBadge" class="telemetry-pill-btn simulated" onclick="toggleTelemetrySimulator()" title="Click to toggle between SIMULATED SCADA and DATABASE RECORDS (Physical Hardware Unverified)">
+                    ● Telemetry: <strong>SIMULATED SCADA</strong>
                 </span>
-                <span>
-                    <i class="dot green-dot"></i>
-                    Active Flow
-                </span>
-                <span>
-                    <i class="dot red-dot"></i>
-                    Leakage / Burst
-                </span>
-                <span>
-                    <i class="dot orange-dot"></i>
-                    Low Pressure
-                </span>
+            </div>
+
+                <span><i class="dot blue-dot"></i> Potable Supply</span>
+                <span><i class="dot orange-dot" style="background:#ea580c;"></i> Wastewater Conduit</span>
+                <span><i class="dot green-dot" style="background:#10b981;"></i> Reclaimed Water</span>
+                <span><i class="dot" style="background:#7c3aed;"></i> STP Plant</span>
+                <span><i class="dot red-dot"></i> Leakage / Burst</span>
+                <span><i class="dot orange-dot"></i> Low Pressure</span>
+                <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; color:#ea580c;"><i class="dot" style="background:#ea580c;"></i> Proposed Sewer (3D) <input type="checkbox" id="chk3DSewageRoute" checked onchange="window.toggle3DSewageVisibility(this.checked)" style="margin-left:2px; cursor:pointer;" title="Toggle 3D Proposed Sewer Line"></span>
             </div>
         </div>
 
+        <!-- 2D LEAFLET MAP -->
         <div id="waterMap" class="water-map"></div>
+
+        <!-- 3D THREE.JS PIPELINE EXPLORER -->
+        <div id="water3DContainer" class="water-3d-wrapper" style="display: none;">
+            <div class="water-3d-toolbar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.2);">
+                <div class="toolbar-left" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span class="badge-3d-live" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">WebGL 3D Active</span>
+                    <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('isometric')">🎥 Isometric</button>
+                    <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('top')">⬆️ Top-Down</button>
+                    <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('stp')">🏭 STP Facility</button>
+                </div>
+                <div class="toolbar-mid" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1;">
+                    <span title="Vertical exaggeration enables inspection of underground depth without distorting horizontal coordinates">📐 Depth Exaggeration:</span>
+                    <input type="range" id="rngVerticalExaggeration" min="1.0" max="5.0" step="0.5" value="2.0" oninput="window.Water3DExplorer && window.Water3DExplorer.setVerticalExaggeration(this.value)" style="width: 80px; cursor: pointer;">
+                    <span id="exaggerationLabel" style="font-weight: 700; color: #38bdf8;">2.0x</span>
+                    <span class="schematic-badge" style="font-size: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; padding: 2px 6px; border-radius: 4px;" title="Schematic cutaway visualization. Not a certified engineering survey model.">🧪 Schematic 3D</span>
+                </div>
+                <div class="toolbar-right" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    <span class="legend-chip potable" style="background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Potable Water</span>
+                    <span class="legend-chip wastewater" style="background: rgba(194, 65, 12, 0.2); color: #fb923c; border: 1px solid rgba(194, 65, 12, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Sewage / Sewer</span>
+                    <span class="legend-chip reclaimed" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Reclaimed</span>
+                    <span class="legend-chip stormwater" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Stormwater</span>
+                </div>
+            </div>
+            <!-- Subterranean disclaimer banner -->
+            <div style="background: rgba(11, 19, 43, 0.9); padding: 4px 14px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <span>🌊 Directional flow animation: <em>Simulated particle dynamics</em>. SCADA pressure/flow values: <em>Verified where indicated</em>.</span>
+                <span style="color: #64748b;">Click any 3D pipe or chamber to inspect details</span>
+            </div>
+            <div id="water3DCanvasContainer" style="width: 100%; height: 500px; position: relative;"></div>
+        </div>
+
+        <!-- SLIDE-OUT ASSET INSPECTOR DRAWER -->
+        <div id="waterAssetDrawer" class="water-asset-drawer" style="display: none;">
+            <div class="drawer-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="drawerAssetIcon" style="font-size: 24px;">🚰</span>
+                    <div>
+                        <h3 id="drawerAssetTitle" style="margin: 0; font-size: 15px; color: #f8fafc;">Asset Telemetry</h3>
+                        <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                            <span id="drawerAssetId" style="font-size: 11px; color: #94a3b8; font-weight: 700;">ID: --</span>
+                            <span id="drawerAssetType" style="font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 1px 6px; border-radius: 4px; font-weight: 700;">TYPE</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="drawer-close-btn" onclick="closeWaterAssetDrawer()">×</button>
+            </div>
+
+            <!-- Provenance & Zone -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px;">
+                <span id="drawerProvenanceBadge"></span>
+                <span id="drawerAssetZone" style="color: #94a3b8;">Zone</span>
+            </div>
+
+            <!-- Telemetry Attributes Grid -->
+            <div id="drawerTelemetryBody"></div>
+
+            <!-- Work Orders Assigned to Asset -->
+            <div style="margin-top: 14px;">
+                <h4 style="font-size: 12px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 8px;">
+                    🔧 Assigned Maintenance Work Orders
+                </h4>
+                <div id="drawerWorkOrdersList"></div>
+            </div>
+        </div>
 
     </section>
 
@@ -264,6 +343,83 @@
 
         </section>
 
+        <!-- PUBLIC WATER SUPPLY STATUS & ANNOUNCED WATER CUTS -->
+        <section class="section-card" id="publicSupplyStatusSection" style="margin-bottom: 24px; border-left: 4px solid #0284c7;">
+            <div class="section-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="section-label">MUNICIPAL CITIZEN BULLETIN</span>
+                    <h2 style="margin: 4px 0;">🚰 Public Water Supply Status & Announced Maintenance Cuts</h2>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;">Verified civic supply timings, storage reserves, and scheduled pipeline shutdowns across all wards.</p>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span class="live-badge" id="publicCityHealthBadge">● SUPPLY NORMAL</span>
+                    <button type="button" class="action-btn-sm" onclick="window.loadPublicSupplyStatus && window.loadPublicSupplyStatus()" style="font-size: 12px; background: #fff; border: 1px solid #cbd5e1; cursor: pointer; padding: 6px 12px; font-weight: 600;">🔄 Refresh Status</button>
+                </div>
+            </div>
+
+            <!-- PUBLIC SUPPLY KPI STRIP -->
+            <div class="worker-stats" style="margin: 16px 0;">
+                <div class="worker-stat">
+                    <span>🚰</span>
+                    <div>
+                        <strong id="publicStoragePercent">91%</strong>
+                        <small>City Reservoir Reserves</small>
+                    </div>
+                </div>
+                <div class="worker-stat">
+                    <span>🚨</span>
+                    <div>
+                        <strong id="publicActiveCutsCount">0</strong>
+                        <small>Active Water Cuts</small>
+                    </div>
+                </div>
+                <div class="worker-stat">
+                    <span>📅</span>
+                    <div>
+                        <strong id="publicScheduledCutsCount">1</strong>
+                        <small>Scheduled Maintenance Cuts</small>
+                    </div>
+                </div>
+                <div class="worker-stat">
+                    <span>📞</span>
+                    <div>
+                        <strong style="font-size: 14px;">1800-180-2026</strong>
+                        <small>Jal Sansthan Helpline (24/7)</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANNOUNCED WATER CUTS ALERT BANNER -->
+            <div id="announcedWaterCutsAlertBox" style="margin-bottom: 16px;">
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #92400e; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <strong>⚠️ Scheduled Maintenance Notice:</strong> Pipeline interconnection work in <b>Golghar & Civil Lines</b>.
+                    </div>
+                    <span style="font-size: 12px; background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 4px; font-weight: 700;">Alternative Tankers On Standby</span>
+                </div>
+            </div>
+
+            <!-- ANNOUNCEMENTS TABLE -->
+            <div class="op-table-wrapper" style="max-height: 220px; overflow-y: auto;">
+                <table class="op-table" id="publicAnnouncementsTable">
+                    <thead>
+                        <tr>
+                            <th>Notice Title</th>
+                            <th>Type</th>
+                            <th>Affected Municipal Areas</th>
+                            <th>Shutdown Window</th>
+                            <th>Reason / Maintenance</th>
+                            <th>Alternative Arrangement</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="publicAnnouncementsTableBody">
+                        <tr><td colspan="7" style="text-align:center; padding:16px; color:#94a3b8;">Loading official water announcements...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- SUPPLY + QUALITY -->
         <section class="two-column">
 
@@ -276,7 +432,7 @@
                             SUPPLY
                         </span>
                         <h2>
-                            Water Supply Status
+                            Ward Distribution Schedules
                         </h2>
                     </div>
                     <span class="live-badge">
@@ -289,7 +445,7 @@
                         🚰
                     </div>
                     <div>
-                        <h2 class="green-text">
+                        <h2 class="green-text" id="citizenMainSupplyHeadline">
                             Supply Normal
                         </h2>
                         <p>
@@ -301,11 +457,11 @@
                 <div class="info-list">
                     <div>
                         <span>Pressure</span>
-                        <strong>Normal (2.8 bar)</strong>
+                        <strong id="citizenSupplyPressure">Normal (2.8 bar)</strong>
                     </div>
                     <div>
                         <span>Next Supply</span>
-                        <strong>06:00 AM</strong>
+                        <strong id="citizenNextSupplyTime">06:00 AM</strong>
                     </div>
                     <div>
                         <span>Duration</span>
@@ -315,12 +471,13 @@
 
                 <!-- Live Ward Supply Table -->
                 <div style="margin-top: 18px;">
-                    <h4 style="font-size: 13px; color: #475569; margin-bottom: 8px;">Ward-wise Supply Timings:</h4>
+                    <h4 style="font-size: 13px; color: #475569; margin-bottom: 8px;">Ward-wise Supply Timings & Areas:</h4>
                     <div class="op-table-wrapper" style="max-height: 180px; overflow-y: auto;">
                         <table class="op-table" id="citizenSchedulesTable">
                             <thead>
                                 <tr>
                                     <th>Zone</th>
+                                    <th>Supplied Areas</th>
                                     <th>Timing</th>
                                     <th>Status</th>
                                 </tr>
@@ -448,6 +605,31 @@
 
         </section>
 
+        <!-- VISITOR WATER COMPLAINT TRACKER -->
+        <section class="section-card" id="visitorComplaintsSection" style="margin-top: 24px; border-left: 4px solid #ef4444;">
+            <div class="section-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="section-label">PUBLIC GRIEVANCE RESOLUTION</span>
+                    <h2 style="margin: 4px 0;">🔍 Track Public Water Complaint & Grievances</h2>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;">Enter your complaint tracking ID (e.g. <code>WTR-CMP-...</code>) to check live municipal progress, assigned technicians, and SLA timelines.</p>
+                </div>
+                <button type="button" class="btn-action primary" onclick="openReportModal('water-quality')" style="font-size: 13px; padding: 8px 16px;">
+                    ✍️ Lodge New Water Complaint
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin: 16px 0; max-width: 600px;">
+                <input type="text" id="publicComplaintSearchInput" placeholder="Enter Tracking ID (e.g. WTR-CMP-...) or Mobile..." style="flex: 1; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+                <button type="button" class="btn-action primary" onclick="trackPublicWaterComplaint()" style="padding: 10px 18px; font-weight: 700;">
+                    🔍 Track
+                </button>
+            </div>
+
+            <div id="publicComplaintResultContainer" style="display: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-top: 12px;">
+                <!-- Populated by water.js -->
+            </div>
+        </section>
+
     </div>
 
 
@@ -470,6 +652,22 @@
 
         <!-- STAFF MAIN OPERATIONS -->
         <div id="staffOperationsMain" style="display:none;">
+
+            <!-- SCOPED AUTHORITY BANNER FOR STAFF -->
+            <div id="staffAuthorityScopeBanner" style="display:none; background: linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.7)); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <span style="font-size: 11px; font-weight: 700; color: #60a5fa; letter-spacing: 0.05em; text-transform: uppercase;">🛡️ ASSIGNED OPERATIONAL AUTHORITY & SECTOR BOUNDARY</span>
+                        <h3 id="staffScopeName" style="margin: 4px 0 0 0; font-size: 16px; color: #f8fafc;">Water Department Engineer</h3>
+                        <div style="margin-top: 6px; font-size: 12px; color: #cbd5e1; display: flex; flex-wrap: wrap; gap: 14px;">
+                            <span>📍 Permitted Sectors: <strong id="staffScopeSectors" style="color: #38bdf8;">Loading...</strong></span>
+                            <span>🔧 Permitted Assets: <strong id="staffScopeAssets" style="color: #34d399;">Loading...</strong></span>
+                            <span>📋 Access Scope: <strong style="color: #fbbf24;">Assigned Tasks & Permitted Sectors Only</strong></span>
+                        </div>
+                    </div>
+                    <span class="role-pill staff-pill" style="font-size: 11px;">SCOPED RBAC</span>
+                </div>
+            </div>
 
             <!-- WORKER STATS -->
             <div class="worker-stats">
@@ -617,6 +815,41 @@
 
             </section>
 
+            <!-- SPECIALIZED ROLE WORK ORDERS & FIELD ALLOCATION -->
+            <section class="section-card" id="waterWorkOrdersSection">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-label">ROLE-BASED TASK ALLOCATION</span>
+                        <h2>📋 Specialized Water Work Orders & Assignments</h2>
+                        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                            Enforces least-privilege operations across Tank Operators, Pipeline Plumbers, Treatment Operators, Quality Technicians, and Recycling Supervisors.
+                        </p>
+                    </div>
+                    <button type="button" class="action-btn-sm btn-blue" onclick="openCreateWorkOrderModal()">
+                        + Assign Work Order
+                    </button>
+                </div>
+
+                <div class="op-table-wrapper">
+                    <table class="op-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Task Title</th>
+                                <th>Asset & Zone</th>
+                                <th>Required Role / Assignee</th>
+                                <th>Priority</th>
+                                <th>Deadline</th>
+                                <th>Status Update</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workOrdersTableBody">
+                            <!-- Populated by water_intelligence_ui.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
         </div>
 
     </div>
@@ -641,6 +874,100 @@
 
         <!-- ADMIN ASSETS MAIN -->
         <div id="adminAssetsMain" style="display:none;">
+
+            <!-- UNIFIED FACILITIES & SCADA SINGLE SCREEN MONITOR (WATER ADMIN) -->
+            <section class="section-card" id="adminFacilitiesSingleScreen" style="border-left: 4px solid #0284c7; margin-bottom: 24px;">
+                <div class="section-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span class="section-label">CENTRALIZED WATER INFRASTRUCTURE CONTROL</span>
+                        <h2 style="margin: 4px 0;">🏢 Water Facilities & SCADA Single Screen Monitor</h2>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">Comprehensive administrative oversight of overhead tanks, raw water intakes, WTPs, STPs, booster pumps, motorized valves, drainage outlets, and supply area routing.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" class="action-btn-sm btn-blue" onclick="openFacilityAssetModal()">+ Register Facility Asset</button>
+                        <button type="button" class="action-btn-sm btn-green" onclick="openWaterCutModal()">+ Schedule Water Cut Notice</button>
+                        <button type="button" class="action-btn-sm" onclick="loadAdminFacilities()" style="background:#fff; border:1px solid #cbd5e1; cursor:pointer; font-weight:600;">🔄 Refresh Facilities</button>
+                    </div>
+                </div>
+
+                <!-- SINGLE SCREEN KPI STATS -->
+                <div class="worker-stats" style="margin: 16px 0;">
+                    <div class="worker-stat">
+                        <span>🏢</span>
+                        <div>
+                            <strong id="facCountTanks">--</strong>
+                            <small>Water Tanks / Storage</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>🌊</span>
+                        <div>
+                            <strong id="facCountSources">--</strong>
+                            <small>Raw Water Sources</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>🏭</span>
+                        <div>
+                            <strong id="facCountWtpStp">--</strong>
+                            <small>WTP & STP Plants</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>⚡</span>
+                        <div>
+                            <strong id="facCountPumps">--</strong>
+                            <small>Booster Pumps</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>🛡️</span>
+                        <div>
+                            <strong id="facCountValves">--</strong>
+                            <small>Isolation Valves</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>📐</span>
+                        <div>
+                            <strong id="facCountDrainage">--</strong>
+                            <small>Drainage Outlets</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FACILITY FILTER TABS -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;" id="facFilterTabs">
+                    <button type="button" class="tool-btn active" onclick="filterFacilitiesTable('ALL', this)">All Facilities (<span id="facTotalCount">0</span>)</button>
+                    <button type="button" class="tool-btn" onclick="filterFacilitiesTable('TANK', this)">Tanks & Reservoirs</button>
+                    <button type="button" class="tool-btn" onclick="filterFacilitiesTable('WATER_SOURCE', this)">Water Sources</button>
+                    <button type="button" class="tool-btn" onclick="filterFacilitiesTable('TREATMENT_PLANT', this)">WTP & STP</button>
+                    <button type="button" class="tool-btn" onclick="filterFacilitiesTable('BOOSTER_PUMP', this)">Pumps</button>
+                    <button type="button" class="tool-btn" onclick="filterFacilitiesTable('CONTROL_VALVE', this)">Valves</button>
+                    <button type="button" class="tool-btn" onclick="filterFacilitiesTable('DRAINAGE_OUTLET', this)">Drainage Outlets</button>
+                </div>
+
+                <!-- UNIFIED FACILITIES TABLE -->
+                <div class="op-table-wrapper" style="max-height: 380px; overflow-y: auto;">
+                    <table class="op-table" id="adminFacilitiesTable">
+                        <thead>
+                            <tr>
+                                <th>Asset ID</th>
+                                <th>Facility Name</th>
+                                <th>Type</th>
+                                <th>Zone / Location</th>
+                                <th>Operating Status</th>
+                                <th>Supplied Areas / Connections</th>
+                                <th>Depth / Capacity</th>
+                                <th>Administrative Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminFacilitiesTableBody">
+                            <tr><td colspan="8" style="text-align:center; padding:20px; color:#94a3b8;">Loading unified facilities monitor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- AI SCADA WATER LEAK & ANOMALY DETECTOR -->
             <section class="section-card" style="border-left: 4px solid #0284c7; background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);">
@@ -857,6 +1184,583 @@
 
             </section>
 
+            <!-- MUNICIPAL WASTEWATER TREATMENT & RECYCLING WORKFLOW -->
+            <section class="section-card" id="wastewaterTreatmentSection" style="border-left: 4px solid #7c3aed;">
+                <div class="section-heading" style="flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span class="section-label" style="color: #7c3aed;">CPCB / UPPCB SAFETY INTERLOCK</span>
+                        <h2>🏭 Wastewater Treatment & Reclaimed Recycling Console</h2>
+                        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                            Strict laboratory verification workflow: Failed or missing water-quality parameters <strong>block all reuse/discharge approvals</strong>.
+                        </p>
+                    </div>
+                    <button type="button" class="action-btn-sm btn-blue" onclick="openCreateBatchModal()">
+                        + Log Treatment Batch
+                    </button>
+                </div>
+
+                <div class="op-table-wrapper">
+                    <table class="op-table">
+                        <thead>
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Treatment Facility</th>
+                                <th>Inlet / Outlet (kL)</th>
+                                <th>Stage</th>
+                                <th>Laboratory Parameters</th>
+                                <th>Quality Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="treatmentBatchesTableBody">
+                            <!-- Populated by water_intelligence_ui.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- WATER ADMIN ROUTE PROPOSALS & NETWORK VERSIONS -->
+            <section class="section-card" id="waterAdminRouteSection" style="border-left: 4px solid #0284c7;">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-label">GOVERNANCE & TOPOLOGY AUTHORITY</span>
+                        <h2>🛡️ Water Admin Pipeline Route Authority & Versioning</h2>
+                        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                            Draft &rarr; Topology Validation &rarr; Affected-Zone Impact Assessment &rarr; Authorized Admin Approval &rarr; Publish &rarr; Audit Trail.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ROUTE PROPOSAL & VALIDATION WORKBENCH -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+                    <h3 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 12px;">
+                        ✏️ Pipeline Route Topology & Hydraulic Isolation Assessment
+                    </h3>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">PIPE CODE *</label>
+                            <input type="text" id="propPipeCode" value="PL-PROP-201" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">CONDUIT NAME *</label>
+                            <input type="text" id="propPipeName" value="Medical College Emergency Feeder" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">CLASSIFICATION</label>
+                            <select id="propPipeType" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                                <option value="POTABLE">Potable Supply (Clean)</option>
+                                <option value="WASTEWATER">Untreated Wastewater</option>
+                                <option value="RECLAIMED">Treated Reclaimed Water</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">ZONE / WARD</label>
+                            <input type="text" id="propZone" value="BRD Medical Ward" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">START LAT</label>
+                            <input type="number" step="any" id="propStartLat" value="26.7580" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">START LNG</label>
+                            <input type="number" step="any" id="propStartLng" value="83.3760" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">END LAT</label>
+                            <input type="number" step="any" id="propEndLat" value="26.7720" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">END LNG</label>
+                            <input type="number" step="any" id="propEndLng" value="83.3880" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">DIAMETER (MM)</label>
+                            <input type="number" id="propDiameter" value="450" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="action-btn-sm btn-blue" onclick="validateDraftRouteProposal()">
+                            🔍 Run Topology & Isolation Validation
+                        </button>
+                        <button type="button" class="action-btn-sm btn-green" onclick="saveDraftRouteProposal()">
+                            📝 Save Route Proposal to Draft Version
+                        </button>
+                    </div>
+
+                    <div id="routeValidationResult" style="margin-top: 12px; display: none;"></div>
+                </div>
+
+                <!-- PUBLISHED & DRAFT NETWORK VERSIONS -->
+                <div>
+                    <h3 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 12px;">
+                        📜 Pipeline GIS Network Versions & Rollback Ledger
+                    </h3>
+                    <div id="networkVersionsList">
+                        <!-- Populated by water_intelligence_ui.js -->
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+    </div>
+
+    <!-- =====================================================
+         LAYER 3B: WATER FLOW CONTROL & SUPERVISORY DESK
+    ===================================================== -->
+    <div id="layer-flow-content" style="display:none;">
+
+        <!-- GATEKEEPER CARD (NON-STAFF) -->
+        <div class="layer-gatekeeper-card" id="flowGatekeeper" style="display:none;">
+            <div class="gatekeeper-icon">🌊</div>
+            <h3>Supervisory Flow Control Restricted</h3>
+            <p>Access requires authorized Water Department staff or administrator credentials.</p>
+            <button class="submit-btn" style="width: auto; padding: 10px 24px;" onclick="promptStaffLogin()">⚡ Log in as Water Staff</button>
+        </div>
+
+        <div id="flowMain">
+            <!-- HEADER -->
+            <section class="section-card" style="margin-bottom: 20px;">
+                <div class="section-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span class="section-label">SCADA SUPERVISORY DESK</span>
+                        <h2 style="margin: 4px 0;">🌊 Hydraulic Flow Control & Telemetry Operations</h2>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">Real-time pressure gradients, pump actuators, valve positioning, and sandbox simulation commands.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="status-pill active" id="flowLiveStatusBadge">🟢 SCADA ONLINE</span>
+                        <button type="button" class="btn-action secondary" onclick="window.loadFlowControlDesk && window.loadFlowControlDesk()">🔄 Refresh Telemetry</button>
+                    </div>
+                </div>
+
+                <!-- OVERVIEW METRICS HUD -->
+                <div class="worker-stats" style="margin-top: 16px;">
+                    <div class="worker-stat">
+                        <span>🚰</span>
+                        <div>
+                            <strong id="flowMetricTotalPipes">--</strong>
+                            <small>Monitored Pipelines</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>⚡</span>
+                        <div>
+                            <strong id="flowMetricAvgPressure">-- bar</strong>
+                            <small>Avg System Pressure</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>⚙️</span>
+                        <div>
+                            <strong id="flowMetricActivePumps">--</strong>
+                            <small>Active Booster Pumps</small>
+                        </div>
+                    </div>
+                    <div class="worker-stat">
+                        <span>🛡️</span>
+                        <div>
+                            <strong id="flowMetricOpenValves">--</strong>
+                            <small>Valves In Service</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2-COLUMN SUPERVISORY WORKSPACE -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 20px;">
+
+                <!-- LEFT: PIPELINES & ACTUATOR STATES TABLE -->
+                <section class="section-card">
+                    <h3 style="font-size: 15px; margin: 0 0 12px 0; color: #0f172a;">📊 Live Pipeline Telemetry & Flow Vectors</h3>
+                    <div class="op-table-wrapper" style="max-height: 420px; overflow-y: auto;">
+                        <table class="op-table" id="flowPipelinesTable">
+                            <thead>
+                                <tr>
+                                    <th>Pipe ID</th>
+                                    <th>Zone</th>
+                                    <th>Pressure</th>
+                                    <th>Flow</th>
+                                    <th>Direction</th>
+                                    <th>Valve</th>
+                                    <th>Provenance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="flowPipelinesTableBody">
+                                <tr><td colspan="7" style="text-align:center; padding:20px; color:#94a3b8;">Loading telemetry...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- RIGHT: SUPERVISORY COMMAND SANDBOX -->
+                <section class="section-card" style="border: 1px solid rgba(56, 189, 248, 0.3); background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="font-size: 15px; margin: 0; color: #0f172a;">🎮 Supervisory Command Sandbox</h3>
+                        <span style="font-size: 11px; background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 2px 8px; border-radius: 999px; font-weight: 700;">SIMULATED CONTROLLER</span>
+                    </div>
+
+                    <!-- Notice banner -->
+                    <div style="padding: 10px 14px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 12px; color: #92400e; margin-bottom: 14px;">
+                        ⚠️ <strong>Physical Actuator Isolation Notice:</strong> Real infrastructure operations require validated industrial SCADA telemetry. Commands submitted here execute in verified simulation mode and are recorded in the immutable audit ledger.
+                    </div>
+
+                    <form id="flowControlForm" onsubmit="window.submitFlowCommand && window.submitFlowCommand(event)">
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Target Asset / Pipeline *</label>
+                            <select id="flowTargetAsset" required style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                                <option value="">-- Select Monitored Asset --</option>
+                            </select>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Command Action *</label>
+                                <select id="flowActionType" required style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                                    <option value="SET_VALVE_STATE">Set Valve State</option>
+                                    <option value="PUMP_COMMAND">Booster Pump Command</option>
+                                    <option value="SET_PRESSURE_TARGET">Adjust Target Pressure</option>
+                                    <option value="SIMULATE_PRESSURE_SURGE">Simulate Water Hammer / Surge</option>
+                                    <option value="RESET_NORMAL">Reset to Normal Baseline</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Target Value / State *</label>
+                                <input type="text" id="flowTargetValue" placeholder="e.g. OPEN, CLOSED, or 4.5 bar" required style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Operational Rationale / Work Note *</label>
+                            <input type="text" id="flowReason" placeholder="e.g. Scheduled pipeline balancing for Ward 12" required style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                        </div>
+
+                        <div style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px;">
+                            <input type="checkbox" id="flowConfirmCheck" required style="margin-top: 3px; cursor: pointer;">
+                            <label for="flowConfirmCheck" style="font-size: 12px; color: #475569; cursor: pointer;">
+                                I confirm this simulation command is authorized by the Water Department and will be written to the operational audit log.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="submit-btn" style="background: #0284c7; width: 100%;">
+                            ⚡ Dispatch Supervisory Command (Simulated)
+                        </button>
+                    </form>
+                </section>
+
+            </div>
+
+            <!-- AUDIT LEDGER -->
+            <section class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="font-size: 15px; margin: 0; color: #0f172a;">📜 Supervisory Audit Trail & Operational Logs</h3>
+                        <span style="font-size: 12px; color: #64748b;">Chronological record of supervisory commands, timestamps, provenance, and operator IDs.</span>
+                    </div>
+                </div>
+                <div class="op-table-wrapper" style="max-height: 280px; overflow-y: auto;">
+                    <table class="op-table" id="flowAuditTable">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>Target Asset</th>
+                                <th>Details / Outcome</th>
+                                <th>Operator</th>
+                                <th>Provenance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flowAuditTableBody">
+                            <tr><td colspan="6" style="text-align:center; padding:16px; color:#94a3b8;">Loading audit records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- =====================================================
+         LAYER 3C: FAULT DETECTION & PROVENANCE DESK
+    ===================================================== -->
+    <div id="layer-faults-content" style="display:none;">
+
+        <section class="section-card" style="margin-bottom: 20px;">
+            <div class="section-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <span class="section-label">FAULT ISOLATION & INTEGRITY DESK</span>
+                    <h2 style="margin: 4px 0;">🔍 Hydraulic Fault Records & Telemetry Provenance</h2>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;">Separates physical verified leaks from citizen reports, algorithmic suspicion (AI), and test simulations.</p>
+                </div>
+                <button type="button" class="btn-action secondary" onclick="window.loadFaultsDesk && window.loadFaultsDesk()">🔄 Refresh Faults</button>
+            </div>
+
+            <!-- PROVENANCE FILTER TABS -->
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;" id="faultProvenanceTabs">
+                <button type="button" class="tool-btn active" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('ALL', this)">
+                    All Faults (<span id="cntFaultsAll">--</span>)
+                </button>
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('CONFIRMED', this)" style="border-left: 3px solid #10b981;">
+                    ✅ Confirmed Physical (<span id="cntFaultsConfirmed">--</span>)
+                </button>
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('CITIZEN_REPORT', this)" style="border-left: 3px solid #38bdf8;">
+                    👤 Citizen Reports (<span id="cntFaultsCitizen">--</span>)
+                </button>
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('ALGORITHMIC_SUSPICION', this)" style="border-left: 3px solid #f59e0b;">
+                    🤖 Algorithmic Suspicion (<span id="cntFaultsAlgo">--</span>)
+                </button>
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('SIMULATED', this)" style="border-left: 3px solid #a855f7;">
+                    🧪 Simulated Scenarios (<span id="cntFaultsSim">--</span>)
+                </button>
+            </div>
+        </section>
+
+        <!-- FAULTS TABLE -->
+        <section class="section-card">
+            <div class="op-table-wrapper">
+                <table class="op-table" id="faultsTable">
+                    <thead>
+                        <tr>
+                            <th>Fault Code</th>
+                            <th>Asset / Zone</th>
+                            <th>Issue Type</th>
+                            <th>Severity</th>
+                            <th>Provenance</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                            <th>Reported At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faultsTableBody">
+                        <tr><td colspan="9" style="text-align:center; padding:20px; color:#94a3b8;">Loading fault records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- =====================================================
+         4. SEWAGE NETWORK PLANNER & 3D ROUTE DESIGNER LAYER
+    ===================================================== -->
+    <div id="layer-sewage-content" style="display:none;">
+
+        <!-- RESTRICTED GATEKEEPER CARD (NON-ADMIN USERS) -->
+        <div class="layer-gatekeeper-card" id="sewageGatekeeper">
+            <div style="font-size: 40px; margin-bottom: 12px;">🛡️</div>
+            <h3 style="font-size: 18px; margin-bottom: 8px;">Restricted Section: Water Administrator Authority Required</h3>
+            <p style="color: #64748b; font-size: 13px; max-width: 540px; margin: 0 auto 16px auto;">
+                Sewage Pipeline Planning & 3D Route Designer is reserved strictly for authorized Water Department Administrators. Unauthenticated citizens and general operators cannot draft, modify, or publish municipal sewer network versions.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-action primary" onclick="location.href='../../index.html'">Sign In as Water Admin</button>
+                <button type="button" class="btn-action secondary" onclick="switchWaterLayer('citizen')">Return to Citizen Services</button>
+            </div>
+        </div>
+
+        <!-- MAIN PLANNER INTERFACE (WATER ADMIN ONLY) -->
+        <div id="sewagePlannerMain" style="display:none;">
+
+            <!-- Header & Designer Toolbar Card -->
+            <div class="section-card" style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                    <div>
+                        <span class="section-label">MUNICIPAL SANITARY ENGINEERING & 3D SCADA DESIGNER</span>
+                        <h2 style="margin: 4px 0 0 0; font-size: 20px;">📐 Sewage Network Planner & 3D Route Designer</h2>
+                        <span style="font-size: 12px; color: #64748b;">Design gravity collector trunks, mark service catchments, align with road centerlines, and validate network separation from potable water.</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="sewageRouteStatusBadge" class="status-pill draft">DRAFT</span>
+                        <button type="button" class="btn-action secondary" id="btnSewageZoomRoute" style="font-size: 12px;">🔍 Zoom to Route</button>
+                    </div>
+                </div>
+
+                <!-- Designer Toolbar -->
+                <div class="sewage-designer-toolbar">
+                    <button type="button" class="tool-btn" id="btnSewageDrawPolygon">✏️ Draw Catchment Area</button>
+                    <button type="button" class="tool-btn" id="btnSewageAddWaypoints">📍 Add Route Waypoints</button>
+                    <button type="button" class="tool-btn" id="btnSewageUndo">↩️ Undo Waypoint</button>
+                    <button type="button" class="tool-btn danger" id="btnSewageClear">🗑️ Clear Route</button>
+                    <button type="button" class="tool-btn" id="btnSewageAIRoute" style="background: rgba(147, 51, 234, 0.15); border-color: #a855f7; color: #a855f7; font-weight: 700;" title="AI proposes route along surveyed road corridors (Draft only, cannot auto-publish)">🤖 AI Suggest Route</button>
+                    <div style="height: 24px; width: 1px; background: #cbd5e1; margin: 0 4px;"></div>
+                    <button type="button" class="tool-btn primary" id="btnSewageValidate">🔍 Validate Route</button>
+                    <button type="button" class="tool-btn success" id="btnSewageSaveDraft">💾 Save Draft</button>
+                    <button type="button" class="tool-btn success" id="btnSewageApprove">✅ Approve Route</button>
+                    <button type="button" class="tool-btn publish" id="btnSewagePublish">🚀 Publish Version</button>
+                    <button type="button" class="tool-btn warning" id="btnSewageRollback">⏪ Rollback Version</button>
+                    <div style="height: 24px; width: 1px; background: #cbd5e1; margin: 0 4px;"></div>
+                    <button type="button" class="tool-btn" id="btnManageSectors" onclick="window.openWaterSectorsModal()" style="background: rgba(2, 132, 199, 0.15); border-color: #0284c7; color: #0284c7; font-weight: 600;" title="Manage municipal sectors, boundaries and population demand">🗺️ Manage Sectors</button>
+                    <button type="button" class="tool-btn" id="btnManageWaterStaff" onclick="window.openWaterStaffModal()" style="background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #10b981; font-weight: 600;" title="Manage water personnel, permissions and sector bounds">👥 Water Staff & RBAC</button>
+                </div>
+
+                <!-- Drawing Instructions Banner -->
+                <div id="sewageDrawInstructionBanner" class="sewage-draw-instruction" style="display: none;"></div>
+            </div>
+
+            <!-- 2-Column Route Design & Engineering HUD Grid -->
+            <div class="sewage-grid-layout">
+                <!-- Left: Engineering Configuration Panel -->
+                <div class="section-card">
+                    <h3 style="font-size: 16px; margin: 0 0 14px 0; color: #0f172a;">⚙️ Sewer Alignment Specifications</h3>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Route Name *</label>
+                        <input type="text" id="sewageRouteName" value="Golghar Central to Mahewa STP Interceptor Trunk" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Pipeline Classification *</label>
+                            <select id="sewageNetworkType" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                                <option value="SEWAGE" selected>Sewage / Wastewater Trunk (#ea580c)</option>
+                                <option value="POTABLE">Fresh Water / Potable Supply (#38bdf8)</option>
+                                <option value="RAINWATER">Rainwater / Stormwater Drainage (#06b6d4)</option>
+                                <option value="RECLAIMED">Reclaimed / Recycled Water (#10b981)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Destination Asset *</label>
+                            <select id="sewageDestinationAsset" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                                <option value="STP-01">STP-01 (Ramgarh Tal Central STP - 60 MLD)</option>
+                                <option value="WTP-01">WTP-01 (Rohin Raw Water Plant - Unallowable)</option>
+                                <option value="DEST-RAMGARH">DEST-RAMGARH (Outfall Point)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Municipal Ward / Zone *</label>
+                        <select id="sewageRouteZone" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                            <option value="Golghar & Civil Lines">Golghar & Civil Lines</option>
+                            <option value="Mohaddipur & University">Mohaddipur & University</option>
+                            <option value="Medical College - Asuran">Medical College - Asuran</option>
+                            <option value="Mahewa / South Ward">Mahewa / South Ward</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: #475569;">Select Surveyed Road Corridor (Centerline Snapping)</label>
+                        <select id="sewageCorridorSelect" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                            <option value="">-- Click or Select Verified Road Corridor --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Pipe Diameter (mm) *</label>
+                            <select id="sewagePipeDiameter" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                                <option value="300">300 mm (Branch Collector)</option>
+                                <option value="450">450 mm (Sub-Main Collector)</option>
+                                <option value="600" selected>600 mm (Main Trunk Sewer)</option>
+                                <option value="800">800 mm (Interceptor Sewer)</option>
+                                <option value="1000">1000 mm (Major Outfall Interceptor)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Burial Depth (meters) *</label>
+                            <input type="number" step="0.1" min="1.0" max="8.0" id="sewageBurialDepth" value="3.2" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Hydraulic Slope (% grade) *</label>
+                            <input type="number" step="0.05" min="0.1" max="5.0" id="sewageHydraulicSlope" value="0.85" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Clearance from Potable (m) *</label>
+                            <input type="number" step="0.1" min="0.5" max="10.0" id="sewageClearanceBuffer" value="2.0" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Network Type / Classification *</label>
+                            <select id="sewageNetworkType" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600;">
+                                <option value="SEWAGE" selected>🟤 SEWAGE (Sanitary Trunk)</option>
+                                <option value="POTABLE_WATER">🔵 POTABLE_WATER (Drinking Supply)</option>
+                                <option value="RECLAIMED_WATER">🟣 RECLAIMED_WATER (Recycled)</option>
+                                <option value="STORMWATER">🟢 STORMWATER (Drainage Channel)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: #475569;">Conveyance Flow Direction</label>
+                            <select id="sewageFlowDirection" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                                <option value="FORWARD" selected>Forward Gravity Flow (Towards STP-01)</option>
+                                <option value="REVERSE">Reverse / Pumped Surcharge</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Live Hydraulic Metrics HUD & Validation Box -->
+                <div class="section-card">
+                    <h3 style="font-size: 16px; margin: 0 0 14px 0; color: #0f172a;">📊 Hydraulic Calculations & Validation Advisory</h3>
+
+                    <!-- Metrics HUD -->
+                    <div class="sewage-hud-grid">
+                        <div class="sewage-hud-card">
+                            <span class="label">ESTIMATED LENGTH</span>
+                            <strong class="value" id="sewageMetricLength">0.0 m</strong>
+                        </div>
+                        <div class="sewage-hud-card">
+                            <span class="label">REQUIRED MANHOLES</span>
+                            <strong class="value" id="sewageMetricManholes">0</strong>
+                        </div>
+                        <div class="sewage-hud-card">
+                            <span class="label">INSPECTION CHAMBERS</span>
+                            <strong class="value" id="sewageMetricChambers">0</strong>
+                        </div>
+                        <div class="sewage-hud-card">
+                            <span class="label">ROAD CENTERLINE STATUS</span>
+                            <strong class="value" id="sewageMetricRoadStatus" style="color: #0284c7;">SNAPPED</strong>
+                        </div>
+                    </div>
+
+                    <!-- Validation & Safety Results Box -->
+                    <div id="sewageValidationResultsBox" style="margin-top: 14px;">
+                        <div class="val-banner disclaimer">
+                            <strong>🛡️ MUNICIPAL CONSTRUCTION READINESS POLICY</strong>
+                            <p style="margin: 4px 0 0 0; font-size: 12px;">PRE-ENGINEERING DRAFT: Routes drawn are feasibility proposals. GPR underground utility surveys, road cutting permits, and UPPCB consent to establish required before construction.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Sewage Planned Routes & Version History Table -->
+            <div class="section-card" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                    <div>
+                        <h3 style="font-size: 16px; margin: 0; color: #0f172a;">📚 Planned Sewage Routes Library & Version History</h3>
+                        <span style="font-size: 12px; color: #64748b;">Manage drafts, review validation states, and roll back published versions.</span>
+                    </div>
+                    <button type="button" class="btn-action secondary" onclick="window.SewagePlannerUI.refresh()" style="font-size: 12px;">🔄 Refresh Library</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="op-table">
+                        <thead>
+                            <tr>
+                                <th>Route ID</th>
+                                <th>Route Name</th>
+                                <th>Zone</th>
+                                <th>Estimated Length</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sewageRoutesTableBody">
+                            <tr><td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">Loading planned routes...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -865,44 +1769,67 @@
 
 
 <!-- =====================================================
-     REPORT COMPLAINT MODAL (WITH EVIDENCE PHOTO)
+     REPORT COMPLAINT MODAL (WITH EVIDENCE PHOTO & MAP PICKER)
 ===================================================== -->
 <div id="reportModal" class="modal">
 
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 650px;">
 
         <button class="close-btn" onclick="closeModal('reportModal')">
             ×
         </button>
 
         <h2>
-            Report Water Problem
+            📋 Report Water Problem
         </h2>
 
         <p class="modal-subtitle">
-            Submit an official complaint with photo evidence to Gorakhpur Jal Sansthan.
+            Submit an official complaint with precise map location and photo evidence to Gorakhpur Jal Sansthan.
         </p>
 
         <form id="reportForm">
 
             <label>
-                Problem Category
+                Problem Category *
             </label>
 
-            <select id="problemType">
-                <option value="Pipe Leak">💦 Water Leakage / Burst Pipe</option>
-                <option value="No Supply">🚱 No Water Supply</option>
-                <option value="Contamination">🧪 Contaminated / Dirty Water</option>
-                <option value="Low Pressure">⚠️ Low Water Pressure</option>
-                <option value="Billing Issue">💳 Water Meter / Billing Issue</option>
-                <option value="Other">❓ Other Issue</option>
+            <select id="problemType" required>
+                <option value="Water Quality">🧪 Water Quality (Chemical / Odor / Taste)</option>
+                <option value="Dirty Water">🟤 Dirty Water (Muddy / Discolored)</option>
+                <option value="Low Pressure">⚠️ Low Water Pressure (Insufficient Head)</option>
+                <option value="Insufficient / No Supply">🚱 Insufficient / No Water Supply</option>
+                <option value="Leakage">💦 Pipeline Leakage / Road Overflow</option>
+                <option value="Sewage Overflow">☣️ Sewage Overflow / Blocked Manhole</option>
             </select>
 
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label>Citizen Full Name *</label>
+                    <input type="text" id="reportCitizenName" placeholder="Your Full Name" required>
+                </div>
+                <div>
+                    <label>Mobile Number (For Live SMS & Tracking) *</label>
+                    <input type="tel" id="reportMobile" placeholder="10-digit mobile" pattern="[0-9]{10}" required>
+                </div>
+            </div>
+
             <label>
-                Location / Ward *
+                Location / Municipal Ward *
             </label>
 
-            <input type="text" id="reportLocation" placeholder="e.g. Golghar Central, Near City Mall" required>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="reportLocation" placeholder="e.g. Golghar Clock Tower, Near City Mall" required style="flex: 1;">
+                <button type="button" class="btn-action secondary" onclick="startPickingComplaintLocation()" style="white-space: nowrap; font-size: 12px; padding: 0 12px;">
+                    📍 Pick on Map
+                </button>
+            </div>
+
+            <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #475569; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <span id="reportCoordBadge">📍 Map Coordinates: <em>Click 'Pick on Map' or enter below</em></span>
+                <span id="reportCoordValues" style="font-weight: 700; color: #0284c7;">26.7606, 83.3732</span>
+            </div>
+            <input type="hidden" id="reportLat" value="26.7606">
+            <input type="hidden" id="reportLng" value="83.3732">
 
             <label>
                 Detailed Description *
@@ -917,13 +1844,223 @@
             <input type="file" id="reportPhoto" accept="image/*" style="padding: 8px; border: 1px dashed #94a3b8; border-radius: 8px; background: #f8fafc;">
 
             <button type="submit" class="submit-btn" id="submitReportBtn">
-                Submit Complaint
+                Submit Complaint & Generate Tracking ID
             </button>
 
         </form>
 
     </div>
 
+</div>
+
+
+<!-- =====================================================
+     DECIDE TANK / SOURCE SUPPLY AREAS MODAL (WATER ADMIN)
+===================================================== -->
+<div id="tankSupplyAreasModal" class="modal">
+    <div class="modal-box" style="max-width: 650px;">
+        <button class="close-btn" onclick="closeModal('tankSupplyAreasModal')">×</button>
+        <span class="section-label">HYDRAULIC DISTRIBUTION ROUTING</span>
+        <h2>🗺️ Configure Supply Area Routing & Schedule</h2>
+        <p class="modal-subtitle">Decide which municipal wards and catchment sectors are supplied by this water reservoir or source.</p>
+
+        <form id="tankSupplyAreasForm" onsubmit="handleSaveTankSupplyAreas(event)">
+            <input type="hidden" id="saTankId">
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Facility Name</label>
+                    <input type="text" id="saTankName" readonly style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; background:#f8fafc;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Connected Source Asset ID</label>
+                    <input type="text" id="saSourceAssetId" placeholder="e.g. WTP-01 or TUBEWELL-04" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight:600;">Supplied Municipal Areas / Sectors (Comma-separated) *</label>
+                <textarea id="saSuppliedAreas" rows="3" placeholder="Golghar Central, Civil Lines, Town Hall Ward, Railway Colony" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;"></textarea>
+                <small style="color:#64748b; font-size:11px;">Specify each municipal ward or residential sector receiving clean potable water from this facility.</small>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Supply Schedule Hours</label>
+                    <input type="text" id="saSchedule" value="06:00 AM - 09:00 AM, 05:00 PM - 08:00 PM" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Automated Pump Status</label>
+                    <select id="saPumpStatus" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        <option value="ON">🟢 ON (Pumping Active)</option>
+                        <option value="OFF">🔴 OFF (Standby)</option>
+                        <option value="MAINTENANCE">🟡 Maintenance Mode</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 12px; font-weight:600;">Current Reservoir Fill Level (%)</label>
+                <input type="number" id="saLevelPercent" min="0" max="100" value="75" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+            </div>
+
+            <button type="submit" class="submit-btn" style="padding:10px 16px;">💾 Save Supply Routing Decisions</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     REGISTER / EDIT FACILITY ASSET MODAL (WATER ADMIN)
+===================================================== -->
+<div id="facilityAssetModal" class="modal">
+    <div class="modal-box" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+        <button class="close-btn" onclick="closeModal('facilityAssetModal')">×</button>
+        <span class="section-label">INFRASTRUCTURE REGISTRY</span>
+        <h2 id="facilityAssetModalTitle">🏢 Register Municipal Water Facility Asset</h2>
+        <p class="modal-subtitle">Add or edit tanks, raw sources, WTPs, STPs, booster pumps, valves, and drainage outfalls.</p>
+
+        <form id="facilityAssetForm" onsubmit="handleSaveFacilityAsset(event)">
+            <input type="hidden" id="faAssetIdPk">
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Asset ID *</label>
+                    <input type="text" id="faAssetId" placeholder="e.g. PUMP-03 or DRAIN-01" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Facility Asset Name *</label>
+                    <input type="text" id="faName" placeholder="e.g. Golghar Pressure Booster Pump #3" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Asset Classification *</label>
+                    <select id="faType" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        <option value="STORAGE_RESERVOIR">STORAGE_RESERVOIR (Overhead Tank)</option>
+                        <option value="WATER_SOURCE">WATER_SOURCE (River Intake / Tubewell)</option>
+                        <option value="WTP">WTP (Water Treatment Plant - Raw to Potable)</option>
+                        <option value="STP">STP (Sewage Treatment Plant - Tertiary)</option>
+                        <option value="BOOSTER_PUMP">BOOSTER_PUMP (Pressure Pump Station)</option>
+                        <option value="CONTROL_VALVE">CONTROL_VALVE (Motorized Isolation Valve)</option>
+                        <option value="DRAINAGE_OUTLET">DRAINAGE_OUTLET (Storm / Gravity Outfall)</option>
+                        <option value="JUNCTION">JUNCTION (Pipeline Node)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Municipal Zone / Ward *</label>
+                    <input type="text" id="faZone" placeholder="e.g. Golghar & Civil Lines" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Latitude *</label>
+                    <input type="number" step="any" id="faLat" value="26.7606" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Longitude *</label>
+                    <input type="number" step="any" id="faLng" value="83.3732" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Underground Depth (m)</label>
+                    <input type="number" step="0.1" id="faDepth" value="2.5" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Operating Status</label>
+                    <select id="faStatus" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        <option value="NORMAL" selected>NORMAL (Active)</option>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="STANDBY">STANDBY</option>
+                        <option value="MAINTENANCE">MAINTENANCE</option>
+                        <option value="ALERT">ALERT</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Flow Direction</label>
+                    <select id="faDirection" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        <option value="FORWARD" selected>FORWARD</option>
+                        <option value="REVERSE">REVERSE</option>
+                        <option value="BIDIRECTIONAL">BIDIRECTIONAL</option>
+                        <option value="OUTLET">OUTLET</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 12px; font-weight:600;">Supplied Areas / Connected Assets (Comma-separated)</label>
+                <input type="text" id="faSuppliedAreas" placeholder="e.g. Golghar Sector, Medical Ward, PL-PROP-201" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+            </div>
+
+            <button type="submit" class="submit-btn" style="padding:10px 16px;">💾 Save Facility Asset</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     SCHEDULE WATER CUT NOTICE MODAL (WATER ADMIN)
+===================================================== -->
+<div id="waterCutModal" class="modal">
+    <div class="modal-box" style="max-width: 600px;">
+        <button class="close-btn" onclick="closeModal('waterCutModal')">×</button>
+        <span class="section-label">PUBLIC SERVICE ANNOUNCEMENTS</span>
+        <h2>📢 Schedule Announced Water Cut Notice</h2>
+        <p class="modal-subtitle">Publish official public water maintenance, shutdown or pressure drop alerts to visitor dashboards.</p>
+
+        <form id="waterCutForm" onsubmit="handleSaveWaterCut(event)">
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight:600;">Announcement Title *</label>
+                <input type="text" id="wcTitle" placeholder="e.g. 400mm Feeder Line Interconnection & Valve Replacement" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Notice Type</label>
+                    <select id="wcType" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                        <option value="WATER_CUT" selected>WATER_CUT (Full Stoppage)</option>
+                        <option value="LOW_PRESSURE">LOW_PRESSURE (Reduced Flow)</option>
+                        <option value="CONTAMINATION_ALERT">CONTAMINATION_ALERT</option>
+                        <option value="EMERGENCY_REPAIR">EMERGENCY_REPAIR</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Primary Zone / Ward *</label>
+                    <input type="text" id="wcZone" placeholder="e.g. Golghar & Civil Lines" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight:600;">Affected Municipal Areas (Comma-separated) *</label>
+                <input type="text" id="wcAffectedAreas" placeholder="Golghar, Civil Lines, Town Hall, Railway Station Ward" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+            </div>
+
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Shutdown Start Time *</label>
+                    <input type="datetime-local" id="wcStartTime" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight:600;">Expected Restoration Time *</label>
+                    <input type="datetime-local" id="wcEndTime" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight:600;">Technical Reason / Scope *</label>
+                <input type="text" id="wcReason" placeholder="Scheduled municipal main line replacement to prevent high pressure bursts" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 12px; font-weight:600;">Alternative Water Supply Arrangements</label>
+                <input type="text" id="wcAlternative" value="Emergency water tankers on standby. Citizen Helpline: 1800-180-2026." style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+            </div>
+
+            <button type="submit" class="submit-btn" style="padding:10px 16px;">📢 Broadcast Water Announcement</button>
+        </form>
+    </div>
 </div>
 
 
@@ -985,6 +2122,11 @@
     </div>
 
 </div>
+
+
+
+
+
 
 
 <!-- =====================================================
@@ -1239,6 +2381,333 @@
 
 
 <!-- =====================================================
+     WASTEWATER LAB VERIFICATION MODAL
+===================================================== -->
+<div id="verifyQualityModal" class="modal">
+    <div class="modal-box">
+        <button type="button" class="close-btn" onclick="document.getElementById('verifyQualityModal').style.display='none'">×</button>
+        <h2>🧪 Wastewater Lab Verification</h2>
+        <p class="modal-subtitle" id="verifyQualityModalSubtitle">Log certified laboratory analysis against CPCB / UPPCB standards.</p>
+        <form onsubmit="submitLabVerification(event)">
+            <input type="hidden" id="vBatchId">
+            <div class="form-row">
+                <div>
+                    <label>BOD (mg/L, limit ≤10) *</label>
+                    <input type="number" step="0.1" id="vBod" value="8.2" required>
+                </div>
+                <div>
+                    <label>COD (mg/L, limit ≤50) *</label>
+                    <input type="number" step="0.1" id="vCod" value="38.0" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>TSS (mg/L, limit ≤20) *</label>
+                    <input type="number" step="0.1" id="vTss" value="12.0" required>
+                </div>
+                <div>
+                    <label>pH Value (6.5 - 8.5) *</label>
+                    <input type="number" step="0.1" id="vPh" value="7.3" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Fecal Coliform (MPN/100mL, limit ≤100) *</label>
+                    <input type="number" id="vColiform" value="45" required>
+                </div>
+                <div>
+                    <label>Certified Chemist *</label>
+                    <input type="text" id="vChemist" value="Dr. S. Verma (Senior Water Chemist)" required>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Submit Certified Lab Results</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     CREATE TREATMENT BATCH MODAL
+===================================================== -->
+<div id="createBatchModal" class="modal">
+    <div class="modal-box">
+        <button type="button" class="close-btn" onclick="document.getElementById('createBatchModal').style.display='none'">×</button>
+        <h2>🏭 Log Treatment Batch</h2>
+        <p class="modal-subtitle">Log new municipal wastewater treatment processing cycle.</p>
+        <form onsubmit="submitCreateBatch(event)">
+            <label>Treatment Plant *</label>
+            <input type="text" id="cbPlant" value="STP-01 (Ramgarh Tal Central STP)" required>
+            <div class="form-row">
+                <div>
+                    <label>Inlet Volume (kL) *</label>
+                    <input type="number" id="cbInlet" value="25000" required>
+                </div>
+                <div>
+                    <label>Outlet Volume (kL) *</label>
+                    <input type="number" id="cbOutlet" value="23800" required>
+                </div>
+            </div>
+            <label>Current Treatment Stage *</label>
+            <select id="cbStage">
+                <option value="PRIMARY_SCREENING">Primary Screening</option>
+                <option value="AERATION_SECONDARY">Aeration & Secondary Clarification</option>
+                <option value="TERTIARY_DISINFECTED" selected>Tertiary Filtration & Disinfection</option>
+            </select>
+            <div class="form-row">
+                <div>
+                    <label>Initial BOD (mg/L)</label>
+                    <input type="number" step="0.1" id="cbBod" value="9.0" required>
+                </div>
+                <div>
+                    <label>Initial COD (mg/L)</label>
+                    <input type="number" step="0.1" id="cbCod" value="40.0" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Initial TSS (mg/L)</label>
+                    <input type="number" step="0.1" id="cbTss" value="14.0" required>
+                </div>
+                <div>
+                    <label>Initial pH</label>
+                    <input type="number" step="0.1" id="cbPh" value="7.2" required>
+                </div>
+            </div>
+            <label>Planned Reuse Destination</label>
+            <select id="cbDest">
+                <option value="RAMGARH_TAL_LAKE">Ramgarh Tal Lake (Ecological Replenishment)</option>
+                <option value="PARK_IRRIGATION_GIDA">GIDA Greenbelt & Municipal Parks Irrigation</option>
+                <option value="INDUSTRIAL_COOLING_ZONE">Industrial Cooling & Construction Zone</option>
+            </select>
+            <button type="submit" class="submit-btn">Record Treatment Batch</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     CREATE WORK ORDER MODAL
+===================================================== -->
+<div id="createWorkOrderModal" class="modal">
+    <div class="modal-box">
+        <button type="button" class="close-btn" onclick="document.getElementById('createWorkOrderModal').style.display='none'">×</button>
+        <h2>📋 Assign Specialized Work Order</h2>
+        <p class="modal-subtitle">Dispatch maintenance or operational directive with role-enforced access.</p>
+        <form onsubmit="submitCreateWorkOrder(event)">
+            <label>Task Title *</label>
+            <input type="text" id="cwoTitle" placeholder="e.g. Inspect tertiary clarifier UV disinfection array" required>
+            <div class="form-row">
+                <div>
+                    <label>Target Asset ID *</label>
+                    <input type="text" id="cwoAsset" value="STP-01" required>
+                </div>
+                <div>
+                    <label>Zone / Location *</label>
+                    <input type="text" id="cwoZone" value="Ramgarh Tal" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Required Staff Specialty *</label>
+                    <select id="cwoRole">
+                        <option value="TREATMENT_OPERATOR">Treatment Operator</option>
+                        <option value="WATER_QUALITY_TECHNICIAN">Water Quality Technician</option>
+                        <option value="PIPELINE_MAINTENANCE_STAFF">Pipeline Maintenance Plumber</option>
+                        <option value="TANK_OPERATOR">Tank Operator</option>
+                        <option value="RECYCLING_SUPERVISOR">Recycling Supervisor</option>
+                        <option value="OPERATIONS_ENGINEER">Operations Engineer</option>
+                        <option value="FIELD_INSPECTOR">Field Inspector</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Assigned Staff Name *</label>
+                    <input type="text" id="cwoAssignee" value="Ramesh Kumar (Tech)" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>Priority *</label>
+                    <select id="cwoPriority">
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="CRITICAL">CRITICAL (Immediate SLA)</option>
+                        <option value="LOW">LOW</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Deadline (Target Due Date) *</label>
+                    <input type="date" id="cwoDeadline" value="2026-10-15" required>
+                </div>
+            </div>
+            <label>Task Scope & Instructions</label>
+            <textarea id="cwoDesc" rows="3" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; margin-bottom: 12px;" placeholder="Specific inspection checks and safety protocols..."></textarea>
+            <button type="submit" class="submit-btn">Dispatch Work Order</button>
+        </form>
+    </div>
+</div>
+
+<!-- =====================================================
+     WATER SECTORS MANAGEMENT MODAL (WATER ADMIN ONLY)
+===================================================== -->
+<div id="waterSectorsModal" class="modal">
+    <div class="modal-box" style="max-width: 780px; max-height: 85vh; overflow-y: auto;">
+        <button class="close-btn" onclick="closeModal('waterSectorsModal')">×</button>
+        <span class="section-label">MUNICIPAL GIS PLANNING</span>
+        <h2>🗺️ Water Network Sectors & Boundaries</h2>
+        <p class="modal-subtitle">Define catchment sectors, manage population and demand metrics, and bind operational boundaries.</p>
+
+        <!-- Sectors Table -->
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h4 style="margin:0; font-size:14px; color:#0f172a;">Existing Municipal Sectors</h4>
+                <button type="button" class="btn-action secondary" onclick="window.loadWaterSectorsInModal()" style="font-size:11px;">🔄 Refresh Sectors</button>
+            </div>
+            <div class="op-table-wrapper" style="max-height: 220px; overflow-y: auto;">
+                <table class="op-table" id="sectorsTableModal">
+                    <thead>
+                        <tr>
+                            <th>Sector Code</th>
+                            <th>Name</th>
+                            <th>Zone</th>
+                            <th>Demand (MLD)</th>
+                            <th>Engineers</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sectorsTableModalBody">
+                        <tr><td colspan="6" style="text-align:center; padding:16px;">Loading sectors...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add New Sector Form -->
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
+            <h4 style="margin:0 0 12px 0; font-size:14px; color:#0f172a;">➕ Create New Map Sector</h4>
+            <form id="newSectorForm" onsubmit="window.handleCreateSectorSubmit(event)">
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Sector Code *</label>
+                        <input type="text" id="secCode" placeholder="SEC-WTR-05" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Sector Name *</label>
+                        <input type="text" id="secName" placeholder="Taramandal & Lake Ward" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Zone / Ward</label>
+                        <input type="text" id="secZone" placeholder="Taramandal Ward" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Total Demand (MLD)</label>
+                        <input type="number" step="0.5" id="secDemand" value="16.5" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Population Served</label>
+                        <input type="number" id="secPop" value="110000" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Assigned Engineers (Comma separated IDs)</label>
+                        <input type="text" id="secEngineers" placeholder="WTR-ENG-01, WTR001" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight:600;">Boundary Coordinates (JSON polygon [[lat,lng], ...])</label>
+                    <textarea id="secBoundary" rows="2" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;" placeholder="[[26.74, 83.37], [26.75, 83.37], [26.75, 83.39], [26.74, 83.39]]"></textarea>
+                    <small style="color:#64748b; font-size:11px;">Tip: You can also use '✏️ Draw Catchment Area' on the planner map to draft boundary coordinates.</small>
+                </div>
+                <button type="submit" class="submit-btn" style="padding:10px 16px;">💾 Save Sector to Network</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     WATER STAFF & PERMISSIONS MODAL (HOSPITAL RBAC PATTERN)
+===================================================== -->
+<div id="waterStaffModal" class="modal">
+    <div class="modal-box" style="max-width: 820px; max-height: 85vh; overflow-y: auto;">
+        <button class="close-btn" onclick="closeModal('waterStaffModal')">×</button>
+        <span class="section-label">WATER DEPARTMENT ADMINISTRATION & RBAC</span>
+        <h2>👥 Water Works Personnel & Permission Control</h2>
+        <p class="modal-subtitle">Configure scoped sector permissions, permitted assets, roles, and staff credentials (Hospital RBAC pattern).</p>
+
+        <!-- Staff List Table -->
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h4 style="margin:0; font-size:14px; color:#0f172a;">Active Water Department Staff</h4>
+                <button type="button" class="btn-action secondary" onclick="window.loadWaterStaffInModal()" style="font-size:11px;">🔄 Refresh Staff</button>
+            </div>
+            <div class="op-table-wrapper" style="max-height: 240px; overflow-y: auto;">
+                <table class="op-table" id="waterStaffTableModal">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Permitted Sectors</th>
+                            <th>Permitted Assets</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="waterStaffTableModalBody">
+                        <tr><td colspan="6" style="text-align:center; padding:16px;">Loading staff records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add New Staff Form -->
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px;">
+            <h4 style="margin:0 0 12px 0; font-size:14px; color:#0f172a;">➕ Register New Water Personnel</h4>
+            <form id="newWaterStaffForm" onsubmit="window.handleCreateWaterStaffSubmit(event)">
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Staff Full Name *</label>
+                        <input type="text" id="wsName" placeholder="Er. Rakesh Sharma" required style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Staff ID (Auto-generated if blank)</label>
+                        <input type="text" id="wsStaffId" placeholder="e.g. WTR-ENG-02" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Role Designation *</label>
+                        <select id="wsRole" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                            <option value="engineer" selected>Pipeline Engineer</option>
+                            <option value="technician">Field SCADA Technician</option>
+                            <option value="supervisor">Catchment Supervisor</option>
+                            <option value="water_admin">Water Department Administrator</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Initial Password (Auto-generated if blank)</label>
+                        <input type="password" id="wsPassword" placeholder="e.g. Water@2026" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Permitted Sectors (Comma separated or ALL_SECTORS)</label>
+                        <input type="text" id="wsSectors" placeholder="Golghar & Civil Lines Sector, Medical College North Sector" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight:600;">Permitted Assets (Comma separated or ALL_ASSETS)</label>
+                        <input type="text" id="wsAssets" placeholder="PUMP-01, VALVE-01, PIPE-SEC1" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" style="padding:10px 16px;">👤 Create Staff Account & Authorize</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
      TOAST
 ===================================================== -->
 <div id="toast" class="toast">
@@ -1250,6 +2719,8 @@
      SCRIPTS
 ===================================================== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="../../components/ui_components.js"></script>
 <script src="../../components/smartcity_map.js"></script>
@@ -1258,6 +2729,9 @@
 <script src="../../auth.js"></script>
 <script src="../../realtime.js"></script>
 <script src="water.js"></script>
+<script src="water_3d_explorer.js"></script>
+<script src="water_intelligence_ui.js"></script>
+<script src="sewage_planner_ui.js"></script>
 
 </body>
 </html>

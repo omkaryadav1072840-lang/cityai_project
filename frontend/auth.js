@@ -1806,6 +1806,12 @@ const SmartCityAuth = (() => {
                         <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')">
                             <span>👑</span> HOSP-ADMIN (AIIMS)
                         </button>
+                        <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_admin')" style="background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); color: #38bdf8;">
+                            <span>💧</span> Water Admin (WTR-ADMIN)
+                        </button>
+                        <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_staff')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
+                            <span>🔧</span> Water Staff (WTR-ENG-01)
+                        </button>
                         <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('super_admin')">
                             <span>🛡️</span> Super Admin (ICCC)
                         </button>
@@ -1859,6 +1865,8 @@ const SmartCityAuth = (() => {
                                 <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-PHARM'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">💊 HOSP-PHARM</button>
                                 <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-REC'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🏥 HOSP-REC</button>
                                 <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-ADMIN'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">👑 HOSP-ADMIN</button>
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='WTR-ADMIN'; document.getElementById('scStaffPassword').value='smartcity2026';" style="background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); color: #38bdf8; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">💧 WTR-ADMIN</button>
+                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='WTR-ENG-01'; document.getElementById('scStaffPassword').value='smartcity2026';" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🔧 WTR-ENG-01</button>
                                 <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='DOC-101'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🩺 DOC-101</button>
                                 <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='STAFF-001'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.35); color: #f472b6; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🛡️ STAFF-001</button>
                             </div>

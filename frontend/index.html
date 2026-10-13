@@ -412,6 +412,151 @@
 </section>
 
 <!-- =====================================================
+     3B. MUNICIPAL WATER & SCADA INFRASTRUCTURE HUB
+===================================================== -->
+<section class="sc-section" id="waterInfrastructureHub" style="padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+    <div class="sc-section-header">
+        <span class="sc-section-badge" style="background: rgba(2, 132, 199, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #0284c7;">
+            💧 Gorakhpur Jal Sansthan & SCADA Grid
+        </span>
+        <h2 class="sc-section-title">Water & Drainage Infrastructure Management</h2>
+        <p class="sc-section-subtitle">
+            Comprehensive municipal water lifecycle operations: real-time SCADA telemetry, subterranean 3D digital twins, treatment plants, gravity sewers, and citizen grievance resolution.
+        </p>
+    </div>
+
+    <div class="sc-services-grid" id="waterHubGrid">
+        <!-- 1. Water Management -->
+        <a href="pages/water/water.html" class="sc-service-card" id="card-water-management">
+            <div class="sc-service-icon-box" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">💧</div>
+            <div class="sc-service-title">
+                <span>Water Management</span>
+                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">CIVIC HUB</span>
+            </div>
+            <p class="sc-service-desc">
+                Public water supply dashboard, municipal ward delivery schedules, Jal Sansthan lab water quality index, and emergency tanker dispatch.
+            </p>
+            <div class="sc-service-footer">
+                <span>Access Water Portal</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 2. Water Admin Panel (Role-Gated) -->
+        <a href="pages/water/water.html?view=admin" class="sc-service-card" id="card-water-admin" data-role-required="admin" data-dept="water">
+            <div class="sc-service-icon-box" style="background: rgba(234, 88, 12, 0.12); color: #ea580c;">🛡️</div>
+            <div class="sc-service-title">
+                <span>Water Admin Panel</span>
+                <span style="font-size: 11px; color: #ea580c; font-weight: 700;" id="badge-water-admin">ADMIN ONLY</span>
+            </div>
+            <p class="sc-service-desc">
+                Administrative control over tanks, WTPs, STPs, booster pumps, valves, supply routing decisions, draft route approvals, and staff RBAC permissions.
+            </p>
+            <div class="sc-service-footer">
+                <span id="footer-text-water-admin">Open Admin Panel</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 3. 3D Pipeline Map -->
+        <a href="pages/water/water.html?tab=3d" class="sc-service-card" id="card-water-3d">
+            <div class="sc-service-icon-box" style="background: rgba(147, 51, 234, 0.12); color: #9333ea;">🧊</div>
+            <div class="sc-service-title">
+                <span>3D Pipeline Map</span>
+                <span style="font-size: 11px; color: #9333ea; font-weight: 700;">DIGITAL TWIN</span>
+            </div>
+            <p class="sc-service-desc">
+                Interactive Three.js WebGL visualization of subterranean pipelines, overhead tanks, WTPs, STPs, valves, pumps, and inspection manholes.
+            </p>
+            <div class="sc-service-footer">
+                <span>Launch 3D Explorer</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 4. Water Network Monitoring -->
+        <a href="pages/water/water.html?tab=monitoring" class="sc-service-card" id="card-water-monitoring">
+            <div class="sc-service-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">🌊</div>
+            <div class="sc-service-title">
+                <span>Water Network Monitoring</span>
+                <span style="font-size: 11px; color: #10b981; font-weight: 700;">LIVE SCADA</span>
+            </div>
+            <p class="sc-service-desc">
+                Real-time pressure gradients, flow velocity vectors, automated booster pump actuators, valve positioning, and supervisory audit ledger.
+            </p>
+            <div class="sc-service-footer">
+                <span>Monitor SCADA Feed</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 5. Tanks & Treatment Plants -->
+        <a href="pages/water/water.html?tab=assets" class="sc-service-card" id="card-water-assets">
+            <div class="sc-service-icon-box" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">🏢</div>
+            <div class="sc-service-title">
+                <span>Tanks & Treatment Plants</span>
+                <span style="font-size: 11px; color: #d97706; font-weight: 700;">FACILITIES</span>
+            </div>
+            <p class="sc-service-desc">
+                City overhead reservoirs, Rohin WTP, Ramgarh Tal Central STP, aeration clarifiers, tertiary filtration batches, and supply area mapping.
+            </p>
+            <div class="sc-service-footer">
+                <span>View Facilities</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 6. Water Supply Routes -->
+        <a href="pages/water/water.html?tab=routes" class="sc-service-card" id="card-water-routes">
+            <div class="sc-service-icon-box" style="background: rgba(14, 165, 233, 0.12); color: #0ea5e9;">🚰</div>
+            <div class="sc-service-title">
+                <span>Water Supply Routes</span>
+                <span style="font-size: 11px; color: #0ea5e9; font-weight: 700;">POTABLE TRUNKS</span>
+            </div>
+            <p class="sc-service-desc">
+                Clean drinking water primary transmission trunks, feeder distribution pipelines, catchment sector limits, and hydraulic balance.
+            </p>
+            <div class="sc-service-footer">
+                <span>Inspect Supply Routes</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 7. Drainage/Sewage Network -->
+        <a href="pages/water/water.html?tab=sewage" class="sc-service-card" id="card-water-sewage">
+            <div class="sc-service-icon-box" style="background: rgba(194, 65, 12, 0.12); color: #c2410c;">📐</div>
+            <div class="sc-service-title">
+                <span>Drainage/Sewage Network</span>
+                <span style="font-size: 11px; color: #c2410c; font-weight: 700;">SEWER PLANNER</span>
+            </div>
+            <p class="sc-service-desc">
+                Gravity interceptor sewers, stormwater drainage channels, road centerline alignment, manhole placements, and separation validation.
+            </p>
+            <div class="sc-service-footer">
+                <span>Open Sewer Planner</span>
+                <span>➔</span>
+            </div>
+        </a>
+
+        <!-- 8. Water Complaints -->
+        <a href="pages/water/water.html?tab=complaints" class="sc-service-card" id="card-water-complaints">
+            <div class="sc-service-icon-box" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">📋</div>
+            <div class="sc-service-title">
+                <span>Water Complaints</span>
+                <span style="font-size: 11px; color: #ef4444; font-weight: 700;">GRIEVANCE DESK</span>
+            </div>
+            <p class="sc-service-desc">
+                Lodge and track complaints regarding water quality, dirty water, low pressure, no supply, pipe leakage, and sewage overflow with map pin & photo.
+            </p>
+            <div class="sc-service-footer">
+                <span>Lodge / Track Complaint</span>
+                <span>➔</span>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- =====================================================
      4. CURRENT CITY TELEMETRY REPORTS
 ===================================================== -->
 <section class="reports" id="cityReports">
@@ -1026,6 +1171,8 @@
                 <li><a href="pages/traffic/traffic.html" style="color: #94a3b8; text-decoration: none;">🚦 Live Traffic Grid</a></li>
                 <li><a href="pages/parking/parking.html" style="color: #94a3b8; text-decoration: none;">🅿️ Smart Parking</a></li>
                 <li><a href="pages/emergency/emergency.html" style="color: #94a3b8; text-decoration: none;">🚨 Emergency SOS</a></li>
+                <li><a href="pages/water/water.html" style="color: #94a3b8; text-decoration: none;">💧 Water Management & SCADA</a></li>
+                <li><a href="pages/water/water.html?tab=3d" style="color: #94a3b8; text-decoration: none;">🧊 3D Pipeline Map</a></li>
             </ul>
         </div>
         <div>

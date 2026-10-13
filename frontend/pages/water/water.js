@@ -46,13 +46,62 @@
     function isWaterStaff() {
         const user = getCurrentUser();
         if (user) {
-            const role = (user.role || "").toLowerCase();
+            const role = (user.role || user.type || "").toLowerCase();
+            const accountType = (user.accountType || "").toLowerCase();
             const dept = (user.department || "").toLowerCase();
-            if (role === "admin") return true;
-            if (role === "staff" && (dept === "water" || dept === "admin")) return true;
+            const sub = (user.subRole || user.designation || "").toLowerCase();
+            const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+
+            // Other departments are strictly blocked from water staff views
+            const otherDepts = ["hospital", "healthcare", "traffic", "police", "waste", "sanitation", "emergency", "fire"];
+            if (otherDepts.includes(dept) && !dept.includes("water") && !(user.editable && user.editable.includes("water"))) {
+                return false;
+            }
+            if ((user.hospitalId || user.hospitalRole) && !(user.editable && user.editable.includes("water"))) {
+                return false;
+            }
+
+            if (role === "super_admin" || accountType === "super_admin") return true;
+            if (role === "water_admin" || accountType === "water_admin" || staffId === "WTR-ADMIN") return true;
+            if (role === "water_staff" || accountType === "water_staff" || staffId.startsWith("WTR")) return true;
+            if (role.includes("water") || sub.includes("water") || sub.includes("engineer")) return true;
+            if ((role === "staff" || role === "admin") && (dept === "water" || dept === "admin" || !dept)) return true;
         }
         return localStorage.getItem("waterRole") === "worker";
     }
+
+    function isWaterAdmin() {
+        const user = getCurrentUser();
+        if (user) {
+            const role = (user.role || user.type || "").toLowerCase();
+            const accountType = (user.accountType || "").toLowerCase();
+            const dept = (user.department || "").toLowerCase();
+            const sub = (user.subRole || user.designation || "").toLowerCase();
+            const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+
+            // Other departments cannot be Water Admin
+            const otherDepts = ["hospital", "healthcare", "traffic", "police", "waste", "sanitation", "emergency", "fire"];
+            if (otherDepts.includes(dept) && !dept.includes("water")) {
+                return false;
+            }
+            if (user.hospitalId || user.hospitalRole) {
+                return false;
+            }
+
+            if (role === "super_admin" || accountType === "super_admin") return true;
+            if (role === "water_admin" || accountType === "water_admin" || staffId === "WTR-ADMIN") return true;
+            if (role === "admin" && (dept === "water" || dept === "admin" || !dept)) return true;
+            if (sub.includes("water admin") || sub.includes("superintendent")) return true;
+        }
+        return localStorage.getItem("waterRole") === "admin";
+    }
+    window.isWaterAdmin = isWaterAdmin;
+
+    window.toggle3DSewageVisibility = function(val) {
+        if (typeof window.Water3DExplorer !== "undefined" && window.Water3DExplorer.setSewageRouteVisibility) {
+            window.Water3DExplorer.setSewageRouteVisibility(val);
+        }
+    };
 
     function getAuthHeaders() {
         const auth = getAuth();
@@ -68,6 +117,7 @@
     function switchWaterLayer(layer) {
         currentLayer = layer;
         const staff = isWaterStaff();
+        const adminAuth = isWaterAdmin();
 
         // Update tab buttons
         document.querySelectorAll(".layer-tab-btn").forEach(btn => btn.classList.remove("active"));
@@ -77,11 +127,17 @@
         // Toggle layer containers
         const citizenLayer = document.getElementById("layer-citizen-content");
         const staffLayer = document.getElementById("layer-staff-content");
+        const flowLayer = document.getElementById("layer-flow-content");
+        const faultsLayer = document.getElementById("layer-faults-content");
         const adminLayer = document.getElementById("layer-admin-content");
+        const sewageLayer = document.getElementById("layer-sewage-content");
 
         if (citizenLayer) citizenLayer.style.display = (layer === "citizen") ? "block" : "none";
         if (staffLayer) staffLayer.style.display = (layer === "staff") ? "block" : "none";
+        if (flowLayer) flowLayer.style.display = (layer === "flow") ? "block" : "none";
+        if (faultsLayer) faultsLayer.style.display = (layer === "faults") ? "block" : "none";
         if (adminLayer) adminLayer.style.display = (layer === "admin") ? "block" : "none";
+        if (sewageLayer) sewageLayer.style.display = (layer === "sewage") ? "block" : "none";
 
         // Gatekeepers for staff and admin
         const staffGatekeeper = document.getElementById("staffGatekeeper");
@@ -91,11 +147,42 @@
             staffMain.style.display = staff ? "block" : "none";
         }
 
+        const flowGatekeeper = document.getElementById("flowGatekeeper");
+        const flowMain = document.getElementById("flowMain");
+        if (flowGatekeeper && flowMain) {
+            flowGatekeeper.style.display = staff ? "none" : "block";
+            flowMain.style.display = staff ? "block" : "none";
+        }
+
         const adminGatekeeper = document.getElementById("adminGatekeeper");
         const adminMain = document.getElementById("adminAssetsMain");
         if (adminGatekeeper && adminMain) {
             adminGatekeeper.style.display = staff ? "none" : "block";
             adminMain.style.display = staff ? "block" : "none";
+        }
+
+        // Gatekeeper for Sewage Network Planner (Water Admin Only)
+        const sewageGatekeeper = document.getElementById("sewageGatekeeper");
+        const sewageMain = document.getElementById("sewagePlannerMain");
+        if (sewageGatekeeper && sewageMain) {
+            sewageGatekeeper.style.display = adminAuth ? "none" : "block";
+            sewageMain.style.display = adminAuth ? "block" : "none";
+        }
+
+        if (layer === "flow" && typeof window.loadFlowControlDesk === "function") {
+            window.loadFlowControlDesk();
+        }
+        if (layer === "faults" && typeof window.loadFaultsDesk === "function") {
+            window.loadFaultsDesk();
+        }
+        if (layer === "staff" && typeof window.loadWorkOrders === "function") {
+            window.loadWorkOrders();
+        }
+        if (layer === "sewage" && typeof window.SewagePlannerUI !== "undefined" && window.SewagePlannerUI.init) {
+            window.SewagePlannerUI.init();
+        }
+        if (layer === "admin" && typeof window.loadAdminFacilities === "function") {
+            window.loadAdminFacilities();
         }
 
         // Map resize trigger
@@ -118,38 +205,66 @@
         const roleTitle = document.getElementById("roleTitle");
         const roleSubtitle = document.getElementById("roleSubtitle");
 
+        const adminAuth = isWaterAdmin();
+        const banner = document.getElementById("staffAuthorityScopeBanner");
+        if (banner) {
+            if (staff && !adminAuth) {
+                banner.style.display = "block";
+                const scopeName = document.getElementById("staffScopeName");
+                const scopeSectors = document.getElementById("staffScopeSectors");
+                const scopeAssets = document.getElementById("staffScopeAssets");
+                if (scopeName) scopeName.textContent = `${name} (${user?.staffId || user?.staff_id || 'WTR-STAFF'})`;
+                const secs = Array.isArray(user?.permitted_sectors) && user.permitted_sectors.length ? user.permitted_sectors.join(", ") : "All Municipal Sectors";
+                const asts = Array.isArray(user?.permitted_assets) && user.permitted_assets.length ? user.permitted_assets.join(", ") : "All Municipal Assets";
+                if (scopeSectors) scopeSectors.textContent = secs;
+                if (scopeAssets) scopeAssets.textContent = asts;
+            } else {
+                banner.style.display = "none";
+            }
+        }
+
         if (profileName) profileName.textContent = name;
         if (profileNavName) profileNavName.textContent = name;
-        if (profileRole) profileRole.textContent = staff ? "Water Works Staff" : "Citizen";
+        if (profileRole) profileRole.textContent = adminAuth ? "Water Department Administrator" : (staff ? "Water Works Staff" : "Citizen");
 
         if (roleBadge) {
-            roleBadge.textContent = staff ? "STAFF • WATER" : "CITIZEN";
-            roleBadge.style.background = staff ? "#dbeafe" : "#e0f2fe";
-            roleBadge.style.color = staff ? "#1d4ed8" : "#0369a1";
+            roleBadge.textContent = adminAuth ? "WATER ADMIN" : (staff ? "STAFF • WATER" : "CITIZEN");
+            roleBadge.style.background = adminAuth ? "#fef3c7" : (staff ? "#dbeafe" : "#e0f2fe");
+            roleBadge.style.color = adminAuth ? "#b45309" : (staff ? "#1d4ed8" : "#0369a1");
         }
 
         if (rolePill) {
-            rolePill.textContent = staff ? "STAFF • WATER" : "CITIZEN";
-            rolePill.className = staff ? "role-pill staff-pill" : "role-pill citizen-pill";
+            rolePill.textContent = adminAuth ? "WATER ADMIN" : (staff ? "STAFF • WATER" : "CITIZEN");
+            rolePill.className = adminAuth ? "role-pill admin-pill" : (staff ? "role-pill staff-pill" : "role-pill citizen-pill");
         }
 
         if (roleTitle) {
-            roleTitle.textContent = staff
-                ? "Water Works Operations & SCADA Control Room"
-                : `Welcome to SmartCity AI Water Services, ${name}`;
+            roleTitle.textContent = adminAuth
+                ? "Water Department Command Center & SCADA Administration"
+                : (staff
+                    ? "Water Works Operations & SCADA Control Room"
+                    : `Welcome to SmartCity AI Water Services, ${name}`);
         }
 
         if (roleSubtitle) {
-            roleSubtitle.textContent = staff
-                ? "Manage civic pipeline complaints, dispatch emergency tankers, control overhead pumps, and inspect telemetry."
-                : "Monitor clean water supply timings, report leaks, request doorstep water tankers, and view purity test scores.";
+            roleSubtitle.textContent = adminAuth
+                ? "Full administrative control over pipeline networks, municipal sectors, flow telemetry, work orders, versioning and rollback."
+                : (staff
+                    ? "Manage civic pipeline complaints, dispatch emergency tankers, control overhead pumps, and inspect telemetry."
+                    : "Monitor clean water supply timings, report leaks, request doorstep water tankers, and view purity test scores.");
         }
 
-        // Auto-switch layer based on role on page load
-        if (staff) {
-            switchWaterLayer("staff");
-        } else {
-            switchWaterLayer("citizen");
+        // Auto-switch layer based on role on page load only if no explicit URL param/tab is requested
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasUrlRoute = urlParams.has("tab") || urlParams.has("view") || Boolean(window.location.hash);
+        if (!hasUrlRoute) {
+            if (adminAuth) {
+                switchWaterLayer("sewage");
+            } else if (staff) {
+                switchWaterLayer("staff");
+            } else {
+                switchWaterLayer("citizen");
+            }
         }
     }
 
@@ -161,6 +276,8 @@
         if (!mapEl) return;
 
         waterMap = L.map("waterMap").setView([26.7606, 83.3732], 13);
+        window.waterLeafletMapInstance = waterMap;
+        window.waterMap = waterMap;
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,
@@ -859,6 +976,69 @@
     }
     window.closeModal = closeModal;
 
+    // -------------------------------------------------------
+    // 9B. VISITOR COMPLAINTS WITH MAP PICKER & TRACKING
+    // -------------------------------------------------------
+    let complaintPickMarker = null;
+    let isPickingComplaintLocation = false;
+
+    function startPickingComplaintLocation() {
+        isPickingComplaintLocation = true;
+        closeModal("reportModal");
+        showToast("📍 Click anywhere on the map to set complaint location", "info");
+
+        const mapEl = document.getElementById("waterMap");
+        if (mapEl) mapEl.scrollIntoView({ behavior: "smooth" });
+
+        function onMapClickForComplaint(e) {
+            if (!isPickingComplaintLocation) return;
+            isPickingComplaintLocation = false;
+            if (waterMap) waterMap.off("click", onMapClickForComplaint);
+
+            const lat = Number(e.latlng.lat).toFixed(6);
+            const lng = Number(e.latlng.lng).toFixed(6);
+
+            if (complaintPickMarker && waterMap) {
+                waterMap.removeLayer(complaintPickMarker);
+            }
+
+            const icon = L.divIcon({
+                className: "custom-complaint-pin",
+                html: '<div style="background:#ef4444; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; box-shadow:0 0 10px rgba(239,68,68,0.7); border:2px solid #fff;">📍</div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            if (waterMap) {
+                complaintPickMarker = L.marker([lat, lng], { icon }).addTo(waterMap);
+                complaintPickMarker.bindPopup(`<b>Complaint Pin</b><br>Lat: ${lat}<br>Lng: ${lng}`).openPopup();
+            }
+
+            const latInput = document.getElementById("reportLat");
+            const lngInput = document.getElementById("reportLng");
+            const coordBadge = document.getElementById("reportCoordBadge");
+            const coordValues = document.getElementById("reportCoordValues");
+            const locInput = document.getElementById("reportLocation");
+
+            if (latInput) latInput.value = lat;
+            if (lngInput) lngInput.value = lng;
+            if (coordBadge) coordBadge.innerHTML = "✅ Map Coordinates Picked:";
+            if (coordValues) coordValues.textContent = `${lat}, ${lng}`;
+
+            if (locInput && (!locInput.value || locInput.value === "Golghar Central, Near City Mall")) {
+                locInput.value = `Geo-Location [${lat}, ${lng}]`;
+            }
+
+            showToast(`📍 Location set: ${lat}, ${lng}`, "success");
+            openReportModal();
+        }
+
+        if (waterMap) {
+            waterMap.on("click", onMapClickForComplaint);
+        }
+    }
+    window.startPickingComplaintLocation = startPickingComplaintLocation;
+
     // Report form submit
     const reportForm = document.getElementById("reportForm");
     if (reportForm) {
@@ -867,22 +1047,27 @@
             const submitBtn = document.getElementById("submitReportBtn");
             if (submitBtn) submitBtn.disabled = true;
 
-            const issueType = document.getElementById("problemType").value;
-            const location = document.getElementById("reportLocation").value.trim();
-            const description = document.getElementById("reportDescription").value.trim();
+            const category = document.getElementById("problemType") ? document.getElementById("problemType").value : "Water Quality";
+            const location = document.getElementById("reportLocation") ? document.getElementById("reportLocation").value.trim() : "Gorakhpur";
+            const description = document.getElementById("reportDescription") ? document.getElementById("reportDescription").value.trim() : "";
+            const citizenName = document.getElementById("reportCitizenName") ? document.getElementById("reportCitizenName").value.trim() : "";
+            const mobile = document.getElementById("reportMobile") ? document.getElementById("reportMobile").value.trim() : "";
+            const lat = document.getElementById("reportLat") ? document.getElementById("reportLat").value : null;
+            const lng = document.getElementById("reportLng") ? document.getElementById("reportLng").value : null;
             const photoInput = document.getElementById("reportPhoto");
 
             const formData = new FormData();
-            formData.append("issueType", issueType);
+            formData.append("category", category);
+            formData.append("issueType", category);
             formData.append("location", location);
             formData.append("description", description);
+            if (lat) formData.append("latitude", lat);
+            if (lng) formData.append("longitude", lng);
 
             const user = getCurrentUser();
-            if (user) {
-                formData.append("citizenName", user.name || user.username || "Citizen");
-                formData.append("mobile", user.phone || user.mobile || "9876543210");
-                formData.append("userId", user.id || user.userId || "");
-            }
+            formData.append("citizenName", citizenName || (user ? (user.name || user.username) : "Concerned Citizen"));
+            formData.append("mobile", mobile || (user ? (user.phone || user.mobile) : "9876543210"));
+            if (user) formData.append("userId", user.id || user.userId || "");
 
             if (photoInput && photoInput.files.length > 0) {
                 formData.append("evidenceImage", photoInput.files[0]);
@@ -893,29 +1078,590 @@
                 const headers = {};
                 if (token) headers["Authorization"] = `Bearer ${token}`;
 
-                const res = await fetch(`${API_BASE}/api/water/reports`, {
+                let res = await fetch(`${API_BASE}/api/water/complaints`, {
                     method: "POST",
                     headers,
                     body: formData
                 });
+
+                if (!res.ok) {
+                    res = await fetch(`${API_BASE}/api/water/reports`, {
+                        method: "POST",
+                        headers,
+                        body: formData
+                    });
+                }
+
                 const data = await res.json();
                 if (data.success) {
-                    showToast("✅ Complaint registered successfully!");
+                    const trackingId = data.tracking_id || data.report_id || `WTR-CMP-${Date.now().toString(36).toUpperCase()}`;
+                    showToast(`✅ Complaint registered! Tracking ID: ${trackingId}`, "success");
                     closeModal("reportModal");
                     reportForm.reset();
+
+                    renderComplaintTrackingResult({
+                        tracking_id: trackingId,
+                        category,
+                        location,
+                        status: "Open",
+                        priority: (data.complaint && data.complaint.priority) || "MEDIUM",
+                        created_at: new Date().toISOString(),
+                        description
+                    });
+
                     fetchAllWaterData();
                 } else {
                     alert(data.message || "Failed to submit complaint.");
                 }
             } catch (err) {
                 console.error("Report submit error:", err);
-                showToast("✅ Complaint submitted (offline fallback)");
+                showToast("✅ Complaint recorded (offline fallback)", "info");
                 closeModal("reportModal");
             } finally {
                 if (submitBtn) submitBtn.disabled = false;
             }
         });
     }
+
+    async function trackPublicWaterComplaint() {
+        const input = document.getElementById("publicComplaintSearchInput");
+        const container = document.getElementById("publicComplaintResultContainer");
+        if (!input || !container) return;
+
+        const trackingId = input.value.trim();
+        if (!trackingId) {
+            showToast("Please enter a tracking ID or mobile number", "warning");
+            return;
+        }
+
+        container.style.display = "block";
+        container.innerHTML = `<div style="text-align:center; padding:16px; color:#64748b;">🔍 Looking up complaint #${escapeHTML(trackingId)} on municipal ledger...</div>`;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/water/complaints/track/${encodeURIComponent(trackingId)}`);
+            const data = await res.json();
+            if (data.success && data.complaint) {
+                renderComplaintTrackingResult(data.complaint);
+            } else {
+                container.innerHTML = `
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px; color: #991b1b; text-align: center;">
+                        <strong>❌ Tracking ID Not Found:</strong> Could not find an active complaint matching "<b>${escapeHTML(trackingId)}</b>". Please verify and try again.
+                    </div>
+                `;
+            }
+        } catch (err) {
+            container.innerHTML = `<div style="color:red; text-align:center; padding:10px;">Network error: ${escapeHTML(err.message)}</div>`;
+        }
+    }
+    window.trackPublicWaterComplaint = trackPublicWaterComplaint;
+
+    function renderComplaintTrackingResult(comp) {
+        const container = document.getElementById("publicComplaintResultContainer");
+        if (!container) return;
+        container.style.display = "block";
+
+        const isResolved = comp.status && comp.status.toLowerCase() === "resolved";
+        const statusColor = isResolved ? "#16a34a" : "#ea580c";
+
+        container.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                <div>
+                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">OFFICIAL CITIZEN COMPLAINT LEDGER</span>
+                    <h3 style="margin: 2px 0 0; font-size: 16px; color: #0f172a;">#${escapeHTML(comp.tracking_id || comp.report_id)}</h3>
+                </div>
+                <span style="background: ${isResolved ? '#dcfce7' : '#ffedd5'}; color: ${statusColor}; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 999px;">
+                    ● ${escapeHTML(comp.status || 'Received')}
+                </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 13px; color: #334155; margin-bottom: 12px;">
+                <div><strong>Issue Category:</strong> <span>${escapeHTML(comp.category || comp.issue_type || 'General')}</span></div>
+                <div><strong>Location:</strong> <span>${escapeHTML(comp.location || 'Gorakhpur')}</span></div>
+                <div><strong>Priority:</strong> <span style="font-weight:700; color:#ea580c;">${escapeHTML(comp.priority || 'MEDIUM')}</span></div>
+                <div><strong>Reported At:</strong> <span>${new Date(comp.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
+            </div>
+
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #475569; margin-bottom: 10px;">
+                <strong>Description:</strong> ${escapeHTML(comp.description || 'No description provided')}
+            </div>
+
+            ${comp.evidence_image ? `<div style="margin-top: 10px;"><a href="${API_BASE}${escapeHTML(comp.evidence_image)}" target="_blank" style="color: #0284c7; font-size: 12px; text-decoration: underline; font-weight: 600;">📷 View Photo Evidence Attached</a></div>` : ''}
+
+            <div style="font-size: 11px; color: #64748b; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                🔒 Municipal Security Policy: Internal technician mobile numbers and internal engineering dispatch registers are protected.
+            </div>
+        `;
+        container.scrollIntoView({ behavior: "smooth" });
+    }
+    window.renderComplaintTrackingResult = renderComplaintTrackingResult;
+
+    // -------------------------------------------------------
+    // 9C. PUBLIC WATER SUPPLY STATUS & WATER CUTS
+    // -------------------------------------------------------
+    async function loadPublicSupplyStatus() {
+        try {
+            const res = await fetch(`${API_BASE}/api/water/public/supply-status`);
+            if (!res.ok) return;
+            const data = await res.json();
+
+            if (data.success) {
+                const stEl = document.getElementById("publicStoragePercent");
+                if (stEl) stEl.textContent = `${data.overall_storage_percentage || 91}%`;
+
+                const actCuts = document.getElementById("publicActiveCutsCount");
+                if (actCuts) actCuts.textContent = data.active_water_cuts_count || 0;
+
+                const schedCuts = document.getElementById("publicScheduledCutsCount");
+                if (schedCuts) schedCuts.textContent = data.scheduled_cuts_count || 0;
+
+                const healthBadge = document.getElementById("publicCityHealthBadge");
+                if (healthBadge) {
+                    const isNormal = (data.active_water_cuts_count || 0) === 0;
+                    healthBadge.textContent = isNormal ? "● SUPPLY NORMAL" : "● WATER CUTS ACTIVE";
+                    healthBadge.className = isNormal ? "live-badge" : "live-badge warning";
+                }
+
+                const tbody = document.getElementById("publicAnnouncementsTableBody");
+                const alertBox = document.getElementById("announcedWaterCutsAlertBox");
+
+                if (tbody && Array.isArray(data.announced_water_cuts)) {
+                    if (data.announced_water_cuts.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:16px; color:#16a34a; font-weight:600;">✅ No water cuts announced. Normal 24/7 municipal pressure across all wards.</td></tr>';
+                        if (alertBox) alertBox.style.display = "none";
+                    } else {
+                        if (alertBox) alertBox.style.display = "block";
+                        tbody.innerHTML = data.announced_water_cuts.map(ann => {
+                            const start = new Date(ann.start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                            const end = new Date(ann.end_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                            const areas = Array.isArray(ann.affected_areas) ? ann.affected_areas.join(", ") : (ann.zone || "Municipal Area");
+                            const isActive = ann.status === "ACTIVE";
+
+                            return `
+                                <tr>
+                                    <td><strong>${escapeHTML(ann.title)}</strong></td>
+                                    <td><span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:${isActive ? '#fee2e2' : '#fef3c7'}; color:${isActive ? '#dc2626' : '#d97706'};">${escapeHTML(ann.type)}</span></td>
+                                    <td><span style="color:#0284c7; font-weight:600;">${escapeHTML(areas)}</span></td>
+                                    <td><small>${start} – ${end}</small></td>
+                                    <td>${escapeHTML(ann.reason)}</td>
+                                    <td><small style="color:#16a34a;">${escapeHTML(ann.alternative_supply || 'Water tankers on standby')}</small></td>
+                                    <td><span class="status-pill ${isActive ? 'danger' : 'active'}">${escapeHTML(ann.status)}</span></td>
+                                </tr>
+                            `;
+                        }).join("");
+                    }
+                }
+
+                const schedTbody = document.querySelector("#citizenSchedulesTable tbody");
+                if (schedTbody && Array.isArray(data.tanks_summary)) {
+                    schedTbody.innerHTML = data.tanks_summary.map(t => {
+                        const areas = Array.isArray(t.supplied_areas) && t.supplied_areas.length ? t.supplied_areas.join(", ") : (t.zone || "City Central");
+                        const timing = t.supply_schedule || t.next_supply_time || "06:00 AM - 09:00 AM";
+                        return `
+                            <tr>
+                                <td><strong>${escapeHTML(t.zone || t.name)}</strong></td>
+                                <td><small style="color:#0284c7;">${escapeHTML(areas)}</small></td>
+                                <td>${escapeHTML(timing)}</td>
+                                <td><span class="status-pill active">${escapeHTML(t.status || 'Active')}</span></td>
+                            </tr>
+                        `;
+                    }).join("");
+                }
+            }
+        } catch (err) {
+            console.error("Load public supply status error:", err);
+        }
+    }
+    window.loadPublicSupplyStatus = loadPublicSupplyStatus;
+
+    // -------------------------------------------------------
+    // 9D. ADMIN FACILITIES & SUPPLY AREA ROUTING
+    // -------------------------------------------------------
+    let allFacilitiesCache = [];
+    let activeFacilityFilter = "ALL";
+
+    async function loadAdminFacilities() {
+        const tbody = document.getElementById("adminFacilitiesTableBody");
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748b;">Loading facilities stream...</td></tr>';
+
+        try {
+            const res = await fetch(`${API_BASE}/api/water/admin/facilities`, { headers: getAuthHeaders() });
+            if (!res.ok) return;
+            const data = await res.json();
+
+            if (data.success) {
+                allFacilitiesCache = [
+                    ...(data.tanks || []).map(t => ({ ...t, facility_category: "TANK", asset_id: t.tank_id || `TNK-${t.id}` })),
+                    ...(data.assets || []).map(a => ({ ...a, facility_category: a.asset_type }))
+                ];
+
+                const facTotal = document.getElementById("facTotalCount");
+                if (facTotal) facTotal.textContent = allFacilitiesCache.length;
+
+                const cntTanks = document.getElementById("facCountTanks");
+                if (cntTanks) cntTanks.textContent = (data.tanks || []).length;
+
+                const cntSources = document.getElementById("facCountSources");
+                if (cntSources) cntSources.textContent = (data.kpis && data.kpis.sources_count) || 1;
+
+                const cntWtpStp = document.getElementById("facCountWtpStp");
+                if (cntWtpStp) cntWtpStp.textContent = ((data.kpis && data.kpis.wtp_count) || 1) + ((data.kpis && data.kpis.stp_count) || 1);
+
+                const cntPumps = document.getElementById("facCountPumps");
+                if (cntPumps) cntPumps.textContent = (data.kpis && data.kpis.pumps_count) || 2;
+
+                const cntValves = document.getElementById("facCountValves");
+                if (cntValves) cntValves.textContent = (data.kpis && data.kpis.valves_count) || 2;
+
+                const cntDrain = document.getElementById("facCountDrainage");
+                if (cntDrain) cntDrain.textContent = (data.kpis && data.kpis.drainage_count) || 1;
+
+                renderFacilitiesTable();
+            }
+        } catch (err) {
+            console.error("Load admin facilities error:", err);
+            tbody.innerHTML = `<tr><td colspan="8" style="color:red; text-align:center; padding:16px;">Error loading facilities: ${escapeHTML(err.message)}</td></tr>`;
+        }
+    }
+    window.loadAdminFacilities = loadAdminFacilities;
+
+    function filterFacilitiesTable(type, btnEl) {
+        activeFacilityFilter = type;
+        document.querySelectorAll("#facFilterTabs .tool-btn").forEach(b => b.classList.remove("active"));
+        if (btnEl) btnEl.classList.add("active");
+        renderFacilitiesTable();
+    }
+    window.filterFacilitiesTable = filterFacilitiesTable;
+
+    function renderFacilitiesTable() {
+        const tbody = document.getElementById("adminFacilitiesTableBody");
+        if (!tbody) return;
+
+        let filtered = allFacilitiesCache;
+        if (activeFacilityFilter !== "ALL") {
+            if (activeFacilityFilter === "TREATMENT_PLANT") {
+                filtered = allFacilitiesCache.filter(f => (f.asset_type === "WTP" || f.asset_type === "STP" || (f.asset_id && (f.asset_id.includes("WTP") || f.asset_id.includes("STP")))));
+            } else {
+                filtered = allFacilitiesCache.filter(f => (f.facility_category === activeFacilityFilter || f.asset_type === activeFacilityFilter));
+            }
+        }
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748b;">No facilities matching this filter category.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(f => {
+            const isTank = f.facility_category === "TANK" || f.asset_type === "STORAGE_RESERVOIR";
+            const typeBadgeColor = isTank ? "#0284c7" : (f.asset_type === "STP" ? "#7c3aed" : (f.asset_type === "WTP" ? "#0ea5e9" : (f.asset_type === "BOOSTER_PUMP" ? "#f59e0b" : "#10b981")));
+            const areas = Array.isArray(f.supplied_areas) ? f.supplied_areas.join(", ") : (f.supplied_areas || f.connected_assets || "--");
+            const depthOrCap = isTank ? `${f.capacity_liters ? Number(f.capacity_liters).toLocaleString() : '--'} L (${f.current_level_percent || 0}%)` : (f.depth_m ? `Depth: ${f.depth_m}m` : '--');
+
+            return `
+                <tr>
+                    <td><strong>${escapeHTML(f.asset_id || f.tank_id)}</strong></td>
+                    <td><b>${escapeHTML(f.name)}</b></td>
+                    <td><span style="font-size:10px; font-weight:700; color:#fff; background:${typeBadgeColor}; padding:2px 8px; border-radius:4px;">${escapeHTML(f.asset_type || f.facility_category || 'ASSET')}</span></td>
+                    <td>${escapeHTML(f.zone || f.location || 'Central Ward')}</td>
+                    <td><span class="status-pill active">${escapeHTML(f.status || 'NORMAL')}</span></td>
+                    <td><small style="color:#0284c7; max-width:200px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHTML(areas)}">${escapeHTML(areas)}</small></td>
+                    <td><small>${escapeHTML(depthOrCap)}</small></td>
+                    <td>
+                        <div style="display:flex; gap:6px;">
+                            ${isTank ? `<button type="button" class="action-btn-sm" onclick="openTankSupplyAreasModal('${f.id || f.tank_id}')" style="background:#e0f2fe; color:#0369a1; border:none; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;" title="Configure which area this tank supplies">🗺️ Supply Areas</button>` : ''}
+                            <button type="button" class="action-btn-sm" onclick="openFacilityAssetModal('${f.id || f.asset_id}')" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:3px 8px; font-size:11px; cursor:pointer;">✏️ Edit</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    function openTankSupplyAreasModal(id) {
+        const modal = document.getElementById("tankSupplyAreasModal");
+        if (!modal) return;
+
+        const tank = allFacilitiesCache.find(x => String(x.id) === String(id) || String(x.tank_id) === String(id) || String(x.asset_id) === String(id)) || tanks.find(x => String(x.id) === String(id) || String(x.tank_id) === String(id));
+        if (!tank) return;
+
+        document.getElementById("saTankId").value = tank.id || tank.tank_id;
+        document.getElementById("saTankName").value = `${tank.name} (${tank.tank_id || tank.id})`;
+        document.getElementById("saSourceAssetId").value = tank.source_asset_id || "";
+
+        const areas = Array.isArray(tank.supplied_areas) ? tank.supplied_areas.join(", ") : (tank.supplied_areas || tank.zone || "");
+        document.getElementById("saSuppliedAreas").value = areas;
+        document.getElementById("saSchedule").value = tank.supply_schedule || "06:00 AM - 09:00 AM, 05:00 PM - 08:00 PM";
+        document.getElementById("saPumpStatus").value = (tank.pump_status || "ON").toUpperCase();
+        document.getElementById("saLevelPercent").value = tank.current_level_percent !== undefined ? tank.current_level_percent : 75;
+
+        modal.style.display = "flex";
+    }
+    window.openTankSupplyAreasModal = openTankSupplyAreasModal;
+
+    async function handleSaveTankSupplyAreas(e) {
+        e.preventDefault();
+        const id = document.getElementById("saTankId").value;
+        const source_asset_id = document.getElementById("saSourceAssetId").value.trim();
+        const supplied_areas = document.getElementById("saSuppliedAreas").value.split(",").map(x => x.trim()).filter(Boolean);
+        const supply_schedule = document.getElementById("saSchedule").value.trim();
+        const pump_status = document.getElementById("saPumpStatus").value;
+        const current_level_percent = Number(document.getElementById("saLevelPercent").value);
+
+        try {
+            const res = await fetch(`${API_BASE}/api/water/tanks/${encodeURIComponent(id)}/supply-areas`, {
+                method: "PUT",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    source_asset_id,
+                    supplied_areas,
+                    supply_schedule,
+                    pump_status,
+                    current_level_percent
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast("✅ Supply area routing saved successfully!", "success");
+                closeModal("tankSupplyAreasModal");
+                loadAdminFacilities();
+                fetchAllWaterData();
+            } else {
+                alert(data.message || "Failed to update supply areas.");
+            }
+        } catch (err) {
+            showToast("Error updating supply areas: " + err.message, "error");
+        }
+    }
+    window.handleSaveTankSupplyAreas = handleSaveTankSupplyAreas;
+
+    function openFacilityAssetModal(id = null) {
+        const modal = document.getElementById("facilityAssetModal");
+        const form = document.getElementById("facilityAssetForm");
+        if (!modal || !form) return;
+        form.reset();
+        document.getElementById("faAssetIdPk").value = "";
+        document.getElementById("facilityAssetModalTitle").textContent = "🏢 Register Municipal Water Facility Asset";
+
+        if (id) {
+            const asset = allFacilitiesCache.find(x => String(x.id) === String(id) || String(x.asset_id) === String(id));
+            if (asset) {
+                document.getElementById("faAssetIdPk").value = asset.id || asset.asset_id;
+                document.getElementById("faAssetId").value = asset.asset_id || "";
+                document.getElementById("faName").value = asset.name || "";
+                document.getElementById("faType").value = asset.asset_type || "BOOSTER_PUMP";
+                document.getElementById("faZone").value = asset.zone || asset.location || "";
+                document.getElementById("faLat").value = asset.latitude || asset.lat || 26.7606;
+                document.getElementById("faLng").value = asset.longitude || asset.lng || 83.3732;
+                document.getElementById("faDepth").value = asset.depth_m || 2.5;
+                document.getElementById("faStatus").value = asset.status || "NORMAL";
+                document.getElementById("faDirection").value = asset.flow_direction || "FORWARD";
+                const areas = Array.isArray(asset.supplied_areas) ? asset.supplied_areas.join(", ") : (asset.supplied_areas || asset.connected_assets || "");
+                document.getElementById("faSuppliedAreas").value = areas;
+                document.getElementById("facilityAssetModalTitle").textContent = `🏢 Edit Facility Asset: ${asset.name}`;
+            }
+        }
+
+        modal.style.display = "flex";
+    }
+    window.openFacilityAssetModal = openFacilityAssetModal;
+
+    async function handleSaveFacilityAsset(e) {
+        e.preventDefault();
+        const pk = document.getElementById("faAssetIdPk").value;
+        const asset_id = document.getElementById("faAssetId").value.trim();
+        const name = document.getElementById("faName").value.trim();
+        const asset_type = document.getElementById("faType").value;
+        const zone = document.getElementById("faZone").value.trim();
+        const latitude = Number(document.getElementById("faLat").value);
+        const longitude = Number(document.getElementById("faLng").value);
+        const depth_m = Number(document.getElementById("faDepth").value);
+        const status = document.getElementById("faStatus").value;
+        const flow_direction = document.getElementById("faDirection").value;
+        const supplied_areas = document.getElementById("faSuppliedAreas").value.split(",").map(x => x.trim()).filter(Boolean);
+
+        const payload = {
+            asset_id, name, asset_type, zone, latitude, longitude, depth_m, status, flow_direction, supplied_areas
+        };
+
+        try {
+            const method = pk ? "PUT" : "POST";
+            const url = pk ? `${API_BASE}/api/water/network/assets/${encodeURIComponent(pk)}` : `${API_BASE}/api/water/network/assets`;
+
+            const res = await fetch(url, {
+                method,
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(`✅ Facility asset ${asset_id} saved successfully!`, "success");
+                closeModal("facilityAssetModal");
+                loadAdminFacilities();
+                fetchAllWaterData();
+            } else {
+                alert(data.message || "Failed to save facility asset.");
+            }
+        } catch (err) {
+            showToast("Error saving facility asset: " + err.message, "error");
+        }
+    }
+    window.handleSaveFacilityAsset = handleSaveFacilityAsset;
+
+    function openWaterCutModal() {
+        const modal = document.getElementById("waterCutModal");
+        const form = document.getElementById("waterCutForm");
+        if (!modal || !form) return;
+        form.reset();
+
+        const now = new Date();
+        const start = new Date(now.getTime() + 3600000).toISOString().slice(0, 16);
+        const end = new Date(now.getTime() + 14400000).toISOString().slice(0, 16);
+        document.getElementById("wcStartTime").value = start;
+        document.getElementById("wcEndTime").value = end;
+
+        modal.style.display = "flex";
+    }
+    window.openWaterCutModal = openWaterCutModal;
+
+    async function handleSaveWaterCut(e) {
+        e.preventDefault();
+        const title = document.getElementById("wcTitle").value.trim();
+        const type = document.getElementById("wcType").value;
+        const zone = document.getElementById("wcZone").value.trim();
+        const affected_areas = document.getElementById("wcAffectedAreas").value.split(",").map(x => x.trim()).filter(Boolean);
+        const start_time = document.getElementById("wcStartTime").value;
+        const end_time = document.getElementById("wcEndTime").value;
+        const reason = document.getElementById("wcReason").value.trim();
+        const alternative_supply = document.getElementById("wcAlternative").value.trim();
+
+        try {
+            const res = await fetch(`${API_BASE}/api/water/announcements`, {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    title, type, zone, affected_areas, start_time, end_time, reason, alternative_supply, status: "SCHEDULED"
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast("📢 Water cut notice published successfully!", "success");
+                closeModal("waterCutModal");
+                loadPublicSupplyStatus();
+                loadAdminFacilities();
+            } else {
+                alert(data.message || "Failed to schedule announcement.");
+            }
+        } catch (err) {
+            showToast("Error scheduling announcement: " + err.message, "error");
+        }
+    }
+    window.handleSaveWaterCut = handleSaveWaterCut;
+
+    // -------------------------------------------------------
+    // 9E. STAFF DASHBOARD FOUNDATION & URL NAVIGATION
+    // -------------------------------------------------------
+    async function loadStaffDashboardOverview() {
+        if (!isWaterStaff()) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/water/staff/dashboard-overview`, { headers: getAuthHeaders() });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.success && data.staff_session) {
+                const s = data.staff_session;
+                const banner = document.getElementById("staffAuthorityScopeBanner");
+                if (banner) {
+                    banner.style.display = "block";
+                    const scopeName = document.getElementById("staffScopeName");
+                    const scopeSectors = document.getElementById("staffScopeSectors");
+                    const scopeAssets = document.getElementById("staffScopeAssets");
+                    if (scopeName) scopeName.textContent = `${s.name} (${s.staff_id || 'WTR-STAFF'}) • ${s.role}`;
+                    if (scopeSectors) scopeSectors.textContent = s.permitted_sectors && s.permitted_sectors.length ? s.permitted_sectors.join(", ") : "All Municipal Sectors";
+                    if (scopeAssets) scopeAssets.textContent = s.permitted_assets && s.permitted_assets.length ? s.permitted_assets.join(", ") : "All Municipal Assets";
+                }
+            }
+        } catch (err) {
+            console.error("Staff overview load error:", err);
+        }
+    }
+    window.loadStaffDashboardOverview = loadStaffDashboardOverview;
+
+    function handleUrlNavigation() {
+        const params = new URLSearchParams(window.location.search);
+        const viewParam = (params.get("view") || "").toLowerCase();
+        const tabParam = (params.get("tab") || "").toLowerCase();
+        const hash = (window.location.hash || "").replace("#", "").toLowerCase();
+
+        const target = viewParam || tabParam || hash;
+        if (!target) return;
+
+        if (target === "admin") {
+            if (isWaterAdmin()) {
+                switchWaterLayer("admin");
+                setTimeout(() => {
+                    const el = document.getElementById("adminFacilitiesSingleScreen") || document.getElementById("layer-admin-content");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                }, 300);
+            } else {
+                switchWaterLayer("admin");
+                const auth = getAuth();
+                if (auth && typeof auth.showToast === "function") {
+                    auth.showToast("Water Administrator credentials required to access Admin Panel.", "warning");
+                }
+                if (auth && typeof auth.showLoginModal === "function") {
+                    auth.showLoginModal("staff");
+                }
+            }
+        } else if (target === "3d") {
+            if (typeof window.toggleWaterDimension === "function") {
+                window.toggleWaterDimension("3d");
+                setTimeout(() => {
+                    const el = document.getElementById("water3DContainer");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                }, 300);
+            }
+        } else if (target === "monitoring" || target === "scada") {
+            switchWaterLayer("flow");
+            setTimeout(() => {
+                const el = document.getElementById("layer-flow-content");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 300);
+        } else if (target === "assets" || target === "tanks") {
+            switchWaterLayer("admin");
+            setTimeout(() => {
+                const el = document.getElementById("adminFacilitiesSingleScreen") || document.getElementById("tankContainer");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 300);
+        } else if (target === "routes") {
+            switchWaterLayer("sewage");
+            const netSel = document.getElementById("sewageNetworkType");
+            if (netSel) {
+                netSel.value = "POTABLE";
+                netSel.dispatchEvent(new Event("change"));
+            }
+            setTimeout(() => {
+                const el = document.getElementById("layer-sewage-content");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 300);
+        } else if (target === "sewage" || target === "drainage") {
+            switchWaterLayer("sewage");
+            setTimeout(() => {
+                const el = document.getElementById("layer-sewage-content");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 300);
+        } else if (target === "complaints" || target === "grievance") {
+            switchWaterLayer("citizen");
+            setTimeout(() => {
+                const el = document.getElementById("visitorComplaintsSection") || document.getElementById("userReports");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 300);
+        } else if (target === "staff") {
+            switchWaterLayer("staff");
+            if (typeof loadStaffDashboardOverview === "function") {
+                loadStaffDashboardOverview();
+            }
+        }
+    }
+    window.handleUrlNavigation = handleUrlNavigation;
 
     // Tanker form submit
     const tankerForm = document.getElementById("tankerForm");
@@ -1561,6 +2307,179 @@
         }
     }
 
+    // -------------------------------------------------------
+    // 11B. WATER SECTORS & STAFF RBAC MODAL CONTROLLERS
+    // -------------------------------------------------------
+    function openWaterSectorsModal() {
+        const modal = document.getElementById("waterSectorsModal");
+        if (modal) {
+            modal.style.display = "flex";
+            loadWaterSectorsInModal();
+        }
+    }
+    window.openWaterSectorsModal = openWaterSectorsModal;
+
+    async function loadWaterSectorsInModal() {
+        const tbody = document.getElementById("sectorsTableModalBody");
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px;">Loading sectors...</td></tr>';
+
+        try {
+            const res = await fetch("/api/water/sectors", { headers: getAuthHeaders() });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.sectors)) {
+                if (data.sectors.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#64748b;">No sectors found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.sectors.map(s => `
+                    <tr>
+                        <td><strong>${s.sector_code}</strong></td>
+                        <td>${s.name}</td>
+                        <td>${s.zone}</td>
+                        <td>${s.total_demand_mld}</td>
+                        <td><small>${Array.isArray(s.assigned_engineers) ? s.assigned_engineers.join(', ') : (s.assigned_engineers || 'Unassigned')}</small></td>
+                        <td><span class="status-pill active">${s.status || 'ACTIVE'}</span></td>
+                    </tr>
+                `).join("");
+            }
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center; padding:16px;">Error loading sectors: ${err.message}</td></tr>`;
+        }
+    }
+    window.loadWaterSectorsInModal = loadWaterSectorsInModal;
+
+    async function handleCreateSectorSubmit(e) {
+        e.preventDefault();
+        const code = document.getElementById("secCode").value.trim();
+        const name = document.getElementById("secName").value.trim();
+        const zone = document.getElementById("secZone").value.trim();
+        const demand = document.getElementById("secDemand").value;
+        const pop = document.getElementById("secPop").value;
+        const engineers = document.getElementById("secEngineers").value.split(",").map(x => x.trim()).filter(Boolean);
+        const boundaryText = document.getElementById("secBoundary").value.trim();
+
+        let boundary = [];
+        try {
+            if (boundaryText) boundary = JSON.parse(boundaryText);
+        } catch (err) {
+            alert("Invalid JSON for boundary coordinates. Please input valid array of [lat, lng] pairs.");
+            return;
+        }
+
+        if (!boundary.length) {
+            boundary = [
+                [26.740, 83.370],
+                [26.750, 83.370],
+                [26.750, 83.385],
+                [26.740, 83.385]
+            ];
+        }
+
+        try {
+            const res = await fetch("/api/water/sectors", {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    sector_code: code,
+                    name,
+                    zone,
+                    total_demand_mld: demand,
+                    population_served: pop,
+                    assigned_engineers: engineers,
+                    boundary_geojson: boundary
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ Water sector ${code} created successfully.`);
+                loadWaterSectorsInModal();
+                if (window.SewagePlannerUI && window.SewagePlannerUI.loadMunicipalSectors) {
+                    window.SewagePlannerUI.loadMunicipalSectors();
+                }
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (err) {
+            alert(`Network error: ${err.message}`);
+        }
+    }
+    window.handleCreateSectorSubmit = handleCreateSectorSubmit;
+
+    function openWaterStaffModal() {
+        const modal = document.getElementById("waterStaffModal");
+        if (modal) {
+            modal.style.display = "flex";
+            loadWaterStaffInModal();
+        }
+    }
+    window.openWaterStaffModal = openWaterStaffModal;
+
+    async function loadWaterStaffInModal() {
+        const tbody = document.getElementById("waterStaffTableModalBody");
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px;">Loading staff records...</td></tr>';
+
+        try {
+            const res = await fetch("/api/water/admin/staff", { headers: getAuthHeaders() });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.staff)) {
+                if (data.staff.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:16px; color:#64748b;">No staff records found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.staff.map(st => `
+                    <tr>
+                        <td><strong>${st.staff_id}</strong></td>
+                        <td>${st.name}</td>
+                        <td><span class="role-pill staff-pill" style="font-size:10px;">${st.role}</span></td>
+                        <td><small style="color:#0284c7;">${Array.isArray(st.permitted_sectors) && st.permitted_sectors.length ? st.permitted_sectors.join(', ') : 'Universal'}</small></td>
+                        <td><small style="color:#059669;">${Array.isArray(st.permitted_assets) && st.permitted_assets.length ? st.permitted_assets.join(', ') : 'All Assets'}</small></td>
+                        <td><span class="status-pill active">${st.status || 'Active'}</span></td>
+                    </tr>
+                `).join("");
+            }
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center; padding:16px;">Error loading staff: ${err.message}</td></tr>`;
+        }
+    }
+    window.loadWaterStaffInModal = loadWaterStaffInModal;
+
+    async function handleCreateWaterStaffSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById("wsName").value.trim();
+        const staffId = document.getElementById("wsStaffId").value.trim();
+        const role = document.getElementById("wsRole").value;
+        const password = document.getElementById("wsPassword").value.trim();
+        const sectors = document.getElementById("wsSectors").value.split(",").map(x => x.trim()).filter(Boolean);
+        const assets = document.getElementById("wsAssets").value.split(",").map(x => x.trim()).filter(Boolean);
+
+        try {
+            const res = await fetch("/api/water/admin/staff", {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    name,
+                    staffId,
+                    role,
+                    password: password || undefined,
+                    permitted_sectors: sectors,
+                    permitted_assets: assets
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ Water staff ${data.credentials.staffId} created successfully. Initial password: ${data.credentials.password}`);
+                loadWaterStaffInModal();
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (err) {
+            alert(`Network error: ${err.message}`);
+        }
+    }
+    window.handleCreateWaterStaffSubmit = handleCreateWaterStaffSubmit;
+
     // Attach to window
     window.onAIWaterTankChange = onAIWaterTankChange;
     window.runAIWaterAnomalyDetection = runAIWaterAnomalyDetection;
@@ -1574,15 +2493,18 @@
         initWaterMap();
         applyRoleUI();
         fetchAllWaterData();
+        loadPublicSupplyStatus();
         initRealtime();
         if (typeof loadAIWaterAuditTable === "function") {
             loadAIWaterAuditTable();
         }
+        handleUrlNavigation();
 
         // Listen for global auth changes from frontend/auth.js
         window.addEventListener("smartcity:auth-changed", () => {
             applyRoleUI();
             fetchAllWaterData();
+            handleUrlNavigation();
         });
 
         // Periodic background poll

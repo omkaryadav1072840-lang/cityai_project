@@ -27,7 +27,8 @@ const TEST_SUITES = [
     { name: "Citizen & Staff Auth & Profiles", file: "scratch/test_auth_system.js" },
     { name: "Production Hardening, SEO & Legal Compliance", file: "scratch/test_hardening_and_compliance.js" },
     { name: "AI Clinical Care Assistant Suite (28 Tests)", file: "scripts/test_clinical_care_assistant.js" },
-    { name: "Multi-Disease Clinical Decision-Support (7-Part Guidance)", file: "scripts/test_diverse_clinical_queries.js" }
+    { name: "Multi-Disease Clinical Decision-Support (7-Part Guidance)", file: "scripts/test_diverse_clinical_queries.js" },
+    { name: "Water Intelligence, 3D Explorer & Wastewater Safety Interlock", file: "scratch/test_water_intelligence_suite.js" }
 ];
 
 async function runSingleTest(suite) {

@@ -60,7 +60,9 @@ function generateToken(user, role = "citizen") {
         department: user.department || null,
         hospitalId: user.hospitalId || user.hospital_id || null,
         hospitalRole: user.hospitalRole || user.hospital_role || null,
-        editable: user.editable || []
+        editable: user.editable || [],
+        permitted_sectors: user.permitted_sectors || user.permittedSectors || [],
+        permitted_assets: user.permitted_assets || user.permittedAssets || []
     };
 
     return jwt.sign(payload, JWT_SECRET, {
@@ -175,7 +177,7 @@ function requireRole(allowedRoles = []) {
     };
 }
 
-// Department check for municipal staff
+// Department check for municipal staff with strict departmental isolation
 function requireDepartment(allowedDepartments = []) {
     return (req, res, next) => {
         if (!req.user) {
@@ -187,13 +189,21 @@ function requireDepartment(allowedDepartments = []) {
 
         const userRole = (req.user.role || req.user.type || "").toLowerCase();
         const accountType = (req.user.accountType || "").toLowerCase();
-        if (userRole === "admin" || userRole === "super_admin" || accountType === "super_admin") {
+        const userDept = (req.user.department || "").toLowerCase();
+
+        // 1. Super Admin has universal access
+        if (userRole === "super_admin" || accountType === "super_admin" || (userRole === "admin" && (userDept === "admin" || !userDept || userDept === "municipal"))) {
             return next();
         }
 
-        const userDept = (req.user.department || "").toLowerCase();
         const normalizedAllowed = allowedDepartments.map(d => d.toLowerCase());
 
+        // 2. Department-specific Admin has access to their department
+        if ((userRole === "admin" || userRole.endsWith("_admin") || accountType.endsWith("_admin")) && normalizedAllowed.includes(userDept)) {
+            return next();
+        }
+
+        // 3. Department staff with explicitly allowed department or editable permission
         if (normalizedAllowed.includes(userDept) || (req.user.editable && req.user.editable.some(e => normalizedAllowed.includes(e.toLowerCase())))) {
             return next();
         }

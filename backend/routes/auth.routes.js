@@ -95,6 +95,13 @@ const ROLE_DEFAULT_MODULES = {
     ],
     super_admin: [
         "hospitals", "hospital_admins", "system_config", "analytics", "all_departments"
+    ],
+    water_admin: [
+        "water_overview", "water_pipelines", "sewage_planner", "water_network_config",
+        "work_orders", "fault_management", "flow_control", "audit_logs", "treatment_batches"
+    ],
+    water_staff: [
+        "water_pipelines", "assigned_work_orders", "fault_reports", "flow_telemetry"
     ]
 };
 
@@ -111,7 +118,9 @@ const ROLE_DEFAULT_PERMS = {
         "view", "create", "update", "delete", "manage_staff",
         "manage_doctors", "manage_beds", "manage_departments", "manage_invoices"
     ],
-    super_admin: ["all", "view", "create", "update", "delete", "admin"]
+    super_admin: ["all", "view", "create", "update", "delete", "admin"],
+    water_admin: ["all", "view", "create", "update", "delete", "manage_routes", "publish_network", "assign_work_orders", "flow_control", "approve_batches"],
+    water_staff: ["view", "update", "work_orders", "inspect_assets", "update_status"]
 };
 
 function parseJsonArray(val, fallback) {
@@ -209,6 +218,7 @@ router.post("/api/login", async (req, res) => {
         const [staffRows] = await p.query(`
             SELECT s.id, s.name, s.staff_id, s.password, s.department, s.role, s.email,
                    s.hospital_id, s.hospital_role, s.status, s.permissions, s.assigned_modules,
+                   s.permitted_sectors, s.permitted_assets,
                    h.hospital_name, h.status AS hospital_status
             FROM staff s
             LEFT JOIN hospitals h ON (s.hospital_id = h.hospital_id OR s.hospital_id = CAST(h.id AS CHAR))
@@ -274,6 +284,7 @@ router.post("/api/staff-login", async (req, res) => {
         const [staffResults] = await p.query(`
             SELECT s.id, s.name, s.staff_id, s.password, s.department, s.role, s.email,
                    s.hospital_id, s.hospital_role, s.status, s.permissions, s.assigned_modules,
+                   s.permitted_sectors, s.permitted_assets,
                    h.hospital_name, h.status AS hospital_status
             FROM staff s
             LEFT JOIN hospitals h ON (s.hospital_id = h.hospital_id OR s.hospital_id = CAST(h.id AS CHAR))
@@ -326,10 +337,11 @@ async function processStaffAuth(req, res, staff, password) {
             "STAFF-001", "TR-ADMIN", "TR-VERMA", "TR-PANDEY", "WST001",
             "STAFF-HOSP-ADMIN", "HOSP-ADMIN", "AIIMS-ADMIN",
             "STAFF-BRD-REC", "STAFF-BRD-ADMIN", "HOSP-REC", "HOSP-PHARM",
-            "HOSP-NUR", "HOSP-LAB", "HOSP-BILL", "HOSP-AMB"
+            "HOSP-NUR", "HOSP-LAB", "HOSP-BILL", "HOSP-AMB",
+            "WTR-ADMIN", "WTR-ENG-01", "WTR001"
         ];
         if (demoStaffIds.includes(cleanStaffId)) {
-            if (["admin", "admin123", "staff123", "doctor123", "123456", "pandey123"].includes(password)) {
+            if (["admin", "admin123", "staff123", "doctor123", "123456", "pandey123", "water123", "engineer123"].includes(password)) {
                 isMatch = true;
                 db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [hashPassword(password), staff.id]).catch(() => {});
             }
@@ -373,13 +385,18 @@ async function processStaffAuth(req, res, staff, password) {
     let role = "staff";
     let targetDashboard = "pages/dashboard/dashboard.html";
 
-    const isSystemAdmin = (staff.role === "admin" || String(staff.department).toLowerCase() === "admin" || staff.hospital_role === "admin") && !staff.hospital_id;
+    const isSuperAdmin = (staff.role === "super_admin" || (staff.role === "admin" && (String(staff.department).toLowerCase() === "admin" || !staff.department || String(staff.department).toLowerCase() === "municipal")));
+    const isWaterAdmin = staff.role === "water_admin" || String(staff.staff_id).toUpperCase() === "WTR-ADMIN" || (staff.role === "admin" && String(staff.department).toLowerCase() === "water");
     const isHospitalAdmin = staff.hospital_role === "hospital_admin" || (staff.role === "admin" && Boolean(staff.hospital_id));
 
-    if (isSystemAdmin) {
+    if (isSuperAdmin) {
         accountType = "ADMIN";
         role = "admin";
         targetDashboard = "pages/dashboard/dashboard.html";
+    } else if (isWaterAdmin) {
+        accountType = "WATER_ADMIN";
+        role = "water_admin";
+        targetDashboard = "pages/water/water.html";
     } else if (isHospitalAdmin) {
         accountType = "HOSPITAL_ADMIN";
         role = "hospital_admin";
@@ -389,11 +406,13 @@ async function processStaffAuth(req, res, staff, password) {
         role = (staff.hospital_role || "receptionist").toLowerCase();
         targetDashboard = `pages/hospital/hospital_dashboard.html?hospital_id=${staff.hospital_id}&role=${role}`;
     } else {
-        // Municipal department staff: waste, traffic, water, electricity, etc.
+        // Municipal department staff: water, waste, traffic, etc.
         accountType = "STAFF";
         role = (staff.role || "staff").toLowerCase();
         const dept = String(staff.department || "").toLowerCase();
-        if (dept === "waste") {
+        if (dept === "water") {
+            targetDashboard = "pages/water/water.html";
+        } else if (dept === "waste") {
             targetDashboard = "pages/waste/waste.html";
         } else if (dept === "traffic") {
             targetDashboard = "pages/traffic/traffic.html";
@@ -403,12 +422,14 @@ async function processStaffAuth(req, res, staff, password) {
     }
 
     // 5. Determine Permissions & Assigned Modules
-    const assignedModules = parseJsonArray(staff.assigned_modules, ROLE_DEFAULT_MODULES[role] || (role === "admin" ? ["all"] : [staff.department || "general"]));
-    const assignedPermissions = parseJsonArray(staff.permissions, ROLE_DEFAULT_PERMS[role] || (role === "admin" ? ["all"] : ["view", "update", "create"]));
+    const assignedModules = parseJsonArray(staff.assigned_modules, ROLE_DEFAULT_MODULES[role] || (role === "admin" || role === "water_admin" ? ["all"] : [staff.department || "general"]));
+    const assignedPermissions = parseJsonArray(staff.permissions, ROLE_DEFAULT_PERMS[role] || (role === "admin" || role === "water_admin" ? ["all"] : ["view", "update", "create"]));
+    const permittedSectors = parseJsonArray(staff.permitted_sectors, role === "water_admin" ? ["ALL_SECTORS"] : []);
+    const permittedAssets = parseJsonArray(staff.permitted_assets, role === "water_admin" ? ["ALL_ASSETS"] : []);
 
     const editableDepts = (role === "admin" || role === "super_admin")
         ? ["traffic", "waste", "water", "electricity", "roads", "hospital", "admin"]
-        : (staff.department ? [String(staff.department).toLowerCase()] : []);
+        : (role === "water_admin" ? ["water"] : (staff.department ? [String(staff.department).toLowerCase()] : []));
 
     const staffData = {
         id: staff.id,
@@ -425,6 +446,8 @@ async function processStaffAuth(req, res, staff, password) {
         status: staff.status || "Active",
         permissions: assignedPermissions,
         assignedModules,
+        permitted_sectors: permittedSectors,
+        permitted_assets: permittedAssets,
         targetDashboard,
         type: accountType.toLowerCase(),
         editable: editableDepts
@@ -1127,6 +1150,146 @@ router.post("/api/auth/demo-login", async (req, res) => {
                     message: "Demo Waste Officer authenticated.",
                     user: staffData,
                     token
+                });
+            }
+        }
+
+        if (persona === "police" || persona === "police_staff") {
+            const [polRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email
+                FROM staff
+                WHERE department = 'police' OR staff_id LIKE 'POL%'
+                LIMIT 1
+            `);
+            const ps = polRows.length > 0 ? polRows[0] : { id: 80, name: "Insp. Vikram Singh", staff_id: "POL-01", email: "police@gorakhpur.gov.in" };
+            const staffData = {
+                id: ps.id,
+                userId: ps.id,
+                name: ps.name,
+                staffId: ps.staff_id,
+                email: ps.email,
+                department: "police",
+                role: "staff",
+                type: "staff",
+                editable: permissions.police
+            };
+            const token = generateToken(staffData, "staff");
+            return res.json({
+                success: true,
+                message: "Demo Police Officer authenticated.",
+                user: staffData,
+                token
+            });
+        }
+
+        if (persona === "emergency" || persona === "emergency_staff") {
+            const [emgRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email
+                FROM staff
+                WHERE department = 'emergency' OR staff_id LIKE 'EMG%'
+                LIMIT 1
+            `);
+            const es = emgRows.length > 0 ? emgRows[0] : { id: 81, name: "Control Room Lead", staff_id: "EMG-01", email: "emergency@gorakhpur.gov.in" };
+            const staffData = {
+                id: es.id,
+                userId: es.id,
+                name: es.name,
+                staffId: es.staff_id,
+                email: es.email,
+                department: "emergency",
+                role: "staff",
+                type: "staff",
+                editable: permissions.emergency
+            };
+            const token = generateToken(staffData, "staff");
+            return res.json({
+                success: true,
+                message: "Demo Emergency Officer authenticated.",
+                user: staffData,
+                token
+            });
+        }
+
+        if (persona === "water_admin" || persona === "wateradmin") {
+            const [adminRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email, permissions, assigned_modules, permitted_sectors, permitted_assets
+                FROM staff
+                WHERE staff_id = 'WTR-ADMIN' OR (department = 'water' AND role = 'admin')
+                LIMIT 1
+            `);
+            if (adminRows.length > 0) {
+                const wa = adminRows[0];
+                let permSec = [];
+                try { permSec = typeof wa.permitted_sectors === "string" ? JSON.parse(wa.permitted_sectors) : (wa.permitted_sectors || []); } catch (_) {}
+                let permAst = [];
+                try { permAst = typeof wa.permitted_assets === "string" ? JSON.parse(wa.permitted_assets) : (wa.permitted_assets || []); } catch (_) {}
+                const staffData = {
+                    id: wa.id,
+                    userId: wa.id,
+                    name: wa.name,
+                    staffId: wa.staff_id,
+                    email: wa.email,
+                    department: "water",
+                    role: "admin",
+                    accountType: "WATER_ADMIN",
+                    subRole: "water_admin",
+                    type: "admin",
+                    permitted_sectors: permSec,
+                    permitted_assets: permAst,
+                    editable: permissions.admin,
+                    targetDashboard: "pages/water/water.html?view=admin"
+                };
+                const token = generateToken(staffData, "admin");
+                return res.json({
+                    success: true,
+                    message: "Demo Water Administrator authenticated.",
+                    accountType: "WATER_ADMIN",
+                    role: "admin",
+                    user: staffData,
+                    token,
+                    targetDashboard: staffData.targetDashboard
+                });
+            }
+        }
+
+        if (persona === "water" || persona === "water_staff" || persona === "water_engineer") {
+            const [staffRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email, permissions, assigned_modules, permitted_sectors, permitted_assets
+                FROM staff
+                WHERE staff_id IN ('WTR-ENG-01', 'WTR001') OR department = 'water'
+                ORDER BY (staff_id = 'WTR-ENG-01') DESC LIMIT 1
+            `);
+            if (staffRows.length > 0) {
+                const ws = staffRows[0];
+                let permSec = [];
+                try { permSec = typeof ws.permitted_sectors === "string" ? JSON.parse(ws.permitted_sectors) : (ws.permitted_sectors || []); } catch (_) {}
+                let permAst = [];
+                try { permAst = typeof ws.permitted_assets === "string" ? JSON.parse(ws.permitted_assets) : (ws.permitted_assets || []); } catch (_) {}
+                const staffData = {
+                    id: ws.id,
+                    userId: ws.id,
+                    name: ws.name,
+                    staffId: ws.staff_id,
+                    email: ws.email,
+                    department: "water",
+                    role: "staff",
+                    accountType: "STAFF",
+                    subRole: "pipeline_engineer",
+                    type: "staff",
+                    permitted_sectors: permSec,
+                    permitted_assets: permAst,
+                    editable: permissions.water,
+                    targetDashboard: "pages/water/water.html?view=staff"
+                };
+                const token = generateToken(staffData, "staff");
+                return res.json({
+                    success: true,
+                    message: "Demo Water Staff authenticated.",
+                    accountType: "STAFF",
+                    role: "staff",
+                    user: staffData,
+                    token,
+                    targetDashboard: staffData.targetDashboard
                 });
             }
         }

@@ -74,14 +74,41 @@ class AIOrchestrator {
             return { tool: "get_emergency_services", module: "emergency", intent: "emergency_sos" };
         }
 
-        // 7. Waste & Sanitation
-        if (q.includes("waste") || q.includes("garbage") || q.includes("कचरा") || q.includes("कूड़ा") || q.includes("safai") || q.includes("dustbin")) {
-            return { tool: "get_waste_status", module: "waste", intent: "waste_management" };
+        // 7. Water & Sewage Command Center (Tasks, Faults, Flow Direction, Routes, Telemetry)
+        if (q.includes("assigned") || q.includes("task") || q.includes("work order") || q.includes("जिम्मेदारी") || q.includes("कार्य")) {
+            if (q.includes("mere") || q.includes("my") || q.includes("water") || q.includes("pipe") || q.includes("sewer") || q.includes("काम")) {
+                return { tool: "get_water_work_orders", module: "water", intent: "water_work_orders" };
+            }
         }
-
-        // 8. Water
+        if (q.includes("fault") || q.includes("anomal") || q.includes("simulated") || q.includes("verified") || q.includes("फॉल्ट") || q.includes("खराबी") || q.includes("दोष")) {
+            if (q.includes("kaun se") || q.includes("water") || q.includes("pipe") || q.includes("sewer") || q.includes("which") || q.includes("verified")) {
+                return { tool: "get_water_faults_and_anomalies", module: "water", intent: "water_faults" };
+            }
+        }
+        if (q.includes("flow") || q.includes("direction") || q.includes("दिशा") || q.includes("बहाव")) {
+            if (q.includes("pipe") || q.includes("water") || q.includes("sewer") || q.includes("पाइप") || q.includes("kis direction")) {
+                return { tool: "get_water_flow_direction", module: "water", intent: "water_flow_direction" };
+            }
+        }
+        if ((q.includes("suggest") || q.includes("सुझाव") || q.includes("recommend") || q.includes("propose") || q.includes("plan route") || q.includes("draft route") || q.includes("नया रूट")) && (q.includes("route") || q.includes("रूट") || q.includes("pipeline") || q.includes("sewer") || q.includes("water") || q.includes("pipe") || q.includes("मार्ग"))) {
+            return { tool: "suggest_water_pipeline_route", module: "water", intent: "water_suggest_route" };
+        }
+        if ((q.includes("route") || q.includes("रूट") || q.includes("मार्ग")) && (q.includes("sewer") || q.includes("pipeline") || q.includes("pipe") || q.includes("सीवर") || q.includes("water"))) {
+            return { tool: "get_water_route_details", module: "water", intent: "water_route_details" };
+        }
+        if (q.includes("wastewater") || q.includes("stp") || q.includes("sewage") || q.includes("treatment") || q.includes("reclaimed") || q.includes("सीवेज") || q.includes("ट्रीटमेंट") || q.includes("effluent")) {
+            return { tool: "get_wastewater_treatment_status", module: "water", intent: "wastewater_treatment" };
+        }
+        if (q.includes("pipeline") || q.includes("pipe") || q.includes("पाइपलाइन") || q.includes("burst") || q.includes("pressure drop") || q.includes("pipe leak")) {
+            return { tool: "get_water_pipeline_telemetry", module: "water", intent: "water_pipelines" };
+        }
         if (q.includes("water") || q.includes("पानी") || q.includes("tank") || q.includes("leak") || q.includes("supply")) {
             return { tool: "get_water_status", module: "water", intent: "water_supply" };
+        }
+
+        // 8. Solid Waste & Sanitation (Excludes wastewater)
+        if ((q.includes("waste") && !q.includes("wastewater")) || q.includes("garbage") || q.includes("कचरा") || q.includes("कूड़ा") || q.includes("safai") || q.includes("dustbin")) {
+            return { tool: "get_waste_status", module: "waste", intent: "waste_management" };
         }
 
         // 9. AQI & Air Quality
@@ -343,6 +370,120 @@ class AIOrchestrator {
                 break;
             }
 
+            case "water_pipelines": {
+                const pipes = (rawToolData.pipelines || []).slice(0, 5).map(p => `• **${p.pipeline_code}** (${p.name}): Status: **${p.status}** | Pressure: ${p.pressure_bar} bar | Flow: ${p.flow_rate_lps} L/s | Type: ${p.pipe_type || 'POTABLE'}`).join("\n");
+                reply = isHindi
+                    ? `गोरखपुर पाइपलाइन नेटवर्क टेलीमेट्री एवं प्रेशर स्थिति:\n\n${pipes}\n\n3D पाइपलाइन एक्सप्लोरर में लाइव नेटवर्क मैप देखा जा सकता है।`
+                    : `Gorakhpur Municipal Pipeline SCADA Telemetry:\n\n${pipes}\n\nInspect 3D pipeline flow and pressure gradients on the Water Portal.`;
+                suggestedActions = [
+                    { label: "Open 3D Pipeline Explorer", action: "/pages/water/water.html#pipelineExplorer" },
+                    { label: "Report Pressure Anomaly", action: "/pages/water/water.html" }
+                ];
+                break;
+            }
+
+            case "wastewater_treatment": {
+                const plants = (rawToolData.plants || []).map(p => `• 🏭 **${p.name}** (${p.zone}): Status ${p.status}`).join("\n");
+                const batches = (rawToolData.recent_batches || []).slice(0, 3).map(b => `• 🧪 **Batch #${b.batch_id}**: ${b.outlet_volume_kl} kL | BOD: ${b.bod_mg_l} mg/L | Status: **${b.quality_status}** (${b.approval_status}) -> ${b.reuse_destination}`).join("\n");
+                reply = isHindi
+                    ? `गोरखपुर सीवेज एवं पुनर्चक्रित जल शोधन (STP) स्थिति:\n\n${plants}\n\n**हालिया शोधित बैच:**\n${batches}\n\nCPCB मानकों का पालन अनिवार्य है। गैर-अनुपालन वाले बैच का पुनःउपयोग रोक दिया जाता है।`
+                    : `Gorakhpur Sewage Treatment Plant (STP) & Reclaimed Water Recycling Status:\n\n${plants}\n\n**Recent Treatment Batches:**\n${batches}\n\nStrict compliance with CPCB limits required prior to reuse approval.`;
+                suggestedActions = [
+                    { label: "Water & STP Operations", action: "/pages/water/water.html" }
+                ];
+                break;
+            }
+
+            case "water_work_orders": {
+                const orders = (rawToolData.work_orders || []).slice(0, 5).map(w => 
+                    `• **${w.order_number}**: ${w.title} [${w.network_type || 'WATER'}] - स्थिति: **${w.status}** | प्राथमिकता: ${w.priority} | असाइन: ${w.staff_name || w.assigned_to || 'Unassigned'}`
+                ).join("\n");
+                const ordersEn = (rawToolData.work_orders || []).slice(0, 5).map(w => 
+                    `• **${w.order_number}**: ${w.title} [${w.network_type || 'WATER'}] - Status: **${w.status}** | Priority: ${w.priority} | Assigned: ${w.staff_name || w.assigned_to || 'Unassigned'}`
+                ).join("\n");
+
+                reply = isHindi
+                    ? `📋 **जलकल एवं सीवेज कमांड सेंटर - कार्य आदेश (Work Orders):**\n\n${orders || 'वर्तमान में कोई सक्रिय कार्य आदेश नहीं मिला।'}\n\n⚠️ *नोट: कार्य आदेश केवल अधिकृत जलकल इंजीनियर/स्टाफ द्वारा अपडेट किए जा सकते हैं।*`
+                    : `📋 **Water & Sewage Command Center - Work Orders:**\n\n${ordersEn || 'No active work orders currently found.'}\n\n⚠️ *Notice: Work order statuses can only be transitioned by authenticated water staff and supervisors.*`;
+                suggestedActions = [
+                    { label: "Open Staff Dashboard", action: "/pages/water/water.html#staffDashboard" }
+                ];
+                break;
+            }
+
+            case "water_faults": {
+                const breakdown = rawToolData.breakdown || {};
+                const list = (rawToolData.faults || []).slice(0, 5).map(f => {
+                    const tag = f.provenance === "CONFIRMED" ? "✅ [पुष्ट / VERIFIED]"
+                              : f.provenance === "SIMULATED" ? "🧪 [सिमुलेटेड / SIMULATED]"
+                              : f.provenance === "ALGORITHMIC_SUSPICION" ? "🤖 [एल्गोरिथम संदेह / ALGORITHMIC]"
+                              : "👤 [नागरिक रिपोर्ट / CITIZEN REPORT]";
+                    return `• ${tag} **${f.fault_code}**: ${f.issue_type} (${f.asset_id}) - गंभीरता: ${f.severity} | स्थिति: ${f.status} (${f.description || ''})`;
+                }).join("\n");
+
+                const listEn = (rawToolData.faults || []).slice(0, 5).map(f => {
+                    const tag = f.provenance === "CONFIRMED" ? "✅ [CONFIRMED]"
+                              : f.provenance === "SIMULATED" ? "🧪 [SIMULATED]"
+                              : f.provenance === "ALGORITHMIC_SUSPICION" ? "🤖 [ALGORITHMIC]"
+                              : "👤 [CITIZEN REPORT]";
+                    return `• ${tag} **${f.fault_code}**: ${f.issue_type} on ${f.asset_id} - Severity: ${f.severity} | Status: ${f.status} (${f.description || ''})`;
+                }).join("\n");
+
+                reply = isHindi
+                    ? `🔍 **जल एवं सीवेज नेटवर्क दोष एवं डेटा प्रामाणिकता (Faults & Provenance):**\n\n• सत्यापित भौतिक दोष: ${breakdown.verified_count || 0}\n• नागरिक शिकायतें: ${breakdown.citizen_count || 0}\n• एल्गोरिथम संदेह (AI): ${breakdown.algorithmic_count || 0}\n• सिमुलेटेड परिदृश्य (टेस्ट): ${breakdown.simulated_count || 0}\n\n${list}\n\n⚠️ *सिमुलेटेड दोष परीक्षण हेतु हैं, वास्तविक हार्डवेयर विफलता नहीं।*`
+                    : `🔍 **Water & Sewage Network Faults & Telemetry Provenance:**\n\n• Confirmed Physical Faults: ${breakdown.verified_count || 0}\n• Citizen Reported: ${breakdown.citizen_count || 0}\n• Algorithmic Suspicion (AI): ${breakdown.algorithmic_count || 0}\n• Simulated Scenarios (Testing): ${breakdown.simulated_count || 0}\n\n${listEn}\n\n⚠️ *Simulated faults are for scenario analysis and must not be treated as live hardware alarms.*`;
+                suggestedActions = [
+                    { label: "View Faults Desk", action: "/pages/water/water.html#faultsDesk" }
+                ];
+                break;
+            }
+
+            case "water_flow_direction": {
+                const pipes = (rawToolData.pipelines || []).slice(0, 4).map(p => 
+                    `• **${p.pipeline_code}** (${p.name || p.zone}): प्रवाह दिशा = **${p.flow_direction || 'FORWARD'}** | दबाव = ${p.pressure_bar || 0} bar | प्रवाह = ${p.flow_rate_lps || 0} L/s | स्रोत = **${p.telemetry_provenance || 'MEASURED'}** | वाल्व = ${p.valve_state || 'OPEN'}`
+                ).join("\n");
+                const pipesEn = (rawToolData.pipelines || []).slice(0, 4).map(p => 
+                    `• **${p.pipeline_code}** (${p.name || p.zone}): Flow Direction = **${p.flow_direction || 'FORWARD'}** | Pressure = ${p.pressure_bar || 0} bar | Flow Rate = ${p.flow_rate_lps || 0} L/s | Provenance = **${p.telemetry_provenance || 'MEASURED'}** | Valve = ${p.valve_state || 'OPEN'}`
+                ).join("\n");
+
+                reply = isHindi
+                    ? `🌊 **पाइपलाइन प्रवाह दिशा एवं टेलीमेट्री (Flow Direction & Telemetry):**\n\n${pipes || 'कोई पाइपलाइन डेटा उपलब्ध नहीं।'}\n\n⚠️ *नोट: प्रवाह दिशा 3D एक्सप्लोरर में एनिमेटेड तीरों द्वारा भी दर्शायी जाती है। AI सीधे वाल्व को चालू/बंद नहीं कर सकता।*`
+                    : `🌊 **Pipeline Flow Direction & Telemetry:**\n\n${pipesEn || 'No pipeline telemetry available.'}\n\n⚠️ *Notice: Flow directions are simulated visually in the 3D explorer. AI cannot operate physical flow valves.*`;
+                suggestedActions = [
+                    { label: "Inspect in 3D Explorer", action: "/pages/water/water.html#pipelineExplorer" },
+                    { label: "Flow Control Center", action: "/pages/water/water.html#flowControl" }
+                ];
+                break;
+            }
+
+            case "water_route_details": {
+                const routes = (rawToolData.routes || []).map(r => 
+                    `• **${r.route_name || r.route_id}** [${r.network_type}]: लंबाई = ${r.total_length_m || 0}m | स्थिति = ${r.status} (v${r.version || 1}) | सर्वे स्थिति = **${r.survey_status || 'UNKNOWN'}**`
+                ).join("\n");
+                const routesEn = (rawToolData.routes || []).map(r => 
+                    `• **${r.route_name || r.route_id}** [${r.network_type}]: Length = ${r.total_length_m || 0}m | Status = ${r.status} (v${r.version || 1}) | Survey Status = **${r.survey_status || 'UNKNOWN'}**`
+                ).join("\n");
+
+                reply = isHindi
+                    ? `🗺️ **सीवर एवं जल नेटवर्क रूट विवरण (Pipeline Route Geometry):**\n\n${routes || 'कोई रूट रिकॉर्ड नहीं मिला।'}\n\n⚠️ *नोट: निर्माण कार्य से पहले फ़ील्ड सर्वे स्थिति (NEEDS_SURVEY) का सत्यापन अनिवार्य है।*`
+                    : `🗺️ **Water & Sewage Network Route Details:**\n\n${routesEn || 'No route geometry found.'}\n\n⚠️ *Notice: Incomplete survey dimensions are marked NEEDS_SURVEY and must not be used as certified construction drawings.*`;
+                suggestedActions = [
+                    { label: "Open Network Planner", action: "/pages/water/water.html#networkPlanner" }
+                ];
+                break;
+            }
+
+            case "water_suggest_route": {
+                const p = rawToolData.proposal || {};
+                reply = isHindi
+                    ? `📐 **AI पाइपलाइन रूट प्रस्ताव (${p.route_id || 'DRAFT'}):**\n\n• रूट नाम: **${p.name}**\n• क्षेत्र / ज़ोन: ${p.zone}\n• नेटवर्क प्रकार: ${p.network_type}\n• अनुमानित लंबाई: ${p.estimated_length_meters || 0} मीटर (${p.estimated_manholes || 0} मैनहोल)\n• पाइप व्यास: ${p.pipe_diameter_mm} mm | ढलान: ${p.slope_pct}%\n• सड़क संरेखण: ${p.validation_preview?.road_centerline_status || 'SNAPPED'}\n\n⚠️ **महत्वपूर्ण सुरक्षा नीति:** AI द्वारा प्रस्तावित रूट को कभी भी स्वचालित रूप से प्रकाशित नहीं किया जा सकता। इसे केवल अधिकृत वाटर एडमिनिस्ट्रेटर द्वारा 2D/3D प्लानर में मैनुअल रूप से सत्यापित, मान्य और प्रकाशित किया जा सकता है।`
+                    : `📐 **AI Pipeline Route Suggestion (${p.route_id || 'DRAFT'}):**\n\n• Proposed Alignment: **${p.name}**\n• Ward / Zone: ${p.zone}\n• Network Classification: ${p.network_type}\n• Estimated Length: ${p.estimated_length_meters || 0} meters (${p.estimated_manholes || 0} manholes/chambers)\n• Pipe Specifications: ${p.pipe_diameter_mm} mm diameter, ${p.slope_pct}% hydraulic slope\n• Road Corridor Alignment: ${p.validation_preview?.road_centerline_status || 'SNAPPED'}\n\n⚠️ **MUNICIPAL SAFETY POLICY:** AI route suggestions must NEVER be published automatically. All alignments must be reviewed, engineered, and published manually by the authorized Water Administrator.`;
+                suggestedActions = [
+                    { label: "Open 2D/3D Water Network Planner", action: "/pages/water/water.html" }
+                ];
+                break;
+            }
+
             case "grievance_status": {
                 if (rawToolData.message) {
                     reply = rawToolData.message;
@@ -472,7 +613,7 @@ Rules:
                     confidenceScore,
                     `Grounded execution via tool '${intentObj.tool}'`,
                     userId,
-                    toolExecution.result.data_source || "REAL",
+                    (toolExecution.result.data_source === "SIMULATED" ? "SIMULATED" : (toolExecution.result.data_source === "PREDICTED" ? "PREDICTED" : "REAL")),
                     processingTime,
                     "COMPLETED"
                 ]
@@ -483,13 +624,14 @@ Rules:
 
         // 6. Record chat message in session
         try {
+            const assistantDataSource = toolExecution.result.data_source === "SIMULATED" ? "SIMULATED" : (toolExecution.result.data_source === "PREDICTED" ? "PREDICTED" : "REAL");
             await pool.query(
                 `INSERT INTO ai_chat_messages (session_id, sender, message, intent, tool_called, data_source, confidence_score)
                  VALUES (?, 'user', ?, ?, ?, ?, ?),
                         (?, 'assistant', ?, ?, ?, ?, ?)`,
                 [
                     sessionId, text, intentObj.intent, intentObj.tool, "REAL", 1.0,
-                    sessionId, finalReply, intentObj.intent, intentObj.tool, toolExecution.result.data_source || "REAL", confidenceScore
+                    sessionId, finalReply, intentObj.intent, intentObj.tool, assistantDataSource, confidenceScore
                 ]
             );
         } catch (chatErr) {

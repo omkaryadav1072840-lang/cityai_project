@@ -563,6 +563,33 @@ class SmartCityTools {
             return { success: false, tool: "get_user_bookings", error: err.message, data: { parking: [], appointments: [] } };
         }
     }
+
+    // 15. Water Command Center Grounded Tools
+    static async get_water_route_details(params = {}) {
+        const groundedTools = require("../../services/grounded_tools");
+        return groundedTools.get_water_route_details(params);
+    }
+
+    static async get_water_work_orders(params = {}) {
+        const groundedTools = require("../../services/grounded_tools");
+        return groundedTools.get_water_work_orders(params);
+    }
+
+    static async get_water_faults_and_anomalies(params = {}) {
+        const groundedTools = require("../../services/grounded_tools");
+        return groundedTools.get_water_faults_and_anomalies(params);
+    }
+
+    static async get_water_flow_direction(params = {}) {
+        const groundedTools = require("../../services/grounded_tools");
+        return groundedTools.get_water_flow_direction(params);
+    }
+
+    static async suggest_water_pipeline_route(params = {}) {
+        const groundedTools = require("../../services/grounded_tools");
+        return groundedTools.suggest_water_pipeline_route(params);
+    }
 }
 
 module.exports = SmartCityTools;
+

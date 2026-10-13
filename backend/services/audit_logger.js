@@ -13,20 +13,26 @@ const pool = require("../config/db").promise();
  */
 async function logAudit(req, entry) {
     try {
+        if (!entry && req && typeof req === "object" && (req.action || req.module || req.userId)) {
+            entry = req;
+            req = null;
+        }
+        entry = entry || {};
+
         let userId = entry.userId || null;
         let userName = entry.userName || null;
         let role = entry.role || null;
         let department = entry.department || null;
         let ipAddress = null;
 
-        if (req) {
+        if (req && typeof req === "object") {
             const user = req.user || {};
             userId = userId || user.id || user.userId || null;
             userName = userName || user.name || null;
             role = role || user.role || user.type || null;
             department = department || user.department || null;
 
-            ipAddress = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+            ipAddress = (req.headers && (req.headers["x-forwarded-for"] || (req.socket && req.socket.remoteAddress) || "")).split(",")[0].trim();
         }
 
         const action = entry.action || "UNKNOWN_ACTION";

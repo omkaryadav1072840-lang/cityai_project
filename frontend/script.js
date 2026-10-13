@@ -5634,4 +5634,101 @@ window.fetchCommandCenterData = fetchCommandCenterData;
 window.showSimulatedDispatchAlert = showSimulatedDispatchAlert;
 window.initVoiceAssistant = initVoiceAssistant;
 window.speakAIText = speakAIText;
-window.triggerQuickSOSFromChat = triggerQuickSOSFromChat;
+window.triggerQuickSOSFromChat = triggerQuickSOSFromChat;
+
+// --------------------------------------------------------------------------
+// 6. WATER MANAGEMENT UPGRADE: ROLE-BASED NAVIGATION FOR INDEX PAGE
+// --------------------------------------------------------------------------
+function setupWaterNavigationGate() {
+    function updateWaterAdminCardVisibility() {
+        const adminCard = document.getElementById("card-water-admin");
+        if (!adminCard) return;
+
+        const auth = (typeof window !== "undefined" && window.SmartCityAuth) ? window.SmartCityAuth : null;
+        const user = auth ? auth.getUser() : null;
+        let isWaterAdminUser = false;
+
+        if (user) {
+            const role = (user.role || user.type || "").toLowerCase();
+            const accountType = (user.accountType || "").toLowerCase();
+            const dept = (user.department || "").toLowerCase();
+            const sub = (user.subRole || user.designation || "").toLowerCase();
+            const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+
+            if (role === "super_admin" || accountType === "super_admin") isWaterAdminUser = true;
+            else if (role === "water_admin" || accountType === "water_admin" || staffId === "WTR-ADMIN") isWaterAdminUser = true;
+            else if ((role === "admin" || role === "staff") && (dept === "water" || dept === "admin" || !dept)) isWaterAdminUser = true;
+            else if (sub.includes("water admin") || sub.includes("superintendent")) isWaterAdminUser = true;
+        }
+
+        const badge = document.getElementById("badge-water-admin");
+        const footerText = document.getElementById("footer-text-water-admin");
+
+        if (isWaterAdminUser) {
+            adminCard.classList.remove("gated-for-visitor");
+            if (badge) {
+                badge.textContent = "● ACTIVE ADMIN";
+                badge.style.color = "#16a34a";
+            }
+            if (footerText) footerText.textContent = "Open Admin Panel ➔";
+        } else {
+            const isAnonymous = !user;
+            if (isAnonymous) {
+                if (badge) {
+                    badge.textContent = "🔒 SIGN IN REQUIRED";
+                    badge.style.color = "#ea580c";
+                }
+                if (footerText) footerText.textContent = "Staff Sign In ➔";
+            } else {
+                if (badge) {
+                    badge.textContent = "🔒 WATER ADMIN ONLY";
+                    badge.style.color = "#dc2626";
+                }
+                if (footerText) footerText.textContent = "Switch Account ➔";
+            }
+        }
+    }
+
+    const adminCard = document.getElementById("card-water-admin");
+    if (adminCard) {
+        adminCard.addEventListener("click", function (e) {
+            const auth = (typeof window !== "undefined" && window.SmartCityAuth) ? window.SmartCityAuth : null;
+            const user = auth ? auth.getUser() : null;
+            let isWaterAdminUser = false;
+
+            if (user) {
+                const role = (user.role || user.type || "").toLowerCase();
+                const accountType = (user.accountType || "").toLowerCase();
+                const dept = (user.department || "").toLowerCase();
+                const sub = (user.subRole || user.designation || "").toLowerCase();
+                const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+
+                if (role === "super_admin" || accountType === "super_admin") isWaterAdminUser = true;
+                else if (role === "water_admin" || accountType === "water_admin" || staffId === "WTR-ADMIN") isWaterAdminUser = true;
+                else if ((role === "admin" || role === "staff") && (dept === "water" || dept === "admin" || !dept)) isWaterAdminUser = true;
+                else if (sub.includes("water admin") || sub.includes("superintendent")) isWaterAdminUser = true;
+            }
+
+            if (!isWaterAdminUser) {
+                e.preventDefault();
+                if (auth && typeof auth.showToast === "function") {
+                    auth.showToast("Water Administrator credentials required to access Admin Panel.", "warning");
+                }
+                if (auth && typeof auth.showLoginModal === "function") {
+                    auth.showLoginModal("staff");
+                }
+            }
+        });
+    }
+
+    updateWaterAdminCardVisibility();
+    window.addEventListener("smartcity:auth-changed", updateWaterAdminCardVisibility);
+    window.addEventListener("storage", updateWaterAdminCardVisibility);
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupWaterNavigationGate);
+} else {
+    setupWaterNavigationGate();
+}
+

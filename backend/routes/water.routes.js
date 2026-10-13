@@ -15,10 +15,123 @@ const {
     authenticateToken,
     optionalToken,
     requireRole,
-    requireDepartment
+    requireDepartment,
+    hashPassword
 } = require("../middleware/auth.middleware");
 const { emitWaterUpdate } = require("../sockets/index");
 const { logAudit } = require("../services/audit_logger");
+const waterIntelligenceService = require("../services/water_intelligence_service");
+
+// Helper: Safely parse JSON
+function safeParseJson(str, fallback) {
+    if (!str) return fallback;
+    if (typeof str === "object") return str;
+    try {
+        return JSON.parse(str);
+    } catch {
+        return fallback;
+    }
+}
+
+// Helper: Check if user is Super Admin
+function isSuperAdminUser(user) {
+    if (!user) return false;
+    const role = (user.role || user.type || "").toLowerCase();
+    const accountType = (user.accountType || "").toLowerCase();
+    const dept = (user.department || "").toLowerCase();
+    return role === "super_admin" || role === "superadmin" || accountType === "super_admin" || (role === "admin" && (dept === "admin" || !dept || dept === "municipal"));
+}
+
+// Helper: Check if user is Water Admin
+function isWaterAdminUser(user) {
+    if (!user) return false;
+    if (isSuperAdminUser(user)) return true;
+
+    const role = (user.role || user.type || "").toLowerCase();
+    const accountType = (user.accountType || "").toLowerCase();
+    const subRole = (user.subRole || user.designation || "").toLowerCase();
+    const dept = (user.department || "").toLowerCase();
+    const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+
+    // Strict Department Isolation: block Hospital, Traffic, Police, Waste, Emergency
+    const otherDepts = ["hospital", "healthcare", "traffic", "police", "waste", "sanitation", "emergency", "fire"];
+    if (otherDepts.includes(dept) && !dept.includes("water")) {
+        return false;
+    }
+    if (user.hospitalId || user.hospitalRole) {
+        return false;
+    }
+
+    if (
+        role === "water_admin" ||
+        accountType === "water_admin" ||
+        staffId === "WTR-ADMIN" ||
+        subRole.includes("water admin") ||
+        subRole.includes("superintendent") ||
+        (role === "admin" && (dept === "water" || dept.includes("water works") || dept.includes("jal nigam")))
+    ) {
+        return true;
+    }
+    return false;
+}
+
+// Helper: Check if user is Water Staff
+function isWaterStaffUser(user) {
+    if (!user) return false;
+    if (isWaterAdminUser(user)) return true;
+
+    const role = (user.role || user.type || "").toLowerCase();
+    const accountType = (user.accountType || "").toLowerCase();
+    const subRole = (user.subRole || user.designation || "").toLowerCase();
+    const dept = (user.department || "").toLowerCase();
+    const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+    const editable = Array.isArray(user.editable) ? user.editable.map(e => String(e).toLowerCase()) : [];
+
+    // Strict Department Isolation: block Hospital, Traffic, Police, Waste, Emergency
+    const otherDepts = ["hospital", "healthcare", "traffic", "police", "waste", "sanitation", "emergency", "fire"];
+    if (otherDepts.includes(dept) && !dept.includes("water") && !editable.includes("water")) {
+        return false;
+    }
+    if ((user.hospitalId || user.hospitalRole) && !editable.includes("water")) {
+        return false;
+    }
+
+    if (
+        role === "staff" ||
+        role === "water_staff" ||
+        role === "engineer" ||
+        role === "technician" ||
+        staffId.startsWith("WTR")
+    ) {
+        if (
+            dept === "water" ||
+            dept.includes("water works") ||
+            dept.includes("jal nigam") ||
+            subRole.includes("water") ||
+            subRole.includes("pipeline") ||
+            subRole.includes("engineer") ||
+            editable.includes("water") ||
+            staffId.startsWith("WTR")
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Helper: Guard strictly for Water Administrators
+function requireWaterAdmin(req, res, next) {
+    if (!req.user) {
+        return res.status(401).json({ success: false, message: "Authentication required." });
+    }
+    if (isWaterAdminUser(req.user)) {
+        return next();
+    }
+    return res.status(403).json({
+        success: false,
+        message: "Access denied. Privileged action reserved strictly for Water Administrator."
+    });
+}
 
 // =========================================================
 // MULTER STORAGE FOR EVIDENCE UPLOADS
@@ -59,17 +172,9 @@ function requireWaterStaff(req, res, next) {
     if (!req.user) {
         return res.status(401).json({ success: false, message: "Authentication required." });
     }
-    const role = (req.user.role || req.user.type || "").toLowerCase();
-    if (role === "admin") return next();
-
-    if (role === "staff") {
-        const dept = (req.user.department || "").toLowerCase();
-        const editable = req.user.editable || [];
-        if (dept === "water" || dept === "admin" || editable.includes("water")) {
-            return next();
-        }
+    if (isWaterStaffUser(req.user)) {
+        return next();
     }
-
     return res.status(403).json({
         success: false,
         message: "Access denied. Action reserved for Water Works staff or Administrators."
@@ -541,18 +646,23 @@ router.put("/api/water/reports/:id/status", authenticateToken, requireWaterStaff
 // =========================================================
 // 12. WATER TANKER BOOKING — BOOK (Citizen)
 // =========================================================
-router.post(["/api/water/tanker-bookings", "/api/water/book-tanker"], optionalToken, async (req, res) => {
-    const { userId, citizenName, name, mobile, deliveryAddress, address, capacity, capacityLiters, bookingDate, deliverySlot } = req.body;
+router.post(["/api/water/tanker-bookings", "/api/water/tanker-booking", "/api/water/book-tanker"], optionalToken, async (req, res) => {
+    const {
+        userId, citizenName, name, mobile, deliveryAddress, address, capacity, capacityLiters, bookingDate, deliverySlot,
+        citizen_name, contact_number, delivery_address, capacity_liters, delivery_slot
+    } = req.body;
 
-    const finalAddress = deliveryAddress || address;
+    const finalAddress = deliveryAddress || address || delivery_address;
     if (!finalAddress) {
         return res.status(400).json({ success: false, message: "Delivery address is required." });
     }
 
-    const cName = citizenName || name || (req.user && req.user.name) || "Citizen";
-    const cMobile = mobile || (req.user && req.user.phone) || (req.user && req.user.mobile) || "9876543210";
+    const cName = citizenName || name || citizen_name || (req.user && req.user.name) || "Citizen";
+    const cMobile = mobile || contact_number || (req.user && req.user.phone) || (req.user && req.user.mobile) || "9876543210";
     const bookingId = "TKB-" + Date.now().toString(36).toUpperCase();
     const date = bookingDate || new Date().toISOString().split("T")[0];
+    const finalCapacity = capacity || capacityLiters || capacity_liters || 3000;
+    const finalSlot = deliverySlot || delivery_slot || "MORNING";
     const cap = capacity || (capacityLiters ? `${capacityLiters} Litres` : "5000 Litres");
     const slot = deliverySlot || "Morning (08:00 AM - 12:00 PM)";
 
@@ -863,4 +973,2155 @@ router.get("/api/water/anomalies", async (req, res) => {
     }
 });
 
+// =========================================================
+// 21. WATER NETWORK TOPOLOGY (SYNCHRONIZED 2D & 3D ASSETS)
+// =========================================================
+router.get("/api/water/network/topology", async (req, res) => {
+    try {
+        const topology = await waterIntelligenceService.getNetworkTopology();
+        res.json(topology);
+    } catch (err) {
+        console.error("Network topology fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to generate network topology." });
+    }
+});
+
+// =========================================================
+// 22. WATER NETWORK ASSETS — GET ALL & SINGLE
+// =========================================================
+router.get("/api/water/network/assets", async (req, res) => {
+    const { type, zone } = req.query;
+    let sql = "SELECT * FROM water_network_assets WHERE 1=1";
+    const params = [];
+    if (type) {
+        sql += " AND asset_type = ?";
+        params.push(type);
+    }
+    if (zone) {
+        sql += " AND zone = ?";
+        params.push(zone);
+    }
+    sql += " ORDER BY asset_type, name ASC";
+
+    try {
+        const [assets] = await pool.query(sql, params);
+        res.json({ success: true, count: assets.length, assets });
+    } catch (err) {
+        console.error("Network assets fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch network assets." });
+    }
+});
+
+router.get("/api/water/network/assets/:id", optionalToken, async (req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, private");
+    try {
+        const details = await waterIntelligenceService.getAssetDetails(req.params.id);
+        if (!details) {
+            return res.status(404).json({ success: false, message: "Asset not found." });
+        }
+
+        const user = req.user;
+        const role = (user && (user.role || user.type) || "").toLowerCase();
+        const dept = (user && user.department || "").toLowerCase();
+        const isPrivileged = role === "admin" || (role === "staff" && (dept === "water" || dept === "admin"));
+
+        if (!isPrivileged) {
+            // Public callers do not receive internal staff work orders
+            details.asset.work_orders = [];
+        }
+
+        res.json(details);
+    } catch (err) {
+        console.error("Get asset details error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch asset details." });
+    }
+});
+
+// =========================================================
+// 23. WASTEWATER TREATMENT BATCHES & REUSE SAFETY INTERLOCK
+// =========================================================
+router.get("/api/water/treatment/batches", optionalToken, async (req, res) => {
+    // Anti-caching headers: Prevents proxies/browsers from caching privileged staff data and leaking to public
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, private");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
+    const user = req.user;
+    const role = (user && (user.role || user.type) || "").toLowerCase();
+    const dept = (user && user.department || "").toLowerCase();
+    const isPrivilegedWater = role === "admin" || (role === "staff" && (dept === "water" || dept === "admin"));
+
+    try {
+        if (isPrivilegedWater) {
+            // Privileged Water Staff/Admin: Full operational view with diagnostic and internal notes
+            const batches = await waterIntelligenceService.getTreatmentBatches(req.query);
+            return res.json({ success: true, count: batches.length, batches });
+        }
+
+        // Public / Unauthenticated: Return ONLY explicitly approved, publishable environmental compliance fields
+        // If unauthenticated caller explicitly requests non-approved status, deny access by returning empty set
+        if (req.query.status && req.query.status !== "APPROVED") {
+            return res.json({ success: true, count: 0, batches: [] });
+        }
+
+        const publicQuery = {
+            plant_id: req.query.plant_id,
+            status: "APPROVED" // Public cannot see blocked batches or batches under review
+        };
+        const rawBatches = await waterIntelligenceService.getTreatmentBatches(publicQuery);
+
+        const publicBatches = rawBatches
+            .filter(b => b.approval_status === "APPROVED" && b.quality_status === "COMPLIANT")
+            .map(b => ({
+                batch_id: b.batch_id,
+                plant_name: b.plant_name,
+                stage: b.stage,
+                bod_mg_l: Number(b.bod_mg_l),
+                cod_mg_l: Number(b.cod_mg_l),
+                tss_mg_l: Number(b.tss_mg_l),
+                ph: Number(b.ph),
+                fecal_coliform_mpn: Number(b.fecal_coliform_mpn),
+                turbidity_ntu: Number(b.turbidity_ntu),
+                quality_status: b.quality_status,
+                reuse_destination: b.reuse_destination,
+                approval_status: b.approval_status,
+                approval_timestamp: b.approval_timestamp || b.created_at
+            }));
+
+        res.json({ success: true, count: publicBatches.length, batches: publicBatches });
+    } catch (err) {
+        console.error("Treatment batches fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch treatment batches." });
+    }
+});
+
+router.post("/api/water/treatment/batches", authenticateToken, requireWaterStaff, async (req, res) => {
+    const { plant_id, plant_name, source_type, inlet_volume_kl, outlet_volume_kl, stage, bod_mg_l, cod_mg_l, tss_mg_l, ph, fecal_coliform_mpn, turbidity_ntu, reuse_destination, operator_notes } = req.body;
+
+    const pId = plant_id || (plant_name ? plant_name.split(' ')[0] : "STP-01");
+    if (!pId || !inlet_volume_kl) {
+        return res.status(400).json({ success: false, message: "Plant ID and inlet volume are required." });
+    }
+
+    const batch_id = "BATCH-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900);
+    const pName = plant_name || "Gorakhpur Central STP";
+    const inVol = Number(inlet_volume_kl);
+    const outVol = Number(outlet_volume_kl || inVol * 0.95);
+    const isProvided = (v) => v !== undefined && v !== null && v !== "" && !isNaN(Number(v));
+    const hasLabData = isProvided(bod_mg_l) || isProvided(cod_mg_l) || isProvided(tss_mg_l) || isProvided(ph);
+
+    let nBod = isProvided(bod_mg_l) ? Number(bod_mg_l) : 0;
+    let nCod = isProvided(cod_mg_l) ? Number(cod_mg_l) : 0;
+    let nTss = isProvided(tss_mg_l) ? Number(tss_mg_l) : 0;
+    let nPh = isProvided(ph) ? Number(ph) : 7.0;
+    const coliformInput = fecal_coliform_mpn !== undefined ? fecal_coliform_mpn : req.body.fecal_coliform_mpn_100ml;
+    let coliform = isProvided(coliformInput) ? Number(coliformInput) : 0;
+    let turb = isProvided(turbidity_ntu) ? Number(turbidity_ntu) : 0;
+
+    let qStatus = "PENDING";
+    let appStatus = "PENDING_APPROVAL";
+
+    if (hasLabData) {
+        const dest = reuse_destination || "RAMGARH_TAL_LAKE";
+        const limits = waterIntelligenceService.getLimitsForDestination(dest);
+
+        const allMandatoryPresent = isProvided(bod_mg_l) && isProvided(cod_mg_l) && isProvided(tss_mg_l) && isProvided(ph);
+        const withinLimits = nBod <= limits.MAX_BOD_MG_L && nCod <= limits.MAX_COD_MG_L && nTss <= limits.MAX_TSS_MG_L && nPh >= limits.MIN_PH && nPh <= limits.MAX_PH && coliform <= limits.MAX_FECAL_COLIFORM_MPN && turb <= limits.MAX_TURBIDITY_NTU;
+
+        if (!allMandatoryPresent || !withinLimits) {
+            qStatus = "NON_COMPLIANT";
+            appStatus = "BLOCKED_QUALITY_FAILURE";
+        } else {
+            qStatus = "COMPLIANT";
+            appStatus = "PENDING_APPROVAL";
+        }
+    }
+
+    const validStages = ['COLLECTION', 'SCREENING', 'AERATION_BIO', 'SECONDARY_CLARIFIER', 'FILTRATION_UV', 'QUALITY_VERIFIED', 'DISCHARGED', 'REUSED'];
+    let normalizedStage = String(stage || 'QUALITY_VERIFIED').toUpperCase();
+    if (!validStages.includes(normalizedStage)) {
+        if (normalizedStage.includes('TERTIARY') || normalizedStage.includes('FILTRATION') || normalizedStage.includes('DISINFECT')) {
+            normalizedStage = 'FILTRATION_UV';
+        } else if (normalizedStage.includes('AERATION') || normalizedStage.includes('SECONDARY')) {
+            normalizedStage = 'AERATION_BIO';
+        } else if (normalizedStage.includes('SCREEN')) {
+            normalizedStage = 'SCREENING';
+        } else {
+            normalizedStage = 'QUALITY_VERIFIED';
+        }
+    }
+
+    try {
+        const [result] = await pool.query(`
+            INSERT INTO water_treatment_batches
+            (batch_id, plant_id, plant_name, source_type, inlet_volume_kl, outlet_volume_kl, stage, bod_mg_l, cod_mg_l, tss_mg_l, ph, fecal_coliform_mpn, turbidity_ntu, quality_status, reuse_destination, approval_status, operator_notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            batch_id, pId, pName, source_type || "SEWAGE",
+            inVol, outVol, normalizedStage,
+            nBod, nCod, nTss, nPh, coliform, turb,
+            qStatus, reuse_destination || "RAMGARH_TAL_LAKE",
+            appStatus, operator_notes || "Batch logged by treatment operator"
+        ]);
+
+        const [created] = await pool.query("SELECT * FROM water_treatment_batches WHERE id = ?", [result.insertId]);
+
+        emitWaterUpdate({
+            type: "treatment_batch_logged",
+            batch: created[0],
+            updatedAt: new Date().toISOString()
+        });
+
+        res.status(201).json({
+            success: true,
+            message: `Wastewater treatment batch ${batch_id} logged. Status: ${qStatus}`,
+            batch: created[0]
+        });
+    } catch (err) {
+        console.error("Create treatment batch error:", err);
+        res.status(500).json({ success: false, message: "Database error creating batch." });
+    }
+});
+
+router.put("/api/water/treatment/batches/:id/verify-quality", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const result = await waterIntelligenceService.verifyBatchQuality(req.params.id, req.body);
+        emitWaterUpdate({
+            type: "treatment_quality_verified",
+            batch: result.batch,
+            updatedAt: new Date().toISOString()
+        });
+        res.json(result);
+    } catch (err) {
+        console.error("Verify batch quality error:", err);
+        res.status(500).json({ success: false, message: err.message || "Failed to record lab results." });
+    }
+});
+
+router.put("/api/water/treatment/batches/:id/approve-reuse", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const approvedBatch = await waterIntelligenceService.approveBatchReuse(req.params.id, {
+            adminUser: req.user,
+            reuseDestination: req.body.reuse_destination,
+            comments: req.body.comments
+        });
+
+        emitWaterUpdate({
+            type: "reclaimed_reuse_approved",
+            batch: approvedBatch,
+            updatedAt: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            message: `Batch ${approvedBatch.batch_id} authorized for reuse destination: ${approvedBatch.reuse_destination}.`,
+            batch: approvedBatch
+        });
+    } catch (err) {
+        if (err.code === "QUALITY_CHECK_FAILED") {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+        console.error("Approve batch error:", err);
+        res.status(500).json({ success: false, message: err.message || "Approval transaction failed." });
+    }
+});
+
+// =========================================================
+// 24. WATER ADMIN NETWORK ROUTE AUTHORITY & VERSIONING
+// =========================================================
+router.get("/api/water/admin/network-versions", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const [versions] = await pool.query("SELECT * FROM water_network_versions ORDER BY created_at DESC");
+        res.json({ success: true, count: versions.length, versions });
+    } catch (err) {
+        console.error("Network versions fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch network versions." });
+    }
+});
+
+router.post("/api/water/admin/network-versions/validate-route", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const assessment = await waterIntelligenceService.validateRouteProposal(req.body);
+        res.json({ success: true, ...assessment });
+    } catch (err) {
+        console.error("Route validation error:", err);
+        res.status(500).json({ success: false, message: "Route validation failed." });
+    }
+});
+
+router.post("/api/water/admin/network-versions/draft", authenticateToken, requireWaterStaff, async (req, res) => {
+    const { change_title, description, affected_zones, route_proposal, draft_pipeline_changes } = req.body;
+
+    if (!change_title) {
+        return res.status(400).json({ success: false, message: "Change title is required." });
+    }
+
+    const version_id = "WNV-" + Date.now().toString(36).toUpperCase();
+    const version_number = "v1." + Math.floor(1 + Math.random() * 9) + ".0-draft";
+    const authorId = req.user.id || "STAFF";
+    const authorName = req.user.name || "Operations Engineer";
+    const routePayload = route_proposal || draft_pipeline_changes || {};
+    const affZonesStr = Array.isArray(affected_zones) ? affected_zones.join(', ') : String(affected_zones || "Gorakhpur City");
+
+    try {
+        const validation = await waterIntelligenceService.validateRouteProposal(Array.isArray(routePayload) ? (routePayload[0] || {}) : routePayload);
+
+        const [result] = await pool.query(`
+            INSERT INTO water_network_versions
+            (version_id, version_number, status, change_title, description, affected_zones, author_id, author_name, network_payload, impact_assessment)
+            VALUES (?, ?, 'DRAFT', ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            version_id, version_number, change_title, description || "Proposed pipeline network modification",
+            affZonesStr, authorId, authorName,
+            JSON.stringify(routePayload), JSON.stringify(validation)
+        ]);
+
+        const [created] = await pool.query("SELECT * FROM water_network_versions WHERE id = ?", [result.insertId]);
+
+        res.status(201).json({
+            success: true,
+            message: `Draft network version ${version_number} saved for Water Admin review.`,
+            version: created[0],
+            validation
+        });
+    } catch (err) {
+        console.error("Create draft route error:", err);
+        res.status(500).json({ success: false, message: "Database error saving draft route." });
+    }
+});
+
+router.post("/api/water/admin/network-versions/:id/publish", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const published = await waterIntelligenceService.publishNetworkVersion(req.params.id, req.user);
+        emitWaterUpdate({
+            type: "network_version_published",
+            version: published,
+            updatedAt: new Date().toISOString()
+        });
+        res.json({
+            success: true,
+            message: `Network version ${published.version_number} officially approved and published by Water Admin.`,
+            version: published
+        });
+    } catch (err) {
+        console.error("Publish network version error:", err);
+        res.status(500).json({ success: false, message: err.message || "Failed to publish version." });
+    }
+});
+
+// =========================================================
+// 25. ROLE-SPECIFIC WORK ORDERS (FIELD TASK ALLOCATIONS)
+// =========================================================
+router.get("/api/water/work-orders", authenticateToken, requireWaterStaff, async (req, res) => {
+    const { status, role } = req.query;
+    const isAdmin = isWaterAdminUser(req.user);
+
+    let sql = "SELECT * FROM water_work_orders WHERE 1=1";
+    const params = [];
+
+    if (!isAdmin) {
+        // Staff sees tasks: assigned to them, or within their permitted sectors, or matching permitted assets
+        const staffId = req.user.staffId || req.user.staff_id || String(req.user.id);
+        const staffName = req.user.name || "";
+        const permittedSectors = Array.isArray(req.user.permitted_sectors) ? req.user.permitted_sectors : [];
+        const permittedAssets = Array.isArray(req.user.permitted_assets) ? req.user.permitted_assets : [];
+
+        const conditions = [];
+        conditions.push("(assigned_to_id = ? OR assigned_to_id = ? OR assigned_to_name = ?)");
+        params.push(String(req.user.id), staffId, staffName);
+
+        if (permittedSectors.length > 0 && !permittedSectors.includes("ALL_SECTORS")) {
+            const placeholders = permittedSectors.map(() => "?").join(",");
+            conditions.push(`(zone IN (${placeholders}))`);
+            params.push(...permittedSectors);
+        }
+
+        if (permittedAssets.length > 0 && !permittedAssets.includes("ALL_ASSETS")) {
+            const placeholders = permittedAssets.map(() => "?").join(",");
+            conditions.push(`(asset_id IN (${placeholders}))`);
+            params.push(...permittedAssets);
+        }
+
+        sql += ` AND (${conditions.join(" OR ")})`;
+    } else if (role) {
+        sql += " AND required_role = ?";
+        params.push(role);
+    }
+
+    if (status) {
+        sql += " AND status = ?";
+        params.push(status);
+    }
+    sql += " ORDER BY deadline ASC, priority DESC";
+
+    try {
+        const [orders] = await pool.query(sql, params);
+        res.json({ success: true, count: orders.length, orders });
+    } catch (err) {
+        console.error("Work orders fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch work orders." });
+    }
+});
+
+router.post("/api/water/work-orders", authenticateToken, requireWaterAdmin, async (req, res) => {
+    let { title, description, asset_id, asset_type, zone, assigned_to_id, assigned_to_name, required_role, priority, deadline, sector, related_pipe_id, assigned_staff_id, network_type } = req.body;
+
+    if (!title) {
+        return res.status(400).json({ success: false, message: "Title is required." });
+    }
+
+    asset_id = asset_id || related_pipe_id || "PIPE-SEC1";
+    asset_type = asset_type || (asset_id.startsWith("PIPE") ? "PIPELINE" : "MANHOLE");
+    zone = zone || sector || "Golghar Central";
+    assigned_to_id = assigned_to_id || assigned_staff_id || "WTR-ENG-01";
+    assigned_to_name = assigned_to_name || (assigned_to_id === "WTR-ENG-01" ? "Er. Saurabh Mishra" : "Assigned Field Staff");
+    required_role = required_role ? String(required_role).toLowerCase() : "pipeline_engineer";
+    priority = priority || "MEDIUM";
+    deadline = deadline || new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+    network_type = network_type || "POTABLE_WATER";
+
+    const order_id = "WO-WAT-" + Math.floor(100 + Math.random() * 900);
+
+    try {
+        const [result] = await pool.query(`
+            INSERT INTO water_work_orders
+            (order_id, title, description, asset_id, asset_type, zone, assigned_to_id, assigned_to_name, required_role, priority, deadline, status, created_by, network_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ASSIGNED', ?, ?)
+        `, [
+            order_id, title, description || "Routine maintenance task", asset_id,
+            asset_type, zone,
+            assigned_to_id, assigned_to_name,
+            required_role, priority, deadline,
+            req.user.name || "Water Admin Office",
+            network_type
+        ]);
+
+        const [created] = await pool.query("SELECT * FROM water_work_orders WHERE id = ?", [result.insertId]);
+
+        emitWaterUpdate({
+            type: "work_order_created",
+            order: created[0],
+            updatedAt: new Date().toISOString()
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Work order assigned successfully.",
+            work_order_id: created[0].id,
+            id: created[0].id,
+            order_id: created[0].order_id,
+            order: created[0]
+        });
+    } catch (err) {
+        console.error("Create work order error:", err);
+        res.status(500).json({ success: false, message: "Database error assigning work order." });
+    }
+});
+
+router.put("/api/water/work-orders/:id/status", authenticateToken, requireWaterStaff, async (req, res) => {
+    const id = req.params.id;
+    const { status, completion_notes, evidence_photo, observations, blocked_reason, evidence_notes } = req.body;
+
+    const allowed = ["ASSIGNED", "ACKNOWLEDGED", "IN_PROGRESS", "BLOCKED", "RESOLVED", "VERIFIED", "COMPLETED", "CANCELLED"];
+    if (!allowed.includes(status)) {
+        return res.status(400).json({ success: false, message: `Invalid work order status. Allowed: [${allowed.join(", ")}]` });
+    }
+
+    // Verification and Cancellation Policy Guard: strictly Water Administrator or Super Admin
+    if ((status === "VERIFIED" || status === "CANCELLED") && !isWaterAdminUser(req.user)) {
+        return res.status(403).json({
+            success: false,
+            message: "Access denied. Only authorized Water Administrator or Super Admin can verify or close work orders."
+        });
+    }
+
+    try {
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_work_orders WHERE ${isNum ? "id = ? OR order_id = ?" : "order_id = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Work order not found." });
+        }
+        const wo = existing[0];
+
+        const completedAt = status === "COMPLETED" || status === "VERIFIED" ? (wo.completed_at || new Date()) : null;
+        const acknowledgedAt = status === "ACKNOWLEDGED" || status === "IN_PROGRESS" ? (wo.acknowledged_at || new Date()) : wo.acknowledged_at;
+        const verifiedBy = status === "VERIFIED" ? (req.user.name || "Water Admin") : wo.verified_by;
+        const verifiedAt = status === "VERIFIED" ? (wo.verified_at || new Date()) : wo.verified_at;
+
+        await pool.query(`
+            UPDATE water_work_orders
+            SET status = ?,
+                completion_notes = COALESCE(?, completion_notes),
+                evidence_photo = COALESCE(?, evidence_photo),
+                observations = COALESCE(?, observations),
+                blocked_reason = COALESCE(?, blocked_reason),
+                evidence_notes = COALESCE(?, evidence_notes),
+                acknowledged_at = ?,
+                completed_at = ?,
+                verified_by = ?,
+                verified_at = ?
+            WHERE id = ?
+        `, [
+            status,
+            completion_notes || null,
+            evidence_photo || null,
+            observations || null,
+            blocked_reason || null,
+            evidence_notes || null,
+            acknowledgedAt,
+            completedAt,
+            verifiedBy,
+            verifiedAt,
+            wo.id
+        ]);
+
+        const [updated] = await pool.query("SELECT * FROM water_work_orders WHERE id = ?", [wo.id]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: `UPDATE_WATER_WORK_ORDER_${status}`,
+            module: "WATER",
+            record_id: wo.order_id,
+            metadata: {
+                previous_status: wo.status,
+                new_status: status,
+                observations: observations || null,
+                blocked_reason: blocked_reason || null
+            }
+        });
+
+        emitWaterUpdate({
+            type: "work_order_updated",
+            order: updated[0],
+            updatedAt: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            message: `Work order ${wo.order_id} updated to ${status}.`,
+            status: updated[0].status,
+            verified_by: updated[0].verified_by,
+            order: updated[0]
+        });
+    } catch (err) {
+        console.error("Update work order status error:", err);
+        res.status(500).json({ success: false, message: "Database error updating work order." });
+    }
+});
+
+// Reassign Work Order (WATER ADMIN ONLY - supports PUT and POST)
+const handleReassignWorkOrder = async (req, res) => {
+    const id = req.params.id;
+    let { assigned_to_id, assigned_to_name, assigned_staff_id, reason } = req.body;
+    assigned_to_id = assigned_to_id || assigned_staff_id;
+
+    if (!assigned_to_id) {
+        return res.status(400).json({ success: false, message: "assigned_to_id is required." });
+    }
+    if (!assigned_to_name) {
+        assigned_to_name = assigned_to_id === "WTR001" ? "Manoj Yadav (Field Supervisor)" : (assigned_to_id === "WTR-ENG-01" ? "Er. Saurabh Mishra" : `Technician ${assigned_to_id}`);
+    }
+
+    try {
+        const reassigned = await waterIntelligenceService.reassignWorkOrder(id, { assigned_to_id, assigned_to_name, reason }, req.user);
+        emitWaterUpdate({
+            type: "work_order_reassigned",
+            order: reassigned,
+            updatedAt: new Date().toISOString()
+        });
+        res.json({ success: true, message: `Work order reassigned to ${assigned_to_name}.`, order: reassigned });
+    } catch (err) {
+        console.error("Reassign work order error:", err);
+        res.status(500).json({ success: false, message: err.message || "Failed to reassign work order." });
+    }
+};
+
+router.put("/api/water/work-orders/:id/reassign", authenticateToken, requireWaterAdmin, handleReassignWorkOrder);
+router.post("/api/water/work-orders/:id/reassign", authenticateToken, requireWaterAdmin, handleReassignWorkOrder);
+
+// =========================================================
+// 26. NETWORK CONFIG & STYLE LEGENDS
+// =========================================================
+router.get(["/api/water/network/config", "/api/water/network-config"], optionalToken, async (req, res) => {
+    try {
+        const config = await waterIntelligenceService.getNetworkConfig();
+        res.json(config);
+    } catch (err) {
+        console.error("Network config fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to load network configuration styles." });
+    }
+});
+
+router.put(["/api/water/network/config", "/api/water/network-config"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const styles = req.body.styles || req.body;
+        const updated = await waterIntelligenceService.updateNetworkConfig(styles, req.user);
+        emitWaterUpdate({
+            type: "network_styles_updated",
+            styles: updated.styles,
+            updatedAt: new Date().toISOString()
+        });
+        res.json({ success: true, message: "Network configuration styles updated.", config: updated });
+    } catch (err) {
+        console.error("Update network config error:", err);
+        res.status(400).json({ success: false, message: err.message || "Failed to update network styles." });
+    }
+});
+
+// =========================================================
+// 27. WATER FLOW CONTROL (SUPERVISORY & SIMULATION SANDBOX)
+// =========================================================
+router.get("/api/water/flow-control/overview", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const overview = await waterIntelligenceService.getFlowControlOverview();
+        res.json(overview);
+    } catch (err) {
+        console.error("Flow control overview error:", err);
+        res.status(500).json({ success: false, message: "Database error loading flow control overview." });
+    }
+});
+
+router.post("/api/water/flow-control/operate", authenticateToken, requireWaterStaff, async (req, res) => {
+    let { asset_id, action_type, target_value, confirmed, reason, action, target_pct, notes } = req.body;
+
+    action_type = action_type || action;
+    if (action_type === "VALVE_THROTTLE") {
+        action_type = "VALVE_STATE";
+        target_value = target_pct !== undefined ? `THROTTLED_${target_pct}%` : "THROTTLED";
+    }
+    target_value = target_value !== undefined ? target_value : (target_pct !== undefined ? `${target_pct}%` : "OPERATED");
+    reason = reason || notes || "Operator supervisory command";
+    if (confirmed === undefined) confirmed = true;
+
+    if (!asset_id || !action_type) {
+        return res.status(400).json({ success: false, message: "asset_id and action_type are required." });
+    }
+
+    try {
+        const outcome = await waterIntelligenceService.operateFlowControl({
+            asset_id, action_type, target_value, confirmed, reason
+        }, req.user);
+
+        emitWaterUpdate({
+            type: "flow_control_operated",
+            outcome,
+            updatedAt: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            message: outcome.notice,
+            is_hardware_actuated: false,
+            provenance: "SIMULATED",
+            outcome: {
+                ...outcome,
+                is_hardware_actuated: false,
+                provenance: "SIMULATED"
+            }
+        });
+    } catch (err) {
+        console.error("Flow control command error:", err);
+        res.status(400).json({ success: false, message: err.message || "Flow command failed." });
+    }
+});
+
+// =========================================================
+// 28. FAULT DETECTION & ISSUE MANAGEMENT
+// =========================================================
+router.get("/api/water/faults", optionalToken, async (req, res) => {
+    try {
+        const userRole = req.user ? (req.user.role || req.user.type || "").toLowerCase() : "citizen";
+        const isInternalStaff = userRole === "admin" || userRole === "staff" || Boolean(req.user?.department === "water");
+
+        const result = await waterIntelligenceService.getFaultRecords(req.query);
+
+        // Citizen privacy filter: only show public-safe confirmed/general summary without internal notes
+        if (!isInternalStaff) {
+            const sanitized = result.faults.map(f => ({
+                fault_code: f.fault_code,
+                zone: f.zone,
+                title: f.title,
+                network_type: f.network_type,
+                severity: f.severity,
+                status: f.status,
+                detected_at: f.detected_at,
+                is_confirmed: f.provenance === "CONFIRMED"
+            }));
+            return res.json({ success: true, count: sanitized.length, faults: sanitized, public_view: true });
+        }
+
+        res.json(result);
+    } catch (err) {
+        console.error("Fetch water faults error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching faults." });
+    }
+});
+
+router.post("/api/water/faults", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const created = await waterIntelligenceService.createFaultRecord(req.body, req.user);
+        emitWaterUpdate({
+            type: "water_fault_created",
+            fault: created,
+            updatedAt: new Date().toISOString()
+        });
+        res.status(201).json({ success: true, message: "Fault record created successfully.", fault: created });
+    } catch (err) {
+        console.error("Create fault error:", err);
+        res.status(400).json({ success: false, message: err.message || "Database error creating fault." });
+    }
+});
+
+router.put("/api/water/faults/:id/status", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const updated = await waterIntelligenceService.updateFaultStatus(req.params.id, req.body, req.user);
+        emitWaterUpdate({
+            type: "water_fault_updated",
+            fault: updated,
+            updatedAt: new Date().toISOString()
+        });
+        res.json({ success: true, message: `Fault ${updated.fault_code} status updated.`, fault: updated });
+    } catch (err) {
+        console.error("Update fault status error:", err);
+        res.status(400).json({ success: false, message: err.message || "Failed to update fault status." });
+    }
+});
+
+// =========================================================
+// 29. WATER ADMIN AUDIT TRAIL LOGS
+// =========================================================
+router.get(["/api/water/admin/audit-logs", "/api/water/audit-logs"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const logs = await waterIntelligenceService.getWaterAuditLogs(req.query);
+        res.json({ success: true, count: logs.length, logs });
+    } catch (err) {
+        console.error("Water audit logs error:", err);
+        res.status(500).json({ success: false, message: "Failed to load water operational audit logs." });
+    }
+});
+
+// =========================================================
+// 26. TELEMETRY SIMULATOR MODE (PROVENANCE & HARDWARE ISOLATION)
+// =========================================================
+router.get("/api/water/telemetry/mode", (req, res) => {
+    res.json({ success: true, ...waterIntelligenceService.getSimulatorStatus() });
+});
+
+router.post("/api/water/telemetry/toggle-simulator", authenticateToken, requireWaterStaff, (req, res) => {
+    const { active } = req.body;
+    const updated = waterIntelligenceService.setSimulatorStatus(active);
+    res.json({ success: true, message: "Simulator state toggled.", ...updated });
+});
+
+// =========================================================
+// 27. SEWAGE NETWORK PLANNER & 3D ROUTE DESIGNER ROUTES
+// =========================================================
+
+// Verified Road Corridors for Centerline Alignment
+router.get("/api/water/sewage-planner/road-corridors", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const corridors = await waterIntelligenceService.getSewageRoadCorridors();
+        res.json({ success: true, count: corridors.length, corridors });
+    } catch (err) {
+        console.error("Road corridors fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch surveyed road corridors." });
+    }
+});
+
+// List Planned Sewage Routes
+router.get("/api/water/sewage-planner/routes", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const routes = await waterIntelligenceService.getPlannedSewageRoutes(req.query);
+        res.json({ success: true, count: routes.length, routes });
+    } catch (err) {
+        console.error("Planned sewage routes fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch planned sewage routes." });
+    }
+});
+
+// Get Single Planned Sewage Route
+router.get("/api/water/sewage-planner/routes/:id", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const route = await waterIntelligenceService.getPlannedSewageRouteById(req.params.id);
+        if (!route) {
+            return res.status(404).json({ success: false, message: "Planned sewage route not found." });
+        }
+        res.json({ success: true, route });
+    } catch (err) {
+        console.error("Planned sewage route fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch planned sewage route." });
+    }
+});
+
+// Create New Draft Sewage Route (WATER ADMIN ONLY)
+router.post("/api/water/sewage-planner/routes", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const { name, zone, waypoints } = req.body;
+    if (!name || !waypoints || !Array.isArray(waypoints)) {
+        return res.status(400).json({ success: false, message: "Route name and waypoints array are required." });
+    }
+
+    try {
+        const result = await waterIntelligenceService.createPlannedSewageRoute(req.body, req.user);
+        res.status(201).json({
+            success: true,
+            message: `Draft sewage route ${result.route.route_id} created successfully.`,
+            route: result.route,
+            validation: result.validation
+        });
+    } catch (err) {
+        console.error("Create planned sewage route error:", err);
+        res.status(err.statusCode || 500).json({ success: false, message: err.message || "Database error creating sewage route." });
+    }
+});
+
+// Update Existing Sewage Route (WATER ADMIN ONLY)
+router.put("/api/water/sewage-planner/routes/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const result = await waterIntelligenceService.updatePlannedSewageRoute(req.params.id, req.body, req.user);
+        res.json({
+            success: true,
+            message: `Sewage route ${result.route.route_id} updated.`,
+            route: result.route,
+            validation: result.validation
+        });
+    } catch (err) {
+        console.error("Update planned sewage route error:", err);
+        res.status(500).json({ success: false, message: err.message || "Failed to update sewage route." });
+    }
+});
+
+// Validate Sewage Route (WATER ADMIN ONLY - Supports saved routes or on-the-fly preview)
+router.post(["/api/water/sewage-planner/routes/:id/validate", "/api/water/sewage-planner/validate"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        let route = null;
+        if (req.params.id && req.params.id !== "0" && req.params.id !== "preview") {
+            route = await waterIntelligenceService.getPlannedSewageRouteById(req.params.id);
+        }
+
+        const waypoints = req.body.waypoints || (route ? route.waypoints : []);
+        const validation = await waterIntelligenceService.validateSewageRouteProposal({
+            waypoints,
+            pipe_diameter_mm: req.body.pipe_diameter_mm || (route ? route.pipe_diameter_mm : 450),
+            burial_depth_m: req.body.burial_depth_m || (route ? route.burial_depth_m : 2.8),
+            slope_pct: req.body.slope_pct || (route ? route.slope_pct : 0.8),
+            clearance_min_m: req.body.clearance_min_m || (route ? route.clearance_min_m : 2.0),
+            flow_direction: req.body.flow_direction || (route ? route.flow_direction : "FORWARD")
+        });
+
+        // Update validation results in database if saved route exists
+        let newStatus = validation.is_valid ? "PENDING_APPROVAL" : "VALIDATION_FAILED";
+        if (route) {
+            newStatus = validation.is_valid ? (route.status === "APPROVED" || route.status === "PUBLISHED" ? route.status : "PENDING_APPROVAL") : "VALIDATION_FAILED";
+            await pool.query(
+                "UPDATE sewage_planned_routes SET validation_results = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                [JSON.stringify(validation), newStatus, route.id]
+            );
+        }
+
+        res.json({ success: true, validation, status: newStatus });
+    } catch (err) {
+        console.error("Validate sewage route error:", err);
+        res.status(500).json({ success: false, message: err.message || "Validation engine failure." });
+    }
+});
+
+// Approve Sewage Route (WATER ADMIN ONLY)
+router.post("/api/water/sewage-planner/routes/:id/approve", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const approved = await waterIntelligenceService.approvePlannedSewageRoute(req.params.id, req.user, req.body.notes);
+        res.json({
+            success: true,
+            message: `Sewage route ${approved.route_id} approved for administrative publishing.`,
+            route: approved
+        });
+    } catch (err) {
+        console.error("Approve sewage route error:", err);
+        res.status(400).json({ success: false, message: err.message || "Approval failed." });
+    }
+});
+
+// Publish Sewage Route (WATER ADMIN ONLY - Concurrency Safe Transaction)
+router.post("/api/water/sewage-planner/routes/:id/publish", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const published = await waterIntelligenceService.publishPlannedSewageRoute(req.params.id, req.user);
+        emitWaterUpdate({
+            type: "sewage_route_published",
+            route: published,
+            updatedAt: new Date().toISOString()
+        });
+        res.json({
+            success: true,
+            message: `Sewage route ${published.route_id} officially published to municipal network version.`,
+            route: published
+        });
+    } catch (err) {
+        console.error("Publish sewage route error:", err);
+        res.status(500).json({ success: false, message: err.message || "Failed to publish sewage route." });
+    }
+});
+
+// Rollback Published Sewage Route (WATER ADMIN ONLY)
+router.post("/api/water/sewage-planner/routes/:id/rollback", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const result = await waterIntelligenceService.rollbackPlannedSewageRoute(req.params.id, req.user);
+        emitWaterUpdate({
+            type: "sewage_route_rolled_back",
+            result,
+            updatedAt: new Date().toISOString()
+        });
+        res.json({
+            success: true,
+            message: `Published sewage route ${req.params.id} rolled back to archived status.`,
+            route: result.rolled_back_route,
+            ...result
+        });
+    } catch (err) {
+        console.error("Rollback sewage route error:", err);
+        res.status(500).json({ success: false, message: err.message || "Failed to rollback sewage route." });
+    }
+});
+
+// Delete or Archive Draft Sewage Route (WATER ADMIN ONLY)
+router.delete("/api/water/sewage-planner/routes/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const isNum = !isNaN(Number(req.params.id));
+        const [existing] = await pool.query(
+            `SELECT * FROM sewage_planned_routes WHERE ${isNum ? "id = ? OR route_id = ?" : "route_id = ?"} LIMIT 1`,
+            isNum ? [Number(req.params.id), String(req.params.id)] : [String(req.params.id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Route not found." });
+        }
+
+        const route = existing[0];
+        if (route.status === "PUBLISHED") {
+            return res.status(400).json({ success: false, message: "Cannot delete published route. Rollback first." });
+        }
+
+        await pool.query("DELETE FROM sewage_planned_routes WHERE id = ?", [route.id]);
+        res.json({ success: true, message: `Sewage route ${route.route_id} removed.` });
+    } catch (err) {
+        console.error("Delete sewage route error:", err);
+        res.status(500).json({ success: false, message: "Database error deleting sewage route." });
+    }
+});
+
+// =========================================================
+// 29. WATER SECTORS (MAP SECTORS PLANNING & RBAC SCOPING)
+// =========================================================
+
+// List Sectors (Scoped for Water Staff, Universal for Water Admin & Super Admin)
+router.get("/api/water/sectors", authenticateToken, async (req, res) => {
+    try {
+        const isAdmin = isWaterAdminUser(req.user);
+        let sql = "SELECT * FROM water_sectors WHERE status = 'ACTIVE' ORDER BY sector_code ASC";
+        let params = [];
+
+        if (!isAdmin) {
+            // Staff sees only their permitted sectors
+            const permittedSectors = Array.isArray(req.user.permitted_sectors) ? req.user.permitted_sectors : [];
+            if (!permittedSectors.includes("ALL_SECTORS")) {
+                if (permittedSectors.length === 0) {
+                    return res.json({ success: true, count: 0, sectors: [] });
+                }
+                const placeholders = permittedSectors.map(() => "?").join(",");
+                sql = `SELECT * FROM water_sectors WHERE status = 'ACTIVE' AND (name IN (${placeholders}) OR sector_code IN (${placeholders}) OR zone IN (${placeholders})) ORDER BY sector_code ASC`;
+                params = [...permittedSectors, ...permittedSectors, ...permittedSectors];
+            }
+        }
+
+        const [sectors] = await pool.query(sql, params);
+        const formatted = sectors.map(s => ({
+            ...s,
+            boundary_geojson: safeParseJson(s.boundary_geojson, []),
+            assigned_engineers: safeParseJson(s.assigned_engineers, [])
+        }));
+
+        res.json({ success: true, count: formatted.length, sectors: formatted });
+    } catch (err) {
+        console.error("Water sectors fetch error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching water sectors." });
+    }
+});
+
+// Create Water Sector (WATER ADMIN ONLY)
+router.post("/api/water/sectors", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const { sector_code, name, zone, boundary_geojson, total_demand_mld, population_served, active_pipelines_count, assigned_engineers } = req.body;
+
+    if (!name || !boundary_geojson) {
+        return res.status(400).json({ success: false, message: "Sector name and boundary polygon are required." });
+    }
+
+    const code = sector_code || `SEC-WTR-${Math.floor(100 + Math.random() * 900)}`;
+
+    try {
+        await pool.query(`
+            INSERT INTO water_sectors 
+            (sector_code, name, zone, boundary_geojson, total_demand_mld, population_served, active_pipelines_count, assigned_engineers, status, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                zone = VALUES(zone),
+                boundary_geojson = VALUES(boundary_geojson),
+                total_demand_mld = VALUES(total_demand_mld),
+                population_served = VALUES(population_served),
+                active_pipelines_count = VALUES(active_pipelines_count),
+                assigned_engineers = VALUES(assigned_engineers)
+        `, [
+            code,
+            name.trim(),
+            zone || name.trim(),
+            typeof boundary_geojson === "string" ? boundary_geojson : JSON.stringify(boundary_geojson),
+            Number(total_demand_mld) || 15.0,
+            Number(population_served) || 100000,
+            Number(active_pipelines_count) || 0,
+            assigned_engineers ? (typeof assigned_engineers === "string" ? assigned_engineers : JSON.stringify(assigned_engineers)) : JSON.stringify([]),
+            req.user.name || "Water Admin"
+        ]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_SECTOR_CREATED",
+            module: "WATER",
+            record_id: code,
+            metadata: { code, name, zone }
+        });
+
+        res.status(201).json({
+            success: true,
+            message: `Water sector ${code} created successfully.`,
+            sector: { sector_code: code, name, zone }
+        });
+    } catch (err) {
+        console.error("Create sector error:", err);
+        res.status(500).json({ success: false, message: "Database error creating sector." });
+    }
+});
+
+// Update Water Sector (WATER ADMIN ONLY)
+router.put("/api/water/sectors/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { name, zone, boundary_geojson, total_demand_mld, population_served, active_pipelines_count, assigned_engineers, status } = req.body;
+
+    try {
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_sectors WHERE ${isNum ? "id = ? OR sector_code = ?" : "sector_code = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Sector not found." });
+        }
+        const current = existing[0];
+
+        await pool.query(`
+            UPDATE water_sectors
+            SET name = COALESCE(?, name),
+                zone = COALESCE(?, zone),
+                boundary_geojson = COALESCE(?, boundary_geojson),
+                total_demand_mld = COALESCE(?, total_demand_mld),
+                population_served = COALESCE(?, population_served),
+                active_pipelines_count = COALESCE(?, active_pipelines_count),
+                assigned_engineers = COALESCE(?, assigned_engineers),
+                status = COALESCE(?, status)
+            WHERE id = ?
+        `, [
+            name || null,
+            zone || null,
+            boundary_geojson ? (typeof boundary_geojson === "string" ? boundary_geojson : JSON.stringify(boundary_geojson)) : null,
+            total_demand_mld !== undefined ? Number(total_demand_mld) : null,
+            population_served !== undefined ? Number(population_served) : null,
+            active_pipelines_count !== undefined ? Number(active_pipelines_count) : null,
+            assigned_engineers ? (typeof assigned_engineers === "string" ? assigned_engineers : JSON.stringify(assigned_engineers)) : null,
+            status || null,
+            current.id
+        ]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_SECTOR_UPDATED",
+            module: "WATER",
+            record_id: current.sector_code
+        });
+
+        res.json({ success: true, message: `Water sector ${current.sector_code} updated successfully.` });
+    } catch (err) {
+        console.error("Update sector error:", err);
+        res.status(500).json({ success: false, message: "Database error updating sector." });
+    }
+});
+
+// Delete Water Sector (WATER ADMIN ONLY)
+router.delete("/api/water/sectors/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    try {
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_sectors WHERE ${isNum ? "id = ? OR sector_code = ?" : "sector_code = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Sector not found." });
+        }
+        const current = existing[0];
+
+        await pool.query("DELETE FROM water_sectors WHERE id = ?", [current.id]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_SECTOR_DELETED",
+            module: "WATER",
+            record_id: current.sector_code
+        });
+
+        res.json({ success: true, message: `Sector ${current.sector_code} deleted successfully.` });
+    } catch (err) {
+        console.error("Delete sector error:", err);
+        res.status(500).json({ success: false, message: "Database error deleting sector." });
+    }
+});
+
+// =========================================================
+// 30. WATER STAFF & PERMISSION MANAGEMENT (WATER ADMIN ONLY)
+// =========================================================
+
+// List Water Department Staff
+router.get("/api/water/admin/staff", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const [staffMembers] = await pool.query(`
+            SELECT id, name, staff_id, department, role, email, status, permissions, assigned_modules, permitted_sectors, permitted_assets, created_at
+            FROM staff
+            WHERE department = 'water' 
+               OR department LIKE '%water%'
+               OR staff_id LIKE 'WTR%'
+               OR role IN ('water_admin', 'water_staff', 'engineer', 'technician')
+            ORDER BY name ASC
+        `);
+
+        const formatted = staffMembers.map(s => ({
+            ...s,
+            permissions: safeParseJson(s.permissions, ["view"]),
+            assigned_modules: safeParseJson(s.assigned_modules, ["water_pipelines"]),
+            permitted_sectors: safeParseJson(s.permitted_sectors, []),
+            permitted_assets: safeParseJson(s.permitted_assets, [])
+        }));
+
+        res.json({ success: true, count: formatted.length, staff: formatted });
+    } catch (err) {
+        console.error("Water staff fetch error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching water staff." });
+    }
+});
+
+// Create Water Department Staff (WATER ADMIN ONLY)
+router.post("/api/water/admin/staff", authenticateToken, requireWaterAdmin, async (req, res) => {
+    let { name, staffId, role, email, mobile, password, permissions, modules, permitted_sectors, permitted_assets, status } = req.body;
+
+    if (!name || !name.trim()) {
+        return res.status(400).json({ success: false, message: "Staff name is required." });
+    }
+
+    const staffRole = (role && (role.toLowerCase() === "admin" || role.toLowerCase() === "water_admin")) ? "admin" : "staff";
+    const designation = (role || "engineer").toLowerCase();
+
+    // Auto-generate Staff ID if omitted
+    if (!staffId || !staffId.trim()) {
+        const randNum = Math.floor(100 + Math.random() * 900);
+        staffId = `WTR-${designation.includes("tech") ? "TECH" : "ENG"}-${randNum}`;
+    }
+
+    const rawPassword = (password && password.trim()) ? password.trim() : `Water@${Math.floor(1000 + Math.random() * 9000)}`;
+    const hashedPassword = hashPassword(rawPassword);
+
+    const defaultPerms = ["view", "update", "work_orders", "inspect_assets", "update_status"];
+    const defaultModules = ["water_pipelines", "assigned_work_orders", "fault_reports", "flow_telemetry"];
+
+    const finalPerms = Array.isArray(permissions) ? permissions : defaultPerms;
+    const finalModules = Array.isArray(modules) ? modules : defaultModules;
+    const finalSectors = Array.isArray(permitted_sectors) ? permitted_sectors : [];
+    const finalAssets = Array.isArray(permitted_assets) ? permitted_assets : [];
+    const finalStatus = status || "Active";
+
+    try {
+        await pool.query(`
+            INSERT INTO staff 
+            (name, staff_id, password, department, role, hospital_role, email, status, permissions, assigned_modules, permitted_sectors, permitted_assets)
+            VALUES (?, ?, ?, 'water', ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                department = 'water',
+                role = VALUES(role),
+                hospital_role = VALUES(hospital_role),
+                password = VALUES(password),
+                email = VALUES(email),
+                status = VALUES(status),
+                permissions = VALUES(permissions),
+                assigned_modules = VALUES(assigned_modules),
+                permitted_sectors = VALUES(permitted_sectors),
+                permitted_assets = VALUES(permitted_assets)
+        `, [
+            name.trim(),
+            staffId.trim(),
+            hashedPassword,
+            staffRole,
+            designation,
+            email || null,
+            finalStatus,
+            JSON.stringify(finalPerms),
+            JSON.stringify(finalModules),
+            JSON.stringify(finalSectors),
+            JSON.stringify(finalAssets)
+        ]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_STAFF_CREATED",
+            module: "WATER",
+            record_id: staffId.trim(),
+            metadata: { staffId, name, role: staffRole, designation, permitted_sectors: finalSectors }
+        });
+
+        res.status(201).json({
+            success: true,
+            message: `Water staff account created successfully for ${name} (${staffId}).`,
+            credentials: {
+                staffId: staffId.trim(),
+                password: rawPassword,
+                name: name.trim(),
+                role: staffRole,
+                designation,
+                department: "water",
+                permissions: finalPerms,
+                modules: finalModules,
+                permitted_sectors: finalSectors,
+                permitted_assets: finalAssets,
+                status: finalStatus
+            }
+        });
+    } catch (err) {
+        console.error("Add water staff error:", err);
+        res.status(500).json({ success: false, message: "Database error adding water staff." });
+    }
+});
+
+// Update Water Staff Permissions and Permitted Sectors/Assets (WATER ADMIN ONLY)
+router.put("/api/water/admin/staff/:staffId/permissions", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const { staffId } = req.params;
+    const { permissions, modules, permitted_sectors, permitted_assets, role } = req.body;
+
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM staff WHERE LOWER(staff_id) = LOWER(?) OR id = ? LIMIT 1",
+            [staffId, isNaN(Number(staffId)) ? 0 : Number(staffId)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Water staff member not found." });
+        }
+        const member = existing[0];
+
+        const updates = [];
+        const params = [];
+
+        if (permissions) {
+            updates.push("permissions = ?");
+            params.push(typeof permissions === "string" ? permissions : JSON.stringify(permissions));
+        }
+        if (modules) {
+            updates.push("assigned_modules = ?");
+            params.push(typeof modules === "string" ? modules : JSON.stringify(modules));
+        }
+        if (permitted_sectors) {
+            updates.push("permitted_sectors = ?");
+            params.push(typeof permitted_sectors === "string" ? permitted_sectors : JSON.stringify(permitted_sectors));
+        }
+        if (permitted_assets) {
+            updates.push("permitted_assets = ?");
+            params.push(typeof permitted_assets === "string" ? permitted_assets : JSON.stringify(permitted_assets));
+        }
+        if (role) {
+            const staffRole = (role.toLowerCase() === "admin" || role.toLowerCase() === "water_admin") ? "admin" : "staff";
+            updates.push("role = ?");
+            params.push(staffRole);
+            updates.push("hospital_role = ?");
+            params.push(role.toLowerCase());
+        }
+
+        if (updates.length > 0) {
+            params.push(member.id);
+            await pool.query(`UPDATE staff SET ${updates.join(", ")} WHERE id = ?`, params);
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_STAFF_PERMISSIONS_UPDATED",
+            module: "WATER",
+            record_id: member.staff_id,
+            metadata: { permitted_sectors, permitted_assets, permissions }
+        });
+
+        res.json({
+            success: true,
+            message: `Permissions updated successfully for staff ${member.staff_id}.`
+        });
+    } catch (err) {
+        console.error("Update water staff permissions error:", err);
+        res.status(500).json({ success: false, message: "Database error updating staff permissions." });
+    }
+});
+
+// Update Water Staff Status (WATER ADMIN ONLY)
+router.put("/api/water/admin/staff/:staffId/status", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const { staffId } = req.params;
+    const { status } = req.body;
+
+    if (!status || !["Active", "Inactive", "Suspended"].includes(status)) {
+        return res.status(400).json({ success: false, message: "Valid status ('Active', 'Inactive', 'Suspended') is required." });
+    }
+
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM staff WHERE LOWER(staff_id) = LOWER(?) OR id = ? LIMIT 1",
+            [staffId, isNaN(Number(staffId)) ? 0 : Number(staffId)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Water staff member not found." });
+        }
+        const member = existing[0];
+
+        await pool.query("UPDATE staff SET status = ? WHERE id = ?", [status, member.id]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: `WATER_STAFF_STATUS_${status.toUpperCase()}`,
+            module: "WATER",
+            record_id: member.staff_id
+        });
+
+        res.json({ success: true, message: `Staff ${member.staff_id} status updated to ${status}.` });
+    } catch (err) {
+        console.error("Update water staff status error:", err);
+        res.status(500).json({ success: false, message: "Database error updating staff status." });
+    }
+});
+
+// General Staff Update (WATER ADMIN ONLY)
+router.put("/api/water/admin/staff/:staffId", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const { staffId } = req.params;
+    const { name, role, email, status, permissions, modules, permitted_sectors, permitted_assets, newPassword } = req.body;
+
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM staff WHERE LOWER(staff_id) = LOWER(?) OR id = ? LIMIT 1",
+            [staffId, isNaN(Number(staffId)) ? 0 : Number(staffId)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Water staff member not found." });
+        }
+        const member = existing[0];
+
+        const updates = [];
+        const params = [];
+
+        if (name) { updates.push("name = ?"); params.push(name.trim()); }
+        if (role) { updates.push("role = ?"); params.push(role); }
+        if (email !== undefined) { updates.push("email = ?"); params.push(email || null); }
+        if (status) { updates.push("status = ?"); params.push(status); }
+        if (permissions) { updates.push("permissions = ?"); params.push(typeof permissions === "string" ? permissions : JSON.stringify(permissions)); }
+        if (modules) { updates.push("assigned_modules = ?"); params.push(typeof modules === "string" ? modules : JSON.stringify(modules)); }
+        if (permitted_sectors) { updates.push("permitted_sectors = ?"); params.push(typeof permitted_sectors === "string" ? permitted_sectors : JSON.stringify(permitted_sectors)); }
+        if (permitted_assets) { updates.push("permitted_assets = ?"); params.push(typeof permitted_assets === "string" ? permitted_assets : JSON.stringify(permitted_assets)); }
+        if (newPassword && newPassword.trim()) { updates.push("password = ?"); params.push(hashPassword(newPassword.trim())); }
+
+        if (updates.length > 0) {
+            params.push(member.id);
+            await pool.query(`UPDATE staff SET ${updates.join(", ")} WHERE id = ?`, params);
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_STAFF_UPDATED",
+            module: "WATER",
+            record_id: member.staff_id
+        });
+
+        res.json({ success: true, message: `Staff ${member.staff_id} updated successfully.` });
+    } catch (err) {
+        console.error("Update water staff error:", err);
+        res.status(500).json({ success: false, message: "Database error updating staff." });
+    }
+});
+
+// =========================================================
+// 31. WATER ADMIN FACILITIES MANAGEMENT & SINGLE SCREEN MONITOR
+// =========================================================
+
+// Unified Facilities Screen: Tanks, Sources, WTPs, STPs, Pumps, Valves, Drainage Outlets, Connections & Pipelines
+router.get("/api/water/admin/facilities", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const [tanks] = await pool.query(`
+            SELECT id, tank_id, name, zone, capacity_liters, current_level_percent,
+                   status, pump_status, latitude, longitude, water_quality_score,
+                   next_supply_time, supplied_areas, source_asset_id, supply_schedule, updated_at
+            FROM water_tanks
+            ORDER BY name ASC
+        `);
+
+        const [assets] = await pool.query(`
+            SELECT id, asset_id, name, asset_type, zone, latitude, longitude,
+                   elevation_m, depth_m, status, pump_state, valve_state,
+                   flow_direction, telemetry_provenance, specifications,
+                   supplied_areas, connected_assets, data_source, updated_at
+            FROM water_network_assets
+            ORDER BY asset_type, name ASC
+        `);
+
+        const [pipelines] = await pool.query(`
+            SELECT id, pipe_id, name, network_type, zone, origin_asset_id,
+                   destination_asset_id, pipe_diameter_mm, burial_depth_m,
+                   flow_rate_lps, pressure_bar, flow_direction, status,
+                   telemetry_provenance, waypoints, length_meters
+            FROM water_pipelines
+            ORDER BY name ASC
+        `);
+
+        const [announcements] = await pool.query(`
+            SELECT * FROM water_supply_announcements
+            ORDER BY start_time DESC LIMIT 10
+        `);
+
+        // Format JSON fields
+        const formattedTanks = tanks.map(t => ({
+            ...t,
+            supplied_areas: safeParseJson(t.supplied_areas, [])
+        }));
+
+        const formattedAssets = assets.map(a => ({
+            ...a,
+            specifications: safeParseJson(a.specifications, {}),
+            supplied_areas: safeParseJson(a.supplied_areas, []),
+            connected_assets: safeParseJson(a.connected_assets, [])
+        }));
+
+        const formattedPipelines = pipelines.map(p => ({
+            ...p,
+            waypoints: safeParseJson(p.waypoints, [])
+        }));
+
+        const formattedAnnouncements = announcements.map(an => ({
+            ...an,
+            affected_areas: safeParseJson(an.affected_areas, [])
+        }));
+
+        // Categorize assets for convenient single-screen tabs/filters
+        const facilities = {
+            tanks: formattedTanks,
+            sources: formattedAssets.filter(a => a.asset_type === "WATER_SOURCE"),
+            wtp: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_WTP"),
+            stp: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_STP"),
+            pumps: formattedAssets.filter(a => a.asset_type === "BOOSTER_PUMP"),
+            valves: formattedAssets.filter(a => a.asset_type === "CONTROL_VALVE"),
+            drainage_outlets: formattedAssets.filter(a => a.asset_type === "DRAINAGE_OUTLET" || a.asset_type === "DISCHARGE_POINT"),
+            connections: formattedAssets.filter(a => a.asset_type === "NETWORK_JUNCTION" || a.asset_type === "STORAGE_RESERVOIR"),
+            all_assets: formattedAssets,
+            pipelines: formattedPipelines,
+            announcements: formattedAnnouncements,
+            stats: {
+                total_tanks: formattedTanks.length,
+                total_sources: formattedAssets.filter(a => a.asset_type === "WATER_SOURCE").length,
+                total_wtp: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_WTP").length,
+                total_stp: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_STP").length,
+                total_pumps: formattedAssets.filter(a => a.asset_type === "BOOSTER_PUMP").length,
+                total_valves: formattedAssets.filter(a => a.asset_type === "CONTROL_VALVE").length,
+                total_drainage_outlets: formattedAssets.filter(a => a.asset_type === "DRAINAGE_OUTLET" || a.asset_type === "DISCHARGE_POINT").length,
+                total_pipelines: formattedPipelines.length,
+                active_water_cuts: formattedAnnouncements.filter(a => a.status === "ACTIVE").length
+            }
+        };
+
+        res.json({
+            success: true,
+            facilities
+        });
+    } catch (err) {
+        console.error("Admin facilities fetch error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching facilities." });
+    }
+});
+
+// Create Facility Asset (WATER ADMIN ONLY)
+router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const {
+        asset_id, name, asset_type, zone, latitude, longitude,
+        elevation_m, depth_m, status, pump_state, valve_state,
+        flow_direction, specifications, supplied_areas, connected_assets
+    } = req.body;
+
+    if (!name || !asset_type || !zone) {
+        return res.status(400).json({ success: false, message: "Name, asset_type, and zone are required." });
+    }
+
+    const cleanType = String(asset_type).toUpperCase();
+    const allowedTypes = [
+        "TREATMENT_PLANT_STP", "TREATMENT_PLANT_WTP", "WATER_SOURCE",
+        "BOOSTER_PUMP", "CONTROL_VALVE", "DRAINAGE_OUTLET",
+        "NETWORK_JUNCTION", "STORAGE_RESERVOIR", "DISCHARGE_POINT"
+    ];
+
+    if (!allowedTypes.includes(cleanType)) {
+        return res.status(400).json({ success: false, message: `Invalid asset_type. Allowed: ${allowedTypes.join(", ")}` });
+    }
+
+    const idCode = asset_id || `${cleanType.slice(0, 4)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    try {
+        await pool.query(`
+            INSERT INTO water_network_assets
+            (asset_id, name, asset_type, zone, latitude, longitude, elevation_m, depth_m, status, pump_state, valve_state, flow_direction, specifications, supplied_areas, connected_assets, telemetry_provenance, data_source)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', 'MEASURED')
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                asset_type = VALUES(asset_type),
+                zone = VALUES(zone),
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                elevation_m = VALUES(elevation_m),
+                depth_m = VALUES(depth_m),
+                status = VALUES(status),
+                pump_state = VALUES(pump_state),
+                valve_state = VALUES(valve_state),
+                flow_direction = VALUES(flow_direction),
+                specifications = VALUES(specifications),
+                supplied_areas = VALUES(supplied_areas),
+                connected_assets = VALUES(connected_assets)
+        `, [
+            idCode,
+            name.trim(),
+            cleanType,
+            zone.trim(),
+            Number(latitude) || 26.7606,
+            Number(longitude) || 83.3732,
+            Number(elevation_m) || 84.50,
+            Number(depth_m) || 2.50,
+            status || "OPERATIONAL",
+            pump_state || "ON",
+            valve_state || "OPEN",
+            flow_direction || "FORWARD",
+            specifications ? (typeof specifications === "string" ? specifications : JSON.stringify(specifications)) : JSON.stringify({}),
+            supplied_areas ? (typeof supplied_areas === "string" ? supplied_areas : JSON.stringify(supplied_areas)) : JSON.stringify([]),
+            connected_assets ? (typeof connected_assets === "string" ? connected_assets : JSON.stringify(connected_assets)) : JSON.stringify([])
+        ]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_ASSET_CREATED",
+            module: "WATER",
+            record_id: idCode,
+            metadata: { asset_id: idCode, name, asset_type: cleanType, zone }
+        });
+
+        res.status(201).json({
+            success: true,
+            message: `Facility asset ${name} (${idCode}) saved successfully.`,
+            asset: { asset_id: idCode, name, asset_type: cleanType, zone }
+        });
+    } catch (err) {
+        console.error("Create asset error:", err);
+        res.status(500).json({ success: false, message: "Database error saving facility asset." });
+    }
+});
+
+// Update Facility Asset (WATER ADMIN ONLY)
+router.put("/api/water/network/assets/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    const {
+        name, asset_type, zone, latitude, longitude,
+        elevation_m, depth_m, status, pump_state, valve_state,
+        flow_direction, specifications, supplied_areas, connected_assets
+    } = req.body;
+
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM water_network_assets WHERE asset_id = ? OR id = ? LIMIT 1",
+            [id, isNaN(Number(id)) ? 0 : Number(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Facility asset not found." });
+        }
+        const current = existing[0];
+
+        const updates = [];
+        const params = [];
+
+        if (name) { updates.push("name = ?"); params.push(name.trim()); }
+        if (asset_type) { updates.push("asset_type = ?"); params.push(asset_type); }
+        if (zone) { updates.push("zone = ?"); params.push(zone.trim()); }
+        if (latitude !== undefined) { updates.push("latitude = ?"); params.push(Number(latitude)); }
+        if (longitude !== undefined) { updates.push("longitude = ?"); params.push(Number(longitude)); }
+        if (elevation_m !== undefined) { updates.push("elevation_m = ?"); params.push(Number(elevation_m)); }
+        if (depth_m !== undefined) { updates.push("depth_m = ?"); params.push(Number(depth_m)); }
+        if (status) { updates.push("status = ?"); params.push(status); }
+        if (pump_state) { updates.push("pump_state = ?"); params.push(pump_state); }
+        if (valve_state) { updates.push("valve_state = ?"); params.push(valve_state); }
+        if (flow_direction) { updates.push("flow_direction = ?"); params.push(flow_direction); }
+        if (specifications) { updates.push("specifications = ?"); params.push(typeof specifications === "string" ? specifications : JSON.stringify(specifications)); }
+        if (supplied_areas) { updates.push("supplied_areas = ?"); params.push(typeof supplied_areas === "string" ? supplied_areas : JSON.stringify(supplied_areas)); }
+        if (connected_assets) { updates.push("connected_assets = ?"); params.push(typeof connected_assets === "string" ? connected_assets : JSON.stringify(connected_assets)); }
+
+        if (updates.length > 0) {
+            params.push(current.id);
+            await pool.query(`UPDATE water_network_assets SET ${updates.join(", ")} WHERE id = ?`, params);
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_ASSET_UPDATED",
+            module: "WATER",
+            record_id: current.asset_id
+        });
+
+        res.json({ success: true, message: `Facility asset ${current.asset_id} updated successfully.` });
+    } catch (err) {
+        console.error("Update asset error:", err);
+        res.status(500).json({ success: false, message: "Database error updating facility asset." });
+    }
+});
+
+// Delete Facility Asset (WATER ADMIN ONLY)
+router.delete("/api/water/network/assets/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM water_network_assets WHERE asset_id = ? OR id = ? LIMIT 1",
+            [id, isNaN(Number(id)) ? 0 : Number(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Facility asset not found." });
+        }
+        const current = existing[0];
+
+        await pool.query("DELETE FROM water_network_assets WHERE id = ?", [current.id]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_ASSET_DELETED",
+            module: "WATER",
+            record_id: current.asset_id
+        });
+
+        res.json({ success: true, message: `Facility asset ${current.asset_id} removed.` });
+    } catch (err) {
+        console.error("Delete asset error:", err);
+        res.status(500).json({ success: false, message: "Database error deleting facility asset." });
+    }
+});
+
+// Decide / Update Which Tank/Source Supplies Which Area (WATER ADMIN ONLY)
+router.put("/api/water/tanks/:id/supply-areas", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { supplied_areas, source_asset_id, supply_schedule, pump_status, current_level_percent } = req.body;
+
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM water_tanks WHERE tank_id = ? OR id = ? LIMIT 1",
+            [id, isNaN(Number(id)) ? 0 : Number(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Water tank not found." });
+        }
+        const current = existing[0];
+
+        const updates = [];
+        const params = [];
+
+        if (supplied_areas !== undefined) {
+            updates.push("supplied_areas = ?");
+            params.push(typeof supplied_areas === "string" ? supplied_areas : JSON.stringify(supplied_areas));
+        }
+        if (source_asset_id !== undefined) {
+            updates.push("source_asset_id = ?");
+            params.push(source_asset_id || null);
+        }
+        if (supply_schedule !== undefined) {
+            updates.push("supply_schedule = ?");
+            params.push(supply_schedule || "06:00 AM - 09:00 AM, 05:00 PM - 08:00 PM");
+        }
+        if (pump_status) {
+            updates.push("pump_status = ?");
+            params.push(pump_status);
+        }
+        if (current_level_percent !== undefined) {
+            updates.push("current_level_percent = ?");
+            params.push(Number(current_level_percent));
+        }
+
+        if (updates.length > 0) {
+            params.push(current.id);
+            await pool.query(`UPDATE water_tanks SET ${updates.join(", ")} WHERE id = ?`, params);
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_TANK_SUPPLY_MAPPING_UPDATED",
+            module: "WATER",
+            record_id: current.tank_id,
+            metadata: { tank_id: current.tank_id, supplied_areas, source_asset_id }
+        });
+
+        res.json({
+            success: true,
+            message: `Supply area routing updated for tank ${current.name} (${current.tank_id}).`,
+            tank: { tank_id: current.tank_id, supplied_areas, source_asset_id }
+        });
+    } catch (err) {
+        console.error("Tank supply mapping error:", err);
+        res.status(500).json({ success: false, message: "Database error updating tank supply areas." });
+    }
+});
+
+// =========================================================
+// 32. PUBLIC WATER SUPPLY STATUS & ANNOUNCED WATER CUTS
+// =========================================================
+
+// Public Water Supply Status & Cuts (For Visitors & Citizens — No internal data leaks)
+router.get("/api/water/public/supply-status", async (req, res) => {
+    try {
+        const [announcements] = await pool.query(`
+            SELECT announcement_id, title, type, zone, affected_areas,
+                   start_time, end_time, reason, alternative_supply, status
+            FROM water_supply_announcements
+            WHERE status IN ('ACTIVE', 'SCHEDULED')
+            ORDER BY start_time ASC
+        `);
+
+        const [tanks] = await pool.query(`
+            SELECT name, zone, capacity_liters, current_level_percent,
+                   status, next_supply_time, supplied_areas, supply_schedule
+            FROM water_tanks
+            ORDER BY zone ASC
+        `);
+
+        const [sectors] = await pool.query(`
+            SELECT sector_code, name, zone, total_demand_mld, population_served
+            FROM water_sectors
+            WHERE status = 'ACTIVE'
+            ORDER BY name ASC
+        `);
+
+        // Format clean visitor-facing response
+        const formattedAnnouncements = announcements.map(a => ({
+            ...a,
+            affected_areas: safeParseJson(a.affected_areas, [])
+        }));
+
+        const formattedTanks = tanks.map(t => ({
+            ...t,
+            supplied_areas: safeParseJson(t.supplied_areas, [])
+        }));
+
+        res.json({
+            success: true,
+            city_supply_health: "NORMAL",
+            overall_storage_percentage: Math.round(tanks.reduce((acc, t) => acc + (t.current_level_percent || 0), 0) / (tanks.length || 1)),
+            active_water_cuts_count: formattedAnnouncements.filter(a => a.status === "ACTIVE").length,
+            scheduled_cuts_count: formattedAnnouncements.filter(a => a.status === "SCHEDULED").length,
+            announced_water_cuts: formattedAnnouncements,
+            tanks_summary: formattedTanks,
+            sectors_summary: sectors,
+            citizen_helpline: "1800-180-2026",
+            emergency_tanker_contact: "0551-2334455"
+        });
+    } catch (err) {
+        console.error("Public supply status fetch error:", err);
+        res.status(500).json({ success: false, message: "Error fetching public supply status." });
+    }
+});
+
+// Admin Announcements CRUD
+router.get("/api/water/announcements", async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM water_supply_announcements ORDER BY start_time DESC");
+        const formatted = rows.map(r => ({
+            ...r,
+            affected_areas: safeParseJson(r.affected_areas, [])
+        }));
+        res.json({ success: true, count: formatted.length, announcements: formatted });
+    } catch (err) {
+        console.error("Fetch announcements error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching announcements." });
+    }
+});
+
+router.post("/api/water/announcements", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const { title, type, zone, affected_areas, start_time, end_time, reason, alternative_supply, status } = req.body;
+
+    if (!title || !zone || !start_time || !end_time || !reason) {
+        return res.status(400).json({ success: false, message: "Title, zone, start_time, end_time, and reason are required." });
+    }
+
+    const annId = `ANN-WTR-${Date.now().toString().slice(-4)}`;
+
+    try {
+        await pool.query(`
+            INSERT INTO water_supply_announcements
+            (announcement_id, title, type, zone, affected_areas, start_time, end_time, reason, alternative_supply, status, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            annId,
+            title.trim(),
+            type || "WATER_CUT",
+            zone.trim(),
+            affected_areas ? (typeof affected_areas === "string" ? affected_areas : JSON.stringify(affected_areas)) : JSON.stringify([zone.trim()]),
+            new Date(start_time),
+            new Date(end_time),
+            reason.trim(),
+            alternative_supply || "Emergency water tankers on standby.",
+            status || "SCHEDULED",
+            req.user.name || "Water Admin"
+        ]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_ANNOUNCEMENT_CREATED",
+            module: "WATER",
+            record_id: annId
+        });
+
+        res.status(201).json({
+            success: true,
+            message: `Announcement ${title} scheduled successfully.`,
+            announcement_id: annId
+        });
+    } catch (err) {
+        console.error("Create announcement error:", err);
+        res.status(500).json({ success: false, message: "Database error creating announcement." });
+    }
+});
+
+router.put("/api/water/announcements/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { title, type, zone, affected_areas, start_time, end_time, reason, alternative_supply, status } = req.body;
+
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM water_supply_announcements WHERE announcement_id = ? OR id = ? LIMIT 1",
+            [id, isNaN(Number(id)) ? 0 : Number(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Announcement not found." });
+        }
+        const current = existing[0];
+
+        const updates = [];
+        const params = [];
+
+        if (title) { updates.push("title = ?"); params.push(title.trim()); }
+        if (type) { updates.push("type = ?"); params.push(type); }
+        if (zone) { updates.push("zone = ?"); params.push(zone.trim()); }
+        if (affected_areas) { updates.push("affected_areas = ?"); params.push(typeof affected_areas === "string" ? affected_areas : JSON.stringify(affected_areas)); }
+        if (start_time) { updates.push("start_time = ?"); params.push(new Date(start_time)); }
+        if (end_time) { updates.push("end_time = ?"); params.push(new Date(end_time)); }
+        if (reason) { updates.push("reason = ?"); params.push(reason.trim()); }
+        if (alternative_supply) { updates.push("alternative_supply = ?"); params.push(alternative_supply); }
+        if (status) { updates.push("status = ?"); params.push(status); }
+
+        if (updates.length > 0) {
+            params.push(current.id);
+            await pool.query(`UPDATE water_supply_announcements SET ${updates.join(", ")} WHERE id = ?`, params);
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_ANNOUNCEMENT_UPDATED",
+            module: "WATER",
+            record_id: current.announcement_id
+        });
+
+        res.json({ success: true, message: `Announcement ${current.announcement_id} updated.` });
+    } catch (err) {
+        console.error("Update announcement error:", err);
+        res.status(500).json({ success: false, message: "Database error updating announcement." });
+    }
+});
+
+router.delete("/api/water/announcements/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    try {
+        const [existing] = await pool.query(
+            "SELECT * FROM water_supply_announcements WHERE announcement_id = ? OR id = ? LIMIT 1",
+            [id, isNaN(Number(id)) ? 0 : Number(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Announcement not found." });
+        }
+        const current = existing[0];
+
+        await pool.query("DELETE FROM water_supply_announcements WHERE id = ?", [current.id]);
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_ANNOUNCEMENT_DELETED",
+            module: "WATER",
+            record_id: current.announcement_id
+        });
+
+        res.json({ success: true, message: `Announcement ${current.announcement_id} removed.` });
+    } catch (err) {
+        console.error("Delete announcement error:", err);
+        res.status(500).json({ success: false, message: "Database error deleting announcement." });
+    }
+});
+
+// =========================================================
+// 33. VISITOR COMPLAINTS WITH MAP LOCATION & PHOTO
+// =========================================================
+
+// Submit Water Complaint (Public / Citizen with Map Coordinates & Optional Photo)
+router.post("/api/water/complaints", optionalToken, upload.single("evidenceImage"), async (req, res) => {
+    try {
+        const citizenName = (req.body.citizenName || req.body.citizen_name || (req.user && req.user.name) || "Concerned Citizen").trim();
+        const mobile = (req.body.mobile || (req.user && req.user.phone) || "9876543210").trim();
+        const rawCategory = (req.body.category || req.body.issue_type || req.body.issueType || "Water Quality").trim();
+        const locationName = (req.body.location || req.body.location_name || "Gorakhpur Municipal Area").trim();
+        const description = (req.body.description || "").trim();
+        const userId = req.body.userId || (req.user && req.user.id) || null;
+
+        const lat = req.body.latitude ? Number(req.body.latitude) : null;
+        const lng = req.body.longitude ? Number(req.body.longitude) : null;
+
+        // Normalize Categories to requested standard:
+        // water quality, dirty water, low pressure, insufficient/no supply, leakage, sewage overflow
+        let normalizedCategory = "Water Quality";
+        const catLower = rawCategory.toLowerCase();
+        if (catLower.includes("dirty") || catLower.includes("muddy") || catLower.includes("discolor")) {
+            normalizedCategory = "Dirty Water";
+        } else if (catLower.includes("low pressure") || catLower.includes("pressure")) {
+            normalizedCategory = "Low Pressure";
+        } else if (catLower.includes("no supply") || catLower.includes("insufficient") || catLower.includes("no water")) {
+            normalizedCategory = "Insufficient / No Supply";
+        } else if (catLower.includes("leak") || catLower.includes("burst")) {
+            normalizedCategory = "Leakage";
+        } else if (catLower.includes("sewage") || catLower.includes("drain") || catLower.includes("overflow") || catLower.includes("gutter")) {
+            normalizedCategory = "Sewage Overflow";
+        } else {
+            normalizedCategory = "Water Quality";
+        }
+
+        const { priority, slaHours } = calculateWaterPriority({
+            issueType: normalizedCategory,
+            description,
+            location: locationName
+        });
+
+        const trackingId = `WTR-CMP-${Date.now().toString(36).toUpperCase()}`;
+        const evidencePath = req.file ? `/uploads/water/${req.file.filename}` : null;
+
+        const [insertResult] = await pool.query(`
+            INSERT INTO water_reports
+            (report_id, user_id, citizen_name, mobile, issue_type, category, location, latitude, longitude, description, status, priority, evidence_image)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Open', ?, ?)
+        `, [
+            trackingId,
+            userId,
+            citizenName,
+            mobile,
+            normalizedCategory,
+            normalizedCategory,
+            locationName,
+            lat,
+            lng,
+            description || `Complaint regarding ${normalizedCategory} at ${locationName}`,
+            priority,
+            evidencePath
+        ]);
+
+        const [createdRows] = await pool.query("SELECT * FROM water_reports WHERE id = ?", [insertResult.insertId]);
+        const complaint = createdRows[0];
+
+        // Notify authorized Admin / Staff dashboards in real-time
+        emitWaterUpdate({
+            type: "new_water_complaint",
+            complaint,
+            trackingId,
+            category: normalizedCategory,
+            location: locationName,
+            priority,
+            updatedAt: new Date().toISOString()
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "Water complaint successfully registered.",
+            tracking_id: trackingId,
+            report_id: trackingId,
+            complaint: {
+                tracking_id: trackingId,
+                citizen_name: citizenName,
+                category: normalizedCategory,
+                location: locationName,
+                latitude: lat,
+                longitude: lng,
+                status: "Open",
+                priority,
+                sla_hours: slaHours || 24,
+                evidence_image: evidencePath,
+                created_at: complaint.created_at
+            }
+        });
+    } catch (err) {
+        console.error("Submit water complaint error:", err);
+        res.status(500).json({ success: false, message: "Database error registering water complaint." });
+    }
+});
+
+// Track Complaint Status by Tracking ID or Mobile (Publicly accessible)
+router.get("/api/water/complaints/track/:trackingId", async (req, res) => {
+    const trackingId = req.params.trackingId.trim();
+    try {
+        const [rows] = await pool.query(`
+            SELECT report_id AS tracking_id, citizen_name, issue_type AS category,
+                   location, status, priority, description, evidence_image,
+                   created_at, updated_at, resolved_at
+            FROM water_reports
+            WHERE LOWER(report_id) = LOWER(?) OR id = ?
+            LIMIT 1
+        `, [trackingId, isNaN(Number(trackingId)) ? 0 : Number(trackingId)]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Complaint tracking ID not found." });
+        }
+
+        const comp = rows[0];
+        res.json({
+            success: true,
+            complaint: comp
+        });
+    } catch (err) {
+        console.error("Track complaint error:", err);
+        res.status(500).json({ success: false, message: "Database error tracking complaint." });
+    }
+});
+
+// =========================================================
+// 34. ROLE-BASED SECURE STAFF DASHBOARD FOUNDATION
+// =========================================================
+router.get("/api/water/staff/dashboard-overview", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const permittedSectors = Array.isArray(req.user.permitted_sectors) ? req.user.permitted_sectors : [];
+        const permittedAssets = Array.isArray(req.user.permitted_assets) ? req.user.permitted_assets : [];
+        const staffId = req.user.staffId || req.user.staff_id || "";
+
+        // Scoped work orders: assigned to this staff or matching permitted sectors
+        let woSql = "SELECT * FROM water_work_orders WHERE assigned_staff_id = ? OR assigned_to = ?";
+        let woParams = [staffId, staffId];
+
+        if (permittedSectors.length > 0 && !permittedSectors.includes("ALL_SECTORS")) {
+            const placeholders = permittedSectors.map(() => "?").join(",");
+            woSql += ` OR sector IN (${placeholders})`;
+            woParams.push(...permittedSectors);
+        }
+        woSql += " ORDER BY created_at DESC LIMIT 20";
+
+        const [workOrders] = await pool.query(woSql, woParams);
+
+        // Scoped tanks in permitted sectors
+        let tankSql = "SELECT id, tank_id, name, zone, capacity_liters, current_level_percent, pump_status, status, supplied_areas FROM water_tanks";
+        let tankParams = [];
+        if (permittedSectors.length > 0 && !permittedSectors.includes("ALL_SECTORS")) {
+            const placeholders = permittedSectors.map(() => "?").join(",");
+            tankSql += ` WHERE zone IN (${placeholders})`;
+            tankParams.push(...permittedSectors);
+        }
+        const [scopedTanks] = await pool.query(tankSql, tankParams);
+
+        // Scoped assets
+        let assetSql = "SELECT id, asset_id, name, asset_type, zone, status, pump_state, valve_state, flow_direction FROM water_network_assets";
+        let assetParams = [];
+        if (permittedAssets.length > 0) {
+            const placeholders = permittedAssets.map(() => "?").join(",");
+            assetSql += ` WHERE asset_id IN (${placeholders})`;
+            assetParams.push(...permittedAssets);
+        }
+        const [scopedAssets] = await pool.query(assetSql, assetParams);
+
+        res.json({
+            success: true,
+            staff_session: {
+                staff_id: staffId,
+                name: req.user.name,
+                role: req.user.role,
+                department: "water",
+                permitted_sectors: permittedSectors,
+                permitted_assets: permittedAssets
+            },
+            assigned_work_orders: workOrders,
+            permitted_tanks: scopedTanks.map(t => ({ ...t, supplied_areas: safeParseJson(t.supplied_areas, []) })),
+            permitted_assets: scopedAssets
+        });
+    } catch (err) {
+        console.error("Staff dashboard overview error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching staff dashboard overview." });
+    }
+});
+
 module.exports = router;
+
