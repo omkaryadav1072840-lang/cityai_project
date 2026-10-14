@@ -57,8 +57,11 @@
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('citizen')">
                     <span>🚗</span> Citizen View (Public)
                 </a>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('mohaddipur')">
+                    <span>👮</span> Sub-Insp. Amit Pandey (Mohaddipur Staff)
+                </a>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('officer')">
-                    <span>👮</span> Insp. R.K. Verma (Traffic Staff)
+                    <span>👮</span> Insp. R.K. Verma (Golghar Staff)
                 </a>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('admin')">
                     <span>🛡️</span> ICCC Director (Admin)
@@ -588,6 +591,32 @@
         <!-- STAFF OPERATIONS MAIN CONTAINER -->
         <div id="staffOperationsMain" style="display: none;">
 
+        <!-- Assigned Jurisdiction Post Banner -->
+        <div id="staff-jurisdiction-banner" style="background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: 1.5px solid #3b82f6; border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 2px 10px rgba(59, 130, 246, 0.08);">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="background: #2563eb; color: #fff; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-map-pin"></i>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <strong style="color: #1e3a8a; font-size: 13px; letter-spacing: 0.5px;">OPERATIONAL JURISDICTION POST:</strong>
+                        <span class="badge badge-online" id="staff-jurisdiction-badge" style="font-size: 10px; padding: 2px 6px;">Active & Locked</span>
+                    </div>
+                    <div style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px;" id="staff-jurisdiction-text">
+                        Mohaddipur Junction (JNC-02) • Officer: Sub-Insp. Amit Pandey (TR-PANDEY)
+                    </div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                        Staff control and camera monitoring strictly confined to this assigned post. Other junctions are locked.
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-primary" onclick="applyCameraAIOptimization()" style="background: #16a34a; border-color: #16a34a; font-weight: 800; font-size: 13px; padding: 10px 16px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
+                    🤖 Manage Traffic Automatically via Camera AI
+                </button>
+            </div>
+        </div>
+
         <!-- Staff Sub-Toolbar -->
         <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; flex-wrap: wrap; gap: 10px;">
             <div style="font-weight: 800; font-size: 15px; color: #0f172a;">
@@ -1056,6 +1085,61 @@
 
         <!-- ADMIN MAIN ASSETS CONTAINER -->
         <div id="adminAssetsMain" style="display: none;">
+
+        <!-- Admin GIS Map Actions Toolbar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border: 1.5px solid #cbd5e1; border-radius: 12px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 22px;">🗺️</span>
+                <div>
+                    <strong style="font-size: 14px; color: #0f172a;">Admin GIS Map Operations:</strong>
+                    <div style="font-size: 12px; color: #64748b;">Add new junctions directly on the map or relocate existing traffic junctions & signals.</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-primary btn-sm" onclick="startAddJunctionOnMap()" style="background: #2563eb; border-color: #2563eb;">
+                    <i class="fa-solid fa-map-location-dot"></i> ➕ Add Junction on Map
+                </button>
+                <button class="btn-secondary btn-sm" onclick="startMoveJunctionOnMap()" style="color: #7c3aed; border-color: #c4b5fd; font-weight: 700;">
+                    <i class="fa-solid fa-arrows-up-down-left-right"></i> 📍 Move Junction on Map
+                </button>
+                <button class="btn-secondary btn-sm" onclick="exportMunicipalReport()" style="font-weight: 700; color: #1e293b;">
+                    <i class="fa-solid fa-file-arrow-down" style="color: #2563eb;"></i> Export CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Officer Role & Jurisdiction Assignment Console -->
+        <div class="content-card" style="margin-bottom: 24px; border-left: 4px solid #7c3aed;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 2px;"><i class="fa-solid fa-user-shield" style="color: #7c3aed;"></i> Officer Role & Junction Jurisdiction Assignment</h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        Admin command console to assign or reassign traffic staff officers to designated junctions. Each officer can only monitor and control traffic for their assigned post.
+                    </p>
+                </div>
+                <button class="btn-secondary btn-sm" onclick="loadAdminOfficerRoster()">
+                    <i class="fa-solid fa-rotate"></i> Refresh Roster
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table" id="admin-officer-roster-table">
+                    <thead>
+                        <tr>
+                            <th>Staff ID</th>
+                            <th>Officer Name</th>
+                            <th>Role / Post</th>
+                            <th>Current Assigned Jurisdiction</th>
+                            <th>Status</th>
+                            <th>Reassign Junction</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-officer-roster-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Loading officer roster...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <!-- Infrastructure Inventory Table -->
         <div class="content-card" style="margin-bottom: 24px;">

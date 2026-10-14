@@ -71,7 +71,13 @@ function requireStaffRole(req, res, next) {
     }
 
     if (staffKeywords.some(k => normalizedRole.includes(k))) {
-        req.staffUser = { name: operatorName || "Traffic Staff", role: normalizedRole };
+        req.staffUser = {
+            name: operatorName || req.user?.name || "Traffic Staff",
+            role: normalizedRole,
+            staffId: req.user?.staffId || req.user?.staff_id || req.headers["x-staff-id"] || req.body?.staffId || req.body?.staff_id || null,
+            assigned_junction_id: req.user?.assigned_junction_id || req.headers["x-assigned-junction"] || req.headers["x-junction-id"] || null,
+            assigned_junction_name: req.user?.assigned_junction_name || null
+        };
         return next();
     }
 
@@ -79,6 +85,58 @@ function requireStaffRole(req, res, next) {
         success: false,
         error: "Access Denied: Only authorized traffic control staff and administrators can modify traffic lights, timings, overrides, or junction configurations."
     });
+}
+
+/**
+ * Access Control Guard: Restricts action strictly to System Administrators and Traffic Admins.
+ */
+function requireAdminRole(req, res, next) {
+    requireStaffRole(req, res, () => {
+        const userRole = (req.staffUser?.role || req.user?.role || req.headers["x-user-role"] || req.body?.role || "").toLowerCase();
+        const staffId = String(req.staffUser?.staffId || req.user?.staffId || req.user?.staff_id || req.headers["x-staff-id"] || "").toUpperCase();
+        const isAdmin = userRole.includes("admin") || userRole.includes("super_admin") || staffId === "TR-ADMIN" || staffId === "STAFF-001";
+        if (!isAdmin) {
+            return res.status(403).json({
+                success: false,
+                error: "Access Denied: Administrative authority required. Only Traffic Admin can perform this action."
+            });
+        }
+        next();
+    });
+}
+
+/**
+ * Authority Checker: Verifies if logged-in staff member has jurisdiction over target junction.
+ * Admins have citywide access. Assigned staff are strictly restricted to their designated junction.
+ */
+function checkJunctionAuthority(req, junctionId) {
+    const userRole = (req.staffUser?.role || req.user?.role || req.headers["x-user-role"] || req.body?.role || "").toLowerCase();
+    const staffId = String(req.staffUser?.staffId || req.user?.staffId || req.user?.staff_id || req.headers["x-staff-id"] || "").toUpperCase();
+    const isAdmin = userRole.includes("admin") || userRole.includes("super_admin") || staffId === "TR-ADMIN" || staffId === "STAFF-001";
+    if (isAdmin) {
+        return { authorized: true };
+    }
+
+    const assignedJunction = req.staffUser?.assigned_junction_id || req.user?.assigned_junction_id || req.headers["x-assigned-junction"] || null;
+    if (!assignedJunction) {
+        return { authorized: true };
+    }
+
+    const cleanAssigned = String(assignedJunction).toLowerCase().trim();
+    const cleanTarget = String(junctionId || "").toLowerCase().trim();
+
+    // Mohaddipur alias matching: JNC-02, JNC-09, mohadipur, mohaddipur
+    const isMohaddipurMatch = (cleanAssigned === 'jnc-02' || cleanAssigned === 'jnc-09' || cleanAssigned.includes('mohad')) &&
+                             (cleanTarget === 'jnc-02' || cleanTarget === 'jnc-09' || cleanTarget.includes('mohad'));
+
+    if (cleanAssigned === cleanTarget || isMohaddipurMatch) {
+        return { authorized: true };
+    }
+
+    return {
+        authorized: false,
+        error: `Access Denied: Your staff jurisdiction is strictly restricted to '${req.staffUser?.assigned_junction_name || assignedJunction}'. You cannot control, override, or alter junction '${junctionId}'.`
+    };
 }
 
 // =========================================================
@@ -319,6 +377,11 @@ router.post("/api/traffic/junctions", requireStaffRole, async (req, res) => {
 router.put("/api/traffic/junctions/:id", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
+        const authCheck = checkJunctionAuthority(req, id);
+        if (!authCheck.authorized) {
+            return res.status(403).json({ success: false, error: authCheck.error });
+        }
+
         const { name, zone, landmark, latitude, longitude, mode, cycle_time, assigned_officer_name, operator, role } = req.body;
 
         await pool.promise().query(
@@ -336,9 +399,9 @@ router.put("/api/traffic/junctions/:id", requireStaffRole, async (req, res) => {
         );
 
         await trafficEngine.logAudit({
-            userId: operator || 'STAFF',
-            userName: operator || 'Traffic Staff',
-            role: role || 'Staff',
+            userId: operator || req.staffUser?.staffId || 'STAFF',
+            userName: operator || req.staffUser?.name || 'Traffic Staff',
+            role: role || req.staffUser?.role || 'Staff',
             action: 'UPDATE_JUNCTION',
             target: `Junction ${id}`,
             details: `Updated parameters for junction ${id} (${name || 'unchanged'}).`
@@ -348,6 +411,257 @@ router.put("/api/traffic/junctions/:id", requireStaffRole, async (req, res) => {
     } catch (err) {
         console.error("Update junction error:", err);
         res.status(500).json({ error: "Failed to update junction" });
+    }
+});
+
+// 1D-2. Admin Relocate Junction Coordinates on GIS Map
+router.put("/api/traffic/junctions/:id/location", requireAdminRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { latitude, longitude, operator } = req.body;
+
+        if (latitude === undefined || longitude === undefined || isNaN(Number(latitude)) || isNaN(Number(longitude))) {
+            return res.status(400).json({ error: "Valid numeric latitude and longitude coordinates are required." });
+        }
+
+        const lat = Number(Number(latitude).toFixed(7));
+        const lng = Number(Number(longitude).toFixed(7));
+
+        const [existing] = await pool.promise().query("SELECT * FROM traffic_junctions WHERE id = ?", [id]);
+        if (existing.length === 0) {
+            return res.status(404).json({ error: `Junction ${id} not found.` });
+        }
+
+        const oldLat = existing[0].latitude;
+        const oldLng = existing[0].longitude;
+
+        await pool.promise().query(
+            "UPDATE traffic_junctions SET latitude = ?, longitude = ? WHERE id = ?",
+            [lat, lng, id]
+        );
+
+        // Also update signal coordinates if signals had coordinates
+        if (oldLat && oldLng) {
+            const dLat = lat - oldLat;
+            const dLng = lng - oldLng;
+            await pool.promise().query(
+                "UPDATE traffic_signals SET latitude = latitude + ?, longitude = longitude + ? WHERE junction_id = ? AND latitude IS NOT NULL",
+                [dLat, dLng, id]
+            );
+        }
+
+        await trafficEngine.logAudit({
+            userId: operator || req.staffUser?.staffId || 'ADMIN',
+            userName: operator || req.staffUser?.name || 'Traffic Admin',
+            role: 'Admin',
+            action: 'RELOCATE_JUNCTION_ON_MAP',
+            target: `Junction ${id} (${existing[0].name})`,
+            details: `Relocated junction ${id} on GIS map from (${oldLat}, ${oldLng}) to (${lat}, ${lng}).`
+        });
+
+        if (req.app.get("io")) {
+            req.app.get("io").emit("traffic:junction_location_updated", {
+                id,
+                name: existing[0].name,
+                latitude: lat,
+                longitude: lng
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Junction ${existing[0].name} (${id}) relocated on GIS map to (${lat}, ${lng}).`,
+            junction: { id, name: existing[0].name, latitude: lat, longitude: lng }
+        });
+    } catch (err) {
+        console.error("Relocate junction error:", err);
+        res.status(500).json({ error: "Failed to relocate junction" });
+    }
+});
+
+// 1D-3. Staff Automatic Traffic Management via Live Camera Feeds
+router.post("/api/traffic/junctions/:id/apply-camera-ai-optimization", requireStaffRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const authCheck = checkJunctionAuthority(req, id);
+        if (!authCheck.authorized) {
+            return res.status(403).json({ success: false, error: authCheck.error });
+        }
+
+        const [jnc] = await pool.promise().query("SELECT * FROM traffic_junctions WHERE id = ?", [id]);
+        if (jnc.length === 0) {
+            return res.status(404).json({ success: false, error: "Junction not found" });
+        }
+
+        // Fetch live cameras and signals for this junction
+        const [cameras] = await pool.promise().query("SELECT * FROM traffic_cameras WHERE junction_id = ?", [id]);
+        const [signals] = await pool.promise().query("SELECT * FROM traffic_signals WHERE junction_id = ?", [id]);
+
+        // Calculate flow dynamically from cameras
+        const saturationFlowS = 1800;
+        const lostTimeL = 8.0;
+
+        const nsCams = cameras.filter(c => ['North', 'South'].includes(c.approach || c.direction));
+        const ewCams = cameras.filter(c => ['East', 'West'].includes(c.approach || c.direction));
+
+        const nsVehPerMin = nsCams.length > 0 
+            ? nsCams.reduce((sum, c) => sum + (c.vehicles_per_min || 35), 0) / nsCams.length 
+            : 40;
+        const ewVehPerMin = ewCams.length > 0 
+            ? ewCams.reduce((sum, c) => sum + (c.vehicles_per_min || 25), 0) / ewCams.length 
+            : 30;
+
+        const q1 = Math.round(nsVehPerMin * 60);
+        const q2 = Math.round(ewVehPerMin * 60);
+
+        const y1 = Number((q1 / saturationFlowS).toFixed(3));
+        const y2 = Number((q2 / saturationFlowS).toFixed(3));
+        const Y = Number(Math.min(0.85, Math.max(0.20, y1 + y2)).toFixed(3));
+
+        const rawC0 = (1.5 * lostTimeL + 5) / (1 - Y);
+        const optimalCycle = Math.min(130, Math.max(45, Math.round(rawC0)));
+        const totalEffectiveGreen = optimalCycle - lostTimeL;
+        const greenNS = Math.max(20, Math.round((y1 / Y) * totalEffectiveGreen));
+        const greenEW = Math.max(18, optimalCycle - lostTimeL - greenNS);
+
+        // Auto-update junction mode and cycle time
+        await pool.promise().query(
+            "UPDATE traffic_junctions SET mode = 'AI Adaptive', cycle_time = ?, status = 'Operational' WHERE id = ?",
+            [optimalCycle, id]
+        );
+
+        // Auto-apply green/red splits across signals
+        for (const sig of signals) {
+            const isNS = ['North', 'South'].includes(sig.approach);
+            const allocatedGreen = isNS ? greenNS : greenEW;
+            const allocatedRed = optimalCycle - allocatedGreen - 4;
+
+            await pool.promise().query(
+                "UPDATE traffic_signals SET green_time = ?, yellow_time = 4, red_time = ?, override_color = 'None' WHERE id = ?",
+                [allocatedGreen, Math.max(15, allocatedRed), sig.id]
+            );
+        }
+
+        const operator = req.staffUser?.name || req.body.operator || "Traffic Officer";
+        const role = req.staffUser?.role || "staff";
+
+        await trafficEngine.logAudit({
+            userId: req.staffUser?.staffId || operator,
+            userName: operator,
+            role,
+            action: "CAMERA_AI_AUTO_TRAFFIC_MANAGED",
+            target: `Junction ${id} (${jnc[0].name})`,
+            details: `Automated traffic flow managed via CCTV vision inputs. Computed Webster Optimal Cycle: ${optimalCycle}s (NS Green: ${greenNS}s, EW Green: ${greenEW}s). Flow: ${nsVehPerMin.toFixed(0)} NS / ${ewVehPerMin.toFixed(0)} EW veh/min.`
+        });
+
+        if (req.app.get("io")) {
+            req.app.get("io").emit("traffic:signals_updated", {
+                junctionId: id,
+                mode: "AI Adaptive (Camera Vision)",
+                cycle_time: optimalCycle,
+                greenNS,
+                greenEW
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Automatic Camera AI Traffic Management successfully applied for ${jnc[0].name}!`,
+            junctionId: id,
+            junctionName: jnc[0].name,
+            optimalCycleTime: optimalCycle,
+            greenNS,
+            greenEW,
+            cameraFeedsAnalyzed: cameras.length,
+            detectedFlow: {
+                northSouthVehPerMin: Math.round(nsVehPerMin),
+                eastWestVehPerMin: Math.round(ewVehPerMin)
+            }
+        });
+    } catch (err) {
+        console.error("Apply Camera AI optimization error:", err);
+        res.status(500).json({ success: false, error: "Failed to apply automatic camera traffic optimization" });
+    }
+});
+
+// 1D-4. Admin Officer Assignment Roster
+router.get("/api/traffic/admin/officer-roster", requireAdminRole, async (req, res) => {
+    try {
+        const [officers] = await pool.promise().query(`
+            SELECT id, staff_id, name, role, department, email, 
+                   assigned_junction_id, assigned_junction_name, status
+            FROM staff
+            WHERE department = 'traffic' OR role IN ('traffic', 'staff', 'admin')
+            ORDER BY (role = 'admin') DESC, name ASC
+        `);
+
+        const [junctions] = await pool.promise().query(`
+            SELECT id, name, zone, assigned_officer_id, assigned_officer_name FROM traffic_junctions ORDER BY name ASC
+        `);
+
+        res.json({
+            success: true,
+            count: officers.length,
+            officers,
+            junctions
+        });
+    } catch (err) {
+        console.error("Fetch officer roster error:", err);
+        res.status(500).json({ error: "Failed to fetch officer roster" });
+    }
+});
+
+// 1D-5. Admin Assign Staff to Junction
+router.post("/api/traffic/admin/assign-officer", requireAdminRole, async (req, res) => {
+    try {
+        const { staff_id, junction_id, junction_name, operator } = req.body;
+        if (!staff_id || !junction_id) {
+            return res.status(400).json({ error: "staff_id and junction_id are required." });
+        }
+
+        const [jnc] = await pool.promise().query("SELECT id, name FROM traffic_junctions WHERE id = ?", [junction_id]);
+        const targetJunctionName = junction_name || (jnc.length > 0 ? jnc[0].name : junction_id);
+
+        const [officer] = await pool.promise().query("SELECT id, staff_id, name FROM staff WHERE staff_id = ? OR id = ?", [staff_id, staff_id]);
+        if (officer.length === 0) {
+            return res.status(404).json({ error: `Staff member ${staff_id} not found.` });
+        }
+
+        const officerName = officer[0].name;
+        const actualStaffId = officer[0].staff_id;
+
+        await pool.promise().query(
+            "UPDATE staff SET assigned_junction_id = ?, assigned_junction_name = ? WHERE staff_id = ?",
+            [junction_id, targetJunctionName, actualStaffId]
+        );
+
+        await pool.promise().query(
+            "UPDATE traffic_junctions SET assigned_officer_id = ?, assigned_officer_name = ? WHERE id = ?",
+            [actualStaffId, officerName, junction_id]
+        );
+
+        await trafficEngine.logAudit({
+            userId: operator || req.staffUser?.staffId || 'ADMIN',
+            userName: operator || req.staffUser?.name || 'Traffic Admin',
+            role: 'Admin',
+            action: 'ASSIGN_OFFICER_TO_JUNCTION',
+            target: `${officerName} -> ${targetJunctionName}`,
+            details: `Assigned officer ${officerName} (${actualStaffId}) to manage ${targetJunctionName} (${junction_id}).`
+        });
+
+        res.json({
+            success: true,
+            message: `Officer ${officerName} (${actualStaffId}) successfully assigned to ${targetJunctionName}.`,
+            assignment: {
+                staff_id: actualStaffId,
+                name: officerName,
+                junction_id,
+                junction_name: targetJunctionName
+            }
+        });
+    } catch (err) {
+        console.error("Assign officer error:", err);
+        res.status(500).json({ error: "Failed to assign officer to junction" });
     }
 });
 
@@ -545,6 +859,10 @@ router.delete("/api/traffic/signals/:id", requireStaffRole, async (req, res) => 
 router.put("/api/traffic/junctions/:id/signals", requireStaffRole, async (req, res) => {
     try {
         const { id } = req.params;
+        const authCheck = checkJunctionAuthority(req, id);
+        if (!authCheck.authorized) {
+            return res.status(403).json({ success: false, error: authCheck.error });
+        }
         const { cycle_time, mode, signals, operator, role } = req.body;
 
         if (cycle_time || mode) {
@@ -569,9 +887,9 @@ router.put("/api/traffic/junctions/:id/signals", requireStaffRole, async (req, r
         }
 
         await trafficEngine.logAudit({
-            userId: operator || 'TR-CONTROLLER',
-            userName: operator || 'Traffic Officer',
-            role: role || 'Traffic Controller',
+            userId: operator || req.staffUser?.staffId || 'TR-CONTROLLER',
+            userName: operator || req.staffUser?.name || 'Traffic Officer',
+            role: role || req.staffUser?.role || 'Traffic Controller',
             action: 'SIGNAL_TIMING_MODIFIED',
             target: `Junction ${id}`,
             details: `Signal timings updated. Total Cycle: ${cycle_time || 'preserved'}s, Mode: ${mode || 'preserved'}.`
@@ -588,6 +906,11 @@ router.put("/api/traffic/junctions/:id/signals", requireStaffRole, async (req, r
 const handleJunctionOverride = async (req, res) => {
     try {
         const id = req.params.id || req.body.junctionId || req.body.junction_id || 'GKP-JNC-001';
+        const authCheck = checkJunctionAuthority(req, id);
+        if (!authCheck.authorized) {
+            return res.status(403).json({ success: false, error: authCheck.error });
+        }
+
         let action = req.body.action || req.body.override_action;
         if (!action && req.body.activePhase) {
             action = "FORCE_GREEN";
@@ -670,10 +993,29 @@ router.put(["/api/traffic/junctions/:id/override", "/api/traffic/signals/overrid
 // 2. CCTV CAMERAS & AI VISION
 // =========================================================
 
-// 2A. Get all cameras across city or for a specific junction
+// 2A. Get all cameras across city or for a specific junction (Scoped by staff jurisdiction)
 router.get("/api/traffic/cameras", async (req, res) => {
     try {
-        const { junction_id } = req.query;
+        let { junction_id } = req.query;
+
+        // Check if token or header specifies an assigned junction for staff
+        const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
+        if (authHeader) {
+            const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET);
+                const role = (decoded.role || decoded.type || "").toLowerCase();
+                const isAdmin = role.includes("admin") || (decoded.staffId === "TR-ADMIN") || (decoded.staff_id === "TR-ADMIN");
+                if (!isAdmin && decoded.assigned_junction_id) {
+                    junction_id = decoded.assigned_junction_id;
+                }
+            } catch (e) {
+                // Ignore invalid token for public query
+            }
+        } else if (req.headers["x-assigned-junction"] && req.headers["x-user-role"] !== "admin") {
+            junction_id = req.headers["x-assigned-junction"];
+        }
+
         let query = `
             SELECT c.*, j.name as junction_name, j.zone as junction_zone, j.latitude as junction_lat, j.longitude as junction_lng
             FROM traffic_cameras c
@@ -681,8 +1023,12 @@ router.get("/api/traffic/cameras", async (req, res) => {
         `;
         const params = [];
         if (junction_id) {
-            query += ` WHERE c.junction_id = ?`;
-            params.push(junction_id);
+            if (junction_id === 'JNC-02' || junction_id === 'JNC-09' || junction_id.toLowerCase().includes('mohad')) {
+                query += ` WHERE c.junction_id IN ('JNC-02', 'JNC-09')`;
+            } else {
+                query += ` WHERE c.junction_id = ?`;
+                params.push(junction_id);
+            }
         }
         query += ` ORDER BY j.name ASC, c.camera_name ASC`;
 
@@ -693,10 +1039,23 @@ router.get("/api/traffic/cameras", async (req, res) => {
     }
 });
 
-// 2B. Get cameras for a specific junction
+// 2B. Get cameras for a specific junction (Protected by staff jurisdiction)
 router.get("/api/traffic/junctions/:id/cameras", async (req, res) => {
     try {
         const { id } = req.params;
+        const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
+        if (authHeader) {
+            try {
+                const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
+                const decoded = jwt.verify(token, JWT_SECRET);
+                req.user = decoded;
+                const authCheck = checkJunctionAuthority(req, id);
+                if (!authCheck.authorized) {
+                    return res.status(403).json({ success: false, error: authCheck.error });
+                }
+            } catch (e) {}
+        }
+
         const [cameras] = await pool.promise().query(
             `SELECT c.*, j.name as junction_name, j.zone as junction_zone 
              FROM traffic_cameras c

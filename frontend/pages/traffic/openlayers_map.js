@@ -323,6 +323,7 @@ class SmartCityTrafficMap {
                 type: 'junction',
                 data: j
             });
+            feat.setId(`jnc-${j.id}`);
             this.junctionSource.addFeature(feat);
 
             // Heatmap weight (0.2 to 1.0)
@@ -355,6 +356,32 @@ class SmartCityTrafficMap {
                 }));
             });
         });
+    }
+
+    updateJunctionPosition(jncId, lat, lng) {
+        if (!this.junctionSource) return;
+        const lonNum = parseFloat(lng);
+        const latNum = parseFloat(lat);
+        if (isNaN(lonNum) || isNaN(latNum)) return;
+
+        const coords = ol.proj.fromLonLat([lonNum, latNum]);
+        let feat = this.junctionSource.getFeatureById(`jnc-${jncId}`);
+
+        if (!feat) {
+            const allFeats = this.junctionSource.getFeatures();
+            feat = allFeats.find(f => {
+                const d = f.get('data');
+                return d && String(d.id) === String(jncId);
+            });
+        }
+
+        if (feat) {
+            feat.getGeometry().setCoordinates(coords);
+            const data = feat.get('data') || {};
+            data.latitude = latNum;
+            data.longitude = lonNum;
+            feat.set('data', data);
+        }
     }
 
     renderSignals(signals) {

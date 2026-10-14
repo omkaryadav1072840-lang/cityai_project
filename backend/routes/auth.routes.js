@@ -220,6 +220,7 @@ router.post("/api/login", async (req, res) => {
             SELECT s.id, s.name, s.staff_id, s.password, s.department, s.role, s.email,
                    s.hospital_id, s.hospital_role, s.status, s.permissions, s.assigned_modules,
                    s.permitted_sectors, s.permitted_assets,
+                   s.assigned_junction_id, s.assigned_junction_name,
                    h.hospital_name, h.status AS hospital_status
             FROM staff s
             LEFT JOIN hospitals h ON (s.hospital_id = h.hospital_id OR s.hospital_id = CAST(h.id AS CHAR))
@@ -306,6 +307,7 @@ router.post("/api/staff-login", async (req, res) => {
             SELECT s.id, s.name, s.staff_id, s.password, s.department, s.role, s.email,
                    s.hospital_id, s.hospital_role, s.status, s.permissions, s.assigned_modules,
                    s.permitted_sectors, s.permitted_assets,
+                   s.assigned_junction_id, s.assigned_junction_name,
                    h.hospital_name, h.status AS hospital_status
             FROM staff s
             LEFT JOIN hospitals h ON (s.hospital_id = h.hospital_id OR s.hospital_id = CAST(h.id AS CHAR))
@@ -469,6 +471,8 @@ async function processStaffAuth(req, res, staff, password) {
         assignedModules,
         permitted_sectors: permittedSectors,
         permitted_assets: permittedAssets,
+        assigned_junction_id: staff.assigned_junction_id || null,
+        assigned_junction_name: staff.assigned_junction_name || null,
         targetDashboard,
         type: accountType.toLowerCase(),
         editable: editableDepts
@@ -961,9 +965,10 @@ router.post("/api/auth/demo-login", async (req, res) => {
 
         if (persona === "admin" || persona === "city_admin" || persona === "iccc_admin") {
             const [admins] = await db.promise().query(`
-                SELECT id, name, staff_id, department, role, email, hospital_id, hospital_role
+                SELECT id, name, staff_id, department, role, email, hospital_id, hospital_role, assigned_junction_id, assigned_junction_name
                 FROM staff
                 WHERE role = 'admin' OR department = 'admin' OR staff_id IN ('TR-ADMIN', 'STAFF-001')
+                ORDER BY (staff_id = 'TR-ADMIN') DESC
                 LIMIT 1
             `);
             if (admins.length > 0) {
@@ -978,6 +983,8 @@ router.post("/api/auth/demo-login", async (req, res) => {
                     role: "admin",
                     hospitalId: adm.hospital_id,
                     hospitalRole: "hospital_admin",
+                    assigned_junction_id: null,
+                    assigned_junction_name: "All Citywide Junctions (Full Admin)",
                     targetDashboard: "pages/hospital/superadmin_hospital.html",
                     type: "staff",
                     editable: permissions.admin
@@ -993,11 +1000,12 @@ router.post("/api/auth/demo-login", async (req, res) => {
             }
         }
 
-        if (persona === "traffic" || persona === "traffic_staff") {
+        if (persona === "mohaddipur" || persona === "traffic" || persona === "traffic_staff" || persona === "pandey") {
             const [staffRows] = await db.promise().query(`
-                SELECT id, name, staff_id, department, role, email
+                SELECT id, name, staff_id, department, role, email, assigned_junction_id, assigned_junction_name
                 FROM staff
-                WHERE department = 'traffic' OR staff_id LIKE 'TR-%'
+                WHERE staff_id IN ('TR-PANDEY', 'TRF001') OR department = 'traffic'
+                ORDER BY (staff_id = 'TR-PANDEY') DESC
                 LIMIT 1
             `);
             if (staffRows.length > 0) {
@@ -1011,12 +1019,47 @@ router.post("/api/auth/demo-login", async (req, res) => {
                     department: "traffic",
                     role: "staff",
                     type: "staff",
+                    assigned_junction_id: st.assigned_junction_id || "JNC-02",
+                    assigned_junction_name: st.assigned_junction_name || "Mohaddipur Junction",
                     editable: permissions.traffic
                 };
                 const token = generateToken(staffData, "staff");
                 return res.json({
                     success: true,
-                    message: "Demo Traffic Officer authenticated.",
+                    message: "Demo Traffic Officer authenticated for Mohaddipur Junction.",
+                    user: staffData,
+                    token
+                });
+            }
+        }
+
+        if (persona === "officer" || persona === "golghar" || persona === "verma") {
+            const [staffRows] = await db.promise().query(`
+                SELECT id, name, staff_id, department, role, email, assigned_junction_id, assigned_junction_name
+                FROM staff
+                WHERE staff_id = 'TR-VERMA' OR department = 'traffic'
+                ORDER BY (staff_id = 'TR-VERMA') DESC
+                LIMIT 1
+            `);
+            if (staffRows.length > 0) {
+                const st = staffRows[0];
+                const staffData = {
+                    id: st.id,
+                    userId: st.id,
+                    name: st.name,
+                    staffId: st.staff_id,
+                    email: st.email,
+                    department: "traffic",
+                    role: "staff",
+                    type: "staff",
+                    assigned_junction_id: st.assigned_junction_id || "JNC-01",
+                    assigned_junction_name: st.assigned_junction_name || "Golghar Central Crossing",
+                    editable: permissions.traffic
+                };
+                const token = generateToken(staffData, "staff");
+                return res.json({
+                    success: true,
+                    message: "Demo Traffic Officer authenticated for Golghar Central Crossing.",
                     user: staffData,
                     token
                 });

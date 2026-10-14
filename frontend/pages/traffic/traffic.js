@@ -175,22 +175,14 @@ async function switchRoleProfile(role) {
             await SmartCityAuth.quickLoginPersona("citizen");
         } else {
             localStorage.removeItem("smartCityJWT");
+            localStorage.removeItem("smartCityCurrentUser");
             initUserSession();
             switchLayer("citizen");
         }
+    } else if (role === "mohaddipur") {
+        await quickLoginTrafficStaff("mohaddipur");
     } else if (role === "officer") {
-        if (!isStaffUser()) {
-            switchLayer("control");
-            setTimeout(() => {
-                const idInput = document.getElementById("trafficStaffIdInput");
-                if (idInput) {
-                    idInput.scrollIntoView({ behavior: "smooth", block: "center" });
-                    idInput.focus();
-                }
-            }, 100);
-        } else {
-            switchLayer("control");
-        }
+        await quickLoginTrafficStaff("officer");
     } else if (role === "admin") {
         if (!isAdminUser()) {
             await quickLoginTrafficAdmin();
@@ -203,7 +195,10 @@ window.switchRoleProfile = switchRoleProfile;
 
 function handleUserLogout() {
     if (window.SmartCityAuth) SmartCityAuth.logout();
-    else localStorage.removeItem("smartCityCurrentUser");
+    else {
+        localStorage.removeItem("smartCityJWT");
+        localStorage.removeItem("smartCityCurrentUser");
+    }
     window.location.reload();
 }
 
@@ -240,6 +235,15 @@ function switchLayer(layer) {
     const isStaff = isStaffUser();
     const isAdmin = isAdminUser();
     const hasStaffAccess = isStaff || isAdmin;
+    const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+
+    // Strict 3-Tier Layer Access Gatekeeping Rules:
+    if (layer === "control" && !hasStaffAccess) {
+        if (typeof showToast === "function") showToast("Traffic Staff Authentication Required. Sign in to access field controls.", "warning");
+    }
+    if (layer === "admin" && !isAdmin) {
+        if (typeof showToast === "function") showToast("Access Denied: Central Traffic Administration credentials required.", "error");
+    }
 
     document.querySelectorAll(".layer-tab-btn").forEach(b => b.classList.remove("active"));
     const activeTab = document.getElementById(`tab-btn-${layer}`);
@@ -272,6 +276,10 @@ function switchLayer(layer) {
     updateMapMount(layer, hasStaffAccess);
 
     if (layer === "control" && hasStaffAccess) {
+        // Automatically scope non-admin staff to their designated junction post
+        if (!isAdmin && user.assigned_junction_id) {
+            selectedJunctionId = user.assigned_junction_id;
+        }
         selectControlJunction(selectedJunctionId);
         loadDynamicCCTVWall();
         loadViolationsData();
@@ -286,6 +294,7 @@ function switchLayer(layer) {
             }
         }, 100);
     } else if (layer === "admin" && isAdmin) {
+        loadAdminOfficerRoster();
         loadAdminJunctionsTable();
         loadAdminSignalsTable();
         loadAdminStaff();
@@ -309,20 +318,23 @@ function applyRoleUI() {
     const roleTitle = document.getElementById("roleTitle");
     const roleSubtitle = document.getElementById("roleSubtitle");
     const rolePill = document.getElementById("rolePill");
+    const jurisBanner = document.getElementById("staff-jurisdiction-banner");
+    const jurisBadge = document.getElementById("staff-jurisdiction-badge");
+    const jurisText = document.getElementById("staff-jurisdiction-text");
 
     if (roleTitle) {
         roleTitle.textContent = isAdmin
             ? "Gorakhpur ICCC Traffic Engineering & Administration Console"
             : (isStaff
-                ? "Traffic Enforcement, Signal Operations & Field Control"
+                ? `Traffic Operations — Stationed: ${user.assigned_junction_name || 'Field Officer Control'}`
                 : `Welcome to SmartCity AI Traffic Services, ${name}`);
     }
 
     if (roleSubtitle) {
         roleSubtitle.textContent = isAdmin
-            ? "Configure junctions, commission AI camera feeds, manage officer rosters and review audit trails."
+            ? "Configure junctions on GIS map, relocate signals, manage officer rosters, and review audit trails."
             : (isStaff
-                ? "Control junction signal phases, dispatch emergency corridors, inspect live CCTV, and verify violations."
+                ? `Designated post: ${user.assigned_junction_name || 'Assigned Junction'} (${user.assigned_junction_id || 'JNC-02'}). Real-time camera monitoring, signal Webster cycles, and automatic traffic AI.`
                 : "Real-time corridor speed, AI traffic index, public advisories, and citizen e-challan settlement.");
     }
 
@@ -331,24 +343,57 @@ function applyRoleUI() {
             rolePill.textContent = "ADMIN • ICCC";
             rolePill.className = "role-pill admin-pill";
         } else if (isStaff) {
-            rolePill.textContent = "STAFF • TRAFFIC";
+            rolePill.textContent = `STAFF • ${user.assigned_junction_id || 'TRAFFIC'}`;
             rolePill.className = "role-pill staff-pill";
         } else {
             rolePill.textContent = user.name ? "CITIZEN" : "GUEST";
             rolePill.className = "role-pill citizen-pill";
         }
     }
+
+    if (jurisBanner) {
+        if (isAdmin) {
+            jurisBanner.style.display = "flex";
+            if (jurisBadge) {
+                jurisBadge.textContent = "Master Admin";
+                jurisBadge.className = "badge badge-online";
+                jurisBadge.style.background = "#7c3aed";
+                jurisBadge.style.color = "#ffffff";
+            }
+            if (jurisText) {
+                jurisText.innerHTML = `<strong>ICCC Central Traffic Command:</strong> Full Citywide Junctions Access & GIS Infrastructure Control`;
+            }
+        } else if (isStaff) {
+            jurisBanner.style.display = "flex";
+            const jncName = user.assigned_junction_name || "Mohaddipur Junction";
+            const jncId = user.assigned_junction_id || "JNC-02";
+            const officerName = user.name || "Sub-Insp. Amit Pandey";
+            const officerId = user.staffId || user.staff_id || "TR-PANDEY";
+            if (jurisBadge) {
+                jurisBadge.textContent = `Active Post: ${jncId}`;
+                jurisBadge.className = "badge badge-online";
+                jurisBadge.style.background = "#16a34a";
+                jurisBadge.style.color = "#ffffff";
+            }
+            if (jurisText) {
+                jurisText.innerHTML = `<strong>${jncName} (${jncId})</strong> • Officer: ${officerName} (<code>${officerId}</code>)`;
+            }
+        } else {
+            jurisBanner.style.display = "none";
+        }
+    }
 }
 window.applyRoleUI = applyRoleUI;
 
-// 1-Click Fast Instant Login for Traffic Staff
-async function quickLoginTrafficStaff() {
+// 1-Click Fast Instant Login for Traffic Staff with Jurisdiction Persona
+async function quickLoginTrafficStaff(persona = "mohaddipur") {
     try {
-        if (typeof showToast === "function") showToast("Authenticating Traffic Staff...");
+        const personaLabel = persona === "mohaddipur" ? "Sub-Insp. Amit Pandey (Mohaddipur Post)" : "Insp. R.K. Verma (Golghar Post)";
+        if (typeof showToast === "function") showToast(`Authenticating ${personaLabel}...`);
         const res = await fetch("/api/auth/demo-login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ persona: "traffic" })
+            body: JSON.stringify({ persona: persona })
         });
         const data = await res.json();
         if (data.token) {
@@ -357,8 +402,13 @@ async function quickLoginTrafficStaff() {
             if (window.SmartCityAuth && typeof SmartCityAuth.setSession === "function") {
                 SmartCityAuth.setSession(data.token, data.user);
             }
-            if (typeof showToast === "function") showToast(`Welcome Officer ${data.user.name || ''}!`, "success");
+            if (typeof showToast === "function") {
+                showToast(`Welcome ${data.user.name || 'Officer'}! Stationed at: ${data.user.assigned_junction_name || 'Assigned Post'}`, "success");
+            }
             initUserSession();
+            if (data.user.assigned_junction_id) {
+                selectedJunctionId = data.user.assigned_junction_id;
+            }
             switchLayer("control");
         } else {
             alert(data.message || "Login failed");
@@ -923,10 +973,34 @@ function populateJunctionSelects(junctions) {
     const ctrlSelect = document.getElementById("control-junction-select");
     const camSelect = document.getElementById("cam-junction-select");
     const sigSelect = document.getElementById("sig-junction-select");
+    const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+    const isStaff = isStaffUser();
+    const isAdmin = isAdminUser();
 
-    const options = junctions.map(j => `<option value="${j.id}">${j.name} (${j.zone})</option>`).join("");
+    let options = "";
+    if (isStaff && !isAdmin && user.assigned_junction_id) {
+        const assignedId = String(user.assigned_junction_id).toUpperCase();
+        options = junctions.map(j => {
+            const jId = String(j.id).toUpperCase();
+            const isMatch = (jId === assignedId) ||
+                (assignedId === 'JNC-02' && (jId === 'JNC-02' || jId === 'JNC-09')) ||
+                (assignedId === 'JNC-09' && (jId === 'JNC-02' || jId === 'JNC-09'));
+            if (isMatch) {
+                return `<option value="${j.id}" selected>🔒 ${j.name} (${j.zone}) — ASSIGNED POST</option>`;
+            } else {
+                return `<option value="${j.id}" disabled style="color:#94a3b8;">${j.name} (${j.zone}) — ⛔ Locked</option>`;
+            }
+        }).join("");
+    } else {
+        options = junctions.map(j => `<option value="${j.id}">${j.name} (${j.zone})</option>`).join("");
+    }
 
-    if (ctrlSelect) ctrlSelect.innerHTML = options;
+    if (ctrlSelect) {
+        ctrlSelect.innerHTML = options;
+        if (isStaff && !isAdmin && user.assigned_junction_id) {
+            ctrlSelect.value = user.assigned_junction_id;
+        }
+    }
     if (camSelect) camSelect.innerHTML = options;
     if (sigSelect) sigSelect.innerHTML = options;
 }
@@ -1033,9 +1107,30 @@ async function calculateAlternativeRoutes() {
 // 6. STAFF LAYER: JUNCTION SIGNAL CONTROLLER
 // =========================================================
 async function selectControlJunction(jncId) {
+    const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+    const isStaff = isStaffUser();
+    const isAdmin = isAdminUser();
+
+    if (isStaff && !isAdmin && user.assigned_junction_id) {
+        const assignedId = String(user.assigned_junction_id).toUpperCase();
+        const targetId = String(jncId || '').toUpperCase();
+        const isMatch = (targetId === assignedId) ||
+            (assignedId === 'JNC-02' && (targetId === 'JNC-02' || targetId === 'JNC-09')) ||
+            (assignedId === 'JNC-09' && (targetId === 'JNC-02' || targetId === 'JNC-09'));
+        if (!isMatch) {
+            const warningMsg = `Access Denied: You are stationed at ${user.assigned_junction_name || assignedId}. You are restricted to your assigned post only.`;
+            if (typeof showToast === "function") showToast(warningMsg, "error");
+            else alert(warningMsg);
+            selectedJunctionId = user.assigned_junction_id;
+            const ctrlSelect = document.getElementById("control-junction-select");
+            if (ctrlSelect) ctrlSelect.value = user.assigned_junction_id;
+            jncId = user.assigned_junction_id;
+        }
+    }
+
     selectedJunctionId = jncId;
     try {
-        const res = await fetch(`/api/traffic/junctions/${jncId}`);
+        const res = await fetch(`/api/traffic/junctions/${jncId}`, { headers: getAuthHeaders() });
         const json = await res.json();
         if (json.success && json.junction) {
             renderSignalDisplay(json.junction.signals);
@@ -1406,19 +1501,32 @@ async function loadDynamicCCTVWall() {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> Loading CCTV camera feeds from database...</div>`;
 
     try {
-        const res = await fetch("/api/traffic/cameras");
+        const res = await fetch("/api/traffic/cameras", { headers: getAuthHeaders() });
         const json = await res.json();
 
         if (json.success && json.cameras) {
             allCameras = json.cameras;
+            const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+            const isStaff = isStaffUser();
+            const isAdmin = isAdminUser();
+
+            // Client-side fallback scoping for non-admin staff
+            if (isStaff && !isAdmin && user.assigned_junction_id) {
+                const assignedId = String(user.assigned_junction_id).toUpperCase();
+                allCameras = allCameras.filter(c => {
+                    const cJncId = String(c.junction_id || '').toUpperCase();
+                    return (cJncId === assignedId) ||
+                        (assignedId === 'JNC-02' && (cJncId === 'JNC-02' || cJncId === 'JNC-09')) ||
+                        (assignedId === 'JNC-09' && (cJncId === 'JNC-02' || cJncId === 'JNC-09'));
+                });
+            }
 
             if (allCameras.length === 0) {
                 container.innerHTML = `
                     <div style="text-align:center; padding:32px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;">
                         <i class="fa-solid fa-video-slash" style="font-size:32px; color:#94a3b8; margin-bottom:10px; display:block;"></i>
-                        <h4 style="font-size:15px; color:#0f172a; margin-bottom:4px;">No cameras configured yet</h4>
-                        <p style="color:#64748b; font-size:13px; margin-bottom:14px;">Add a CCTV camera or phone optical unit to begin real-time traffic monitoring.</p>
-                        <button class="btn-primary btn-sm" onclick="openAddCameraModal()"><i class="fa-solid fa-plus"></i> Add CCTV Optical Unit</button>
+                        <h4 style="font-size:15px; color:#0f172a; margin-bottom:4px;">No CCTV cameras found for this post</h4>
+                        <p style="color:#64748b; font-size:13px; margin-bottom:14px;">Contact Central ICCC Administrator to assign optical CCTV units to your junction.</p>
                     </div>
                 `;
                 return;
@@ -1434,6 +1542,14 @@ async function loadDynamicCCTVWall() {
 
             // Generate HTML dynamically
             let html = "";
+            if (isStaff && !isAdmin) {
+                html += `
+                    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:12px; color:#1e40af;">
+                        <span><i class="fa-solid fa-shield-halved"></i> <strong>Jurisdiction Scoped CCTV Feeds:</strong> Showing live optical units strictly assigned to your post (${user.assigned_junction_name || user.assigned_junction_id}).</span>
+                        <span class="badge badge-online"><i class="fa-solid fa-circle-dot"></i> Live AI Feed Stream</span>
+                    </div>
+                `;
+            }
             for (const [juncName, cams] of Object.entries(grouped)) {
                 html += `
                     <div class="junction-camera-group">
@@ -1942,6 +2058,11 @@ async function loadAdminJunctionsTable() {
                         <button class="btn-secondary btn-sm" onclick="showJunctionCameraTrafficSummary('${j.id}')" title="View Camera Traffic Collection" style="font-size:11px; padding:3px 6px;">
                             <i class="fa-solid fa-camera"></i> Cams
                         </button>
+                        ${isAdminUser() ? `
+                            <button class="btn-primary btn-sm" onclick="startMoveJunctionOnMap('${j.id}')" title="Move Junction on GIS Map" style="font-size:11px; padding:3px 7px; background:#7c3aed; border-color:#7c3aed;">
+                                <i class="fa-solid fa-arrows-up-down-left-right"></i> Move
+                            </button>
+                        ` : ''}
                         ${isStaff ? `
                             <button class="btn-secondary btn-sm" onclick="openEditJunctionModal('${j.id}')">Edit</button>
                             <button class="btn-secondary btn-sm" onclick="deleteJunction('${j.id}')" style="color:#dc2626;">Delete</button>
@@ -2964,9 +3085,21 @@ function handleMapMarkerPopup(props, coord) {
     const d = props.data || {};
 
     if (props.type === "junction") {
+        const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+        const isStaff = isStaffUser();
+        const isAdmin = isAdminUser();
+        let isOfficerJunction = false;
+        if (isStaff && !isAdmin && user.assigned_junction_id) {
+            const assignedId = String(user.assigned_junction_id).toUpperCase();
+            const targetId = String(d.id).toUpperCase();
+            isOfficerJunction = (targetId === assignedId) ||
+                (assignedId === 'JNC-02' && (targetId === 'JNC-02' || targetId === 'JNC-09')) ||
+                (assignedId === 'JNC-09' && (targetId === 'JNC-02' || targetId === 'JNC-09'));
+        }
+
         popupContent.innerHTML = `
             <h4>🚦 ${d.name}</h4>
-            <p style="color:#64748b; font-size:12px; margin-bottom:6px;">${d.landmark}</p>
+            <p style="color:#64748b; font-size:12px; margin-bottom:6px;">${d.landmark || ''}</p>
             <div style="font-size:12px; margin-bottom:4px;">Status: <strong>${d.status}</strong></div>
             <div style="font-size:12px; margin-bottom:4px;">Congestion Level: <strong style="color:${d.congestion_level > 70 ? '#dc2626' : (d.congestion_level > 40 ? '#ea580c' : '#16a34a')}">${d.congestion_level}%</strong> (Camera Telemetry)</div>
             <div style="font-size:12px; margin-bottom:8px;">Avg Speed: <strong>${d.avg_speed_kmh || 28.5} km/h</strong></div>
@@ -2974,18 +3107,32 @@ function handleMapMarkerPopup(props, coord) {
                 <button class="btn-secondary btn-sm" onclick="showJunctionCameraTrafficSummary('${d.id}')" style="width:100%; font-size:11px;">
                     <i class="fa-solid fa-camera"></i> Camera Traffic Accounting
                 </button>
-                ${isStaffUser() ? `
+                ${isAdmin ? `
                     <button class="btn-primary btn-sm" onclick="switchLayer('control'); selectControlJunction('${d.id}');" style="width:100%; font-size:11px;">
                         Control Junction →
                     </button>
-                    <button class="btn-secondary btn-sm" onclick="openEditJunctionModal('${d.id}')" style="width:100%; font-size:11px; margin-top:2px;">
-                        ✏️ Edit Junction & Move Location
+                    <button class="btn-primary btn-sm" onclick="startMoveJunctionOnMap('${d.id}')" style="width:100%; font-size:11px; background:#7c3aed; border-color:#7c3aed;">
+                        <i class="fa-solid fa-arrows-up-down-left-right"></i> 📍 Move Junction on Map
                     </button>
+                    <button class="btn-secondary btn-sm" onclick="openEditJunctionModal('${d.id}')" style="width:100%; font-size:11px;">
+                        ✏️ Edit Junction Details
+                    </button>
+                ` : (isStaff && isOfficerJunction ? `
+                    <button class="btn-primary btn-sm" onclick="switchLayer('control'); selectControlJunction('${d.id}');" style="width:100%; font-size:11px;">
+                        Control Junction →
+                    </button>
+                    <button class="btn-primary btn-sm" onclick="applyCameraAIOptimization('${d.id}')" style="width:100%; font-size:11px; background:#16a34a; border-color:#16a34a;">
+                        🤖 Manage Traffic Automatically via Camera AI
+                    </button>
+                ` : (isStaff ? `
+                    <div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:6px 8px; font-size:11px; color:#991b1b; text-align:center;">
+                        <i class="fa-solid fa-lock"></i> Restricted: Stationed at ${user.assigned_junction_name || user.assigned_junction_id}
+                    </div>
                 ` : `
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:4px 6px; font-size:10px; color:#64748b; text-align:center;">
                         <i class="fa-solid fa-lock"></i> Staff Login Required for Signal Override
                     </div>
-                `}
+                `))}
             </div>
         `;
     } else if (props.type === "signal") {
@@ -4613,3 +4760,277 @@ async function submitAIOperatorReview(predictionId, action) {
         showToast(`❌ Review submission error: ${err.message}`);
     }
 }
+
+// =========================================================
+// 12. CAMERA AI AUTO TRAFFIC MANAGEMENT (WEBSTER OPTIMIZATION)
+// =========================================================
+async function applyCameraAIOptimization(targetJncId) {
+    const user = (window.SmartCityAuth && SmartCityAuth.getUser()) || JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
+    const isStaff = isStaffUser();
+    const isAdmin = isAdminUser();
+    const jncId = targetJncId || (user.assigned_junction_id && !isAdmin ? user.assigned_junction_id : selectedJunctionId);
+
+    if (!jncId) {
+        if (typeof showToast === "function") showToast("Please select a junction first", "error");
+        else alert("Please select a junction first");
+        return;
+    }
+
+    try {
+        if (typeof showToast === "function") {
+            showToast(`🤖 Analyzing CCTV optical camera streams for ${jncId}...`, "info");
+        }
+
+        const res = await fetch(`/api/traffic/junctions/${jncId}/apply-camera-ai-optimization`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const opt = data.optimization;
+            const summaryMsg = `✅ Camera AI Applied for ${data.junctionName}!\n` +
+                               `• Optimal Cycle: ${opt.optimalCycle}s (NS Green: ${opt.nsGreen}s, EW Green: ${opt.ewGreen}s)\n` +
+                               `• Camera Traffic Volume: ${opt.totalVolume} PCU/hr across ${data.camerasUsed} optical units\n` +
+                               `• Mode Switched: AI Adaptive (Live Camera Vision)`;
+
+            if (typeof showToast === "function") {
+                showToast(`Optimal Cycle: ${opt.optimalCycle}s applied via Camera AI!`, "success");
+            }
+            alert(summaryMsg);
+
+            // Refresh junction signals display and data
+            await selectControlJunction(jncId);
+            await loadSharedTrafficData();
+            if (typeof loadAIPredictionsAuditTable === "function") {
+                loadAIPredictionsAuditTable();
+            }
+        } else {
+            const errMsg = data.message || "Failed to apply camera AI optimization";
+            if (typeof showToast === "function") showToast(errMsg, "error");
+            alert(`Error: ${errMsg}`);
+        }
+    } catch (err) {
+        alert("Network error applying Camera AI optimization: " + err.message);
+    }
+}
+window.applyCameraAIOptimization = applyCameraAIOptimization;
+
+// =========================================================
+// 13. ADMIN GIS MAP OPERATIONS: ADD & MOVE JUNCTIONS
+// =========================================================
+function startAddJunctionOnMap() {
+    if (!isAdminUser()) {
+        if (typeof showToast === "function") showToast("Admin clearance required to add junctions on map.", "error");
+        else alert("Admin clearance required to add junctions on map.");
+        return;
+    }
+
+    if (!window.trafficMap) {
+        alert("Traffic map is initializing. Please try again.");
+        return;
+    }
+
+    const mapCard = document.getElementById("trafficMapContainerCard");
+    if (mapCard) mapCard.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (typeof showToast === "function") {
+        showToast("📍 Map Selection Active: Click anywhere on the map to place the new junction.", "info");
+    }
+
+    trafficMap.startCoordinatePickMode(async (lat, lng) => {
+        const name = prompt(`📍 Coordinate Picked: (${lat.toFixed(5)}, ${lng.toFixed(5)})\n\nEnter Junction Name:`, "New Traffic Crossing");
+        if (!name || !name.trim()) return;
+
+        const zone = prompt(`Enter Zone (Central, East, West, North, South):`, "Central") || "Central";
+
+        try {
+            if (typeof showToast === "function") showToast(`Creating junction "${name}" on map...`);
+            const res = await fetch("/api/traffic/junctions", {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    name: name.trim(),
+                    zone: zone.trim(),
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lng),
+                    mode: "AI Adaptive",
+                    cycle_time: 90
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (typeof showToast === "function") showToast(`✅ Junction "${name}" added to map!`, "success");
+                alert(`Junction Created Successfully:\n• ID: ${data.junctionId || 'New'}\n• Name: ${name}\n• Coords: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+                await loadSharedTrafficData();
+                await loadAdminJunctionsTable();
+            } else {
+                alert(`Error creating junction: ${data.message || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert("Network error creating junction: " + err.message);
+        }
+    });
+}
+window.startAddJunctionOnMap = startAddJunctionOnMap;
+
+function startMoveJunctionOnMap(presetJncId) {
+    if (!isAdminUser()) {
+        if (typeof showToast === "function") showToast("Admin clearance required to move junctions on map.", "error");
+        else alert("Admin clearance required to move junctions on map.");
+        return;
+    }
+
+    let targetId = presetJncId;
+    if (!targetId) {
+        targetId = prompt("Enter Junction ID to relocate on GIS map (e.g. JNC-01, JNC-02):", selectedJunctionId || "JNC-02");
+        if (!targetId || !targetId.trim()) return;
+        targetId = targetId.trim();
+    }
+
+    const mapCard = document.getElementById("trafficMapContainerCard");
+    if (mapCard) mapCard.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (typeof showToast === "function") {
+        showToast(`📍 Click new location on map to move Junction ${targetId}...`, "info");
+    }
+
+    trafficMap.startCoordinatePickMode(async (lat, lng) => {
+        const confirmed = confirm(`Relocate Junction ${targetId} to new GIS coordinates:\nLatitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}\n\nProceed?`);
+        if (!confirmed) return;
+
+        try {
+            if (typeof showToast === "function") showToast(`Relocating junction ${targetId}...`);
+            const res = await fetch(`/api/traffic/junctions/${targetId}/location`, {
+                method: "PUT",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lng)
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (typeof showToast === "function") showToast(`✅ Junction ${targetId} relocated successfully!`, "success");
+                alert(`Junction Relocated:\n${data.message}\nNew Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+                if (trafficMap && typeof trafficMap.updateJunctionPosition === "function") {
+                    trafficMap.updateJunctionPosition(targetId, lat, lng);
+                }
+                await loadSharedTrafficData();
+                await loadAdminJunctionsTable();
+            } else {
+                alert(`Error relocating junction: ${data.message || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert("Network error relocating junction: " + err.message);
+        }
+    });
+}
+window.startMoveJunctionOnMap = startMoveJunctionOnMap;
+
+// =========================================================
+// 14. ADMIN OFFICER ROSTER & JURISDICTION ASSIGNMENT CONSOLE
+// =========================================================
+async function loadAdminOfficerRoster() {
+    const tbody = document.getElementById("admin-officer-roster-tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading officer roster...</td></tr>`;
+
+    try {
+        const res = await fetch("/api/traffic/admin/officer-roster", {
+            headers: getAuthHeaders()
+        });
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.officers)) {
+            const junctions = data.junctions || [];
+            if (data.officers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">No traffic officers found in staff registry.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.officers.map(o => {
+                const jOptions = [
+                    `<option value="ALL"${!o.assigned_junction_id ? ' selected' : ''}>-- All Citywide Junctions (Full Admin) --</option>`,
+                    ...junctions.map(j => `<option value="${j.id}"${o.assigned_junction_id === j.id ? ' selected' : ''}>${j.name} (${j.id})</option>`)
+                ].join("");
+
+                return `
+                    <tr>
+                        <td><strong>${o.staff_id}</strong></td>
+                        <td><div style="font-weight:700; color:#0f172a;">${o.name}</div><small style="color:#64748b;">${o.email || ''}</small></td>
+                        <td><span class="badge ${o.role === 'admin' ? 'badge-maintenance' : 'badge-online'}">${o.role.toUpperCase()} / ${o.department}</span></td>
+                        <td>
+                            ${o.assigned_junction_id 
+                                ? `<span class="badge badge-online"><i class="fa-solid fa-location-dot"></i> ${o.assigned_junction_name || o.assigned_junction_id} (${o.assigned_junction_id})</span>`
+                                : `<span class="badge badge-warning"><i class="fa-solid fa-city"></i> All Citywide Junctions</span>`}
+                        </td>
+                        <td><span class="badge badge-online">${o.status || 'Active'}</span></td>
+                        <td>
+                            <select id="roster-jnc-select-${o.staff_id}" class="form-control" style="font-size:12px; padding:4px 8px; width:220px;">
+                                ${jOptions}
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn-primary btn-sm" onclick="handleAssignOfficerSubmit('${o.staff_id}')" style="background:#7c3aed; border-color:#7c3aed; font-size:11px; padding:5px 12px; font-weight:700;">
+                                <i class="fa-solid fa-user-check"></i> Assign Post
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626; padding: 14px;">Failed to load roster: ${data.message || 'Unauthorized'}</td></tr>`;
+        }
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626; padding: 14px;">Error connecting to roster service: ${err.message}</td></tr>`;
+    }
+}
+window.loadAdminOfficerRoster = loadAdminOfficerRoster;
+
+async function handleAssignOfficerSubmit(staffId) {
+    if (!isAdminUser()) {
+        if (typeof showToast === "function") showToast("Admin credentials required to assign officer roles.", "error");
+        else alert("Admin credentials required to assign officer roles.");
+        return;
+    }
+
+    const selectEl = document.getElementById(`roster-jnc-select-${staffId}`);
+    if (!selectEl) return;
+
+    const jncId = selectEl.value;
+    const selectedOptionText = selectEl.options[selectEl.selectedIndex].text;
+    const jncName = jncId === "ALL" ? "All Citywide Junctions (Full Admin)" : selectedOptionText.replace(/\s*\([^)]*\)\s*$/, "").trim();
+
+    try {
+        if (typeof showToast === "function") showToast(`Updating jurisdiction assignment for ${staffId}...`, "info");
+
+        const res = await fetch("/api/traffic/admin/assign-officer", {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                staff_id: staffId,
+                assigned_junction_id: jncId === "ALL" ? null : jncId,
+                assigned_junction_name: jncName
+            })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            if (typeof showToast === "function") {
+                showToast(`✅ Successfully assigned ${data.officer.name} to ${data.officer.assigned_junction_name}!`, "success");
+            }
+            alert(`Jurisdiction Updated:\nOfficer ${data.officer.name} (${staffId}) is now assigned to:\n${data.officer.assigned_junction_name}`);
+            await loadAdminOfficerRoster();
+            await loadSharedTrafficData();
+        } else {
+            alert(`Failed: ${data.message || 'Error updating assignment'}`);
+        }
+    } catch (err) {
+        alert("Network error: " + err.message);
+    }
+}
+window.handleAssignOfficerSubmit = handleAssignOfficerSubmit;

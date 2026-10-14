@@ -32,7 +32,8 @@ const TEST_SUITES = [
     { name: "Sewage Network Planner & 3D Route Designer Suite", file: "scratch/test_sewage_planner_backend.js" },
     { name: "Water & Sewage Command Center Integration Suite", file: "scratch/test_water_command_center.js" },
     { name: "Water Management Upgrade & Multi-View Verification", file: "scratch/verify_water_management_upgrade.js" },
-    { name: "Water 3D Digital Twin, Licensed glTF & 3-Layer Role Suite", file: "scratch/test_water_3d_digital_twin.js" }
+    { name: "Water 3D Digital Twin, Licensed glTF & 3-Layer Role Suite", file: "scratch/test_water_3d_digital_twin.js" },
+    { name: "Traffic Role Jurisdiction, Camera AI & Admin GIS Suite", file: "backend/test_traffic_jurisdiction_and_ai.js" }
 ];
 
 async function runSingleTest(suite) {
