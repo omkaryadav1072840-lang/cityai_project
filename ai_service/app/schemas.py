@@ -91,6 +91,7 @@ class WaterAnomalyRequest(BaseModel):
     daily_inflow_liters: float = Field(..., ge=0.0)
     daily_outflow_liters: float = Field(..., ge=0.0)
     historical_avg_outflow: float = Field(..., ge=0.0)
+    historical_readings: Optional[List[float]] = Field(default=None, description="Optional time-series daily outflow readings for sample variance")
 
 class WaterAnomalyResponse(BaseModel):
     tank_id: str

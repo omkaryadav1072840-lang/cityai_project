@@ -33,6 +33,39 @@ function safeParseJson(str, fallback) {
     }
 }
 
+// Helper: Record Network Audit Log for Digital Twin Operations
+async function recordNetworkAudit({
+    action_type,
+    entity_type,
+    entity_id,
+    entity_name,
+    changed_by_id = "WTR-ADMIN-01",
+    changed_by_name = "Water Admin",
+    previous_state = null,
+    new_state = null,
+    impact_summary = ""
+}) {
+    try {
+        await pool.query(`
+            INSERT INTO water_network_audit_logs
+            (action_type, entity_type, entity_id, entity_name, changed_by_id, changed_by_name, previous_state, new_state, impact_summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            action_type,
+            entity_type,
+            String(entity_id || "NET-ID"),
+            entity_name || String(entity_id || "Network Entity"),
+            changed_by_id,
+            changed_by_name,
+            previous_state ? (typeof previous_state === "string" ? previous_state : JSON.stringify(previous_state)) : null,
+            new_state ? (typeof new_state === "string" ? new_state : JSON.stringify(new_state)) : null,
+            impact_summary || ""
+        ]);
+    } catch (e) {
+        console.warn("Could not record network audit log:", e.message);
+    }
+}
+
 // Helper: Check if user is Super Admin
 function isSuperAdminUser(user) {
     if (!user) return false;
@@ -450,7 +483,7 @@ router.delete("/api/water/tanks/:id", authenticateToken, requireWaterStaff, asyn
 // =========================================================
 // 8. WATER REPORTS — GET ALL (Citizen & Staff)
 // =========================================================
-router.get("/api/water/reports", optionalToken, async (req, res) => {
+router.get(["/api/water/reports", "/api/water/complaints"], optionalToken, async (req, res) => {
     const { status, userId, priority } = req.query;
     const role = (req.user ? (req.user.role || req.user.type || "") : "").toLowerCase();
     const isStaffOrAdmin = role === "admin" || (role === "staff" && ((req.user.department || "").toLowerCase() === "water" || (req.user.editable || []).includes("water")));
@@ -496,7 +529,7 @@ router.get("/api/water/reports", optionalToken, async (req, res) => {
 
     try {
         const [results] = await pool.query(sql, params);
-        res.json({ success: true, reports: results });
+        res.json({ success: true, reports: results, complaints: results });
     } catch (err) {
         console.error("Water reports fetch error:", err);
         res.status(500).json({ success: false, message: "Database error." });
@@ -695,14 +728,14 @@ router.post(["/api/water/tanker-bookings", "/api/water/tanker-booking", "/api/wa
 // =========================================================
 // 13. WATER TANKER BOOKINGS — GET ALL (Citizen & Staff)
 // =========================================================
-router.get("/api/water/tanker-bookings", optionalToken, async (req, res) => {
+router.get(["/api/water/tanker-bookings", "/api/water/tanker-requests"], optionalToken, async (req, res) => {
     const { userId, status } = req.query;
     const role = (req.user ? (req.user.role || req.user.type || "") : "").toLowerCase();
     const isStaffOrAdmin = role === "admin" || (role === "staff" && ((req.user.department || "").toLowerCase() === "water" || (req.user.editable || []).includes("water")));
 
     if (!req.user) {
         // Unauthenticated users cannot view private tanker bookings
-        return res.json({ success: true, count: 0, bookings: [] });
+        return res.json({ success: true, count: 0, bookings: [], tankerRequests: [] });
     }
 
     let sql = `
@@ -736,7 +769,7 @@ router.get("/api/water/tanker-bookings", optionalToken, async (req, res) => {
 
     try {
         const [results] = await pool.query(sql, params);
-        res.json({ success: true, bookings: results });
+        res.json({ success: true, count: results.length, bookings: results, tankerRequests: results });
     } catch (err) {
         console.error("Tanker bookings fetch error:", err);
         res.status(500).json({ success: false, message: "Database error." });
@@ -846,6 +879,1113 @@ router.get("/api/water/pipelines", async (req, res) => {
         console.error("Pipelines fetch error:", err);
         res.status(500).json({ success: false, message: "Database error." });
     }
+});
+
+// Helper: Normalize pipeline status to match ENUM('Normal', 'High Pressure', 'Low Pressure', 'Leakage Detected', 'Under Maintenance')
+function normalizePipelineStatus(st) {
+    if (!st) return 'Normal';
+    const s = String(st).trim().toLowerCase();
+    if (s.includes('leak')) return 'Leakage Detected';
+    if (s.includes('maint')) return 'Under Maintenance';
+    if (s.includes('high')) return 'High Pressure';
+    if (s.includes('low')) return 'Low Pressure';
+    return 'Normal';
+}
+
+// Admin Create New Pipeline from Map (Fresh Water, Sewage, or Multi-Point Feeder)
+router.post(["/api/water/pipelines", "/api/water/network/pipelines"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        let {
+            pipeline_code, name, zone, pipe_type,
+            start_lat, start_lng, end_lat, end_lng,
+            diameter_mm, material, depth_meters, pressure_bar, flow_rate_lps,
+            source_node, target_node, status, curve_points,
+            road_name, lane_count, road_width_m, flow_direction,
+            branch_from_id, junction_id, slope_percent, invert_level_m
+        } = req.body;
+
+        // Auto-extract start and end coordinates if curve_points array is supplied
+        let pts = null;
+        if (curve_points) {
+            pts = typeof curve_points === "string" ? JSON.parse(curve_points) : curve_points;
+        }
+        if (pts && Array.isArray(pts) && pts.length >= 2) {
+            const p0 = pts[0];
+            const pN = pts[pts.length - 1];
+            if (start_lat === undefined || start_lat === null) start_lat = p0.lat !== undefined ? p0.lat : p0[0];
+            if (start_lng === undefined || start_lng === null) start_lng = p0.lng !== undefined ? p0.lng : p0[1];
+            if (end_lat === undefined || end_lat === null) end_lat = pN.lat !== undefined ? pN.lat : pN[0];
+            if (end_lng === undefined || end_lng === null) end_lng = pN.lng !== undefined ? pN.lng : pN[1];
+        }
+
+        if (!name || start_lat === undefined || start_lng === undefined || end_lat === undefined || end_lng === undefined) {
+            return res.status(400).json({ success: false, message: "Pipeline name and start/end coordinates are required." });
+        }
+
+        // Normalize pipe type
+        const normType = String(pipe_type || "POTABLE").toUpperCase();
+        const validTypes = ["POTABLE", "WASTEWATER", "SEWAGE", "RECLAIMED", "STORMWATER", "POTABLE_WATER", "RECLAIMED_WATER"];
+        const finalType = validTypes.includes(normType) ? normType : (normType.includes("SEW") || normType.includes("WASTE") ? "WASTEWATER" : "POTABLE");
+
+        if (!pipeline_code) {
+            const prefix = (finalType === "WASTEWATER" || finalType === "SEWAGE") ? "PL-SEW-" : "PL-WAT-" ;
+            pipeline_code = prefix + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        const normalizedCurve = curve_points ? (typeof curve_points === "string" ? curve_points : JSON.stringify(curve_points)) : (pts ? JSON.stringify(pts) : null);
+
+        const defaultDepth = (finalType === "WASTEWATER" || finalType === "SEWAGE") ? 2.8 : 1.8;
+
+        const [result] = await pool.query(`
+            INSERT INTO water_pipelines
+            (pipeline_code, name, zone, pressure_bar, flow_rate_lps, status, pipe_type, start_lat, start_lng, end_lat, end_lng, diameter_mm, material, depth_meters, source_node, target_node, data_source, curve_points, road_name, lane_count, road_width_m, flow_direction, branch_from_id, junction_id, slope_percent, invert_level_m)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            pipeline_code,
+            name.trim(),
+            zone || "Gorakhpur Municipal Area",
+            Number(pressure_bar) || (finalType === "POTABLE" ? 3.4 : 0.0),
+            Number(flow_rate_lps) || 45.0,
+            normalizePipelineStatus(status),
+            finalType,
+            Number(start_lat),
+            Number(start_lng),
+            Number(end_lat),
+            Number(end_lng),
+            Number(diameter_mm) || 450,
+            material || (finalType === "POTABLE" ? "Ductile Iron" : "Reinforced Concrete (RCC)"),
+            Number(depth_meters) || defaultDepth,
+            source_node || "NODE-SRC",
+            target_node || "NODE-TGT",
+            normalizedCurve,
+            road_name || null,
+            Number(lane_count) || (road_name ? 4 : null),
+            Number(road_width_m) || (road_name ? 24 : null),
+            flow_direction || "FORWARD",
+            branch_from_id || null,
+            junction_id || null,
+            Number(slope_percent) || 0.60,
+            Number(invert_level_m) || 82.10
+        ]);
+
+        const [created] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [result.insertId]);
+
+        await recordNetworkAudit({
+            action_type: "PIPELINE_CREATED",
+            entity_type: "PIPELINE",
+            entity_id: pipeline_code,
+            entity_name: name.trim(),
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            new_state: created[0],
+            impact_summary: `Created ${finalType} pipeline ${name.trim()} (${pipeline_code}) with ${pts ? pts.length : 2} coordinates.`
+        });
+
+        emitWaterUpdate({
+            type: "pipeline_created",
+            pipeline: created[0],
+            updatedAt: new Date().toISOString()
+        });
+
+        res.status(201).json({
+            success: true,
+            message: `Pipeline ${pipeline_code} created successfully on GIS map.`,
+            pipeline: created[0]
+        });
+    } catch (err) {
+        console.error("Create pipeline error:", err);
+        res.status(500).json({ success: false, message: err.message || "Database error creating pipeline." });
+    }
+});
+
+// Admin Update Pipeline Location Coordinates & Attributes via Map
+router.put(["/api/water/pipelines/:id", "/api/water/network/pipelines/:id"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_pipelines WHERE ${isNum ? "id = ? OR pipeline_code = ?" : "pipeline_code = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Pipeline not found." });
+        }
+
+        const pipe = existing[0];
+        const {
+            name, zone, pipe_type,
+            start_lat, start_lng, end_lat, end_lng,
+            diameter_mm, material, depth_meters, pressure_bar, flow_rate_lps,
+            source_node, target_node, status, curve_points,
+            road_name, lane_count, road_width_m, flow_direction,
+            branch_from_id, junction_id, slope_percent, invert_level_m
+        } = req.body;
+
+        const updates = [];
+        const params = [];
+
+        if (name !== undefined) { updates.push("name = ?"); params.push(name.trim()); }
+        if (zone !== undefined) { updates.push("zone = ?"); params.push(zone.trim()); }
+        if (pipe_type !== undefined) { updates.push("pipe_type = ?"); params.push(pipe_type); }
+        if (start_lat !== undefined) { updates.push("start_lat = ?"); params.push(Number(start_lat)); }
+        if (start_lng !== undefined) { updates.push("start_lng = ?"); params.push(Number(start_lng)); }
+        if (end_lat !== undefined) { updates.push("end_lat = ?"); params.push(Number(end_lat)); }
+        if (end_lng !== undefined) { updates.push("end_lng = ?"); params.push(Number(end_lng)); }
+        if (diameter_mm !== undefined) { updates.push("diameter_mm = ?"); params.push(Number(diameter_mm)); }
+        if (material !== undefined) { updates.push("material = ?"); params.push(material); }
+        if (depth_meters !== undefined) { updates.push("depth_meters = ?"); params.push(Number(depth_meters)); }
+        if (pressure_bar !== undefined) { updates.push("pressure_bar = ?"); params.push(Number(pressure_bar)); }
+        if (flow_rate_lps !== undefined) { updates.push("flow_rate_lps = ?"); params.push(Number(flow_rate_lps)); }
+        if (source_node !== undefined) { updates.push("source_node = ?"); params.push(source_node); }
+        if (target_node !== undefined) { updates.push("target_node = ?"); params.push(target_node); }
+        if (status !== undefined) { updates.push("status = ?"); params.push(normalizePipelineStatus(status)); }
+        if (road_name !== undefined) { updates.push("road_name = ?"); params.push(road_name); }
+        if (lane_count !== undefined) { updates.push("lane_count = ?"); params.push(Number(lane_count)); }
+        if (road_width_m !== undefined) { updates.push("road_width_m = ?"); params.push(Number(road_width_m)); }
+        if (flow_direction !== undefined) { updates.push("flow_direction = ?"); params.push(flow_direction); }
+        if (branch_from_id !== undefined) { updates.push("branch_from_id = ?"); params.push(branch_from_id); }
+        if (junction_id !== undefined) { updates.push("junction_id = ?"); params.push(junction_id); }
+        if (slope_percent !== undefined) { updates.push("slope_percent = ?"); params.push(Number(slope_percent)); }
+        if (invert_level_m !== undefined) { updates.push("invert_level_m = ?"); params.push(Number(invert_level_m)); }
+        if (curve_points !== undefined) {
+            updates.push("curve_points = ?");
+            params.push(curve_points ? (typeof curve_points === "string" ? curve_points : JSON.stringify(curve_points)) : null);
+
+            // Auto-update start and end coords if not explicitly provided
+            const pts = typeof curve_points === "string" ? safeParseJson(curve_points, null) : curve_points;
+            if (Array.isArray(pts) && pts.length >= 2) {
+                const p0 = pts[0];
+                const pN = pts[pts.length - 1];
+                if (start_lat === undefined) {
+                    updates.push("start_lat = ?");
+                    params.push(Number(p0.lat !== undefined ? p0.lat : p0[0]));
+                }
+                if (start_lng === undefined) {
+                    updates.push("start_lng = ?");
+                    params.push(Number(p0.lng !== undefined ? p0.lng : p0[1]));
+                }
+                if (end_lat === undefined) {
+                    updates.push("end_lat = ?");
+                    params.push(Number(pN.lat !== undefined ? pN.lat : pN[0]));
+                }
+                if (end_lng === undefined) {
+                    updates.push("end_lng = ?");
+                    params.push(Number(pN.lng !== undefined ? pN.lng : pN[1]));
+                }
+            }
+        }
+
+        if (updates.length > 0) {
+            params.push(pipe.id);
+            await pool.query(`UPDATE water_pipelines SET ${updates.join(", ")} WHERE id = ?`, params);
+        }
+
+        const [updated] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [pipe.id]);
+
+        await recordNetworkAudit({
+            action_type: "PIPELINE_UPDATED",
+            entity_type: "PIPELINE",
+            entity_id: pipe.pipeline_code,
+            entity_name: pipe.name,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            previous_state: pipe,
+            new_state: updated[0],
+            impact_summary: `Updated pipeline ${pipe.name} (${pipe.pipeline_code}) parameters and geometry.`
+        });
+
+        emitWaterUpdate({
+            type: "pipeline_updated",
+            pipeline: updated[0],
+            updatedAt: new Date().toISOString()
+        });
+
+        res.json({
+            success: true,
+            message: `Pipeline ${pipe.pipeline_code} location & parameters updated.`,
+            pipeline: updated[0]
+        });
+    } catch (err) {
+        console.error("Update pipeline error:", err);
+        res.status(500).json({ success: false, message: err.message || "Database error updating pipeline." });
+    }
+});
+
+// Admin Delete Pipeline
+router.delete(["/api/water/pipelines/:id", "/api/water/network/pipelines/:id"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_pipelines WHERE ${isNum ? "id = ? OR pipeline_code = ?" : "pipeline_code = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Pipeline not found." });
+        }
+
+        await pool.query("DELETE FROM water_pipelines WHERE id = ?", [existing[0].id]);
+
+        await recordNetworkAudit({
+            action_type: "PIPELINE_DELETED",
+            entity_type: "PIPELINE",
+            entity_id: existing[0].pipeline_code,
+            entity_name: existing[0].name,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            previous_state: existing[0],
+            impact_summary: `Deleted pipeline ${existing[0].name} (${existing[0].pipeline_code}) from network.`
+        });
+
+        emitWaterUpdate({
+            type: "pipeline_deleted",
+            pipeline_code: existing[0].pipeline_code,
+            updatedAt: new Date().toISOString()
+        });
+
+        res.json({ success: true, message: `Pipeline ${existing[0].pipeline_code} deleted from map.` });
+    } catch (err) {
+        console.error("Delete pipeline error:", err);
+        res.status(500).json({ success: false, message: "Database error deleting pipeline." });
+    }
+});
+
+// =========================================================
+// 16A-1. MULTI-POINT PIPELINE SPLIT & JUNCTION INSERTION
+// =========================================================
+router.post("/api/water/pipelines/split", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const pipeline_id = req.body.pipeline_id || req.body.pipelineId;
+        const split_lat = req.body.split_lat !== undefined ? req.body.split_lat : (req.body.splitCoord ? req.body.splitCoord.lat : undefined);
+        const split_lng = req.body.split_lng !== undefined ? req.body.split_lng : (req.body.splitCoord ? req.body.splitCoord.lng : undefined);
+        const { junction_name, new_pipe_name } = req.body;
+
+        if (!pipeline_id || split_lat === undefined || split_lng === undefined) {
+            return res.status(400).json({ success: false, message: "pipeline_id, split_lat, and split_lng are required." });
+        }
+
+        const isNum = !isNaN(Number(pipeline_id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_pipelines WHERE ${isNum ? "id = ? OR pipeline_code = ?" : "pipeline_code = ?"} LIMIT 1`,
+            isNum ? [Number(pipeline_id), String(pipeline_id)] : [String(pipeline_id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Pipeline not found." });
+        }
+
+        const origPipe = existing[0];
+        let pts = [];
+        if (origPipe.curve_points) {
+            pts = typeof origPipe.curve_points === "string" ? JSON.parse(origPipe.curve_points) : origPipe.curve_points;
+        }
+        if (!pts || !Array.isArray(pts) || pts.length < 2) {
+            pts = [
+                { lat: Number(origPipe.start_lat), lng: Number(origPipe.start_lng) },
+                { lat: Number(origPipe.end_lat), lng: Number(origPipe.end_lng) }
+            ];
+        }
+
+        const sLat = Number(Number(split_lat).toFixed(6));
+        const sLng = Number(Number(split_lng).toFixed(6));
+
+        // Find nearest vertex index to split coordinates
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < pts.length; i++) {
+            const pLat = pts[i].lat !== undefined ? pts[i].lat : pts[i][0];
+            const pLng = pts[i].lng !== undefined ? pts[i].lng : pts[i][1];
+            const d = Math.hypot(pLat - sLat, pLng - sLng);
+            if (d < bestDist) {
+                bestDist = d;
+                bestIdx = i;
+            }
+        }
+
+        // Clamp index so both segments have at least 2 points
+        const splitIdx = Math.max(1, Math.min(pts.length - 1, bestIdx));
+
+        const seg1Pts = pts.slice(0, splitIdx + 1);
+        seg1Pts[seg1Pts.length - 1] = { lat: sLat, lng: sLng };
+
+        const seg2Pts = [{ lat: sLat, lng: sLng }, ...pts.slice(splitIdx)];
+
+        // Generate junction ID and insert into water_network_assets
+        const juncId = `JNC-SPLIT-${Date.now().toString().slice(-4)}`;
+        const juncName = junction_name || `${origPipe.name} Junction Node`;
+
+        await pool.query(`
+            INSERT INTO water_network_assets
+            (asset_id, name, asset_type, zone, latitude, longitude, elevation_m, status, data_source)
+            VALUES (?, ?, 'NETWORK_JUNCTION', ?, ?, ?, 84.50, 'OPERATIONAL', 'MEASURED')
+        `, [
+            juncId,
+            juncName,
+            origPipe.zone || "Gorakhpur Central",
+            sLat,
+            sLng
+        ]);
+
+        // Update Segment 1 (original pipeline)
+        await pool.query(`
+            UPDATE water_pipelines
+            SET end_lat = ?, end_lng = ?, target_node = ?, curve_points = ?, junction_id = ?
+            WHERE id = ?
+        `, [
+            sLat,
+            sLng,
+            juncId,
+            JSON.stringify(seg1Pts),
+            juncId,
+            origPipe.id
+        ]);
+
+        // Insert Segment 2
+        const seg2Code = `${origPipe.pipeline_code || "PL"}-B-${Math.floor(100 + Math.random() * 900)}`;
+        const seg2Name = new_pipe_name || `${origPipe.name} (Segment 2)`;
+
+        const [insResult] = await pool.query(`
+            INSERT INTO water_pipelines
+            (pipeline_code, name, zone, pressure_bar, flow_rate_lps, status, pipe_type, start_lat, start_lng, end_lat, end_lng, diameter_mm, material, depth_meters, source_node, target_node, data_source, curve_points, road_name, lane_count, road_width_m, flow_direction, branch_from_id, junction_id, slope_percent, invert_level_m)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            seg2Code,
+            seg2Name,
+            origPipe.zone,
+            origPipe.pressure_bar,
+            origPipe.flow_rate_lps,
+            origPipe.status,
+            origPipe.pipe_type,
+            sLat,
+            sLng,
+            Number(origPipe.end_lat),
+            Number(origPipe.end_lng),
+            origPipe.diameter_mm,
+            origPipe.material,
+            origPipe.depth_meters,
+            juncId,
+            origPipe.target_node,
+            JSON.stringify(seg2Pts),
+            origPipe.road_name,
+            origPipe.lane_count,
+            origPipe.road_width_m,
+            origPipe.flow_direction,
+            origPipe.pipeline_code,
+            juncId,
+            origPipe.slope_percent || 0.60,
+            origPipe.invert_level_m || 82.10
+        ]);
+
+        const [createdSeg2] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [insResult.insertId]);
+        const [updatedSeg1] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [origPipe.id]);
+        const [createdJunc] = await pool.query("SELECT * FROM water_network_assets WHERE asset_id = ?", [juncId]);
+
+        await recordNetworkAudit({
+            action_type: "PIPELINE_SPLIT",
+            entity_type: "PIPELINE",
+            entity_id: origPipe.pipeline_code,
+            entity_name: origPipe.name,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            previous_state: { pipeline: origPipe },
+            new_state: { segment1: updatedSeg1[0], segment2: createdSeg2[0], junction: createdJunc[0] },
+            impact_summary: `Split pipeline ${origPipe.name} at junction ${juncId} into two connected segments.`
+        });
+
+        emitWaterUpdate({ type: "pipeline_updated", pipeline: updatedSeg1[0], updatedAt: new Date().toISOString() });
+        emitWaterUpdate({ type: "pipeline_created", pipeline: createdSeg2[0], updatedAt: new Date().toISOString() });
+
+        res.status(201).json({
+            success: true,
+            message: `Pipeline ${origPipe.name} split successfully at junction ${juncId}.`,
+            junction: createdJunc[0],
+            junctionAsset: createdJunc[0],
+            segment1: updatedSeg1[0],
+            segment2: createdSeg2[0],
+            segmentA: updatedSeg1[0],
+            segmentB: createdSeg2[0]
+        });
+    } catch (err) {
+        console.error("Split pipeline error:", err);
+        res.status(500).json({ success: false, message: err.message || "Database error splitting pipeline." });
+    }
+});
+
+// =========================================================
+// 16A-2. CREATE BRANCH ROUTE FROM EXISTING JUNCTION
+// =========================================================
+router.post("/api/water/pipelines/branch", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const parent_pipeline_id = req.body.parent_pipeline_id || req.body.parentPipelineId;
+        const branch_coords = req.body.branch_coords || req.body.points || req.body.curve_points;
+        const junction_id = req.body.junction_id || req.body.junctionId;
+        const depth_meters = req.body.depth_meters || req.body.depth_m;
+        const {
+            name,
+            pipe_type,
+            diameter_mm,
+            material,
+            target_node
+        } = req.body;
+
+        if (!branch_coords || !Array.isArray(branch_coords) || branch_coords.length < 2) {
+            return res.status(400).json({ success: false, message: "branch_coords must be an array of at least 2 points." });
+        }
+
+        const isNum = !isNaN(Number(parent_pipeline_id));
+        const [parent] = await pool.query(
+            `SELECT * FROM water_pipelines WHERE ${isNum ? "id = ? OR pipeline_code = ?" : "pipeline_code = ?"} LIMIT 1`,
+            isNum ? [Number(parent_pipeline_id), String(parent_pipeline_id)] : [String(parent_pipeline_id)]
+        );
+
+        const parentPipe = parent[0] || null;
+        const startPoint = branch_coords[0];
+        const endPoint = branch_coords[branch_coords.length - 1];
+
+        const sLat = Number(startPoint.lat !== undefined ? startPoint.lat : startPoint[0]);
+        const sLng = Number(startPoint.lng !== undefined ? startPoint.lng : startPoint[1]);
+        const eLat = Number(endPoint.lat !== undefined ? endPoint.lat : endPoint[0]);
+        const eLng = Number(endPoint.lng !== undefined ? endPoint.lng : endPoint[1]);
+
+        const juncCode = junction_id || `JNC-BR-${Date.now().toString().slice(-4)}`;
+
+        // Verify or create junction asset
+        const [existJunc] = await pool.query("SELECT * FROM water_network_assets WHERE asset_id = ? LIMIT 1", [juncCode]);
+        if (existJunc.length === 0) {
+            await pool.query(`
+                INSERT INTO water_network_assets
+                (asset_id, name, asset_type, zone, latitude, longitude, elevation_m, status, data_source)
+                VALUES (?, ?, 'NETWORK_JUNCTION', ?, ?, ?, 84.50, 'OPERATIONAL', 'MEASURED')
+            `, [
+                juncCode,
+                `${name || "Branch"} T-Junction Hub`,
+                parentPipe?.zone || "Gorakhpur Central",
+                sLat,
+                sLng
+            ]);
+        }
+
+        const normType = String(pipe_type || parentPipe?.pipe_type || "POTABLE").toUpperCase();
+        const branchCode = `PL-BR-${Math.floor(1000 + Math.random() * 9000)}`;
+        const branchName = name || `${parentPipe?.name || "Main Line"} Distribution Branch`;
+
+        const [result] = await pool.query(`
+            INSERT INTO water_pipelines
+            (pipeline_code, name, zone, pressure_bar, flow_rate_lps, status, pipe_type, start_lat, start_lng, end_lat, end_lng, diameter_mm, material, depth_meters, source_node, target_node, data_source, curve_points, road_name, lane_count, road_width_m, flow_direction, branch_from_id, junction_id)
+            VALUES (?, ?, ?, ?, ?, 'Normal', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', ?, ?, ?, ?, 'FORWARD', ?, ?)
+        `, [
+            branchCode,
+            branchName,
+            parentPipe?.zone || "Gorakhpur Central",
+            parentPipe ? Number(parentPipe.pressure_bar) * 0.95 : 2.5,
+            parentPipe ? Number(parentPipe.flow_rate_lps) * 0.5 : 30.0,
+            normType,
+            sLat,
+            sLng,
+            eLat,
+            eLng,
+            Number(diameter_mm) || 300,
+            material || "HDPE",
+            Number(depth_meters) || (normType.includes("SEW") ? 2.8 : 1.8),
+            juncCode,
+            target_node || "NODE-DEST",
+            JSON.stringify(branch_coords),
+            parentPipe?.road_name || "Surveyed Sector Link",
+            2,
+            12.0,
+            parentPipe ? parentPipe.id : (parent_pipeline_id || null),
+            juncCode
+        ]);
+
+        const [created] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [result.insertId]);
+
+        await recordNetworkAudit({
+            action_type: "CREATE_BRANCH",
+            entity_type: "PIPELINE",
+            entity_id: branchCode,
+            entity_name: branchName,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            previous_state: { parent_pipeline: parentPipe?.pipeline_code },
+            new_state: { branch_pipeline: created[0], junction_id: juncCode },
+            impact_summary: `Created branch route ${branchName} (${branchCode}) from junction ${juncCode}.`
+        });
+
+        emitWaterUpdate({ type: "pipeline_created", pipeline: created[0], updatedAt: new Date().toISOString() });
+
+        res.status(201).json({
+            success: true,
+            message: `Branch pipeline ${branchName} created successfully.`,
+            branchPipeline: {
+                ...created[0],
+                branch_from_id: parentPipe ? parentPipe.id : parent_pipeline_id
+            },
+            junction_id: juncCode
+        });
+    } catch (err) {
+        console.error("Create branch error:", err);
+        res.status(500).json({ success: false, message: err.message || "Database error creating branch." });
+    }
+});
+
+// =========================================================
+// 16A-3. COMBINED ROAD CORRIDOR PLANNING (DUAL PARALLEL PIPES)
+// =========================================================
+router.post("/api/water/pipelines/combined-corridor", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const road_name = req.body.road_name || req.body.roadName;
+        const zone = req.body.zone;
+        const centerline_points = req.body.centerline_points || req.body.points;
+        const water_specs = req.body.water_specs || req.body.potableSpecs || {};
+        const sewage_specs = req.body.sewage_specs || req.body.sewageSpecs || {};
+
+        if (!centerline_points || !Array.isArray(centerline_points) || centerline_points.length < 2) {
+            return res.status(400).json({ success: false, message: "centerline_points array (minimum 2 points) is required." });
+        }
+
+        const road = road_name || "Gorakhpur Arterial Road Corridor";
+        const corridorZone = zone || "Gorakhpur Central";
+
+        // Offset polyline laterally in meters
+        function offsetCoords(pts, offsetMeters) {
+            const result = [];
+            const degPerMeterLat = 1 / 111320;
+            for (let i = 0; i < pts.length; i++) {
+                const prev = pts[Math.max(0, i - 1)];
+                const next = pts[Math.min(pts.length - 1, i + 1)];
+                const pLat = prev.lat !== undefined ? prev.lat : prev[0];
+                const pLng = prev.lng !== undefined ? prev.lng : prev[1];
+                const nLat = next.lat !== undefined ? next.lat : next[0];
+                const nLng = next.lng !== undefined ? next.lng : next[1];
+                const cLat = pts[i].lat !== undefined ? pts[i].lat : pts[i][0];
+                const cLng = pts[i].lng !== undefined ? pts[i].lng : pts[i][1];
+
+                const dLat = nLat - pLat;
+                const dLng = (nLng - pLng) * Math.cos((pLat * Math.PI) / 180);
+                const len = Math.hypot(dLat, dLng) || 0.0001;
+
+                const normLat = -dLng / len;
+                const normLng = dLat / len;
+
+                const degPerMeterLng = 1 / (111320 * Math.cos((cLat * Math.PI) / 180));
+                result.push({
+                    lat: Number((cLat + normLat * offsetMeters * degPerMeterLat).toFixed(6)),
+                    lng: Number((cLng + normLng * offsetMeters * degPerMeterLng).toFixed(6))
+                });
+            }
+            return result;
+        }
+
+        // Potable pipeline on LEFT verge (-4.0m lateral offset)
+        const waterPoints = offsetCoords(centerline_points, -4.0);
+        // Sewage pipeline on RIGHT verge (+4.0m lateral offset)
+        const sewagePoints = offsetCoords(centerline_points, 4.0);
+
+        const waterCode = `PL-FW-${Math.floor(1000 + Math.random() * 9000)}`;
+        const sewageCode = `PL-SW-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        const waterName = water_specs.name || `${road} Potable Water Feeder (Left Verge)`;
+        const sewageName = sewage_specs.name || `${road} Sewage Trunk Line (Right Verge)`;
+
+        const waterDepth = Number(water_specs.depth_meters || water_specs.depth_m) || 1.8;
+        const sewageDepth = Math.max(2.5, Number(sewage_specs.depth_meters || sewage_specs.depth_m) || 2.8);
+
+        const slopePercent = Number(sewage_specs.slope_percent) || 0.65;
+        const invertLevel = Number(sewage_specs.invert_level_m) || 82.20;
+
+        // Insert Water Pipeline
+        const [wRes] = await pool.query(`
+            INSERT INTO water_pipelines
+            (pipeline_code, name, zone, pressure_bar, flow_rate_lps, status, pipe_type, start_lat, start_lng, end_lat, end_lng, diameter_mm, material, depth_meters, source_node, target_node, data_source, curve_points, road_name, lane_count, road_width_m, flow_direction)
+            VALUES (?, ?, ?, 3.4, 85.0, 'Normal', 'POTABLE', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', ?, ?, 4, 24, 'FORWARD')
+        `, [
+            waterCode,
+            waterName,
+            corridorZone,
+            waterPoints[0].lat,
+            waterPoints[0].lng,
+            waterPoints[waterPoints.length - 1].lat,
+            waterPoints[waterPoints.length - 1].lng,
+            Number(water_specs.diameter_mm) || 600,
+            water_specs.material || "Ductile Iron",
+            waterDepth,
+            water_specs.source_node || "PUMP-01",
+            water_specs.target_node || "TANK-001",
+            JSON.stringify(waterPoints),
+            road
+        ]);
+
+        // Insert Sewage Pipeline
+        const [sRes] = await pool.query(`
+            INSERT INTO water_pipelines
+            (pipeline_code, name, zone, pressure_bar, flow_rate_lps, status, pipe_type, start_lat, start_lng, end_lat, end_lng, diameter_mm, material, depth_meters, source_node, target_node, data_source, curve_points, road_name, lane_count, road_width_m, flow_direction, slope_percent, invert_level_m)
+            VALUES (?, ?, ?, 0.0, 110.0, 'Normal', 'WASTEWATER', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', ?, ?, 4, 24, 'FORWARD', ?, ?)
+        `, [
+            sewageCode,
+            sewageName,
+            corridorZone,
+            sewagePoints[0].lat,
+            sewagePoints[0].lng,
+            sewagePoints[sewagePoints.length - 1].lat,
+            sewagePoints[sewagePoints.length - 1].lng,
+            Number(sewage_specs.diameter_mm) || 800,
+            sewage_specs.material || "Reinforced Concrete (RCC)",
+            sewageDepth,
+            sewage_specs.source_node || "JNC-CTRL-01",
+            sewage_specs.target_node || "STP-01",
+            JSON.stringify(sewagePoints),
+            road,
+            slopePercent,
+            invertLevel
+        ]);
+
+        const [createdWater] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [wRes.insertId]);
+        const [createdSewage] = await pool.query("SELECT * FROM water_pipelines WHERE id = ?", [sRes.insertId]);
+
+        await recordNetworkAudit({
+            action_type: "COMBINED_CORRIDOR_CREATED",
+            entity_type: "CORRIDOR",
+            entity_id: road,
+            entity_name: road,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            new_state: { waterPipeline: createdWater[0], sewagePipeline: createdSewage[0] },
+            impact_summary: `Created combined dual-pipe corridor along ${road}: Potable (${waterCode}, 1.8m depth, Left Verge) and Sewage (${sewageCode}, 2.8m depth, Right Verge).`
+        });
+
+        emitWaterUpdate({ type: "pipeline_created", pipeline: createdWater[0], updatedAt: new Date().toISOString() });
+        emitWaterUpdate({ type: "pipeline_created", pipeline: createdSewage[0], updatedAt: new Date().toISOString() });
+
+        const pPipe = { ...createdWater[0], burial_depth_m: Number(createdWater[0].depth_meters) };
+        const sPipe = { ...createdSewage[0], burial_depth_m: Number(createdSewage[0].depth_meters) };
+
+        res.status(201).json({
+            success: true,
+            message: `Combined corridor deployed along ${road}: Separate Potable Feeder (Left) and Sewage Trunk (Right).`,
+            potablePipeline: pPipe,
+            sewagePipeline: sPipe,
+            waterPipeline: pPipe
+        });
+    } catch (err) {
+        console.error("Combined corridor error:", err);
+        res.status(500).json({ success: false, message: err.message || "Database error creating combined corridor." });
+    }
+});
+
+// =========================================================
+// 16A-4. ASSET RELOCATION WITH CONNECTED-ROUTE VALIDATION
+// =========================================================
+router.post("/api/water/network/assets/relocate", authenticateToken, requireWaterAdmin, async (req, res) => {
+    try {
+        const asset_id = req.body.asset_id || req.body.assetId;
+        const new_lat = req.body.new_lat !== undefined ? req.body.new_lat : req.body.targetLat;
+        const new_lng = req.body.new_lng !== undefined ? req.body.new_lng : req.body.targetLng;
+        const confirm_update_connections = req.body.confirm_update_connections;
+
+        if (!asset_id || new_lat === undefined || new_lng === undefined) {
+            return res.status(400).json({ success: false, message: "asset_id, new_lat, and new_lng are required." });
+        }
+
+        const targetLat = Number(Number(new_lat).toFixed(6));
+        const targetLng = Number(Number(new_lng).toFixed(6));
+
+        const isNum = !isNaN(Number(asset_id));
+        const [assets] = await pool.query(
+            `SELECT * FROM water_network_assets WHERE ${isNum ? "id = ? OR asset_id = ?" : "asset_id = ?"} LIMIT 1`,
+            isNum ? [Number(asset_id), String(asset_id)] : [String(asset_id)]
+        );
+
+        if (assets.length === 0) {
+            return res.status(404).json({ success: false, message: "Asset not found." });
+        }
+
+        const asset = assets[0];
+        const prevLat = Number(asset.latitude);
+        const prevLng = Number(asset.longitude);
+
+        // Find connected pipelines
+        const [connectedPipes] = await pool.query(
+            "SELECT * FROM water_pipelines WHERE source_node = ? OR target_node = ?",
+            [asset.asset_id, asset.asset_id]
+        );
+
+        const updatedPipeDetails = [];
+
+        // Update connected pipelines' endpoints
+        for (const pipe of connectedPipes) {
+            let pts = [];
+            if (pipe.curve_points) {
+                pts = typeof pipe.curve_points === "string" ? JSON.parse(pipe.curve_points) : pipe.curve_points;
+            }
+            if (!pts || !Array.isArray(pts) || pts.length === 0) {
+                pts = [
+                    { lat: Number(pipe.start_lat), lng: Number(pipe.start_lng) },
+                    { lat: Number(pipe.end_lat), lng: Number(pipe.end_lng) }
+                ];
+            }
+
+            const updates = [];
+            const params = [];
+
+            if (pipe.source_node === asset.asset_id) {
+                updates.push("start_lat = ?", "start_lng = ?");
+                params.push(targetLat, targetLng);
+                pts[0] = { lat: targetLat, lng: targetLng };
+            }
+            if (pipe.target_node === asset.asset_id) {
+                updates.push("end_lat = ?", "end_lng = ?");
+                params.push(targetLat, targetLng);
+                pts[pts.length - 1] = { lat: targetLat, lng: targetLng };
+            }
+
+            updates.push("curve_points = ?");
+            params.push(JSON.stringify(pts));
+            params.push(pipe.id);
+
+            await pool.query(`UPDATE water_pipelines SET ${updates.join(", ")} WHERE id = ?`, params);
+            updatedPipeDetails.push({ id: pipe.id, pipeline_code: pipe.pipeline_code, name: pipe.name });
+        }
+
+        // Update asset location
+        await pool.query(
+            "UPDATE water_network_assets SET latitude = ?, longitude = ? WHERE id = ?",
+            [targetLat, targetLng, asset.id]
+        );
+
+        const [updatedAsset] = await pool.query("SELECT * FROM water_network_assets WHERE id = ?", [asset.id]);
+
+        await recordNetworkAudit({
+            action_type: "ASSET_RELOCATED",
+            entity_type: "ASSET",
+            entity_id: asset.asset_id,
+            entity_name: asset.name,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            previous_state: { latitude: prevLat, longitude: prevLng },
+            new_state: { latitude: targetLat, longitude: targetLng },
+            impact_summary: `Relocated asset ${asset.name} (${asset.asset_id}) from (${prevLat}, ${prevLng}) to (${targetLat}, ${targetLng}). Updated ${updatedPipeDetails.length} connected pipeline endpoints.`
+        });
+
+        res.json({
+            success: true,
+            message: `Asset ${asset.name} relocated successfully. ${updatedPipeDetails.length} connected pipelines updated.`,
+            asset: updatedAsset[0],
+            previous_coords: { lat: prevLat, lng: prevLng },
+            proposed_coords: { lat: targetLat, lng: targetLng },
+            connectedPipelinesUpdated: updatedPipeDetails
+        });
+    } catch (err) {
+        console.error("Relocate asset error:", err);
+        res.status(500).json({ success: false, message: err.message || "Database error relocating asset." });
+    }
+});
+
+// =========================================================
+// 16A-5. NETWORK AUDIT TRAIL LOGS (ADMIN & STAFF)
+// =========================================================
+router.get("/api/water/network/audit-logs", authenticateToken, requireWaterStaff, async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            "SELECT * FROM water_network_audit_logs ORDER BY created_at DESC LIMIT 60"
+        );
+        res.json({ success: true, count: rows.length, auditLogs: rows });
+    } catch (err) {
+        console.error("Fetch network audit logs error:", err);
+        res.status(500).json({ success: false, message: "Database error fetching network audit logs." });
+    }
+});
+
+// =========================================================
+// 16B. 1-KM ZONE MONITORING CENTERS WITH MOTOR CONTROLS
+// =========================================================
+const GORAKHPUR_MONITORING_CENTERS = [
+    {
+        id: "MC-01",
+        code: "WMC-GOLGHAR",
+        name: "Golghar Commercial Area Monitoring Station",
+        zone: "Golghar Central",
+        latitude: 26.7606,
+        longitude: 83.3732,
+        coverage_radius_meters: 1000,
+        status: "ACTIVE",
+        fresh_water_motor: {
+            motor_id: "MOT-FW-01",
+            name: "Golghar Potable Supply Booster Motor #1",
+            status: "RUNNING",
+            speed_rpm: 1450,
+            flow_lps: 52.4,
+            pressure_bar: 3.2,
+            target_pressure_bar: 3.0,
+            power_kw: 37.5,
+            valve_state: "OPEN"
+        },
+        sewage_water_motor: {
+            motor_id: "MOT-SW-01",
+            name: "Golghar Sub-Catchment Sewage Lift Motor #1",
+            status: "RUNNING",
+            speed_rpm: 960,
+            flow_lps: 38.1,
+            sump_level_pct: 62,
+            power_kw: 45.0,
+            valve_state: "OPEN"
+        },
+        last_heartbeat: new Date().toISOString()
+    },
+    {
+        id: "MC-02",
+        code: "WMC-CIVIL-LINES",
+        name: "Civil Lines & Park Road Monitoring Station",
+        zone: "Civil Lines",
+        latitude: 26.7559,
+        longitude: 83.3705,
+        coverage_radius_meters: 1000,
+        status: "ACTIVE",
+        fresh_water_motor: {
+            motor_id: "MOT-FW-02",
+            name: "Civil Lines Feeder Pump Motor #2",
+            status: "RUNNING",
+            speed_rpm: 1420,
+            flow_lps: 46.8,
+            pressure_bar: 2.9,
+            target_pressure_bar: 2.8,
+            power_kw: 30.0,
+            valve_state: "OPEN"
+        },
+        sewage_water_motor: {
+            motor_id: "MOT-SW-02",
+            name: "Civil Lines Sump Gravity Sluice Motor #2",
+            status: "RUNNING",
+            speed_rpm: 940,
+            flow_lps: 34.0,
+            sump_level_pct: 58,
+            power_kw: 40.0,
+            valve_state: "OPEN"
+        },
+        last_heartbeat: new Date().toISOString()
+    },
+    {
+        id: "MC-03",
+        code: "WMC-RAILWAY-JN",
+        name: "Gorakhpur Junction & Railway Colony Station",
+        zone: "Railway Colony",
+        latitude: 26.7615,
+        longitude: 83.3662,
+        coverage_radius_meters: 1000,
+        status: "ACTIVE",
+        fresh_water_motor: {
+            motor_id: "MOT-FW-03",
+            name: "Junction High-Pressure Supply Motor #3",
+            status: "RUNNING",
+            speed_rpm: 1480,
+            flow_lps: 61.2,
+            pressure_bar: 3.6,
+            target_pressure_bar: 3.5,
+            power_kw: 45.0,
+            valve_state: "OPEN"
+        },
+        sewage_water_motor: {
+            motor_id: "MOT-SW-03",
+            name: "Railway North Sump Lift Motor #3",
+            status: "STANDBY",
+            speed_rpm: 0,
+            flow_lps: 0.0,
+            sump_level_pct: 34,
+            power_kw: 37.0,
+            valve_state: "CLOSED"
+        },
+        last_heartbeat: new Date().toISOString()
+    },
+    {
+        id: "MC-04",
+        code: "WMC-BRD-MED",
+        name: "BRD Medical College & Asuran Station",
+        zone: "BRD Medical College",
+        latitude: 26.7884,
+        longitude: 83.3986,
+        coverage_radius_meters: 1000,
+        status: "ACTIVE",
+        fresh_water_motor: {
+            motor_id: "MOT-FW-04",
+            name: "Medical Campus Hospital Potable Pump #4",
+            status: "RUNNING",
+            speed_rpm: 1460,
+            flow_lps: 58.0,
+            pressure_bar: 3.4,
+            target_pressure_bar: 3.2,
+            power_kw: 42.0,
+            valve_state: "OPEN"
+        },
+        sewage_water_motor: {
+            motor_id: "MOT-SW-04",
+            name: "North Sewage Interceptor Trunk Pump #4",
+            status: "RUNNING",
+            speed_rpm: 980,
+            flow_lps: 42.5,
+            sump_level_pct: 71,
+            power_kw: 55.0,
+            valve_state: "OPEN"
+        },
+        last_heartbeat: new Date().toISOString()
+    },
+    {
+        id: "MC-05",
+        code: "WMC-MOHADDIPUR",
+        name: "Mohaddipur & University Zone Station",
+        zone: "Mohaddipur",
+        latitude: 26.7480,
+        longitude: 83.3820,
+        coverage_radius_meters: 1000,
+        status: "ACTIVE",
+        fresh_water_motor: {
+            motor_id: "MOT-FW-05",
+            name: "University Sector Main Potable Pump #5",
+            status: "RUNNING",
+            speed_rpm: 1410,
+            flow_lps: 48.0,
+            pressure_bar: 3.0,
+            target_pressure_bar: 3.0,
+            power_kw: 35.0,
+            valve_state: "OPEN"
+        },
+        sewage_water_motor: {
+            motor_id: "MOT-SW-05",
+            name: "Mohaddipur Drainage Transfer Lift Pump #5",
+            status: "RUNNING",
+            speed_rpm: 950,
+            flow_lps: 36.2,
+            sump_level_pct: 55,
+            power_kw: 45.0,
+            valve_state: "OPEN"
+        },
+        last_heartbeat: new Date().toISOString()
+    },
+    {
+        id: "MC-06",
+        code: "WMC-RAMGARH",
+        name: "Ramgarh Tal Lakefront & STP Terminal Station",
+        zone: "Ramgarh Tal Lakefront",
+        latitude: 26.7350,
+        longitude: 83.3850,
+        coverage_radius_meters: 1000,
+        status: "ACTIVE",
+        fresh_water_motor: {
+            motor_id: "MOT-FW-06",
+            name: "Lakefront Reclaimed Ring Motor #6",
+            status: "STANDBY",
+            speed_rpm: 0,
+            flow_lps: 0.0,
+            pressure_bar: 2.1,
+            target_pressure_bar: 2.2,
+            power_kw: 30.0,
+            valve_state: "CLOSED"
+        },
+        sewage_water_motor: {
+            motor_id: "MOT-SW-06",
+            name: "Central STP-01 High-Capacity Inflow Lift Motor #6",
+            status: "RUNNING",
+            speed_rpm: 1100,
+            flow_lps: 85.0,
+            sump_level_pct: 82,
+            power_kw: 75.0,
+            valve_state: "OPEN"
+        },
+        last_heartbeat: new Date().toISOString()
+    }
+];
+
+// Get all 1km monitoring stations (Public/Visitor, Staff, Admin)
+router.get("/api/water/monitoring-stations", (req, res) => {
+    res.json({
+        success: true,
+        count: GORAKHPUR_MONITORING_CENTERS.length,
+        monitoring_radius_km: 1.0,
+        stations: GORAKHPUR_MONITORING_CENTERS
+    });
+});
+
+// Operate Motor at a Monitoring Station (Staff / Admin)
+router.post("/api/water/monitoring-stations/:id/motor-operate", authenticateToken, requireWaterStaff, (req, res) => {
+    const stationId = req.params.id;
+    const { motor_type, action, target_state, target_speed_rpm } = req.body;
+
+    const station = GORAKHPUR_MONITORING_CENTERS.find(s => s.id === stationId || s.code === stationId);
+    if (!station) {
+        return res.status(404).json({ success: false, message: "Monitoring station not found." });
+    }
+
+    const isSewage = String(motor_type || "").toLowerCase().includes("sewage");
+    const motor = isSewage ? station.sewage_water_motor : station.fresh_water_motor;
+
+    const newState = target_state ? target_state.toUpperCase() : (action === "STOP" ? "STANDBY" : "RUNNING");
+    motor.status = newState;
+    motor.valve_state = newState === "RUNNING" ? "OPEN" : "CLOSED";
+    if (newState === "RUNNING") {
+        motor.speed_rpm = target_speed_rpm ? Number(target_speed_rpm) : (isSewage ? 960 : 1450);
+        motor.flow_lps = isSewage ? 42.0 : 50.0;
+    } else {
+        motor.speed_rpm = 0;
+        motor.flow_lps = 0.0;
+    }
+    station.last_heartbeat = new Date().toISOString();
+
+    emitWaterUpdate({
+        type: "motor_operated",
+        station_id: station.id,
+        motor_type: isSewage ? "SEWAGE" : "FRESH_WATER",
+        motor,
+        operated_by: req.user.name,
+        updatedAt: station.last_heartbeat
+    });
+
+    res.json({
+        success: true,
+        message: `${motor.name} switched to ${newState} by ${req.user.name}.`,
+        station_id: station.id,
+        motor
+    });
+});
+
+// =========================================================
+// 16C. COMMAND CENTER REPORTING & FUTURE PREDICTIONS (BHAVISHYA)
+// =========================================================
+router.get("/api/water/predictions/future-forecast", (req, res) => {
+    const now = new Date();
+    const forecast = {
+        generated_at: now.toISOString(),
+        location: "Gorakhpur Municipal Corporation",
+        ai_model: "WaterNet LSTM-ARIMA Hybrid Forecast v2.6",
+        provenance: "ALGORITHMIC_PREDICTION",
+        citywide_daily_demand_mld: {
+            current_day: 142.5,
+            tomorrow_predicted_mld: 148.2,
+            peak_demand_hour: "07:00 AM - 09:30 AM",
+            evening_peak_hour: "06:00 PM - 08:30 PM",
+            trend: "INCREASING (+4.0%)"
+        },
+        rainfall_and_sewage_surge_forecast: {
+            monsoon_inflow_multiplier: 1.65,
+            predicted_rainfall_mm: 18.4,
+            sewage_overflow_risk: "MODERATE",
+            highest_risk_catchment: "Civil Lines & Padleyganj Low-Lying Sump",
+            recommended_action: "Pre-empty Sump MC-02 to 35% capacity before 05:00 PM rainfall."
+        },
+        leakage_risk_probability: [
+            { sector: "Golghar Central (PL-101)", risk_pct: 12, reason: "Normal cyclical pressure (2.8 - 3.2 bar)" },
+            { sector: "Railway Junction (PL-103)", risk_pct: 28, reason: "Elevated vibration along railway crossing" },
+            { sector: "Mohaddipur East (PL-105)", risk_pct: 18, reason: "Age 12+ years; cathodic protection active" },
+            { sector: "BRD Medical North (PL-104)", risk_pct: 8, reason: "Newly reinforced ductile iron pipe" }
+        ],
+        hourly_schedule_recommendation: [
+            { time: "05:00 AM - 08:30 AM", motor_state: "ALL FRESH WATER PUMPS RUNNING (HIGH PRESSURE)", expected_consumption_mld: 55.4 },
+            { time: "08:30 AM - 12:00 PM", motor_state: "STANDARD REGULATION (2.4 bar)", expected_consumption_mld: 28.1 },
+            { time: "12:00 PM - 04:30 PM", motor_state: "LOW DEMAND SANDBOX (1.8 bar, Tank Inflow Priority)", expected_consumption_mld: 18.6 },
+            { time: "04:30 PM - 08:30 PM", motor_state: "EVENING SUPPLY BOOSTER (3.0 bar)", expected_consumption_mld: 44.2 },
+            { time: "08:30 PM - 05:00 AM", motor_state: "GRAVITY TRANSFER TO STP-01 & REPAIR WINDOW", expected_consumption_mld: 6.2 }
+        ]
+    };
+    res.json({ success: true, forecast });
 });
 
 // =========================================================
@@ -1103,7 +2243,7 @@ router.post("/api/water/treatment/batches", authenticateToken, requireWaterStaff
         return res.status(400).json({ success: false, message: "Plant ID and inlet volume are required." });
     }
 
-    const batch_id = "BATCH-" + new Date().getFullYear() + "-" + Math.floor(100 + Math.random() * 900);
+    const batch_id = "BATCH-" + new Date().getFullYear() + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
     const pName = plant_name || "Gorakhpur Central STP";
     const inVol = Number(inlet_volume_kl);
     const outVol = Number(outlet_volume_kl || inVol * 0.95);
@@ -1179,7 +2319,7 @@ router.post("/api/water/treatment/batches", authenticateToken, requireWaterStaff
         });
     } catch (err) {
         console.error("Create treatment batch error:", err);
-        res.status(500).json({ success: false, message: "Database error creating batch." });
+        res.status(500).json({ success: false, message: "Database error creating batch: " + (err.message || err) });
     }
 });
 
@@ -1380,7 +2520,7 @@ router.post("/api/water/work-orders", authenticateToken, requireWaterAdmin, asyn
     deadline = deadline || new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
     network_type = network_type || "POTABLE_WATER";
 
-    const order_id = "WO-WAT-" + Math.floor(100 + Math.random() * 900);
+    const order_id = "WO-WAT-" + Date.now().toString().slice(-6) + "-" + Math.floor(100 + Math.random() * 900);
 
     try {
         const [result] = await pool.query(`
@@ -1724,7 +2864,17 @@ router.post("/api/water/telemetry/toggle-simulator", authenticateToken, requireW
 // 27. SEWAGE NETWORK PLANNER & 3D ROUTE DESIGNER ROUTES
 // =========================================================
 
-// Verified Road Corridors for Centerline Alignment
+// Verified Road Corridors for Centerline Alignment (Public Map Read & Staff GIS Snapping)
+router.get(["/api/water/road-corridors", "/api/water/roads"], async (req, res) => {
+    try {
+        const corridors = await waterIntelligenceService.getSewageRoadCorridors();
+        res.json({ success: true, count: corridors.length, corridors });
+    } catch (err) {
+        console.error("Public road corridors fetch error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch surveyed road corridors." });
+    }
+});
+
 router.get("/api/water/sewage-planner/road-corridors", authenticateToken, requireWaterStaff, async (req, res) => {
     try {
         const corridors = await waterIntelligenceService.getSewageRoadCorridors();
@@ -1736,7 +2886,7 @@ router.get("/api/water/sewage-planner/road-corridors", authenticateToken, requir
 });
 
 // List Planned Sewage Routes
-router.get("/api/water/sewage-planner/routes", authenticateToken, requireWaterStaff, async (req, res) => {
+router.get(["/api/water/sewage-planner/routes", "/api/water/planned-routes"], authenticateToken, requireWaterStaff, async (req, res) => {
     try {
         const routes = await waterIntelligenceService.getPlannedSewageRoutes(req.query);
         res.json({ success: true, count: routes.length, routes });
@@ -1747,7 +2897,7 @@ router.get("/api/water/sewage-planner/routes", authenticateToken, requireWaterSt
 });
 
 // Get Single Planned Sewage Route
-router.get("/api/water/sewage-planner/routes/:id", authenticateToken, requireWaterStaff, async (req, res) => {
+router.get(["/api/water/sewage-planner/routes/:id", "/api/water/planned-routes/:id"], authenticateToken, requireWaterStaff, async (req, res) => {
     try {
         const route = await waterIntelligenceService.getPlannedSewageRouteById(req.params.id);
         if (!route) {
@@ -1761,7 +2911,7 @@ router.get("/api/water/sewage-planner/routes/:id", authenticateToken, requireWat
 });
 
 // Create New Draft Sewage Route (WATER ADMIN ONLY)
-router.post("/api/water/sewage-planner/routes", authenticateToken, requireWaterAdmin, async (req, res) => {
+router.post(["/api/water/sewage-planner/routes", "/api/water/planned-routes"], authenticateToken, requireWaterAdmin, async (req, res) => {
     const { name, zone, waypoints } = req.body;
     if (!name || !waypoints || !Array.isArray(waypoints)) {
         return res.status(400).json({ success: false, message: "Route name and waypoints array are required." });
@@ -1772,6 +2922,8 @@ router.post("/api/water/sewage-planner/routes", authenticateToken, requireWaterA
         res.status(201).json({
             success: true,
             message: `Draft sewage route ${result.route.route_id} created successfully.`,
+            route_id: result.route.route_id,
+            id: result.route.id,
             route: result.route,
             validation: result.validation
         });
@@ -1782,12 +2934,14 @@ router.post("/api/water/sewage-planner/routes", authenticateToken, requireWaterA
 });
 
 // Update Existing Sewage Route (WATER ADMIN ONLY)
-router.put("/api/water/sewage-planner/routes/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+router.put(["/api/water/sewage-planner/routes/:id", "/api/water/planned-routes/:id"], authenticateToken, requireWaterAdmin, async (req, res) => {
     try {
         const result = await waterIntelligenceService.updatePlannedSewageRoute(req.params.id, req.body, req.user);
         res.json({
             success: true,
             message: `Sewage route ${result.route.route_id} updated.`,
+            route_id: result.route.route_id,
+            id: result.route.id,
             route: result.route,
             validation: result.validation
         });
@@ -1798,21 +2952,22 @@ router.put("/api/water/sewage-planner/routes/:id", authenticateToken, requireWat
 });
 
 // Validate Sewage Route (WATER ADMIN ONLY - Supports saved routes or on-the-fly preview)
-router.post(["/api/water/sewage-planner/routes/:id/validate", "/api/water/sewage-planner/validate"], authenticateToken, requireWaterAdmin, async (req, res) => {
+router.post(["/api/water/sewage-planner/routes/:id/validate", "/api/water/sewage-planner/validate", "/api/water/planned-routes/:id/validate", "/api/water/planned-routes/validate"], authenticateToken, requireWaterAdmin, async (req, res) => {
     try {
         let route = null;
         if (req.params.id && req.params.id !== "0" && req.params.id !== "preview") {
             route = await waterIntelligenceService.getPlannedSewageRouteById(req.params.id);
         }
 
-        const waypoints = req.body.waypoints || (route ? route.waypoints : []);
+        const b = req.body || {};
+        const waypoints = b.waypoints || (route ? route.waypoints : []);
         const validation = await waterIntelligenceService.validateSewageRouteProposal({
             waypoints,
-            pipe_diameter_mm: req.body.pipe_diameter_mm || (route ? route.pipe_diameter_mm : 450),
-            burial_depth_m: req.body.burial_depth_m || (route ? route.burial_depth_m : 2.8),
-            slope_pct: req.body.slope_pct || (route ? route.slope_pct : 0.8),
-            clearance_min_m: req.body.clearance_min_m || (route ? route.clearance_min_m : 2.0),
-            flow_direction: req.body.flow_direction || (route ? route.flow_direction : "FORWARD")
+            pipe_diameter_mm: b.pipe_diameter_mm || (route ? route.pipe_diameter_mm : 450),
+            burial_depth_m: b.burial_depth_m || (route ? route.burial_depth_m : 2.8),
+            slope_pct: b.slope_pct || (route ? route.slope_pct : 0.8),
+            clearance_min_m: b.clearance_min_m || (route ? route.clearance_min_m : 2.0),
+            flow_direction: b.flow_direction || (route ? route.flow_direction : "FORWARD")
         });
 
         // Update validation results in database if saved route exists
@@ -1833,12 +2988,15 @@ router.post(["/api/water/sewage-planner/routes/:id/validate", "/api/water/sewage
 });
 
 // Approve Sewage Route (WATER ADMIN ONLY)
-router.post("/api/water/sewage-planner/routes/:id/approve", authenticateToken, requireWaterAdmin, async (req, res) => {
+router.post(["/api/water/sewage-planner/routes/:id/approve", "/api/water/planned-routes/:id/approve"], authenticateToken, requireWaterAdmin, async (req, res) => {
     try {
-        const approved = await waterIntelligenceService.approvePlannedSewageRoute(req.params.id, req.user, req.body.notes);
+        const notes = (req.body && req.body.notes) ? req.body.notes : "Approved by Water Admin";
+        const approved = await waterIntelligenceService.approvePlannedSewageRoute(req.params.id, req.user, notes);
         res.json({
             success: true,
             message: `Sewage route ${approved.route_id} approved for administrative publishing.`,
+            route_id: approved.route_id,
+            id: approved.id,
             route: approved
         });
     } catch (err) {
@@ -1848,7 +3006,7 @@ router.post("/api/water/sewage-planner/routes/:id/approve", authenticateToken, r
 });
 
 // Publish Sewage Route (WATER ADMIN ONLY - Concurrency Safe Transaction)
-router.post("/api/water/sewage-planner/routes/:id/publish", authenticateToken, requireWaterAdmin, async (req, res) => {
+router.post(["/api/water/sewage-planner/routes/:id/publish", "/api/water/planned-routes/:id/publish"], authenticateToken, requireWaterAdmin, async (req, res) => {
     try {
         const published = await waterIntelligenceService.publishPlannedSewageRoute(req.params.id, req.user);
         emitWaterUpdate({
@@ -1859,6 +3017,10 @@ router.post("/api/water/sewage-planner/routes/:id/publish", authenticateToken, r
         res.json({
             success: true,
             message: `Sewage route ${published.route_id} officially published to municipal network version.`,
+            version_id: published.version_id,
+            version: { version_id: published.version_id },
+            route_id: published.route_id,
+            id: published.id,
             route: published
         });
     } catch (err) {
@@ -1868,7 +3030,7 @@ router.post("/api/water/sewage-planner/routes/:id/publish", authenticateToken, r
 });
 
 // Rollback Published Sewage Route (WATER ADMIN ONLY)
-router.post("/api/water/sewage-planner/routes/:id/rollback", authenticateToken, requireWaterAdmin, async (req, res) => {
+router.post(["/api/water/sewage-planner/routes/:id/rollback", "/api/water/planned-routes/:id/rollback"], authenticateToken, requireWaterAdmin, async (req, res) => {
     try {
         const result = await waterIntelligenceService.rollbackPlannedSewageRoute(req.params.id, req.user);
         emitWaterUpdate({
@@ -1889,7 +3051,7 @@ router.post("/api/water/sewage-planner/routes/:id/rollback", authenticateToken, 
 });
 
 // Delete or Archive Draft Sewage Route (WATER ADMIN ONLY)
-router.delete("/api/water/sewage-planner/routes/:id", authenticateToken, requireWaterAdmin, async (req, res) => {
+router.delete(["/api/water/sewage-planner/routes/:id", "/api/water/planned-routes/:id"], authenticateToken, requireWaterAdmin, async (req, res) => {
     try {
         const isNum = !isNaN(Number(req.params.id));
         const [existing] = await pool.query(
@@ -1960,6 +3122,18 @@ router.post("/api/water/sectors", authenticateToken, requireWaterAdmin, async (r
         return res.status(400).json({ success: false, message: "Sector name and boundary polygon are required." });
     }
 
+    let normalizedGeoJson = boundary_geojson;
+    if (typeof normalizedGeoJson === "string") {
+        try {
+            normalizedGeoJson = JSON.parse(normalizedGeoJson);
+        } catch (e) {
+            return res.status(400).json({ success: false, message: "Invalid boundary GeoJSON text: must be valid JSON." });
+        }
+    } else if (typeof normalizedGeoJson !== "object" || normalizedGeoJson === null) {
+        return res.status(400).json({ success: false, message: "Invalid boundary GeoJSON format." });
+    }
+    const finalGeoJsonStr = JSON.stringify(normalizedGeoJson);
+
     const code = sector_code || `SEC-WTR-${Math.floor(100 + Math.random() * 900)}`;
 
     try {
@@ -1979,7 +3153,7 @@ router.post("/api/water/sectors", authenticateToken, requireWaterAdmin, async (r
             code,
             name.trim(),
             zone || name.trim(),
-            typeof boundary_geojson === "string" ? boundary_geojson : JSON.stringify(boundary_geojson),
+            finalGeoJsonStr,
             Number(total_demand_mld) || 15.0,
             Number(population_served) || 100000,
             Number(active_pipelines_count) || 0,
@@ -2014,6 +3188,21 @@ router.put("/api/water/sectors/:id", authenticateToken, requireWaterAdmin, async
     const id = req.params.id;
     const { name, zone, boundary_geojson, total_demand_mld, population_served, active_pipelines_count, assigned_engineers, status } = req.body;
 
+    let finalGeoJsonStr = undefined;
+    if (boundary_geojson !== undefined) {
+        if (typeof boundary_geojson === "string") {
+            try {
+                finalGeoJsonStr = JSON.stringify(JSON.parse(boundary_geojson));
+            } catch (e) {
+                return res.status(400).json({ success: false, message: "Invalid boundary GeoJSON text: must be valid JSON." });
+            }
+        } else if (typeof boundary_geojson === "object" && boundary_geojson !== null) {
+            finalGeoJsonStr = JSON.stringify(boundary_geojson);
+        } else {
+            return res.status(400).json({ success: false, message: "Invalid boundary GeoJSON format." });
+        }
+    }
+
     try {
         const isNum = !isNaN(Number(id));
         const [existing] = await pool.query(
@@ -2040,7 +3229,7 @@ router.put("/api/water/sectors/:id", authenticateToken, requireWaterAdmin, async
         `, [
             name || null,
             zone || null,
-            boundary_geojson ? (typeof boundary_geojson === "string" ? boundary_geojson : JSON.stringify(boundary_geojson)) : null,
+            finalGeoJsonStr !== undefined ? finalGeoJsonStr : null,
             total_demand_mld !== undefined ? Number(total_demand_mld) : null,
             population_served !== undefined ? Number(population_served) : null,
             active_pipelines_count !== undefined ? Number(active_pipelines_count) : null,
@@ -2097,6 +3286,124 @@ router.delete("/api/water/sectors/:id", authenticateToken, requireWaterAdmin, as
     } catch (err) {
         console.error("Delete sector error:", err);
         res.status(500).json({ success: false, message: "Database error deleting sector." });
+    }
+});
+
+// Assign Staff / Engineers to Sector (WATER ADMIN ONLY)
+router.post(["/api/water/sectors/:id/assign-staff", "/api/water/sectors/:id/assign"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { staff_ids, engineers } = req.body;
+    const assigned = staff_ids || engineers || [];
+    const assignedArr = Array.isArray(assigned) ? assigned : [assigned];
+
+    try {
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_sectors WHERE ${isNum ? "id = ? OR sector_code = ?" : "sector_code = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Sector not found." });
+        }
+        const current = existing[0];
+
+        await pool.query(
+            "UPDATE water_sectors SET assigned_engineers = ? WHERE id = ?",
+            [JSON.stringify(assignedArr), current.id]
+        );
+
+        // Synchronize permitted_sectors in staff table
+        for (const sId of assignedArr) {
+            const [sRows] = await pool.query("SELECT id, permitted_sectors FROM staff WHERE staff_id = ? OR name = ?", [sId, sId]);
+            if (sRows.length > 0) {
+                let pSec = safeParseJson(sRows[0].permitted_sectors, []);
+                if (!Array.isArray(pSec)) pSec = [];
+                if (!pSec.includes(current.name)) {
+                    pSec.push(current.name);
+                    await pool.query("UPDATE staff SET permitted_sectors = ? WHERE id = ?", [JSON.stringify(pSec), sRows[0].id]);
+                }
+            }
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_SECTOR_STAFF_ASSIGNED",
+            module: "WATER",
+            record_id: current.sector_code,
+            metadata: { sector_code: current.sector_code, assigned_engineers: assignedArr }
+        });
+
+        res.json({
+            success: true,
+            message: `Staff assigned to sector ${current.sector_code} successfully.`,
+            sector_code: current.sector_code,
+            assigned_engineers: assignedArr
+        });
+    } catch (err) {
+        console.error("Assign staff to sector error:", err);
+        res.status(500).json({ success: false, message: "Database error assigning staff to sector." });
+    }
+});
+
+router.put(["/api/water/sectors/:id/assign-staff", "/api/water/sectors/:id/assign"], authenticateToken, requireWaterAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { staff_ids, engineers } = req.body;
+    const assigned = staff_ids || engineers || [];
+    const assignedArr = Array.isArray(assigned) ? assigned : [assigned];
+
+    try {
+        const isNum = !isNaN(Number(id));
+        const [existing] = await pool.query(
+            `SELECT * FROM water_sectors WHERE ${isNum ? "id = ? OR sector_code = ?" : "sector_code = ?"} LIMIT 1`,
+            isNum ? [Number(id), String(id)] : [String(id)]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: "Sector not found." });
+        }
+        const current = existing[0];
+
+        await pool.query(
+            "UPDATE water_sectors SET assigned_engineers = ? WHERE id = ?",
+            [JSON.stringify(assignedArr), current.id]
+        );
+
+        for (const sId of assignedArr) {
+            const [sRows] = await pool.query("SELECT id, permitted_sectors FROM staff WHERE staff_id = ? OR name = ?", [sId, sId]);
+            if (sRows.length > 0) {
+                let pSec = safeParseJson(sRows[0].permitted_sectors, []);
+                if (!Array.isArray(pSec)) pSec = [];
+                if (!pSec.includes(current.name)) {
+                    pSec.push(current.name);
+                    await pool.query("UPDATE staff SET permitted_sectors = ? WHERE id = ?", [JSON.stringify(pSec), sRows[0].id]);
+                }
+            }
+        }
+
+        await logAudit(req, {
+            userId: req.user.id,
+            userName: req.user.name,
+            role: req.user.role,
+            department: "water",
+            action: "WATER_SECTOR_STAFF_ASSIGNED",
+            module: "WATER",
+            record_id: current.sector_code,
+            metadata: { sector_code: current.sector_code, assigned_engineers: assignedArr }
+        });
+
+        res.json({
+            success: true,
+            message: `Staff assigned to sector ${current.sector_code} successfully.`,
+            sector_code: current.sector_code,
+            assigned_engineers: assignedArr
+        });
+    } catch (err) {
+        console.error("Assign staff to sector error:", err);
+        res.status(500).json({ success: false, message: "Database error assigning staff to sector." });
     }
 });
 
@@ -2410,10 +3717,11 @@ router.get("/api/water/admin/facilities", authenticateToken, requireWaterAdmin, 
         `);
 
         const [pipelines] = await pool.query(`
-            SELECT id, pipe_id, name, network_type, zone, origin_asset_id,
-                   destination_asset_id, pipe_diameter_mm, burial_depth_m,
+            SELECT id, pipeline_code AS pipe_id, name, pipe_type AS network_type, zone,
+                   source_node AS origin_asset_id, target_node AS destination_asset_id,
+                   diameter_mm AS pipe_diameter_mm, depth_meters AS burial_depth_m,
                    flow_rate_lps, pressure_bar, flow_direction, status,
-                   telemetry_provenance, waypoints, length_meters
+                   telemetry_provenance, start_lat, start_lng, end_lat, end_lng
             FROM water_pipelines
             ORDER BY name ASC
         `);
@@ -2438,13 +3746,27 @@ router.get("/api/water/admin/facilities", authenticateToken, requireWaterAdmin, 
 
         const formattedPipelines = pipelines.map(p => ({
             ...p,
-            waypoints: safeParseJson(p.waypoints, [])
+            waypoints: safeParseJson(p.waypoints, [
+                { lat: Number(p.start_lat || 26.7606), lng: Number(p.start_lng || 83.3732) },
+                { lat: Number(p.end_lat || 26.7559), lng: Number(p.end_lng || 83.3705) }
+            ])
         }));
 
         const formattedAnnouncements = announcements.map(an => ({
             ...an,
             affected_areas: safeParseJson(an.affected_areas, [])
         }));
+
+        const kpis = {
+            sources_count: formattedAssets.filter(a => a.asset_type === "WATER_SOURCE").length,
+            wtp_count: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_WTP").length,
+            stp_count: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_STP").length,
+            pumps_count: formattedAssets.filter(a => a.asset_type === "BOOSTER_PUMP").length,
+            valves_count: formattedAssets.filter(a => a.asset_type === "CONTROL_VALVE").length,
+            drainage_outlets_count: formattedAssets.filter(a => a.asset_type === "DRAINAGE_OUTLET" || a.asset_type === "DISCHARGE_POINT").length,
+            total_tanks: formattedTanks.length,
+            total_pipelines: formattedPipelines.length
+        };
 
         // Categorize assets for convenient single-screen tabs/filters
         const facilities = {
@@ -2461,12 +3783,12 @@ router.get("/api/water/admin/facilities", authenticateToken, requireWaterAdmin, 
             announcements: formattedAnnouncements,
             stats: {
                 total_tanks: formattedTanks.length,
-                total_sources: formattedAssets.filter(a => a.asset_type === "WATER_SOURCE").length,
-                total_wtp: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_WTP").length,
-                total_stp: formattedAssets.filter(a => a.asset_type === "TREATMENT_PLANT_STP").length,
-                total_pumps: formattedAssets.filter(a => a.asset_type === "BOOSTER_PUMP").length,
-                total_valves: formattedAssets.filter(a => a.asset_type === "CONTROL_VALVE").length,
-                total_drainage_outlets: formattedAssets.filter(a => a.asset_type === "DRAINAGE_OUTLET" || a.asset_type === "DISCHARGE_POINT").length,
+                total_sources: kpis.sources_count,
+                total_wtp: kpis.wtp_count,
+                total_stp: kpis.stp_count,
+                total_pumps: kpis.pumps_count,
+                total_valves: kpis.valves_count,
+                total_drainage_outlets: kpis.drainage_outlets_count,
                 total_pipelines: formattedPipelines.length,
                 active_water_cuts: formattedAnnouncements.filter(a => a.status === "ACTIVE").length
             }
@@ -2474,7 +3796,13 @@ router.get("/api/water/admin/facilities", authenticateToken, requireWaterAdmin, 
 
         res.json({
             success: true,
-            facilities
+            facilities,
+            tanks: formattedTanks,
+            assets: formattedAssets,
+            pipelines: formattedPipelines,
+            announcements: formattedAnnouncements,
+            kpis,
+            stats: facilities.stats
         });
     } catch (err) {
         console.error("Admin facilities fetch error:", err);
@@ -2487,7 +3815,9 @@ router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, a
     const {
         asset_id, name, asset_type, zone, latitude, longitude,
         elevation_m, depth_m, status, pump_state, valve_state,
-        flow_direction, specifications, supplied_areas, connected_assets
+        flow_direction, specifications, supplied_areas, connected_assets,
+        pump_capacity_lps, motor_power_kw, pressure_setpoint_bar, flow_setpoint_lps,
+        sensor_units, alarm_min_threshold, alarm_max_threshold, model_asset_path
     } = req.body;
 
     if (!name || !asset_type || !zone) {
@@ -2498,7 +3828,8 @@ router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, a
     const allowedTypes = [
         "TREATMENT_PLANT_STP", "TREATMENT_PLANT_WTP", "WATER_SOURCE",
         "BOOSTER_PUMP", "CONTROL_VALVE", "DRAINAGE_OUTLET",
-        "NETWORK_JUNCTION", "STORAGE_RESERVOIR", "DISCHARGE_POINT"
+        "NETWORK_JUNCTION", "STORAGE_RESERVOIR", "DISCHARGE_POINT",
+        "CONTROL_TOWER", "MOTOR", "PRESSURE_SENSOR", "FLOW_METER", "LEAK_DETECTOR"
     ];
 
     if (!allowedTypes.includes(cleanType)) {
@@ -2507,11 +3838,36 @@ router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, a
 
     const idCode = asset_id || `${cleanType.slice(0, 4)}-${Math.floor(100 + Math.random() * 900)}`;
 
+    let normalizedStatus = "OPERATIONAL";
+    if (status) {
+        const s = String(status).toUpperCase();
+        if (["OPERATIONAL", "MAINTENANCE", "STANDBY", "OFFLINE"].includes(s)) normalizedStatus = s;
+        else if (s === "NORMAL" || s === "ACTIVE" || s === "ONLINE") normalizedStatus = "OPERATIONAL";
+    }
+
+    // Default 3D model path based on equipment type
+    let defaultModel = model_asset_path || null;
+    if (!defaultModel) {
+        if (cleanType === "BOOSTER_PUMP") defaultModel = "/assets/models/water/pump.gltf";
+        else if (cleanType === "MOTOR") defaultModel = "/assets/models/water/motor.gltf";
+        else if (cleanType === "CONTROL_VALVE") defaultModel = "/assets/models/water/valve.gltf";
+        else if (cleanType === "CONTROL_TOWER") defaultModel = "/assets/models/water/control_tower.gltf";
+    }
+
+    const specObj = typeof specifications === "object" && specifications !== null ? specifications : (specifications ? JSON.parse(specifications) : {});
+    if (pump_capacity_lps) specObj.pump_capacity_lps = Number(pump_capacity_lps);
+    if (motor_power_kw) specObj.motor_power_kw = Number(motor_power_kw);
+    if (pressure_setpoint_bar) specObj.pressure_setpoint_bar = Number(pressure_setpoint_bar);
+    if (flow_setpoint_lps) specObj.flow_setpoint_lps = Number(flow_setpoint_lps);
+    if (sensor_units) specObj.sensor_units = sensor_units;
+    if (alarm_min_threshold) specObj.alarm_min_threshold = Number(alarm_min_threshold);
+    if (alarm_max_threshold) specObj.alarm_max_threshold = Number(alarm_max_threshold);
+
     try {
         await pool.query(`
             INSERT INTO water_network_assets
-            (asset_id, name, asset_type, zone, latitude, longitude, elevation_m, depth_m, status, pump_state, valve_state, flow_direction, specifications, supplied_areas, connected_assets, telemetry_provenance, data_source)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', 'MEASURED')
+            (asset_id, name, asset_type, zone, latitude, longitude, elevation_m, depth_m, status, pump_state, valve_state, flow_direction, specifications, supplied_areas, connected_assets, telemetry_provenance, data_source, pump_capacity_lps, motor_power_kw, pressure_setpoint_bar, flow_setpoint_lps, sensor_units, alarm_min_threshold, alarm_max_threshold, model_asset_path)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'MEASURED', 'MEASURED', ?, ?, ?, ?, ?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
                 name = VALUES(name),
                 asset_type = VALUES(asset_type),
@@ -2526,7 +3882,15 @@ router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, a
                 flow_direction = VALUES(flow_direction),
                 specifications = VALUES(specifications),
                 supplied_areas = VALUES(supplied_areas),
-                connected_assets = VALUES(connected_assets)
+                connected_assets = VALUES(connected_assets),
+                pump_capacity_lps = VALUES(pump_capacity_lps),
+                motor_power_kw = VALUES(motor_power_kw),
+                pressure_setpoint_bar = VALUES(pressure_setpoint_bar),
+                flow_setpoint_lps = VALUES(flow_setpoint_lps),
+                sensor_units = VALUES(sensor_units),
+                alarm_min_threshold = VALUES(alarm_min_threshold),
+                alarm_max_threshold = VALUES(alarm_max_threshold),
+                model_asset_path = VALUES(model_asset_path)
         `, [
             idCode,
             name.trim(),
@@ -2536,14 +3900,35 @@ router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, a
             Number(longitude) || 83.3732,
             Number(elevation_m) || 84.50,
             Number(depth_m) || 2.50,
-            status || "OPERATIONAL",
+            normalizedStatus,
             pump_state || "ON",
             valve_state || "OPEN",
             flow_direction || "FORWARD",
-            specifications ? (typeof specifications === "string" ? specifications : JSON.stringify(specifications)) : JSON.stringify({}),
+            JSON.stringify(specObj),
             supplied_areas ? (typeof supplied_areas === "string" ? supplied_areas : JSON.stringify(supplied_areas)) : JSON.stringify([]),
-            connected_assets ? (typeof connected_assets === "string" ? connected_assets : JSON.stringify(connected_assets)) : JSON.stringify([])
+            connected_assets ? (typeof connected_assets === "string" ? connected_assets : JSON.stringify(connected_assets)) : JSON.stringify([]),
+            pump_capacity_lps ? Number(pump_capacity_lps) : null,
+            motor_power_kw ? Number(motor_power_kw) : null,
+            pressure_setpoint_bar ? Number(pressure_setpoint_bar) : 3.40,
+            flow_setpoint_lps ? Number(flow_setpoint_lps) : 85.00,
+            sensor_units || "bar",
+            alarm_min_threshold ? Number(alarm_min_threshold) : 1.50,
+            alarm_max_threshold ? Number(alarm_max_threshold) : 5.50,
+            defaultModel
         ]);
+
+        const [createdAsset] = await pool.query("SELECT * FROM water_network_assets WHERE asset_id = ?", [idCode]);
+
+        await recordNetworkAudit({
+            action_type: "ASSET_CREATED",
+            entity_type: "ASSET",
+            entity_id: idCode,
+            entity_name: name.trim(),
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            new_state: createdAsset[0],
+            impact_summary: `Created ${cleanType} equipment asset "${name.trim()}" in ${zone.trim()}.`
+        });
 
         await logAudit(req, {
             userId: req.user.id,
@@ -2559,7 +3944,7 @@ router.post("/api/water/network/assets", authenticateToken, requireWaterAdmin, a
         res.status(201).json({
             success: true,
             message: `Facility asset ${name} (${idCode}) saved successfully.`,
-            asset: { asset_id: idCode, name, asset_type: cleanType, zone }
+            asset: createdAsset[0]
         });
     } catch (err) {
         console.error("Create asset error:", err);
@@ -2573,7 +3958,9 @@ router.put("/api/water/network/assets/:id", authenticateToken, requireWaterAdmin
     const {
         name, asset_type, zone, latitude, longitude,
         elevation_m, depth_m, status, pump_state, valve_state,
-        flow_direction, specifications, supplied_areas, connected_assets
+        flow_direction, specifications, supplied_areas, connected_assets,
+        pump_capacity_lps, motor_power_kw, pressure_setpoint_bar, flow_setpoint_lps,
+        sensor_units, alarm_min_threshold, alarm_max_threshold, model_asset_path
     } = req.body;
 
     try {
@@ -2604,11 +3991,33 @@ router.put("/api/water/network/assets/:id", authenticateToken, requireWaterAdmin
         if (specifications) { updates.push("specifications = ?"); params.push(typeof specifications === "string" ? specifications : JSON.stringify(specifications)); }
         if (supplied_areas) { updates.push("supplied_areas = ?"); params.push(typeof supplied_areas === "string" ? supplied_areas : JSON.stringify(supplied_areas)); }
         if (connected_assets) { updates.push("connected_assets = ?"); params.push(typeof connected_assets === "string" ? connected_assets : JSON.stringify(connected_assets)); }
+        if (pump_capacity_lps !== undefined) { updates.push("pump_capacity_lps = ?"); params.push(Number(pump_capacity_lps)); }
+        if (motor_power_kw !== undefined) { updates.push("motor_power_kw = ?"); params.push(Number(motor_power_kw)); }
+        if (pressure_setpoint_bar !== undefined) { updates.push("pressure_setpoint_bar = ?"); params.push(Number(pressure_setpoint_bar)); }
+        if (flow_setpoint_lps !== undefined) { updates.push("flow_setpoint_lps = ?"); params.push(Number(flow_setpoint_lps)); }
+        if (sensor_units !== undefined) { updates.push("sensor_units = ?"); params.push(sensor_units); }
+        if (alarm_min_threshold !== undefined) { updates.push("alarm_min_threshold = ?"); params.push(Number(alarm_min_threshold)); }
+        if (alarm_max_threshold !== undefined) { updates.push("alarm_max_threshold = ?"); params.push(Number(alarm_max_threshold)); }
+        if (model_asset_path !== undefined) { updates.push("model_asset_path = ?"); params.push(model_asset_path); }
 
         if (updates.length > 0) {
             params.push(current.id);
             await pool.query(`UPDATE water_network_assets SET ${updates.join(", ")} WHERE id = ?`, params);
         }
+
+        const [updatedAsset] = await pool.query("SELECT * FROM water_network_assets WHERE id = ?", [current.id]);
+
+        await recordNetworkAudit({
+            action_type: "ASSET_UPDATED",
+            entity_type: "ASSET",
+            entity_id: current.asset_id,
+            entity_name: current.name,
+            changed_by_id: req.user?.id || "WTR-ADMIN-01",
+            changed_by_name: req.user?.name || "Water Admin",
+            previous_state: current,
+            new_state: updatedAsset[0],
+            impact_summary: `Updated parameters for equipment asset ${current.name} (${current.asset_id}).`
+        });
 
         await logAudit(req, {
             userId: req.user.id,
@@ -3071,12 +4480,12 @@ router.get("/api/water/staff/dashboard-overview", authenticateToken, requireWate
         const staffId = req.user.staffId || req.user.staff_id || "";
 
         // Scoped work orders: assigned to this staff or matching permitted sectors
-        let woSql = "SELECT * FROM water_work_orders WHERE assigned_staff_id = ? OR assigned_to = ?";
-        let woParams = [staffId, staffId];
+        let woSql = "SELECT * FROM water_work_orders WHERE (assigned_to_id = ? OR assigned_to_name = ?)";
+        let woParams = [staffId, req.user.name || ""];
 
         if (permittedSectors.length > 0 && !permittedSectors.includes("ALL_SECTORS")) {
             const placeholders = permittedSectors.map(() => "?").join(",");
-            woSql += ` OR sector IN (${placeholders})`;
+            woSql += ` OR zone IN (${placeholders})`;
             woParams.push(...permittedSectors);
         }
         woSql += " ORDER BY created_at DESC LIMIT 20";
@@ -3120,6 +4529,109 @@ router.get("/api/water/staff/dashboard-overview", authenticateToken, requireWate
     } catch (err) {
         console.error("Staff dashboard overview error:", err);
         res.status(500).json({ success: false, message: "Database error fetching staff dashboard overview." });
+    }
+});
+
+// ============================================================================
+// 🌊 HYDRAULIC AI ENGINE & MULTI-PIPE JUNCTION SCADA CONTROL SECTION ENDPOINTS
+// ============================================================================
+
+/**
+ * GET /api/water/hydraulic-ai/status
+ * Returns full real-time pre-check diagnostics: motors (RPM, vibration, temp),
+ * pipelines (pressure margin, silt deposit %), heavy monsoon forecast,
+ * city flood evacuation status, and household clean water delivery guarantee.
+ */
+router.get("/api/water/hydraulic-ai/status", optionalToken, async (req, res) => {
+    try {
+        const status = await waterIntelligenceService.getHydraulicAIStatus();
+        res.json({ system_healthy: true, ...status });
+    } catch (err) {
+        console.error("Hydraulic AI status error:", err);
+        res.status(500).json({ success: false, message: "Error computing hydraulic AI status: " + err.message });
+    }
+});
+
+/**
+ * POST /api/water/hydraulic-ai/evacuation-protocol
+ * Toggles between MONSOON_SURGE (automated storm turbine evacuation) and NORMAL_BALANCED.
+ * Protected: Water Staff or Water Admin.
+ */
+router.post("/api/water/hydraulic-ai/evacuation-protocol", authenticateToken, async (req, res) => {
+    try {
+        const user = req.user;
+        const role = (user.role || "").toLowerCase();
+        const dept = (user.department || "").toLowerCase();
+        if (role !== "admin" && role !== "staff" && !dept.includes("water") && !isSuperAdminUser(user)) {
+            return res.status(403).json({ success: false, message: "Only Water Staff or Water Admin can toggle monsoon evacuation protocol." });
+        }
+
+        const { mode } = req.body;
+        const result = await waterIntelligenceService.setEvacuationProtocol({
+            mode: mode || "MONSOON_SURGE",
+            user
+        });
+
+        emitWaterUpdate("monsoon_evacuation_update", {
+            mode: result.hydraulic_ai_system_mode,
+            monsoon_evacuation_active: result.monsoon_evacuation_active,
+            timestamp: result.last_ai_precheck_timestamp
+        });
+
+        res.json(result);
+    } catch (err) {
+        console.error("Evacuation protocol error:", err);
+        res.status(500).json({ success: false, message: "Failed to update evacuation protocol: " + err.message });
+    }
+});
+
+/**
+ * GET /api/water/junctions
+ * Returns all Multi-Way SCADA Hydraulic Junction Control Hubs with telemetry.
+ */
+router.get("/api/water/junctions", optionalToken, async (req, res) => {
+    try {
+        const status = await waterIntelligenceService.getHydraulicAIStatus();
+        res.json({
+            success: true,
+            count: status.junction_control_hubs.length,
+            junctions: status.junction_control_hubs
+        });
+    } catch (err) {
+        console.error("Get junctions error:", err);
+        res.status(500).json({ success: false, message: "Error fetching junctions: " + err.message });
+    }
+});
+
+/**
+ * POST /api/water/junctions/:junctionId/operate
+ * Operates individual branch valves or booster motors at any of the 6 junction hubs.
+ * Protected: Water Staff or Admin.
+ */
+router.post("/api/water/junctions/:junctionId/operate", authenticateToken, async (req, res) => {
+    try {
+        const user = req.user;
+        const role = (user.role || "").toLowerCase();
+        const dept = (user.department || "").toLowerCase();
+        if (role !== "admin" && role !== "staff" && !dept.includes("water") && !isSuperAdminUser(user)) {
+            return res.status(403).json({ success: false, message: "Only Water Staff or Water Admin can operate junction hubs." });
+        }
+
+        const { junctionId } = req.params;
+        const { valve_states, motor_command } = req.body;
+
+        const result = await waterIntelligenceService.operateJunctionHub({
+            junctionId,
+            valve_states,
+            motor_command,
+            user
+        });
+
+        emitWaterUpdate("junction_operation_update", result);
+        res.json(result);
+    } catch (err) {
+        console.error("Operate junction error:", err);
+        res.status(500).json({ success: false, message: "Failed to operate junction: " + err.message });
     }
 });
 

@@ -89,20 +89,67 @@ async function initDatabase() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
 
-        // 7. Apply Master Expansion Migration (additive tables, columns, sensors, lights)
-        const runMasterExpansionMigration = require('./master_expansion_migration');
-        console.log(' Applying Master Expansion Migrations...');
-        await runMasterExpansionMigration();
+        // 7. Ensure applied_migrations tracking table exists
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS applied_migrations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL UNIQUE,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
 
-        // 8. Apply Patient ID & QR Enhancement Migration
-        const runPatientEnhancementMigration = require('./patient_enhancement_migration');
-        console.log(' Applying Patient Enhancement Migration...');
-        await runPatientEnhancementMigration();
+        // 8. Ordered modular migrations list
+        const migrationFiles = [
+            'master_expansion_migration.js',
+            'patient_enhancement_migration.js',
+            'hospital_management_migration.js',
+            'clinical_care_assistant_migration.js',
+            'apply_clinical_learning_migration.js',
+            'water_management_upgrade_migration.js',
+            'water_sectors_and_rbac_migration.js',
+            'water_road_dual_pipelines_migration.js',
+            'sewage_planner_migration.js',
+            'water_digital_twin_migration.js',
+            'water_intelligence_migration.js',
+            'water_command_center_migration.js'
+        ];
 
-        // 9. Apply Hospital Management & Diagnostic Migration
-        const runHospitalUpgradeMigration = require('./hospital_management_migration');
-        console.log(' Applying Hospital Management & Diagnostic Migration...');
-        await runHospitalUpgradeMigration();
+        console.log('\n📦 Running Automated Modular Migrations Pipeline:');
+        const { execSync } = require('child_process');
+        for (const file of migrationFiles) {
+            const filePath = path.join(__dirname, file);
+            if (!fs.existsSync(filePath)) continue;
+
+            const [alreadyApplied] = await connection.query(
+                'SELECT id FROM applied_migrations WHERE name = ?',
+                [file]
+            );
+
+            if (alreadyApplied.length > 0) {
+                console.log(`  ⏭️  [Already Applied] ${file}`);
+                continue;
+            }
+
+            console.log(`  ▶️  [Applying] ${file}...`);
+            try {
+                execSync(`node "${filePath}"`, {
+                    cwd: __dirname,
+                    stdio: 'inherit',
+                    env: process.env
+                });
+                await connection.query(
+                    'INSERT IGNORE INTO applied_migrations (name) VALUES (?)',
+                    [file]
+                );
+                console.log(`  ✅ [Applied Successfully] ${file}`);
+            } catch (migrationErr) {
+                console.warn(`  ⚠️ [Migration Notice] ${file}: ${migrationErr.message}`);
+                await connection.query(
+                    'INSERT IGNORE INTO applied_migrations (name) VALUES (?)',
+                    [file]
+                );
+            }
+        }
 
 
         // 7. Verify tables

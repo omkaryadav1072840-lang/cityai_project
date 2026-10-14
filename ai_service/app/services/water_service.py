@@ -12,8 +12,19 @@ class WaterService:
         outflow = req.daily_outflow_liters
         avg_outflow = req.historical_avg_outflow
 
-        # Calculate deviation sigma
-        if avg_outflow > 0:
+        # Calculate deviation sigma with true sample variance if historical readings provided
+        if req.historical_readings and len(req.historical_readings) >= 2:
+            try:
+                import numpy as np
+                std_dev = float(np.std(req.historical_readings, ddof=1))
+                computed_avg = float(np.mean(req.historical_readings))
+                deviation_liters = outflow - computed_avg
+                z_score = round(deviation_liters / max(1.0, std_dev), 2)
+            except Exception:
+                std_dev = avg_outflow * 0.15
+                deviation_liters = outflow - avg_outflow
+                z_score = round(deviation_liters / max(1.0, std_dev), 2)
+        elif avg_outflow > 0:
             std_dev = avg_outflow * 0.15 # Assuming ~15% natural daily variance
             deviation_liters = outflow - avg_outflow
             z_score = round(deviation_liters / max(1.0, std_dev), 2)

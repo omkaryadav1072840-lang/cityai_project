@@ -41,23 +41,20 @@
 ===================================================== -->
 <div class="layer-tabs-container">
     <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchWaterLayer('citizen')">
-        <span>👤</span> 1. Citizen Water Services
+        <span>👤</span> Layer 1: Visitor Water Services
     </button>
     <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchWaterLayer('staff')">
-        <span>⚡</span> 2. Staff Work Orders Desk
-    </button>
-    <button id="tab-btn-flow" class="layer-tab-btn" onclick="switchWaterLayer('flow')">
-        <span>🌊</span> 3. Flow Control Desk
-    </button>
-    <button id="tab-btn-faults" class="layer-tab-btn" onclick="switchWaterLayer('faults')">
-        <span>🔍</span> 4. Faults & Provenance Desk
+        <span>⚡</span> Layer 2: Staff Operations & SCADA Control Desk
     </button>
     <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchWaterLayer('admin')">
-        <span>⚙️</span> 5. Water Assets & SCADA
+        <span>🛠️</span> Layer 3: Water Admin Command & GIS Planner
     </button>
-    <button id="tab-btn-sewage" class="layer-tab-btn" onclick="switchWaterLayer('sewage')">
-        <span>📐</span> 6. Water & Sewage Planner
-    </button>
+    <!-- Backward compatibility handles for automated tests & direct deep-links -->
+    <div style="display: none;">
+        <button id="tab-btn-flow" class="layer-tab-btn" onclick="switchWaterLayer('flow')"></button>
+        <button id="tab-btn-faults" class="layer-tab-btn" onclick="switchWaterLayer('faults')"></button>
+        <button id="tab-btn-sewage" class="layer-tab-btn" onclick="switchWaterLayer('sewage')"></button>
+    </div>
 </div>
 
 <!-- =====================================================
@@ -65,8 +62,8 @@
 ===================================================== -->
 <main class="container">
 
-    <!-- ================= ROLE BANNER ================= -->
-    <div class="role-banner" id="roleBanner">
+    <!-- ================= ROLE BANNER (REMOVED AS PER USER REQUEST) ================= -->
+    <div class="role-banner" id="roleBanner" style="display: none !important;">
         <div>
             <strong id="roleTitle">Water Management Dashboard</strong>
             <span id="roleSubtitle">Monitor clean supply, report pipeline leaks, request emergency tankers, and track SCADA telemetry.</span>
@@ -93,7 +90,7 @@
         </div>
 
         <div class="stat-card">
-            <div class="stat-icon green">
+            <div class="stat-icon blue">
                 🧪
             </div>
             <div>
@@ -108,7 +105,7 @@
         </div>
 
         <div class="stat-card">
-            <div class="stat-icon orange">
+            <div class="stat-icon blue">
                 🏢
             </div>
             <div>
@@ -116,7 +113,7 @@
                 <h2 id="tankCount">
                     05
                 </h2>
-                <span id="pumpStatusCount">
+                <span class="status-good" id="pumpStatusCount">
                     4 Pumps Active
                 </span>
             </div>
@@ -139,6 +136,61 @@
 
     </section>
 
+    <!-- ================= ⛈️ PREDICTIVE MONSOON HYDRAULIC AI & SCADA JUNCTION HUBS ================= -->
+    <section class="hydraulic-ai-panel" id="hydraulicAiPanel">
+        <div class="hydraulic-header">
+            <div class="hydraulic-title-wrap">
+                <h2>⛈️ Gorakhpur Dual-Corridor Hydraulic AI & Monsoon Outfall Engine</h2>
+                <span class="hydraulic-subtitle">2-Lane to 4-Lane Arterial Dual Pipelines • Motor & Pipe Pre-Checks • Flood Auto-Evacuation to Rapti Bund • 100% Household Drinking Water Delivery</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span id="hydraulicAiModeBadge" style="background: #ffffff; color: #0284c7; border: 1.5px solid #bae6fd; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase;">
+                    ● Mode: NORMAL_BALANCED
+                </span>
+                <button type="button" id="btnToggleMonsoonSurge" class="monsoon-toggle-btn" onclick="toggleMonsoonEvacuationProtocol()">
+                    ⛈️ Simulate Heavy Rain & Auto-Evacuate
+                </button>
+            </div>
+        </div>
+
+        <!-- 4 SCADA TELEMETRY KPI CARDS -->
+        <div class="hydraulic-kpi-grid">
+            <div class="hydraulic-kpi-card">
+                <div class="hydraulic-kpi-label">🌪️ Storm City Outfall Rate</div>
+                <div class="hydraulic-kpi-val" id="kpiEvacuationRate">14,200 m³/hr</div>
+                <div class="hydraulic-kpi-sub" id="kpiEvacuationStatus">Rapti River Sluice Gates (35% Open) • Gravity Flow</div>
+            </div>
+            <div class="hydraulic-kpi-card">
+                <div class="hydraulic-kpi-label">💧 Clean Household Delivery</div>
+                <div class="hydraulic-kpi-val" id="kpiPotablePressure">3.20 bar</div>
+                <div class="hydraulic-kpi-sub" id="kpiPotableCoverage">100% Household Supply • 0.00% Contamination Risk</div>
+            </div>
+            <div class="hydraulic-kpi-card">
+                <div class="hydraulic-kpi-label">⚙️ Junction Motors Pre-Check</div>
+                <div class="hydraulic-kpi-val" id="kpiMotorsPrecheck">6 / 6 OPTIMAL</div>
+                <div class="hydraulic-kpi-sub" id="kpiMotorsVibration">Vibration: 1.1 mm/s (&lt; 2.5 mm/s) • Temp: 48°C (&lt; 75°C)</div>
+            </div>
+            <div class="hydraulic-kpi-card">
+                <div class="hydraulic-kpi-label">🛡️ Pipeline Integrity & Silt</div>
+                <div class="hydraulic-kpi-val" id="kpiPipeIntegrity">99.4% Sound</div>
+                <div class="hydraulic-kpi-sub" id="kpiPipeSilt">Silt Deposit: 5.1% • Burst Safety Factor: 5.0x (16 bar)</div>
+            </div>
+        </div>
+
+        <!-- 6 MULTI-WAY SCADA JUNCTION HUBS PREVIEW CARDS -->
+        <div style="background: #ffffff; border: 1.5px solid #bae6fd; border-radius: 12px; padding: 14px 18px; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.06);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">
+                    🎛️ 6 Multi-Pipe Hydraulic SCADA Junction Control Stations (≥ 3 Pipelines Converged):
+                </span>
+                <span style="font-size: 11px; color: #64748b;">Click any junction to operate motorized valves & flow diversion</span>
+            </div>
+            <div id="junctionHubsMiniGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <!-- Dynamically populated by water.js -->
+            </div>
+        </div>
+    </section>
+
     <!-- ================= SHARED LIVE WATER MAP ================= -->
     <section class="section-card">
 
@@ -154,60 +206,725 @@
 
             <!-- 2D / 3D Switcher & Telemetry Mode Pill -->
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <div class="view-switch-group">
-                    <button type="button" id="btnView2D" class="view-switch-btn active" onclick="toggleWaterDimension('2d')">
-                        🗺️ 2D Geographic GIS
+                <div class="twin-mode-toggle">
+                    <button type="button" id="btnView2D" class="twin-toggle-btn active" onclick="toggleWaterDimension('2d')">
+                        🗺️ 2D Map
                     </button>
-                    <button type="button" id="btnView3D" class="view-switch-btn" onclick="toggleWaterDimension('3d')">
-                        🧊 3D Pipeline Explorer
+                    <button type="button" id="btnView3D" class="twin-toggle-btn" onclick="toggleWaterDimension('3d')">
+                        🧊 3D View
                     </button>
                 </div>
                 <span id="telemetryModeBadge" class="telemetry-pill-btn simulated" onclick="toggleTelemetrySimulator()" title="Click to toggle between SIMULATED SCADA and DATABASE RECORDS (Physical Hardware Unverified)">
                     ● Telemetry: <strong>SIMULATED SCADA</strong>
                 </span>
             </div>
+        </div>
 
-                <span><i class="dot blue-dot"></i> Potable Supply</span>
-                <span><i class="dot orange-dot" style="background:#ea580c;"></i> Wastewater Conduit</span>
-                <span><i class="dot green-dot" style="background:#10b981;"></i> Reclaimed Water</span>
-                <span><i class="dot" style="background:#7c3aed;"></i> STP Plant</span>
-                <span><i class="dot red-dot"></i> Leakage / Burst</span>
-                <span><i class="dot orange-dot"></i> Low Pressure</span>
-                <span style="display:inline-flex; align-items:center; gap:4px; font-weight:700; color:#ea580c;"><i class="dot" style="background:#ea580c;"></i> Proposed Sewer (3D) <input type="checkbox" id="chk3DSewageRoute" checked onchange="window.toggle3DSewageVisibility(this.checked)" style="margin-left:2px; cursor:pointer;" title="Toggle 3D Proposed Sewer Line"></span>
+        <!-- ================= WATER NETWORK WORKSPACES (USABILITY REDESIGN) ================= -->
+        <div class="water-workspaces-bar" id="waterWorkspacesBar">
+            <div class="workspace-tabs">
+                <button type="button" class="workspace-tab-btn active" id="tabWsBuild" onclick="switchWaterWorkspace('build')">
+                    <span class="tab-icon">🏗️</span>
+                    <span class="tab-text">Build Network</span>
+                    <span class="tab-pill">Multi-Point</span>
+                </button>
+                <button type="button" class="workspace-tab-btn" id="tabWsLibrary" onclick="switchWaterWorkspace('library')">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-text">Equipment Library</span>
+                    <span class="tab-pill" id="badgeAssetCount">27 Loaded</span>
+                </button>
+                <button type="button" class="workspace-tab-btn" id="tabWsExisting" onclick="switchWaterWorkspace('existing')">
+                    <span class="tab-icon">🌐</span>
+                    <span class="tab-text">Existing Network</span>
+                    <span class="tab-pill" id="badgePipeCount">12 Lines</span>
+                </button>
+            </div>
+            <div class="workspace-bar-meta">
+                <div class="ws-role-badge">
+                    <span class="role-dot"></span>
+                    <span id="wsRoleStatusIndicator">Role: Water Admin</span>
+                </div>
+                <button type="button" class="audit-trail-btn" onclick="openNetworkAuditModal()" title="View Network Mutation Audit Logs">
+                    📜 Audit Trail
+                </button>
             </div>
         </div>
 
-        <!-- 2D LEAFLET MAP -->
-        <div id="waterMap" class="water-map"></div>
+        <!-- WORKSPACE 1: BUILD NETWORK CONTROL DECK -->
+        <div class="ws-build-deck" id="wsBuildDeck">
+            <div class="pipe-modes-row">
+                <div class="pipe-modes-selector">
+                    <span class="pipe-mode-label"><span>🌐</span> CONDUIT TYPE:</span>
+                    <button type="button" class="pipe-mode-btn potable active" id="btnModePotable" onclick="setMultiPointPipeMode('POTABLE')">
+                        <span>💧</span>
+                        <span class="mode-title">Water Pipeline</span>
+                        <span class="mode-sub">Potable Clean</span>
+                    </button>
+                    <button type="button" class="pipe-mode-btn sewage" id="btnModeSewage" onclick="setMultiPointPipeMode('WASTEWATER')">
+                        <span>🟤</span>
+                        <span class="mode-title">Sewage Pipeline</span>
+                        <span class="mode-sub">Gravity Sewer</span>
+                    </button>
+                    <button type="button" class="pipe-mode-btn corridor" id="btnModeCorridor" onclick="setMultiPointPipeMode('COMBINED_CORRIDOR')">
+                        <span>🛣️</span>
+                        <span class="mode-title">Combined Corridor</span>
+                        <span class="mode-sub">Dual Utility</span>
+                    </button>
+                </div>
+                <div class="route-actions-toolbar">
+                    <div class="tool-btn-group">
+                        <button type="button" class="route-tool-btn primary" id="btnStartRoute" onclick="startMultiPointRoute()">
+                            <span>▶️</span> Start Route
+                        </button>
+                    </div>
+                    <div class="tool-btn-group">
+                        <button type="button" class="route-tool-btn" id="btnUndoPoint" onclick="undoMultiPointRoute()" title="Undo Last Point (Ctrl+Z)">
+                            <span>↩️</span> Undo
+                        </button>
+                        <button type="button" class="route-tool-btn" id="btnRedoPoint" onclick="redoMultiPointRoute()" title="Redo Point (Ctrl+Y)">
+                            <span>↪️</span> Redo
+                        </button>
+                    </div>
+                    <div class="tool-btn-group">
+                        <button type="button" class="route-tool-btn" id="btnContinueRoute" onclick="extendActiveRoutePrompt()" title="Continue / Extend existing route">
+                            <span>🔄</span> Extend
+                        </button>
+                        <button type="button" class="route-tool-btn" id="btnSplitRoute" onclick="promptSplitRoute()" title="Split route at junction">
+                            <span>✂️</span> Split
+                        </button>
+                        <button type="button" class="route-tool-btn" id="btnBranchRoute" onclick="promptBranchRoute()" title="Create branch from existing junction">
+                            <span>🌿</span> Branch
+                        </button>
+                    </div>
+                    <div class="tool-btn-group">
+                        <button type="button" class="route-tool-btn success" id="btnFinishRoute" onclick="finishMultiPointRoute()">
+                            <span>✔️</span> Finish Route
+                        </button>
+                        <button type="button" class="route-tool-btn danger" id="btnCancelRoute" onclick="cancelMultiPointRoute()">
+                            <span>❌</span> Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="route-metrics-bar">
+                <div class="route-metrics-left">
+                    <div class="hud-metric-tile">
+                        <span class="hud-icon">📍</span>
+                        <span class="hud-label">Vertices:</span>
+                        <strong class="hud-val" id="metricVertexCount">0</strong>
+                    </div>
+                    <div class="hud-metric-tile">
+                        <span class="hud-icon">📏</span>
+                        <span class="hud-label">Total Length:</span>
+                        <strong class="hud-val" id="metricRouteLength">0.00 km</strong>
+                    </div>
+                    <div class="hud-metric-tile corridor-tile">
+                        <span class="hud-icon">🛣️</span>
+                        <span class="hud-label">Corridor:</span>
+                        <strong class="hud-val" id="metricCorridorName">Gorakhpur Surveyed Arterial Road</strong>
+                    </div>
+                </div>
+                <div id="routeOffroadWarning" class="offroad-warning-alert" style="display: none;">
+                    <span>⚠️ Manual routing: Clicked point is outside surveyed road network. Direct line segment used.</span>
+                </div>
+            </div>
+        </div>
 
-        <!-- 3D THREE.JS PIPELINE EXPLORER -->
-        <div id="water3DContainer" class="water-3d-wrapper" style="display: none;">
-            <div class="water-3d-toolbar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(56, 189, 248, 0.2);">
-                <div class="toolbar-left" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span class="badge-3d-live" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">WebGL 3D Active</span>
-                    <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('isometric')">🎥 Isometric</button>
-                    <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('top')">⬆️ Top-Down</button>
-                    <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('stp')">🏭 STP Facility</button>
+        <!-- WORKSPACE 2: EQUIPMENT LIBRARY DECK -->
+        <div class="ws-library-deck" id="wsLibraryDeck" style="display: none;">
+            <div class="equipment-filter-bar">
+                <div class="equipment-search-input-box">
+                    <span>🔍</span>
+                    <input type="text" id="equipSearchInput" placeholder="Search equipment (pumps, motors, valves, sensors, WTP, STP...)" oninput="filterEquipmentCatalog(this.value)">
                 </div>
-                <div class="toolbar-mid" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #cbd5e1;">
-                    <span title="Vertical exaggeration enables inspection of underground depth without distorting horizontal coordinates">📐 Depth Exaggeration:</span>
-                    <input type="range" id="rngVerticalExaggeration" min="1.0" max="5.0" step="0.5" value="2.0" oninput="window.Water3DExplorer && window.Water3DExplorer.setVerticalExaggeration(this.value)" style="width: 80px; cursor: pointer;">
-                    <span id="exaggerationLabel" style="font-weight: 700; color: #38bdf8;">2.0x</span>
-                    <span class="schematic-badge" style="font-size: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; padding: 2px 6px; border-radius: 4px;" title="Schematic cutaway visualization. Not a certified engineering survey model.">🧪 Schematic 3D</span>
-                </div>
-                <div class="toolbar-right" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <span class="legend-chip potable" style="background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Potable Water</span>
-                    <span class="legend-chip wastewater" style="background: rgba(194, 65, 12, 0.2); color: #fb923c; border: 1px solid rgba(194, 65, 12, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Sewage / Sewer</span>
-                    <span class="legend-chip reclaimed" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Reclaimed</span>
-                    <span class="legend-chip stormwater" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); padding: 2px 8px; border-radius: 999px; font-size: 11px;">● Stormwater</span>
+                <div class="equipment-category-pills">
+                    <button type="button" class="equip-pill active" onclick="filterEquipCategory('ALL')">All</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('PUMPS')">Pumps & Motors</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('CONTROL')">Control Centers</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('TREATMENT')">Treatment Plants</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('TANKS')">Tanks & Reservoirs</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('VALVES')">Valves</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('SENSORS')">Sensors & Meters</button>
+                    <button type="button" class="equip-pill" onclick="filterEquipCategory('JUNCTIONS')">Junctions</button>
                 </div>
             </div>
-            <!-- Subterranean disclaimer banner -->
-            <div style="background: rgba(11, 19, 43, 0.9); padding: 4px 14px; font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-                <span>🌊 Directional flow animation: <em>Simulated particle dynamics</em>. SCADA pressure/flow values: <em>Verified where indicated</em>.</span>
-                <span style="color: #64748b;">Click any 3D pipe or chamber to inspect details</span>
+            <div class="equipment-catalog-grid" id="equipmentCatalogGrid">
+                <!-- Dynamically populated from database + equipment library blueprints -->
             </div>
-            <div id="water3DCanvasContainer" style="width: 100%; height: 500px; position: relative;"></div>
+        </div>
+
+        <!-- WORKSPACE 3: EXISTING NETWORK DECK -->
+        <div class="ws-existing-deck" id="wsExistingDeck" style="display: none;">
+            <div class="equipment-filter-bar">
+                <div class="equipment-search-input-box">
+                    <span>🔍</span>
+                    <input type="text" id="existingSearchInput" placeholder="Search existing network (by ID, road, zone, or status)..." oninput="filterExistingNetwork(this.value)">
+                </div>
+                <div class="equipment-category-pills">
+                    <button type="button" class="equip-pill active" id="filterExistAll" onclick="filterExistingType('ALL')">All Network</button>
+                    <button type="button" class="equip-pill" id="filterExistPipes" onclick="filterExistingType('PIPELINES')">Pipelines</button>
+                    <button type="button" class="equip-pill" id="filterExistAssets" onclick="filterExistingType('ASSETS')">Equipment Assets</button>
+                    <button type="button" class="equip-pill" id="filterExistJunctions" onclick="filterExistingType('JUNCTIONS')">Junctions</button>
+                </div>
+            </div>
+            <div class="existing-items-grid" id="existingItemsGrid">
+                <!-- Dynamically populated with interactive action buttons: Focus, Edit Vertices, Extend, Split, Relocate, Delete -->
+            </div>
+        </div>
+
+        <!-- ================= GIS DIGITAL TWIN TOPBAR ================= -->
+        <div class="gis-digital-twin-topbar">
+            <div class="gis-topbar-left">
+                <div class="gis-search-box">
+                    <span>🔍</span>
+                    <input type="text" id="gisSearchInput" placeholder="Search pipeline or asset..." oninput="handleGisSearch(this.value)">
+                </div>
+                <button type="button" class="gis-icon-btn" onclick="toggleMapFullscreen()" title="Fullscreen / Maximize View">⛶</button>
+                <div class="road-snap-pill">
+                    <span class="road-snap-label">Road Snap</span>
+                    <label class="switch-toggle" title="Toggle automatic road snapping for pipeline paths">
+                        <input type="checkbox" id="chkRoadSnapToggle" checked onchange="toggleRoadSnap(this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <button type="button" class="gis-icon-btn" onclick="startMapPipeDrawing('POTABLE')" title="Draw New Pipeline (Snaps to Road)">✏️</button>
+                <button type="button" class="gis-icon-btn" onclick="activateRouteEditorMode()" title="Pipeline Route Editor">🔀</button>
+                <button type="button" class="gis-icon-btn" onclick="toggleGisLayerSidebar()" title="Toggle Layer Controls">📑</button>
+            </div>
+            <div class="gis-topbar-right">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #64748b;">
+                    <span>📍 Gorakhpur Urban Core Grid</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= GORAKHPUR LOCALITIES QUICK-NAVIGATOR ================= -->
+        <div id="gorakhpurQuickNavBar" class="gorakhpur-quick-nav-bar" style="margin-top: 6px; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 800; color: #0284c7; display: flex; align-items: center; gap: 5px;">
+                    🎯 QUICK FLY:
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="gkp-nav-btn active" id="btnNavGolghar" onclick="focusGorakhpurZone('golghar')" title="Fly to Golghar City Center / Town Hall">Golghar Center</button>
+                <button type="button" class="gkp-nav-btn" id="btnNavRamgarh" onclick="focusGorakhpurZone('ramgarh')" title="Fly to Ramgarh Tal Lake & Naya Savera">Ramgarh Tal</button>
+                <button type="button" class="gkp-nav-btn" id="btnNavMedical" onclick="focusGorakhpurZone('medical')" title="Fly to BRD Medical College & Asuran">Medical College</button>
+                <button type="button" class="gkp-nav-btn" id="btnNavUniversity" onclick="focusGorakhpurZone('university')" title="Fly to DDU University & Mohaddipur">Mohaddipur</button>
+                <button type="button" class="gkp-nav-btn" id="btnNavGida" onclick="focusGorakhpurZone('gida')" title="Fly to GIDA Industrial Area / Mahewa">GIDA / Mahewa</button>
+                <button type="button" class="gkp-nav-btn reset-btn" onclick="resetGorakhpurView()" title="Lock & Reset view strictly to Gorakhpur Core">🔄 Reset</button>
+            </div>
+        </div>
+
+        <!-- DYNAMIC DRAWING & CURVE ADJUSTMENT BANNER -->
+        <div id="mapDrawingBanner" style="display: none; background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%); color: white; padding: 10px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; font-weight: 600; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span id="mapDrawingInstructionText" style="display: flex; align-items: center; gap: 6px;">
+                    📍 [DRAWING MODE ACTIVE]: Click on the map to place the Pipeline START point.
+                </span>
+                <div id="pipeCurveControlsBox" style="display: none; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.8); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.4);">
+                    <span style="font-size: 11px; color: #38bdf8; font-weight: 700;">〰️ Curvature:</span>
+                    <input type="range" id="pipeCurvatureSlider" min="-80" max="80" value="0" step="2" oninput="handleCurvatureSliderChange(this.value)" style="width: 100px; vertical-align: middle; cursor: pointer;">
+                    <span id="curvatureSliderValue" style="color: #38bdf8; font-weight: 800; min-width: 45px; font-size: 11px;">0°</span>
+                    <button type="button" onclick="invertPipeCurveDirection()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; cursor: pointer;">🔄 Invert</button>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" id="btnConfirmCurvedPipe" onclick="confirmCurvedPipeDrawing()" style="display: none; background: #0284c7; border: 0; color: white; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 0 10px rgba(2, 132, 199, 0.5);">
+                    ✔️ Confirm & Save Pipe
+                </button>
+                <button type="button" id="btnCancelDrawing" onclick="cancelMapPipeDrawing()" style="background: #dc2626; border: 0; color: white; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; box-shadow: 0 0 8px rgba(220, 38, 38, 0.35);">
+                    Exit Mode
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= MAIN DIGITAL TWIN SPLIT (MAP + SIDEBAR) ================= -->
+        <div class="gis-digital-twin-main">
+            <!-- MAP VIEWPORT (LEFT) -->
+            <div class="gis-map-viewport" id="gisMapViewport">
+                <!-- 2D LEAFLET MAP BASE CANVAS -->
+                <div id="waterMap" class="water-map"></div>
+
+                <!-- 3D THREE.JS PIPELINE EXPLORER -->
+                <div id="water3DContainer" class="water-3d-wrapper" style="display: none;">
+                    <div class="water-3d-toolbar">
+                        <div class="toolbar-left">
+                            <span class="badge-3d-live">WebGL 3D Active</span>
+                            <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('isometric')">🎥 Isometric</button>
+                            <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('top')">⬆️ Top-Down</button>
+                            <button type="button" class="t-btn" onclick="window.Water3DExplorer && window.Water3DExplorer.resetCamera('stp')">🏭 STP Facility</button>
+                        </div>
+                        <div class="toolbar-mid">
+                            <span title="Vertical exaggeration enables inspection of underground depth without distorting horizontal coordinates">📐 Depth:</span>
+                            <input type="range" id="rngVerticalExaggeration" min="1.0" max="5.0" step="0.5" value="2.0" oninput="window.Water3DExplorer && window.Water3DExplorer.setVerticalExaggeration(this.value)" style="width: 70px; cursor: pointer;">
+                            <span id="exaggerationLabel" style="font-weight: 700; color: #38bdf8;">2.0x</span>
+                            <span class="schematic-badge" style="font-size: 10px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; padding: 2px 6px; border-radius: 4px;" title="Schematic cutaway visualization. Not a certified engineering survey model.">🧪 3D SCADA</span>
+                        </div>
+                        <div class="toolbar-right">
+                            <span class="legend-chip potable">● Potable</span>
+                            <span class="legend-chip wastewater">🟤 Sewer</span>
+                            <span class="legend-chip reclaimed">● Reclaimed</span>
+                        </div>
+                    </div>
+                    <!-- Subterranean disclaimer banner -->
+                    <div class="water-3d-sub-banner">
+                        <span>🌊 Directional flow animation: <em>Simulated particle dynamics</em>.</span>
+                        <span style="color: #64748b;">Rotate: Left-Click Drag • Pan: Right-Click Drag • Zoom: Scroll</span>
+                    </div>
+                    <div id="water3DCanvasContainer" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+                </div>
+
+                <!-- Floating Compass Widget -->
+                <div class="gis-compass-widget" title="Gorakhpur GIS Geographic North">
+                    <div class="compass-dial">
+                        <span class="compass-n">N</span>
+                        <span class="compass-arrow">▲</span>
+                    </div>
+                </div>
+
+                <!-- Floating Map Action Overlays -->
+                <div class="gis-map-overlay-tools">
+                    <button type="button" class="overlay-tool-btn" onclick="toggleMapLayerStyle()" title="Toggle Satellite Aerial / Street Map">📑</button>
+                    <button type="button" class="overlay-tool-btn" onclick="toggleAllGisLayersVisibility()" title="Toggle Pipelines Visibility">👁️</button>
+                    <button type="button" class="overlay-tool-btn" onclick="waterMap && waterMap.zoomIn()" title="Zoom In">➕</button>
+                    <button type="button" class="overlay-tool-btn" onclick="waterMap && waterMap.zoomOut()" title="Zoom Out">➖</button>
+                </div>
+
+                <!-- Floating Pipeline Card: Main Pipeline (M-001) -->
+                <div id="gisFloatingPipeCard" class="gis-floating-pipe-card">
+                    <div class="pipe-card-header">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="pipe-card-icon">〰️</span>
+                            <strong id="floatingPipeTitle" style="color: #0f172a; font-size: 13px;">Main Pipeline (M-001)</strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span class="status-badge-active" id="floatingPipeStatus">Active</span>
+                            <button type="button" onclick="closeFloatingPipeCard()" title="Close Card" style="background: none; border: none; color: #94a3b8; font-size: 15px; cursor: pointer; line-height: 1; padding: 2px 4px; border-radius: 4px;">✕</button>
+                        </div>
+                    </div>
+                    <div class="pipe-card-grid">
+                        <div class="pipe-spec-item"><span class="k">Type</span><strong class="v" id="fpType">Main Line</strong></div>
+                        <div class="pipe-spec-item"><span class="k">Diameter</span><strong class="v" id="fpDiameter">600 mm</strong></div>
+                        <div class="pipe-spec-item"><span class="k">Material</span><strong class="v" id="fpMaterial">Ductile Iron</strong></div>
+                        <div class="pipe-spec-item"><span class="k">Depth</span><strong class="v" id="fpDepth">1.8 m</strong></div>
+                        <div class="pipe-spec-item"><span class="k">Flow Rate</span><strong class="v" id="fpFlow">85 L/s (Simulated)</strong></div>
+                        <div class="pipe-spec-item"><span class="k">Pressure</span><strong class="v" id="fpPressure">3.4 bar (Simulated)</strong></div>
+                    </div>
+                    <div class="pipe-card-footer">
+                        <a href="javascript:void(0)" onclick="openSelectedPipeFullDetails()" class="view-details-link">View Details →</a>
+                    </div>
+                </div>
+
+                <!-- Contextual Properties Panel (Multi-Point Pipeline Builder & Editor) -->
+                <div id="pipeContextualPanel" class="contextual-panel" style="display: none;">
+                    <div class="contextual-panel-header">
+                        <h4 id="ctxPipePanelTitle">
+                            <span>💧</span> Configure Pipeline Properties
+                        </h4>
+                        <button type="button" class="panel-close-btn" onclick="closePipeContextualPanel()">✕</button>
+                    </div>
+                    <div class="contextual-field-grid">
+                        <div class="contextual-field" style="grid-column: span 2;">
+                            <label>Pipeline Name *</label>
+                            <input type="text" id="ctxPipeName" placeholder="e.g. Gorakhpur Arterial Feeder">
+                        </div>
+                        <div class="contextual-field">
+                            <label>Pipe Mode</label>
+                            <select id="ctxPipeType" onchange="handleContextualPipeTypeChange(this.value)">
+                                <option value="POTABLE">💧 Potable Water</option>
+                                <option value="WASTEWATER">☣️ Sewage / Sewer</option>
+                                <option value="COMBINED_CORRIDOR">🛣️ Combined Corridor</option>
+                            </select>
+                        </div>
+                        <div class="contextual-field">
+                            <label>Diameter (mm)</label>
+                            <select id="ctxPipeDiameter">
+                                <option value="150">150 mm (Branch)</option>
+                                <option value="300">300 mm (Sub-main)</option>
+                                <option value="450" selected>450 mm (Feeder)</option>
+                                <option value="600">600 mm (Main Trunk)</option>
+                                <option value="900">900 mm (Transmission)</option>
+                            </select>
+                        </div>
+                        <div class="contextual-field">
+                            <label>Material</label>
+                            <select id="ctxPipeMaterial">
+                                <option value="Ductile Iron" selected>Ductile Iron (DI)</option>
+                                <option value="Reinforced Concrete">Reinforced Concrete (RCC)</option>
+                                <option value="HDPE">HDPE Polyethylene</option>
+                                <option value="Mild Steel">Mild Steel (MS)</option>
+                            </select>
+                        </div>
+                        <div class="contextual-field">
+                            <label>Burial Depth (m)</label>
+                            <input type="number" step="0.1" id="ctxPipeDepth" value="1.8">
+                        </div>
+                        <div class="contextual-field" id="ctxSewageSlopeBox" style="display: none;">
+                            <label>Sewage Slope %</label>
+                            <input type="number" step="0.1" id="ctxSewageSlope" value="1.0" min="0.2" max="5.0">
+                        </div>
+                        <div class="contextual-field" id="ctxSewageInvertBox" style="display: none;">
+                            <label>Invert Level (m MSL)</label>
+                            <input type="number" step="0.1" id="ctxSewageInvert" value="78.4">
+                        </div>
+                        <div class="contextual-field">
+                            <label>Direction</label>
+                            <select id="ctxPipeDirection">
+                                <option value="FORWARD" selected>Forward Flow</option>
+                                <option value="REVERSE">Reverse Flow</option>
+                                <option value="BIDIRECTIONAL">Bidirectional</option>
+                            </select>
+                        </div>
+                        <div class="contextual-field">
+                            <label>Status</label>
+                            <select id="ctxPipeStatus">
+                                <option value="OPERATIONAL" selected>Operational</option>
+                                <option value="STANDBY">Standby</option>
+                                <option value="MAINTENANCE">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="ctxCorridorExplainer" class="simulation-disclaimer-box" style="display: none; border-color: rgba(56, 189, 248, 0.4); background: rgba(14, 165, 233, 0.1);">
+                        <strong style="color: #38bdf8; display: block; margin-bottom: 2px;">🛣️ Dual Parallel Utility Corridor (12m Separation)</strong>
+                        <span>Separate <strong>Potable Water (Left Verge, 1.8m depth)</strong> and <strong>Sewage (Right Verge, 2.8m depth)</strong> lines created simultaneously. Potable and sewage never share one pipe.</span>
+                    </div>
+                    <div class="simulation-disclaimer-box" id="ctxElevationDisclaimer" style="display: none;">
+                        <span>ℹ️ Elevation Limitation: Terrain slope estimated from Gorakhpur urban master contour. Detailed survey benchmark needed for hydraulic gradient certificate.</span>
+                    </div>
+                    <div class="contextual-actions">
+                        <button type="button" class="route-tool-btn" onclick="closePipeContextualPanel()">Cancel</button>
+                        <button type="button" class="route-tool-btn primary" id="btnSavePipeContextual" onclick="saveContextualPipeline()">
+                            💾 Save Pipeline
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contextual Equipment Properties Panel -->
+                <div id="equipmentContextualPanel" class="contextual-panel" style="display: none;">
+                    <div class="contextual-panel-header">
+                        <h4 id="ctxEquipPanelTitle">
+                            <span>⚙️</span> Configure Equipment Asset
+                        </h4>
+                        <button type="button" class="panel-close-btn" onclick="closeEquipmentContextualPanel()">✕</button>
+                    </div>
+                    <div class="contextual-field-grid">
+                        <div class="contextual-field" style="grid-column: span 2;">
+                            <label>Asset Name *</label>
+                            <input type="text" id="ctxEquipName" placeholder="e.g. Golghar Centrifugal Booster Station">
+                        </div>
+                        <div class="contextual-field">
+                            <label>Equipment Type</label>
+                            <select id="ctxEquipType" onchange="handleContextualEquipTypeChange(this.value)">
+                                <option value="BOOSTER_PUMP">⛽ Booster Pump</option>
+                                <option value="MOTOR">⚡ Centrifugal Motor</option>
+                                <option value="CONTROL_TOWER">🏢 Control Center</option>
+                                <option value="TREATMENT_PLANT">🏭 Treatment Plant (WTP/STP)</option>
+                                <option value="STORAGE_RESERVOIR">🛢️ Water Tank / Reservoir</option>
+                                <option value="CONTROL_VALVE">🔴 Control Valve (PRV)</option>
+                                <option value="PRESSURE_SENSOR">📍 Pressure Sensor</option>
+                                <option value="FLOW_METER">📊 Ultrasonic Flow Meter</option>
+                                <option value="LEAK_DETECTOR">📡 Acoustic Leak Detector</option>
+                                <option value="NETWORK_JUNCTION">🔗 Network Junction</option>
+                            </select>
+                        </div>
+                        <div class="contextual-field">
+                            <label>Sector / Zone</label>
+                            <input type="text" id="ctxEquipZone" value="Golghar Central">
+                        </div>
+                        <div class="contextual-field">
+                            <label>Latitude *</label>
+                            <input type="number" step="0.000001" id="ctxEquipLat">
+                        </div>
+                        <div class="contextual-field">
+                            <label>Longitude *</label>
+                            <input type="number" step="0.000001" id="ctxEquipLng">
+                        </div>
+                        <!-- Motor / Pump Specific Fields -->
+                        <div class="contextual-field ctx-motor-field">
+                            <label>Pump Capacity (L/s)</label>
+                            <input type="number" step="1" id="ctxEquipCapacity" value="250" min="10" max="2500">
+                        </div>
+                        <div class="contextual-field ctx-motor-field">
+                            <label>Motor Power (kW)</label>
+                            <input type="number" step="1" id="ctxEquipPower" value="75" min="5" max="500">
+                        </div>
+                        <div class="contextual-field ctx-motor-field">
+                            <label>Operating Status</label>
+                            <select id="ctxEquipStatus">
+                                <option value="ONLINE" selected>Online / Running</option>
+                                <option value="STANDBY">Standby</option>
+                                <option value="MAINTENANCE">Maintenance</option>
+                                <option value="OFFLINE">Offline</option>
+                            </select>
+                        </div>
+                        <div class="contextual-field ctx-valve-field">
+                            <label>Pressure Setpoint (bar)</label>
+                            <input type="number" step="0.1" id="ctxEquipPressureSetpoint" value="3.5" min="0.5" max="12.0">
+                        </div>
+                        <div class="contextual-field ctx-sensor-field">
+                            <label>Flow Setpoint (L/s)</label>
+                            <input type="number" step="1" id="ctxEquipFlowSetpoint" value="120" min="0" max="2000">
+                        </div>
+                        <div class="contextual-field ctx-sensor-field">
+                            <label>Sensor Units</label>
+                            <input type="text" id="ctxEquipUnits" value="bar" placeholder="e.g. bar, L/s, dB, pH">
+                        </div>
+                        <div class="contextual-field ctx-sensor-field">
+                            <label>Alarm Min Threshold</label>
+                            <input type="number" step="0.1" id="ctxEquipAlarmMin" value="1.5">
+                        </div>
+                        <div class="contextual-field ctx-sensor-field">
+                            <label>Alarm Max Threshold</label>
+                            <input type="number" step="0.1" id="ctxEquipAlarmMax" value="6.5">
+                        </div>
+                    </div>
+                    <div class="simulation-disclaimer-box">
+                        <span>ℹ️ SCADA Simulation Disclaimer: Setpoints and telemetry configure the municipal digital twin simulation model. Physical hardware actuation requires certified supervisory gateway integration.</span>
+                    </div>
+                    <div class="contextual-actions">
+                        <button type="button" class="route-tool-btn" onclick="closeEquipmentContextualPanel()">Cancel</button>
+                        <button type="button" class="route-tool-btn primary" id="btnSaveEquipmentContextual" onclick="saveContextualEquipment()">
+                            💾 Save Equipment
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR: LAYER CONTROLS + ASSET EDITOR -->
+            <aside class="gis-right-sidebar" id="gisRightSidebar">
+                <!-- Layer Controls Box -->
+                <div class="sidebar-box layer-controls-box">
+                    <div class="box-title">
+                        <span>Layer Controls</span>
+                    </div>
+                    <div class="layer-control-list">
+                        <label class="layer-item">
+                            <input type="checkbox" id="chkLayerMainLine" checked onchange="handleLayerFilterChange()">
+                            <span class="color-bar blue-bar"></span>
+                            <span class="layer-label">Pipelines (Main Line)</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" id="chkLayerDistribution" checked onchange="handleLayerFilterChange()">
+                            <span class="color-bar green-bar"></span>
+                            <span class="layer-label">Pipelines (Distribution)</span>
+                        </label>
+                        <label class="layer-item">
+                            <input type="checkbox" id="chkLayerSewer" checked onchange="handleLayerFilterChange()">
+                            <span class="color-bar orange-bar"></span>
+                            <span class="layer-label">Pipelines (Sewer)</span>
+                        </label>
+                        
+                        <!-- Expandable Assets Sublist -->
+                        <div class="assets-layer-group">
+                            <div class="assets-group-header" onclick="toggleAssetsSublist()">
+                                <span id="assetsExpanderIcon">▼</span>
+                                <span>📁</span>
+                                <strong>Assets</strong>
+                            </div>
+                            <div class="assets-sublist" id="assetsSublist">
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="CONTROL_TOWER" checked onchange="handleLayerFilterChange()">
+                                    <span>🏢</span> Control Center
+                                </label>
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="BOOSTER_PUMP" checked onchange="handleLayerFilterChange()">
+                                    <span>⛽</span> Pump Station
+                                </label>
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="MOTOR" checked onchange="handleLayerFilterChange()">
+                                    <span>⚡</span> Motor / Pump
+                                </label>
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="CONTROL_VALVE" checked onchange="handleLayerFilterChange()">
+                                    <span>🔴</span> Valve
+                                </label>
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="STORAGE_RESERVOIR" checked onchange="handleLayerFilterChange()">
+                                    <span>🛢️</span> Water Tank
+                                </label>
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="TREATMENT_PLANT" checked onchange="handleLayerFilterChange()">
+                                    <span>🏭</span> Treatment Plant
+                                </label>
+                                <label class="sublayer-item">
+                                    <input type="checkbox" class="chk-asset-sub" data-type="PRESSURE_SENSOR" checked onchange="handleLayerFilterChange()">
+                                    <span>📍</span> Pressure Sensor
+                                </label>
+                            </div>
+                        </div>
+
+                        <label class="layer-item">
+                            <input type="checkbox" id="chkLayerRoads" checked onchange="handleLayerFilterChange()">
+                            <span>🛣️</span>
+                            <span class="layer-label">Roads</span>
+                        </label>
+                        <!-- Preserved for backwards compatibility -->
+                        <input type="checkbox" id="chkShowRoadPipes" checked style="display: none;" onchange="toggleRoadPipelinesLayer(this.checked)">
+                        <input type="checkbox" id="chkShowMonitoringHubs" checked style="display: none;" onchange="toggleMonitoringCentersLayer(this.checked)">
+                        <input type="checkbox" id="chk3DSewageRoute" checked style="display: none;" onchange="window.toggle3DSewageVisibility && window.toggle3DSewageVisibility(this.checked)">
+                    </div>
+                </div>
+
+                <!-- Asset Editor Box (Admin Only) -->
+                <div class="sidebar-box asset-editor-box">
+                    <div class="box-title">
+                        <span>Asset Editor <small style="color: #64748b; font-weight: normal;">(Admin Only)</small></span>
+                    </div>
+                    <div class="asset-action-buttons">
+                        <button type="button" class="btn-gis-action btn-add-asset" onclick="openAddAssetModal()">
+                            <span>➕</span> Add Asset
+                        </button>
+                        <button type="button" class="btn-gis-action btn-move-asset" onclick="toggleMoveAssetMode()">
+                            <span>🎯</span> Move Asset
+                        </button>
+                        <button type="button" class="btn-gis-action btn-edit-asset" onclick="openEditSelectedAssetModal()">
+                            <span>✏️</span> Edit Asset
+                        </button>
+                        <button type="button" class="btn-gis-action btn-delete-asset" onclick="handleDeleteSelectedAsset()">
+                            <span>🗑️</span> Delete Asset
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- ================= BOTTOM QUAD CARDS ================= -->
+        <div class="gis-bottom-quad-grid">
+            <!-- CARD 1: Pipeline Route Editor -->
+            <div class="gis-quad-card route-editor-card">
+                <div class="quad-card-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 15px; color: #2563eb;">🔀</span>
+                        <strong style="color: #0f172a; font-size: 13.5px;">Pipeline Route Editor</strong>
+                    </div>
+                </div>
+                <div class="route-subhead">
+                    <span class="route-id-tag">〰️ Route: R-001 (Main Line)</span>
+                    <span class="badge-status-active">Active</span>
+                </div>
+                <div class="waypoints-list" id="routeEditorWaypointsList">
+                    <div class="waypoint-item">
+                        <span class="wp-num">1</span>
+                        <div class="wp-details">
+                            <span class="wp-name">Start - Treatment Plant</span>
+                            <span class="wp-coords">26.7602, 83.3730</span>
+                        </div>
+                        <div class="wp-actions">
+                            <button type="button" class="wp-btn" title="Move Up">↑</button>
+                            <button type="button" class="wp-btn del" title="Delete Waypoint">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="waypoint-item">
+                        <span class="wp-num">2</span>
+                        <div class="wp-details">
+                            <span class="wp-name">Junction - Sector A</span>
+                            <span class="wp-coords">26.7625, 83.3891</span>
+                        </div>
+                        <div class="wp-actions">
+                            <button type="button" class="wp-btn" title="Move Up">↑</button>
+                            <button type="button" class="wp-btn del" title="Delete Waypoint">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="waypoint-item">
+                        <span class="wp-num">3</span>
+                        <div class="wp-details">
+                            <span class="wp-name">Junction - Sector B</span>
+                            <span class="wp-coords">26.7658, 83.4023</span>
+                        </div>
+                        <div class="wp-actions">
+                            <button type="button" class="wp-btn" title="Move Up">↑</button>
+                            <button type="button" class="wp-btn del" title="Delete Waypoint">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="waypoint-item">
+                        <span class="wp-num">4</span>
+                        <div class="wp-details">
+                            <span class="wp-name">End - Water Tank</span>
+                            <span class="wp-coords">26.7689, 83.4210</span>
+                        </div>
+                        <div class="wp-actions">
+                            <button type="button" class="wp-btn" title="Move Up">↑</button>
+                            <button type="button" class="wp-btn del" title="Delete Waypoint">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="quad-card-actions">
+                    <button type="button" class="btn-card-primary" onclick="startMapPipeDrawing('POTABLE')">✏️ Edit Route</button>
+                    <button type="button" class="btn-card-outline" onclick="validateCurrentRouteAlignment()">🔄 Validate</button>
+                </div>
+            </div>
+
+            <!-- CARD 2: Selected Asset: Pump Station (P-01) -->
+            <div class="gis-quad-card asset-details-card">
+                <div class="quad-card-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 15px; color: #2563eb;">⬢</span>
+                        <strong style="color: #0f172a; font-size: 13.5px;" id="selectedAssetCardTitle">Selected Asset: Pump Station (P-01)</strong>
+                    </div>
+                </div>
+                <div class="asset-preview-body">
+                    <div class="asset-thumb-col">
+                        <img src="/assets/models/water/pump_thumb.jpg" id="selectedAssetThumbImg" alt="Pump Station 3D Model" class="asset-thumb-img">
+                    </div>
+                    <div class="asset-specs-col">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                            <span class="spec-label" style="font-size: 10px; color: #64748b; font-weight: 700;">STATUS</span>
+                            <span class="badge-status-online" id="selectedAssetOnlineBadge">Online</span>
+                        </div>
+                        <div class="spec-row"><span class="k">Type</span><strong class="v" id="saType">Pump Station</strong></div>
+                        <div class="spec-row"><span class="k">Capacity</span><strong class="v" id="saCapacity">250 L/s</strong></div>
+                        <div class="spec-row"><span class="k">Motor Power</span><strong class="v" id="saPower">75 kW</strong></div>
+                        <div class="spec-row"><span class="k">Pressure (Inlet)</span><strong class="v" id="saInlet">2.8 bar</strong></div>
+                        <div class="spec-row"><span class="k">Pressure (Outlet)</span><strong class="v" id="saOutlet">4.2 bar</strong></div>
+                        <div class="spec-row"><span class="k">Status</span><strong class="v status-running" id="saStatus">● Running</strong></div>
+                    </div>
+                </div>
+                <div class="quad-card-actions">
+                    <button type="button" class="btn-card-primary" onclick="configureSelectedAsset()">⚙️ Configure</button>
+                    <button type="button" class="btn-card-outline" onclick="moveSelectedAsset()">🎯 Move</button>
+                    <button type="button" class="btn-card-outline" onclick="viewSelectedAssetLogs()">📋 View Logs</button>
+                </div>
+            </div>
+
+            <!-- CARD 3: Pressure & Flow (Simulated) -->
+            <div class="gis-quad-card telemetry-chart-card">
+                <div class="quad-card-header" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <strong style="color: #0f172a; font-size: 13.5px;">Pressure & Flow</strong>
+                        <small style="color: #64748b; font-size: 11px;">(Simulated)</small>
+                    </div>
+                    <span style="font-size: 11px; color: #94a3b8; cursor: pointer;">▲</span>
+                </div>
+                <div class="chart-tab-switcher">
+                    <button type="button" id="tabChartPressure" class="chart-tab-btn active" onclick="switchTelemetryChartTab('pressure')">Pressure</button>
+                    <button type="button" id="tabChartFlow" class="chart-tab-btn" onclick="switchTelemetryChartTab('flow')">Flow</button>
+                </div>
+                <div class="chart-canvas-box" style="position: relative; width: 100%; height: 110px;">
+                    <canvas id="pressureFlowCanvas" width="300" height="110"></canvas>
+                    <div id="canvasChartTooltip" class="chart-curve-tooltip">3.4 bar (Simulated)</div>
+                </div>
+                <div class="chart-time-labels">
+                    <span>10:00</span>
+                    <span>11:00</span>
+                    <span>12:00</span>
+                    <span>13:00</span>
+                    <span>14:00</span>
+                </div>
+            </div>
+
+            <!-- CARD 4: 3D Infrastructure View -->
+            <div class="gis-quad-card infra-3d-card">
+                <div class="quad-card-header" style="justify-content: space-between;">
+                    <strong style="color: #0f172a; font-size: 13.5px;">3D Infrastructure View</strong>
+                    <span class="badge-status-online" style="background: rgba(56, 189, 248, 0.15); color: #0284c7; border: 1px solid rgba(56, 189, 248, 0.3);">🧊 3D View</span>
+                </div>
+                <div class="infra-3d-preview-box">
+                    <img src="/assets/models/water/infra_3d_thumb.jpg" alt="3D Infrastructure View" class="infra-preview-img">
+                    <button type="button" class="btn-switch-to-3d" onclick="toggleWaterDimension('3d')">
+                        <span>🧊</span> Switch to 3D
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- SLIDE-OUT ASSET INSPECTOR DRAWER -->
@@ -391,11 +1108,11 @@
 
             <!-- ANNOUNCED WATER CUTS ALERT BANNER -->
             <div id="announcedWaterCutsAlertBox" style="margin-bottom: 16px;">
-                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #92400e; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #0369a1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                     <div>
-                        <strong>⚠️ Scheduled Maintenance Notice:</strong> Pipeline interconnection work in <b>Golghar & Civil Lines</b>.
+                        <strong>ℹ️ Scheduled Maintenance Notice:</strong> Pipeline interconnection work in <b>Golghar & Civil Lines</b>.
                     </div>
-                    <span style="font-size: 12px; background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 4px; font-weight: 700;">Alternative Tankers On Standby</span>
+                    <span style="font-size: 12px; background: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 4px; font-weight: 700; border: 1px solid #bae6fd;">Alternative Tankers On Standby</span>
                 </div>
             </div>
 
@@ -661,8 +1378,8 @@
                         <h3 id="staffScopeName" style="margin: 4px 0 0 0; font-size: 16px; color: #f8fafc;">Water Department Engineer</h3>
                         <div style="margin-top: 6px; font-size: 12px; color: #cbd5e1; display: flex; flex-wrap: wrap; gap: 14px;">
                             <span>📍 Permitted Sectors: <strong id="staffScopeSectors" style="color: #38bdf8;">Loading...</strong></span>
-                            <span>🔧 Permitted Assets: <strong id="staffScopeAssets" style="color: #34d399;">Loading...</strong></span>
-                            <span>📋 Access Scope: <strong style="color: #fbbf24;">Assigned Tasks & Permitted Sectors Only</strong></span>
+                            <span>🔧 Permitted Assets: <strong id="staffScopeAssets" style="color: #ffffff;">Loading...</strong></span>
+                            <span>📋 Access Scope: <strong style="color: #38bdf8;">Assigned Tasks & Permitted Sectors Only</strong></span>
                         </div>
                     </div>
                     <span class="role-pill staff-pill" style="font-size: 11px;">SCOPED RBAC</span>
@@ -1079,18 +1796,29 @@
 
             </section>
 
-            <!-- PIPELINE PRESSURE & LEAKAGE MONITORING -->
-            <section class="section-card">
+            <!-- PIPELINE PRESSURE & LEAKAGE MONITORING (ZONE-WISE) -->
+            <section class="section-card" id="pipelineTelemetrySection">
 
-                <div class="section-heading">
+                <div class="section-heading" style="flex-wrap: wrap; gap: 14px; align-items: flex-end;">
                     <div>
                         <span class="section-label">
                             DISTRIBUTION
                         </span>
                         <h2>
-                            💧 Pipeline Network & Pressure Telemetry
+                            💧 Pipeline Network & Pressure Telemetry (Zone-Wise)
                         </h2>
                     </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-left: auto;">
+                        <div class="table-search-box">
+                            <input type="text" id="pipelineTableSearch" placeholder="🔍 Search pipeline, street, zone..." oninput="window.filterPipelineTable()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zone Filter Tabs -->
+                <div class="zone-filter-bar" id="pipelineZoneTabs">
+                    <!-- Populated dynamically by JS -->
                 </div>
 
                 <div class="op-table-wrapper">
@@ -1098,7 +1826,7 @@
                         <thead>
                             <tr>
                                 <th>Pipeline Code</th>
-                                <th>Conduit Name</th>
+                                <th>Conduit Name & Alignment</th>
                                 <th>Zone</th>
                                 <th>Pressure (Bar)</th>
                                 <th>Flow Rate (LPS)</th>
@@ -1219,92 +1947,7 @@
                 </div>
             </section>
 
-            <!-- WATER ADMIN ROUTE PROPOSALS & NETWORK VERSIONS -->
-            <section class="section-card" id="waterAdminRouteSection" style="border-left: 4px solid #0284c7;">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-label">GOVERNANCE & TOPOLOGY AUTHORITY</span>
-                        <h2>🛡️ Water Admin Pipeline Route Authority & Versioning</h2>
-                        <p style="font-size: 13px; color: #64748b; margin-top: 4px;">
-                            Draft &rarr; Topology Validation &rarr; Affected-Zone Impact Assessment &rarr; Authorized Admin Approval &rarr; Publish &rarr; Audit Trail.
-                        </p>
-                    </div>
-                </div>
 
-                <!-- ROUTE PROPOSAL & VALIDATION WORKBENCH -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
-                    <h3 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 12px;">
-                        ✏️ Pipeline Route Topology & Hydraulic Isolation Assessment
-                    </h3>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px;">
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">PIPE CODE *</label>
-                            <input type="text" id="propPipeCode" value="PL-PROP-201" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">CONDUIT NAME *</label>
-                            <input type="text" id="propPipeName" value="Medical College Emergency Feeder" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">CLASSIFICATION</label>
-                            <select id="propPipeType" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                                <option value="POTABLE">Potable Supply (Clean)</option>
-                                <option value="WASTEWATER">Untreated Wastewater</option>
-                                <option value="RECLAIMED">Treated Reclaimed Water</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">ZONE / WARD</label>
-                            <input type="text" id="propZone" value="BRD Medical Ward" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px;">
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">START LAT</label>
-                            <input type="number" step="any" id="propStartLat" value="26.7580" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">START LNG</label>
-                            <input type="number" step="any" id="propStartLng" value="83.3760" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">END LAT</label>
-                            <input type="number" step="any" id="propEndLat" value="26.7720" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">END LNG</label>
-                            <input type="number" step="any" id="propEndLng" value="83.3880" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                        <div>
-                            <label style="font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">DIAMETER (MM)</label>
-                            <input type="number" id="propDiameter" value="450" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="action-btn-sm btn-blue" onclick="validateDraftRouteProposal()">
-                            🔍 Run Topology & Isolation Validation
-                        </button>
-                        <button type="button" class="action-btn-sm btn-green" onclick="saveDraftRouteProposal()">
-                            📝 Save Route Proposal to Draft Version
-                        </button>
-                    </div>
-
-                    <div id="routeValidationResult" style="margin-top: 12px; display: none;"></div>
-                </div>
-
-                <!-- PUBLISHED & DRAFT NETWORK VERSIONS -->
-                <div>
-                    <h3 style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 12px;">
-                        📜 Pipeline GIS Network Versions & Rollback Ledger
-                    </h3>
-                    <div id="networkVersionsList">
-                        <!-- Populated by water_intelligence_ui.js -->
-                    </div>
-                </div>
-            </section>
 
         </div>
 
@@ -1401,12 +2044,12 @@
                 <section class="section-card" style="border: 1px solid rgba(56, 189, 248, 0.3); background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                         <h3 style="font-size: 15px; margin: 0; color: #0f172a;">🎮 Supervisory Command Sandbox</h3>
-                        <span style="font-size: 11px; background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 2px 8px; border-radius: 999px; font-weight: 700;">SIMULATED CONTROLLER</span>
+                        <span style="font-size: 11px; background: rgba(14, 165, 233, 0.15); color: #0284c7; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #bae6fd;">SIMULATED CONTROLLER</span>
                     </div>
 
                     <!-- Notice banner -->
-                    <div style="padding: 10px 14px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; font-size: 12px; color: #92400e; margin-bottom: 14px;">
-                        ⚠️ <strong>Physical Actuator Isolation Notice:</strong> Real infrastructure operations require validated industrial SCADA telemetry. Commands submitted here execute in verified simulation mode and are recorded in the immutable audit ledger.
+                    <div style="padding: 10px 14px; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; font-size: 12px; color: #0369a1; margin-bottom: 14px;">
+                        ℹ️ <strong>Physical Actuator Isolation Notice:</strong> Real infrastructure operations require validated industrial SCADA telemetry. Commands submitted here execute in verified simulation mode and are recorded in the immutable audit ledger.
                     </div>
 
                     <form id="flowControlForm" onsubmit="window.submitFlowCommand && window.submitFlowCommand(event)">
@@ -1504,16 +2147,16 @@
                 <button type="button" class="tool-btn active" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('ALL', this)">
                     All Faults (<span id="cntFaultsAll">--</span>)
                 </button>
-                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('CONFIRMED', this)" style="border-left: 3px solid #10b981;">
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('CONFIRMED', this)" style="border-left: 3px solid #0284c7;">
                     ✅ Confirmed Physical (<span id="cntFaultsConfirmed">--</span>)
                 </button>
                 <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('CITIZEN_REPORT', this)" style="border-left: 3px solid #38bdf8;">
                     👤 Citizen Reports (<span id="cntFaultsCitizen">--</span>)
                 </button>
-                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('ALGORITHMIC_SUSPICION', this)" style="border-left: 3px solid #f59e0b;">
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('ALGORITHMIC_SUSPICION', this)" style="border-left: 3px solid #0ea5e9;">
                     🤖 Algorithmic Suspicion (<span id="cntFaultsAlgo">--</span>)
                 </button>
-                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('SIMULATED', this)" style="border-left: 3px solid #a855f7;">
+                <button type="button" class="tool-btn" onclick="window.filterFaultsProvenance && window.filterFaultsProvenance('SIMULATED', this)" style="border-left: 3px solid #0284c7;">
                     🧪 Simulated Scenarios (<span id="cntFaultsSim">--</span>)
                 </button>
             </div>
@@ -1586,7 +2229,7 @@
                     <button type="button" class="tool-btn" id="btnSewageAddWaypoints">📍 Add Route Waypoints</button>
                     <button type="button" class="tool-btn" id="btnSewageUndo">↩️ Undo Waypoint</button>
                     <button type="button" class="tool-btn danger" id="btnSewageClear">🗑️ Clear Route</button>
-                    <button type="button" class="tool-btn" id="btnSewageAIRoute" style="background: rgba(147, 51, 234, 0.15); border-color: #a855f7; color: #a855f7; font-weight: 700;" title="AI proposes route along surveyed road corridors (Draft only, cannot auto-publish)">🤖 AI Suggest Route</button>
+                    <button type="button" class="tool-btn" id="btnSewageAIRoute" style="background: rgba(14, 165, 233, 0.15); border-color: #38bdf8; color: #0284c7; font-weight: 700;" title="AI proposes route along surveyed road corridors (Draft only, cannot auto-publish)">🤖 AI Suggest Route</button>
                     <div style="height: 24px; width: 1px; background: #cbd5e1; margin: 0 4px;"></div>
                     <button type="button" class="tool-btn primary" id="btnSewageValidate">🔍 Validate Route</button>
                     <button type="button" class="tool-btn success" id="btnSewageSaveDraft">💾 Save Draft</button>
@@ -1595,7 +2238,7 @@
                     <button type="button" class="tool-btn warning" id="btnSewageRollback">⏪ Rollback Version</button>
                     <div style="height: 24px; width: 1px; background: #cbd5e1; margin: 0 4px;"></div>
                     <button type="button" class="tool-btn" id="btnManageSectors" onclick="window.openWaterSectorsModal()" style="background: rgba(2, 132, 199, 0.15); border-color: #0284c7; color: #0284c7; font-weight: 600;" title="Manage municipal sectors, boundaries and population demand">🗺️ Manage Sectors</button>
-                    <button type="button" class="tool-btn" id="btnManageWaterStaff" onclick="window.openWaterStaffModal()" style="background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #10b981; font-weight: 600;" title="Manage water personnel, permissions and sector bounds">👥 Water Staff & RBAC</button>
+                    <button type="button" class="tool-btn" id="btnManageWaterStaff" onclick="window.openWaterStaffModal()" style="background: rgba(14, 165, 233, 0.15); border-color: #38bdf8; color: #0284c7; font-weight: 600;" title="Manage water personnel, permissions and sector bounds">👥 Water Staff & RBAC</button>
                 </div>
 
                 <!-- Drawing Instructions Banner -->
@@ -1617,10 +2260,10 @@
                         <div>
                             <label style="font-size: 12px; font-weight: 600; color: #475569;">Pipeline Classification *</label>
                             <select id="sewageNetworkType" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
-                                <option value="SEWAGE" selected>Sewage / Wastewater Trunk (#ea580c)</option>
-                                <option value="POTABLE">Fresh Water / Potable Supply (#38bdf8)</option>
-                                <option value="RAINWATER">Rainwater / Stormwater Drainage (#06b6d4)</option>
-                                <option value="RECLAIMED">Reclaimed / Recycled Water (#10b981)</option>
+                                <option value="SEWAGE" selected>Sewage / Gravity Wastewater Trunk</option>
+                                <option value="POTABLE">Fresh Water / Potable Supply (Sky Blue)</option>
+                                <option value="RAINWATER">Rainwater / Stormwater Drainage (Sky Blue)</option>
+                                <option value="RECLAIMED">Reclaimed / Recycled Water</option>
                             </select>
                         </div>
                         <div>
@@ -2706,6 +3349,689 @@
     </div>
 </div>
 
+<!-- =====================================================
+     PREDICTIVE COMMAND CENTER & FUTURE REPORTING (BHAVISHYA)
+===================================================== -->
+<section class="section-card" id="predictiveForecastSection" style="margin-top: 24px;">
+    <div class="section-heading" style="flex-wrap: wrap; gap: 14px;">
+        <div>
+            <span class="section-label">AI PREDICTIVE SCADA & FUTURE SIMULATION (BHAVISHYA)</span>
+            <h2>🔮 Command Center Predictive Water & Sewage Forecasting</h2>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #64748b;">
+                24h & 72h municipal demand forecast, monsoon runoff surge probability, and automated motor scheduling recommendations for Gorakhpur.
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button type="button" class="action-btn" onclick="fetchFuturePredictions()" style="background: #e0f2fe; color: #0284c7; border: 1.5px solid #bae6fd; font-weight: 700; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+                ↻ Refresh AI Forecast
+            </button>
+        </div>
+    </div>
+
+    <div class="predictive-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; margin-top: 16px;">
+        <!-- Card 1: 24h/72h Water Demand Forecast -->
+        <div class="predictive-card" style="background: #ffffff; padding: 20px; border-radius: 14px; border: 1.5px solid #bae6fd; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h4 style="margin: 0; font-size: 15px; color: #0284c7; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    🚰 Municipal Potable Demand
+                </h4>
+                <span class="badge" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">Next 24h: +4.0%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Current Daily Consumption:</span>
+                <strong id="predCurDemand" style="color: #0f172a; font-size: 14px; font-weight: 800;">142.5 MLD</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Tomorrow Projected Demand:</span>
+                <strong id="predNextDemand" style="color: #0284c7; font-size: 14px; font-weight: 800;">148.2 MLD</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Morning Peak Surge Window:</span>
+                <strong id="predPeakMorning" style="color: #0284c7; font-size: 13px; font-weight: 800;">07:00 AM - 09:30 AM</strong>
+            </div>
+            <div style="margin-top: 14px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0284c7; border-top: 1px solid #e0f2fe; border-right: 1px solid #e0f2fe; border-bottom: 1px solid #e0f2fe; font-size: 12px; color: #0369a1; line-height: 1.5;">
+                💡 <strong style="color: #0c4a6e;">Pre-emptive Motor Advice:</strong> Ramp up Golghar & Medical College fresh water motors at 05:00 AM to ensure reservoir buffering before peak morning citizen consumption.
+            </div>
+        </div>
+
+        <!-- Card 2: Rainfall & Sewage Sump Surge Risk -->
+        <div class="predictive-card" style="background: #ffffff; padding: 20px; border-radius: 14px; border: 1.5px solid #bae6fd; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h4 style="margin: 0; font-size: 15px; color: #0284c7; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    🌧️ Sewage & Sump Surge Risk
+                </h4>
+                <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">Risk: MODERATE</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Rainfall Forecast (Next 24h):</span>
+                <strong id="predRainfall" style="color: #0f172a; font-size: 14px; font-weight: 800;">18.4 mm</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Monsoon Sewer Inflow Factor:</span>
+                <strong id="predInflowFactor" style="color: #0284c7; font-size: 14px; font-weight: 800;">1.65x Normal Flow</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Critical Sump Catchment:</span>
+                <strong id="predCriticalSump" style="color: #dc2626; font-size: 13px; font-weight: 800;">Civil Lines (MC-02)</strong>
+            </div>
+            <div style="margin-top: 14px; padding: 12px; background: #fff7ed; border-radius: 8px; border-left: 4px solid #ea580c; border-top: 1px solid #fed7aa; border-right: 1px solid #fed7aa; border-bottom: 1px solid #fed7aa; font-size: 12px; color: #9a3412; line-height: 1.5;">
+                ⚠️ <strong style="color: #7c2d12;">Surge Prevention Action:</strong> Pre-empty Sump MC-02 to 35% capacity before 05:00 PM to prevent overflow into local storm drains during downpours.
+            </div>
+        </div>
+
+        <!-- Card 3: Pipeline Integrity & Leakage Probability -->
+        <div class="predictive-card" style="background: #ffffff; padding: 20px; border-radius: 14px; border: 1.5px solid #bae6fd; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h4 style="margin: 0; font-size: 15px; color: #0284c7; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    🛡️ Pipeline Leak Probability
+                </h4>
+                <span class="badge" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;">Network Health: 94.2%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Railway Junction (PL-103):</span>
+                <strong style="color: #dc2626; font-size: 13px; font-weight: 800;">28% Risk (Track Vibration)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Mohaddipur East (PL-105):</span>
+                <strong style="color: #0284c7; font-size: 13px; font-weight: 800;">18% Risk (Cathodic Normal)</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="color: #475569; font-size: 13px; font-weight: 600;">Golghar Central (PL-101):</span>
+                <strong style="color: #0284c7; font-size: 13px; font-weight: 800;">12% Risk (Optimal Pressure)</strong>
+            </div>
+            <div style="margin-top: 14px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981; border-top: 1px solid #bbf7d0; border-right: 1px solid #bbf7d0; border-bottom: 1px solid #bbf7d0; font-size: 12px; color: #166534; line-height: 1.5;">
+                ✅ <strong style="color: #14532d;">Automated Preventive Dispatch:</strong> Work order dispatched to inspect flange seal #4 at Railway Crossing before weekend peak load.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     ADMIN MAP PIPELINE MODAL (CREATE / UPDATE FROM MAP)
+===================================================== -->
+<div class="modal" id="adminPipeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+    <div class="modal-content" style="background:#ffffff; color:#0f172a; width:92%; max-width:620px; border-radius:14px; box-shadow:0 25px 50px rgba(2, 132, 199, 0.15); overflow:hidden; border:1.5px solid #bae6fd;">
+        <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding:18px 22px; color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 id="pipeModalTitle" style="margin:0; font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    ➕ Register New GIS Pipeline on Map
+                </h3>
+                <p style="margin:4px 0 0; font-size:12px; opacity:0.9;">Configure pipeline type, diameter, burial depth, and GIS endpoints</p>
+            </div>
+            <button type="button" onclick="closeAdminPipeModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:15px;">✕</button>
+        </div>
+
+        <form id="adminPipeForm" onsubmit="handleSavePipelineSubmit(event)" style="padding:22px; display:flex; flex-direction:column; gap:14px;">
+            <input type="hidden" id="pipeEditId" value="">
+
+            <!-- Pipe Type Selection -->
+            <div>
+                <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:6px;">Pipeline Network Type *</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                    <label style="display:flex; align-items:center; gap:8px; padding:10px; background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:8px; cursor:pointer;">
+                        <input type="radio" name="radPipeType" value="POTABLE" checked onchange="handlePipeTypeChange(this.value)">
+                        <div>
+                            <strong style="display:block; font-size:12px; color:#0284c7;">💧 Fresh Water</strong>
+                            <span style="font-size:10px; color:#64748b;">Potable Feeder</span>
+                        </div>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:10px; background:#fdf8f6; border:1.5px solid #d7ccc8; border-radius:8px; cursor:pointer;">
+                        <input type="radio" name="radPipeType" value="WASTEWATER" onchange="handlePipeTypeChange(this.value)">
+                        <div>
+                            <strong style="display:block; font-size:12px; color:#8d5b4c;">🟤 Sewage Water</strong>
+                            <span style="font-size:10px; color:#64748b;">Gravity Trunk / STP</span>
+                        </div>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; padding:10px; background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:8px; cursor:pointer;">
+                        <input type="radio" name="radPipeType" value="RECLAIMED" onchange="handlePipeTypeChange(this.value)">
+                        <div>
+                            <strong style="display:block; font-size:12px; color:#0284c7;">♻️ Reclaimed Water</strong>
+                            <span style="font-size:10px; color:#64748b;">Recycled / Eco</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Code and Name -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Pipeline Code</label>
+                    <input type="text" id="pipeCode" placeholder="Auto-generated e.g. PL-FW-107" style="width:100%; padding:9px 12px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:13px;">
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:700; color:#475569; display:block; margin-bottom:4px;">Pipeline Name *</label>
+                    <input type="text" id="pipeName" required placeholder="e.g. Park Road Distribution Feeder" style="width:100%; padding:9px 12px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:13px;">
+                </div>
+            </div>
+
+            <!-- Start Lat/Lng and End Lat/Lng -->
+            <div style="background:#f0f9ff; padding:12px; border-radius:8px; border:1.5px solid #bae6fd;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:12px; font-weight:700; color:#0284c7;">🗺️ GIS Map Geographic Coordinates</span>
+                    <span style="font-size:11px; color:#64748b;">Click map to place coordinates</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:8px;">
+                    <div>
+                        <label style="font-size:11px; color:#64748b;">Start Latitude *</label>
+                        <input type="number" step="0.000001" id="pipeStartLat" required placeholder="26.7606" style="width:100%; padding:8px 10px; background:#ffffff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:#64748b;">Start Longitude *</label>
+                        <input type="number" step="0.000001" id="pipeStartLng" required placeholder="83.3732" style="width:100%; padding:8px 10px; background:#ffffff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label style="font-size:11px; color:#64748b;">End Latitude *</label>
+                        <input type="number" step="0.000001" id="pipeEndLat" required placeholder="26.7559" style="width:100%; padding:8px 10px; background:#ffffff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:#64748b;">End Longitude *</label>
+                        <input type="number" step="0.000001" id="pipeEndLng" required placeholder="83.3705" style="width:100%; padding:8px 10px; background:#ffffff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Curve Alignment Status & Control -->
+            <div style="background:#f0f9ff; padding:10px 14px; border-radius:8px; border:1.5px solid #bae6fd; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                <input type="hidden" id="pipeCurvePoints" value="">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:18px;">〰️</span>
+                    <div>
+                        <strong style="font-size:12px; color:#0284c7; display:block;">Pipeline Road Alignment & Curvature</strong>
+                        <span id="pipeCurveStatusText" style="font-size:11px; color:#475569;">Straight line (0 curve points)</span>
+                    </div>
+                </div>
+                <button type="button" onclick="launchCurveEditorForModalPipe()" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; padding:5px 12px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+                    〰️ Bend / Adjust Curve on Map
+                </button>
+            </div>
+
+            <!-- Engineering Specs -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                <div>
+                    <label style="font-size:11px; color:#475569;">Diameter (mm)</label>
+                    <select id="pipeDiameter" style="width:100%; padding:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                        <option value="200">200 mm</option>
+                        <option value="300">300 mm</option>
+                        <option value="400">400 mm</option>
+                        <option value="450" selected>450 mm</option>
+                        <option value="600">600 mm</option>
+                        <option value="900">900 mm</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px; color:#475569;">Burial Depth (m)</label>
+                    <input type="number" step="0.1" id="pipeDepth" value="2.4" style="width:100%; padding:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                </div>
+                <div>
+                    <label style="font-size:11px; color:#475569;">Pressure (bar)</label>
+                    <input type="number" step="0.1" id="pipePressure" value="2.8" style="width:100%; padding:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                    <label style="font-size:11px; color:#475569;">Material</label>
+                    <select id="pipeMaterial" style="width:100%; padding:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                        <option value="Ductile Iron" selected>Ductile Iron (DI)</option>
+                        <option value="Reinforced Concrete">Reinforced Concrete (RCC)</option>
+                        <option value="HDPE">High-Density Polyethylene (HDPE)</option>
+                        <option value="Mild Steel">Mild Steel (MS)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px; color:#475569;">Zone / Locality</label>
+                    <input type="text" id="pipeZone" value="Golghar Central" style="width:100%; padding:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; color:#0f172a; font-size:12px;">
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; border-top:1.5px solid #e2e8f0; padding-top:14px;">
+                <button type="button" id="btnDeletePipe" onclick="handleDeletePipeline()" style="display:none; background:#ef4444; color:white; border:0; padding:9px 16px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                    🗑️ Delete Pipeline
+                </button>
+                <div style="display:flex; gap:10px; margin-left:auto;">
+                    <button type="button" onclick="closeAdminPipeModal()" style="background:#e2e8f0; color:#475569; border:0; padding:9px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                        Cancel
+                    </button>
+                    <button type="submit" id="btnSavePipeSubmit" style="background:#0284c7; color:white; border:0; padding:9px 20px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                        💾 Save Pipeline to GIS Map
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =====================================================
+     1-KM MONITORING STATION MOTOR CONTROL MODAL
+===================================================== -->
+<div class="modal" id="motorControlModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+    <div class="modal-content" style="background:#ffffff; color:#0f172a; width:92%; max-width:600px; border-radius:14px; box-shadow:0 25px 50px rgba(2, 132, 199, 0.15); overflow:hidden; border:1.5px solid #bae6fd;">
+        <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding:18px 22px; color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 id="mcModalTitle" style="margin:0; font-size:17px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    🏢 1km Zone Water Monitoring Station
+                </h3>
+                <p id="mcModalSubtitle" style="margin:4px 0 0; font-size:12px; opacity:0.9;">Golghar Central • Motor Flow Telemetry & Operations</p>
+            </div>
+            <button type="button" onclick="closeMotorControlModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:15px;">✕</button>
+        </div>
+
+        <div style="padding:22px; display:flex; flex-direction:column; gap:16px;">
+            <!-- Fresh Water Motor Box -->
+            <div style="background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:10px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:20px;">🚰</span>
+                        <div>
+                            <strong style="color:#0284c7; font-size:14px;" id="mcFwMotorName">Fresh Water Booster Motor</strong>
+                            <span style="display:block; font-size:11px; color:#64748b;" id="mcFwMotorId">ID: MOT-FW-01</span>
+                        </div>
+                    </div>
+                    <span id="mcFwMotorBadge" style="padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">RUNNING</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; font-size:12px; color:#475569; margin-bottom:12px;">
+                    <div>Flow Rate: <strong id="mcFwFlow" style="color:#0f172a; font-weight:700;">52.4 L/s</strong></div>
+                    <div>Pressure: <strong id="mcFwPressure" style="color:#0f172a; font-weight:700;">3.2 bar</strong></div>
+                    <div>Speed: <strong id="mcFwSpeed" style="color:#0284c7; font-weight:800;">1450 RPM</strong></div>
+                </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" id="btnToggleFwMotor" onclick="operateStationMotor('FRESH_WATER')" style="background:#0284c7; color:white; border:0; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                        ⚡ Toggle Fresh Water Motor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sewage Lift Motor Box -->
+            <div style="background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:10px; padding:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:20px;">💧</span>
+                        <div>
+                            <strong style="color:#0284c7; font-size:14px;" id="mcSwMotorName">Sewage Sump Lift Motor</strong>
+                            <span style="display:block; font-size:11px; color:#64748b;" id="mcSwMotorId">ID: MOT-SW-01</span>
+                        </div>
+                    </div>
+                    <span id="mcSwMotorBadge" style="padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;">RUNNING</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; font-size:12px; color:#475569; margin-bottom:12px;">
+                    <div>Flow Rate: <strong id="mcSwFlow" style="color:#0f172a; font-weight:700;">38.1 L/s</strong></div>
+                    <div>Sump Level: <strong id="mcSwSump" style="color:#0284c7; font-weight:800;">62%</strong></div>
+                    <div>Speed: <strong id="mcSwSpeed" style="color:#0284c7; font-weight:800;">960 RPM</strong></div>
+                </div>
+                <div style="display:flex; justify-content:flex-end;">
+                    <button type="button" id="btnToggleSwMotor" onclick="operateStationMotor('SEWAGE')" style="background:#0284c7; color:white; border:0; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                        ⚡ Toggle Sewage Motor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     SCADA MULTI-WAY JUNCTION CONTROL SECTION MODAL
+===================================================== -->
+<div id="junctionControlModal" class="jnc-modal-overlay">
+    <div class="jnc-modal-card">
+        <div class="jnc-modal-header">
+            <div>
+                <span style="font-size: 11px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">SCADA HYDRAULIC JUNCTION FLOW CONTROLLER</span>
+                <h2 id="jncModalTitle" style="margin: 4px 0 0; font-size: 18px; color: #0f172a; font-weight: 800;">Golghar Central Hydraulic Hub (JNC-CTRL-01)</h2>
+                <span id="jncModalSubtitle" style="font-size: 12px; color: #64748b;">Park Road x University Arterial x Civil Lines Collector (6 Converged Pipes)</span>
+            </div>
+            <button type="button" onclick="closeJunctionControlModal()" style="background: transparent; border: 0; color: #64748b; font-size: 22px; cursor: pointer; padding: 4px;">✕</button>
+        </div>
+
+        <!-- Motor Telemetry Diagnostics Pre-Check -->
+        <div style="background: #f0f9ff; border: 1.5px solid #bae6fd; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong style="color: #0284c7; font-size: 13px;">⚙️ Booster Motor & Telemetry Pre-Check</strong>
+                <span id="jncModalMotorPrecheck" style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800;">
+                    OPTIMAL_HEALTHY
+                </span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; font-size: 12px;">
+                <div><span style="color:#64748b;">Motor ID:</span> <strong id="jncModalMotorId" style="color:#0f172a; font-weight:700;">MOT-BOOST-01</strong></div>
+                <div><span style="color:#64748b;">Power:</span> <strong id="jncModalMotorPower" style="color:#0f172a; font-weight:700;">75 kW</strong></div>
+                <div><span style="color:#64748b;">Operating Speed:</span> <strong id="jncModalMotorRpm" style="color:#0284c7; font-weight:800;">1480 RPM</strong></div>
+                <div><span style="color:#64748b;">Vibration:</span> <strong id="jncModalMotorVib" style="color:#0f172a; font-weight:700;">1.2 mm/s</strong></div>
+                <div><span style="color:#64748b;">Temperature:</span> <strong id="jncModalMotorTemp" style="color:#0284c7; font-weight:800;">48.0 °C</strong></div>
+                <div><span style="color:#64748b;">Pressure / Flow:</span> <strong id="jncModalPressureFlow" style="color:#0f172a; font-weight:700;">3.2 bar | 142.5 L/s</strong></div>
+            </div>
+        </div>
+
+        <!-- Branch Routes Flow Control -->
+        <div style="margin-bottom: 18px;">
+            <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 10px;">
+                🚰 Multi-Way Branch Route Valve Governors (Throttling & Outfall Diversion):
+            </strong>
+            <div id="jncModalValvesGrid" class="jnc-valves-grid">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- Actions Footer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px solid #e0f2fe; padding-top: 14px; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+                <button type="button" onclick="sendJunctionMotorCommand('BOOST')" style="background: #0284c7; color: white; border: 0; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                    ⚡ Boost Flow (1750 RPM)
+                </button>
+                <button type="button" onclick="sendJunctionMotorCommand('EVACUATE')" style="background: #dc2626; color: white; border: 0; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);">
+                    🌪️ Flood Evacuation Flush
+                </button>
+            </div>
+            <button type="button" onclick="closeJunctionControlModal()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                Close Section
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     GIS INTELLIGENCE INSPECTOR & TELEMETRY SECTION
+     (REPLACES JAVASCRIPT ALERTS WITH RICH INTERACTIVE VIEW)
+===================================================== -->
+<div id="gisInspectorModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
+    <div class="gis-inspector-box" style="background: #ffffff; width: min(740px, 96vw); max-height: 88vh; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; border: 1px solid rgba(226, 232, 240, 0.8);">
+        <!-- Header Banner -->
+        <div style="background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%); color: white; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="gisInspectorIcon" style="font-size: 26px; width: 44px; height: 44px; background: rgba(255, 255, 255, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.25);">〰️</span>
+                <div>
+                    <h2 id="gisInspectorTitle" style="margin: 0; font-size: 17px; font-weight: 800; color: #ffffff; letter-spacing: 0.3px;">Main Pipeline (M-001)</h2>
+                    <p id="gisInspectorSubtitle" style="margin: 2px 0 0; font-size: 12px; color: #bae6fd;">SCADA Live Telemetry • Gorakhpur Water Intelligence Grid</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="gisInspectorStatusBadge" class="status-badge-active" style="padding: 4px 10px; font-size: 11px;">Active</span>
+                <button type="button" onclick="closeGisInspectorModal()" style="background: rgba(255, 255, 255, 0.15); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;">✕</button>
+            </div>
+        </div>
+
+        <!-- Inspector Tab Switcher -->
+        <div style="display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 0 16px; gap: 8px; overflow-x: auto;">
+            <button type="button" id="tabInspTelemetry" class="insp-tab-btn active" onclick="switchInspectorTab('telemetry')">📊 Real-Time Telemetry & Specs</button>
+            <button type="button" id="tabInspLogs" class="insp-tab-btn" onclick="switchInspectorTab('logs')">📋 SCADA Event Logbook</button>
+            <button type="button" id="tabInspControls" class="insp-tab-btn" onclick="switchInspectorTab('controls')">⚙️ Controls & Maintenance</button>
+        </div>
+
+        <!-- Scrollable Tab Contents -->
+        <div style="flex: 1; overflow-y: auto; padding: 20px 24px;">
+            <!-- TAB 1: Telemetry & Specs -->
+            <div id="inspTabPaneTelemetry">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                    <div class="insp-kpi-card">
+                        <span class="insp-kpi-label">SCADA PRESSURE</span>
+                        <strong class="insp-kpi-val" id="inspPressureVal" style="color: #0284c7;">3.4 bar</strong>
+                        <span class="insp-kpi-sub" id="inspPressureSub">Ingress Protected</span>
+                    </div>
+                    <div class="insp-kpi-card">
+                        <span class="insp-kpi-label">FLOW RATE</span>
+                        <strong class="insp-kpi-val" id="inspFlowVal" style="color: #0284c7;">85 L/s</strong>
+                        <span class="insp-kpi-sub">Simulated Telemetry</span>
+                    </div>
+                    <div class="insp-kpi-card">
+                        <span class="insp-kpi-label">DIAMETER / MAT</span>
+                        <strong class="insp-kpi-val" id="inspDiamVal" style="color: #0f172a;">600 mm</strong>
+                        <span class="insp-kpi-sub" id="inspMaterialSub">Ductile Iron</span>
+                    </div>
+                    <div class="insp-kpi-card">
+                        <span class="insp-kpi-label">BURIAL DEPTH</span>
+                        <strong class="insp-kpi-val" id="inspDepthVal" style="color: #0369a1;">1.8 m</strong>
+                        <span class="insp-kpi-sub">Cover Compliant</span>
+                    </div>
+                </div>
+
+                <!-- Engineering Specifications Table -->
+                <div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 16px;">
+                    <div style="background: #f1f5f9; padding: 8px 14px; font-size: 12px; font-weight: 700; color: #475569;">
+                        📐 Engineering & Geographic Specs
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 8px 14px; color: #64748b; width: 35%;">Network Type</td>
+                                <td style="padding: 8px 14px; font-weight: 600; color: #0f172a;" id="inspSpecType">Potable Fresh Water Feeder (Main Line)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 8px 14px; color: #64748b;">Surveyed Road Corridor</td>
+                                <td style="padding: 8px 14px; font-weight: 600; color: #0284c7;" id="inspSpecRoad">Golghar - Town Hall - Park Road Arterial (4-Lane Left Verge)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 8px 14px; color: #64748b;">Geographic Route Coordinates</td>
+                                <td style="padding: 8px 14px; font-family: monospace; color: #334155;" id="inspSpecCoords">26.7606, 83.3732 → 26.7559, 83.3705</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 8px 14px; color: #64748b;">Data Provenance</td>
+                                <td style="padding: 8px 14px;"><span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;" id="inspSpecProv">MEASURED / SIMULATED</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 14px; color: #64748b;">Structural Health Integrity</td>
+                                <td style="padding: 8px 14px; font-weight: 700; color: #0284c7;" id="inspSpecHealth">● 99.4% Sound (Zero Burst / Zero Rupture Alert)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: SCADA Event Logbook -->
+            <div id="inspTabPaneLogs" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #475569;">Chronological SCADA Audit Trail</span>
+                    <button type="button" onclick="exportInspectorLogs()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">📥 Export Logbook</button>
+                </div>
+                <div id="inspLogsTimeline" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Dynamically populated log entries -->
+                </div>
+            </div>
+
+            <!-- TAB 3: Controls & Maintenance -->
+            <div id="inspTabPaneControls" style="display: none;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                    <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 8px;">🎮 SCADA Actuator Controls</div>
+                    <div style="margin-bottom: 14px;">
+                        <label style="font-size: 12px; color: #64748b; display: block; margin-bottom: 4px;">Target Operating Pressure Setpoint: <strong id="inspTargetPressureDisplay" style="color: #0284c7;">3.4 bar</strong></label>
+                        <input type="range" id="inspPressureSlider" min="1.0" max="6.0" step="0.1" value="3.4" oninput="document.getElementById('inspTargetPressureDisplay').textContent = this.value + ' bar'" style="width: 100%;">
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <label style="font-size: 12px; color: #64748b; display: block; margin-bottom: 6px;">Motorized PRV / Butterfly Valve Position:</label>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn-card-outline" style="flex: 1;" onclick="setInspectorValveMode('100% (Full Flow)')">100% Full Open</button>
+                            <button type="button" class="btn-card-outline" style="flex: 1;" onclick="setInspectorValveMode('70% (Throttled)')">70% Throttle</button>
+                            <button type="button" class="btn-card-outline" style="flex: 1; color: #dc2626;" onclick="setInspectorValveMode('0% (Emergency Stop)')">Emergency Cutoff</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn-card-primary" onclick="applyInspectorControls()">💾 Apply SCADA Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 12px 20px; display: flex; justify-content: flex-end;">
+            <button type="button" onclick="closeGisInspectorModal()" style="background: #e2e8f0; border: none; color: #334155; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     GIS ASSET EDITOR MODAL (NO ALERT / NO PROMPT)
+===================================================== -->
+<div id="gisAssetEditorModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: #ffffff; width: min(480px, 94vw); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); border: 1px solid rgba(226, 232, 240, 0.8);">
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <strong id="assetEditorModalTitle" style="font-size: 15px;">➕ Add Network Facility Asset</strong>
+            <button type="button" onclick="closeAssetEditorModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+        <form id="gisAssetEditorForm" onsubmit="handleAssetEditorFormSubmit(event)" style="padding: 18px 20px;">
+            <input type="hidden" id="aeAssetMode" value="ADD">
+            <input type="hidden" id="aeAssetDbId" value="">
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Asset Name:</label>
+                <input type="text" id="aeAssetName" required placeholder="e.g. BRD Medical Booster Pump Station #2" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Asset Type:</label>
+                    <select id="aeAssetType" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;">
+                        <option value="BOOSTER_PUMP">⛽ Pump Station</option>
+                        <option value="CONTROL_TOWER">🏢 Control Center / Tower</option>
+                        <option value="MOTOR">⚡ Motor / Pump</option>
+                        <option value="CONTROL_VALVE">🔴 Valve (PRV)</option>
+                        <option value="STORAGE_RESERVOIR">🛢️ Water Tank / Reservoir</option>
+                        <option value="TREATMENT_PLANT_WTP">🏭 Treatment Plant</option>
+                        <option value="PRESSURE_SENSOR">📍 Pressure Sensor</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Zone:</label>
+                    <input type="text" id="aeAssetZone" value="Golghar Central" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Latitude:</label>
+                    <input type="number" id="aeAssetLat" step="0.0001" value="26.7606" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Longitude:</label>
+                    <input type="number" id="aeAssetLng" step="0.0001" value="83.3732" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+                <button type="button" onclick="useCurrentMapCenterForAsset()" style="background: none; border: 1px solid #cbd5e1; color: #0284c7; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">📍 Use Map Center</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" onclick="closeAssetEditorModal()" style="background: #f1f5f9; border: none; color: #475569; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
+                    <button type="submit" id="btnSaveAssetModal" style="background: #2563eb; border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">Save Asset</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Delete Confirmation Pane -->
+        <div id="aeDeleteConfirmPane" style="display: none; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                <span style="font-size: 32px;">⚠️</span>
+                <div>
+                    <h3 style="margin: 0; color: #dc2626; font-size: 15px;">Decommission & Delete Asset</h3>
+                    <p id="aeDeleteWarningText" style="margin: 4px 0 0; font-size: 12px; color: #64748b;">Are you sure you want to permanently remove this asset?</p>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+                <button type="button" onclick="closeAssetEditorModal()" style="background: #f1f5f9; border: none; color: #475569; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
+                <button type="button" id="btnConfirmDeleteAsset" onclick="confirmExecuteAssetDeletion()" style="background: #dc2626; border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">Confirm Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     ASSET RELOCATION CONFIRMATION MODAL (NEVER SILENTLY DISCONNECT)
+===================================================== -->
+<div class="modal" id="assetRelocationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+    <div class="modal-content" style="background:#ffffff; color:#0f172a; width:92%; max-width:640px; border-radius:14px; box-shadow:0 25px 50px rgba(0,0,0,0.2); overflow:hidden; border:1.5px solid #fed7aa;">
+        <div style="background:linear-gradient(135deg, #ea580c 0%, #c2410c 100%); padding:18px 22px; color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 style="margin:0; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    📍 Confirm Live Network Asset Relocation
+                </h3>
+                <p style="margin:4px 0 0; font-size:12px; opacity:0.9;">Validate topological integrity and connected pipeline endpoints before applying mutation</p>
+            </div>
+            <button type="button" onclick="closeAssetRelocationModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:15px;">✕</button>
+        </div>
+        <div style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+            <input type="hidden" id="relocAssetId" value="">
+            <input type="hidden" id="relocTargetLat" value="">
+            <input type="hidden" id="relocTargetLng" value="">
+
+            <div style="background:#fff7ed; border:1.5px solid #fed7aa; border-radius:8px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:#0f172a; font-size:13px;" id="relocAssetName">Booster Pump Station P-01</strong>
+                    <span style="font-size:11px; color:#ea580c; font-weight:700;" id="relocAssetCode">ID: PUMP-01</span>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12px;">
+                    <div style="background:#ffffff; padding:8px 10px; border-radius:6px; border:1px solid #e2e8f0;">
+                        <span style="color:#64748b; display:block; font-size:11px;">Current Coordinates</span>
+                        <strong style="color:#334155; font-family:monospace;" id="relocPrevCoords">26.760600, 83.373200</strong>
+                    </div>
+                    <div style="background:#ffffff; padding:8px 10px; border-radius:6px; border:1.5px solid #0284c7;">
+                        <span style="color:#0284c7; display:block; font-size:11px;">Proposed Coordinates</span>
+                        <strong style="color:#0284c7; font-family:monospace;" id="relocNewCoords">26.762100, 83.378900</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connected Pipelines Impact Section -->
+            <div>
+                <label style="font-size:12px; font-weight:700; color:#475569; display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                    <span>🔗</span> Connected Pipelines Impact Analysis (<span id="relocConnectedCount">0</span> connected)
+                </label>
+                <div id="relocConnectedPipesList" style="max-height:160px; overflow-y:auto; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px; font-size:12px; color:#0f172a;">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:6px; padding:10px; font-size:11.5px; color:#92400e;">
+                ⚠️ <strong>Audit Trail Notice</strong>: This relocation will automatically re-anchor connected pipeline endpoints to prevent disconnected branches. The transaction will be permanently recorded in the municipal audit logs.
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; border-top:1.5px solid #e2e8f0; padding-top:14px;">
+                <button type="button" onclick="closeAssetRelocationModal()" style="background:#e2e8f0; color:#475569; border:0; padding:8px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="button" id="btnConfirmRelocateAsset" onclick="executeAssetRelocation()" style="background:#0284c7; color:white; border:0; padding:8px 18px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ✔️ Confirm & Relocate Asset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =====================================================
+     NETWORK AUDIT TRAIL LOGS MODAL
+===================================================== -->
+<div class="modal" id="networkAuditModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+    <div class="modal-content" style="background:#ffffff; color:#0f172a; width:94%; max-width:920px; border-radius:14px; box-shadow:0 25px 50px rgba(2, 132, 199, 0.15); overflow:hidden; border:1.5px solid #bae6fd; max-height:85vh; display:flex; flex-direction:column;">
+        <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding:18px 22px; color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 style="margin:0; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    📜 SmartCity Water Intelligence — Network Audit Trail
+                </h3>
+                <p style="margin:4px 0 0; font-size:12px; opacity:0.9;">Immutable log of pipeline creations, vertex adjustments, asset relocations, and splits</p>
+            </div>
+            <button type="button" onclick="closeNetworkAuditModal()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:15px;">✕</button>
+        </div>
+        <div style="padding:14px 20px; border-bottom:1.5px solid #e0f2fe; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; background:#f8fafc;">
+            <input type="text" id="auditSearchInput" placeholder="Filter audit trail by entity, action, or user..." oninput="filterAuditLogsTable(this.value)" style="background:#ffffff; border:1.5px solid #bae6fd; border-radius:6px; color:#0f172a; padding:7px 12px; font-size:12px; width:280px;">
+            <button type="button" onclick="loadNetworkAuditLogs()" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0284c7; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer;">
+                🔄 Refresh Logs
+            </button>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:16px 20px;">
+            <table class="audit-trail-table" id="auditTrailTable">
+                <thead>
+                    <tr>
+                        <th style="width:140px;">Timestamp</th>
+                        <th style="width:140px;">Action</th>
+                        <th style="width:120px;">Entity</th>
+                        <th>Impact Summary</th>
+                        <th style="width:120px;">Changed By</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTrailTableBody">
+                    <tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">Loading audit logs...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="padding:12px 20px; background:#f8fafc; border-top:1.5px solid #e0f2fe; display:flex; justify-content:flex-end;">
+            <button type="button" onclick="closeNetworkAuditModal()" style="background:#e2e8f0; color:#475569; border:0; padding:7px 16px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- =====================================================
      TOAST
@@ -2721,6 +4047,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="../../components/ui_components.js"></script>
 <script src="../../components/smartcity_map.js"></script>
@@ -2732,6 +4059,7 @@
 <script src="water_3d_explorer.js"></script>
 <script src="water_intelligence_ui.js"></script>
 <script src="sewage_planner_ui.js"></script>
+<script src="../../components/ai_widget.js"></script>
 
 </body>
 </html>

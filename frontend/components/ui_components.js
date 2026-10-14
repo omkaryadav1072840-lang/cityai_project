@@ -283,5 +283,45 @@
         `;
     };
 
+    // 5. Automated Connectivity Monitor (Sticky Disconnect Banner)
+    function initConnectivityMonitor() {
+        let banner = null;
+        function getBanner() {
+            if (!banner) {
+                banner = document.createElement("div");
+                banner.id = "sc-offline-banner";
+                banner.style.cssText = "position: fixed; top: 0; left: 0; right: 0; z-index: 99999; background: #dc2626; color: #fff; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 600; text-align: center; padding: 8px 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: none; align-items: center; justify-content: center; gap: 8px; transition: transform 0.3s ease;";
+                banner.innerHTML = "<span>⚠️</span> <span>Connection to SmartCity Command Center lost. Live SCADA telemetry paused. Retrying...</span>";
+                if (document.body) document.body.appendChild(banner);
+            }
+            return banner;
+        }
+
+        window.addEventListener("offline", () => {
+            const b = getBanner();
+            if (b) b.style.display = "flex";
+        });
+
+        window.addEventListener("online", () => {
+            if (banner) {
+                banner.style.background = "#16a34a";
+                banner.innerHTML = "<span>✅</span> <span>Connection restored. Live SCADA telemetry resumed.</span>";
+                setTimeout(() => {
+                    banner.style.display = "none";
+                    banner.style.background = "#dc2626";
+                    banner.innerHTML = "<span>⚠️</span> <span>Connection to SmartCity Command Center lost. Live SCADA telemetry paused. Retrying...</span>";
+                }, 3000);
+            }
+        });
+    }
+
+    if (typeof document !== "undefined") {
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initConnectivityMonitor);
+        } else {
+            initConnectivityMonitor();
+        }
+    }
+
     window.SmartCityUI = SmartCityUI;
 })();

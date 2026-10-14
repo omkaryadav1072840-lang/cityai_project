@@ -12,8 +12,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const BASE_URL = "http://localhost:5000";
-const FRONTEND_URL = "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL || "http://localhost:5000";
+const FRONTEND_URL = process.env.FRONTEND_URL || BASE_URL;
 
 let adminToken = null;
 let staffToken = null;

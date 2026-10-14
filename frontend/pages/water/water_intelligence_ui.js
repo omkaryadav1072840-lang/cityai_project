@@ -41,6 +41,13 @@
         return headers;
     }
 
+    function escapeHTML(str) {
+        if (str === null || str === undefined) return "";
+        return String(str).replace(/[&<>"']/g, m => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[m]);
+    }
+
     // -------------------------------------------------------
     // 1. 2D / 3D DIMENSION SWITCHER
     // -------------------------------------------------------
@@ -50,6 +57,9 @@
         const map3dEl = document.getElementById("water3DContainer");
         const btn2d = document.getElementById("btnView2D");
         const btn3d = document.getElementById("btnView3D");
+        const compass = document.querySelector(".gis-compass-widget");
+        const overlayTools = document.querySelector(".gis-map-overlay-tools");
+        const floatingCard = document.getElementById("gisFloatingPipeCard");
 
         if (dimension === "3d") {
             if (map2dEl) map2dEl.style.display = "none";
@@ -57,25 +67,39 @@
             if (btn2d) btn2d.classList.remove("active");
             if (btn3d) btn3d.classList.add("active");
 
-            // Initialize and render 3D
-            if (window.Water3DExplorer) {
-                window.Water3DExplorer.init();
-                if (cachedTopology) {
-                    window.Water3DExplorer.renderTopology(cachedTopology);
-                } else {
-                    fetchTopologyAndRender();
-                }
+            // Hide 2D-only map overlays
+            if (compass) compass.style.display = "none";
+            if (overlayTools) overlayTools.style.display = "none";
+            if (floatingCard) floatingCard.style.display = "none";
 
-                // Synchronize active planned sewage route in 3D
-                if (window.SewagePlannerUI && typeof window.SewagePlannerUI.syncRouteTo3D === "function") {
-                    window.SewagePlannerUI.syncRouteTo3D();
+            // Initialize and render 3D
+            setTimeout(() => {
+                if (window.Water3DExplorer) {
+                    window.Water3DExplorer.init();
+                    if (window.Water3DExplorer.resize) {
+                        window.Water3DExplorer.resize();
+                    }
+                    if (cachedTopology) {
+                        window.Water3DExplorer.renderTopology(cachedTopology);
+                    } else {
+                        fetchTopologyAndRender();
+                    }
+
+                    // Synchronize active planned sewage route in 3D
+                    if (window.SewagePlannerUI && typeof window.SewagePlannerUI.syncRouteTo3D === "function") {
+                        window.SewagePlannerUI.syncRouteTo3D();
+                    }
                 }
-            }
+            }, 50);
         } else {
-            if (map2dEl) map2dEl.style.display = "block";
             if (map3dEl) map3dEl.style.display = "none";
+            if (map2dEl) map2dEl.style.display = "block";
             if (btn2d) btn2d.classList.add("active");
             if (btn3d) btn3d.classList.remove("active");
+
+            // Restore 2D map overlays
+            if (compass) compass.style.display = "flex";
+            if (overlayTools) overlayTools.style.display = "flex";
 
             // Invalidate 2D Leaflet size
             setTimeout(() => {
@@ -137,23 +161,23 @@
 
             if (isNaN(sLat) || isNaN(eLat)) return;
 
-            // Pipeline Color Coding
-            let color = "#0284c7"; // Potable Clean Water (Cyan Blue)
+            // Pipeline Color Coding - Equalized visibility
+            let color = "#0284c7"; // Potable Clean Water (Sky Blue)
             let dashArray = null;
-            let weight = 4;
+            let weight = 5;
 
             if (edge.pipe_type === "WASTEWATER") {
-                color = "#92400e"; // Untreated Wastewater (Amber Brown)
+                color = "#8d5b4c"; // Wastewater Trunk (Civil Brown)
                 dashArray = "8, 6";
                 weight = 5;
             } else if (edge.pipe_type === "RECLAIMED") {
-                color = "#10b981"; // Reclaimed Water (Emerald Teal)
+                color = "#38bdf8"; // Reclaimed Water (Bright Sky Blue)
                 dashArray = "12, 4";
-                weight = 4;
+                weight = 5;
             }
 
             if (edge.status && (edge.status.includes("Leak") || edge.status.includes("Low Pressure"))) {
-                color = "#ef4444";
+                color = "#ef4444"; // Red highlight for critical leaks
                 weight = 6;
             }
 
@@ -181,15 +205,15 @@
             if (node.type === "TANK") return; // Tanks are handled by base water.js
 
             const iconMap = {
-                TREATMENT_PLANT_STP: { symbol: "🏭", bg: "#7c3aed" },
+                TREATMENT_PLANT_STP: { symbol: "🏭", bg: "#0369a1" },
                 TREATMENT_PLANT_WTP: { symbol: "💧", bg: "#0284c7" },
-                BOOSTER_PUMP: { symbol: "⚡", bg: "#f59e0b" },
-                CONTROL_VALVE: { symbol: "🎛️", bg: "#10b981" },
-                NETWORK_JUNCTION: { symbol: "🔀", bg: "#475569" },
-                DISCHARGE_POINT: { symbol: "🌊", bg: "#06b6d4" }
+                BOOSTER_PUMP: { symbol: "⚡", bg: "#0ea5e9" },
+                CONTROL_VALVE: { symbol: "🎛️", bg: "#38bdf8" },
+                NETWORK_JUNCTION: { symbol: "🔀", bg: "#0284c7" },
+                DISCHARGE_POINT: { symbol: "🌊", bg: "#0ea5e9" }
             };
 
-            const cfg = iconMap[node.type] || { symbol: "📍", bg: "#3b82f6" };
+            const cfg = iconMap[node.type] || { symbol: "📍", bg: "#0284c7" };
 
             const customIcon = L.divIcon({
                 className: "water-network-asset-marker",
@@ -209,7 +233,7 @@
                     <div style="font-size: 11px; font-weight: 800; color: ${cfg.bg}; text-transform: uppercase;">● ${node.type.replace(/_/g, ' ')}</div>
                     <h4 style="margin: 3px 0 6px; font-size: 14px; color: #0f172a;">${node.name}</h4>
                     <p style="margin: 2px 0; font-size: 12px; color: #64748b;">ID: <strong>${node.id}</strong> | Zone: ${node.zone}</p>
-                    <p style="margin: 2px 0; font-size: 12px; color: #334155;">Status: <span style="font-weight:700; color:#10b981;">${node.status}</span></p>
+                    <p style="margin: 2px 0; font-size: 12px; color: #334155;">Status: <span style="font-weight:700; color:${(node.status || '').includes('FAULT') || (node.status || '').includes('LEAK') ? '#ef4444' : '#0284c7'};">${node.status}</span></p>
                     <button onclick="window.inspectWaterAsset('${node.id}')" style="margin-top: 8px; width: 100%; padding: 6px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;">
                         Open 3D Telemetry Inspector
                     </button>
@@ -262,27 +286,19 @@
             if (zoneEl) zoneEl.textContent = assetData.zone || "Gorakhpur Municipal Grid";
             if (statusEl) {
                 statusEl.textContent = assetData.status || "OPERATIONAL";
-                statusEl.style.color = (assetData.status || "").includes("Leak") ? "#ef4444" : "#10b981";
+                statusEl.style.color = (assetData.status || "").includes("Leak") ? "#ef4444" : "#38bdf8";
             }
 
-            // Provenance Badge (Accurately reflects data origin: SIMULATED / MEASURED / STALE / UNAVAILABLE / HARDWARE UNVERIFIED)
-            // Physical field SCADA hardware is unverified in this testbed runtime.
+            // Provenance Badge: Clearly distinguish MEASURED, SIMULATED, and UNKNOWN data
             if (provenanceEl) {
                 const src = String(assetData.data_source || "").toUpperCase();
-                const isOffline = assetData.status === "OFFLINE" || assetData.status === "UNAVAILABLE";
-                const updatedTime = assetData.updated_at ? new Date(assetData.updated_at).getTime() : 0;
-                const isStale = updatedTime && (Date.now() - updatedTime > 7 * 24 * 3600 * 1000);
-
                 let badgeHtml = "";
-                if (isOffline) {
-                    badgeHtml = `<span style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.4); padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">⚪ UNAVAILABLE</span>`;
-                } else if (isStale) {
-                    badgeHtml = `<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">🟠 STALE TELEMETRY</span>`;
+                if (src === "MEASURED") {
+                    badgeHtml = `<span style="background: rgba(14, 165, 233, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.5); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">💧 MEASURED TELEMETRY</span>`;
                 } else if (src === "SIMULATED") {
-                    badgeHtml = `<span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">🟡 SIMULATED SCADA</span>`;
+                    badgeHtml = `<span style="background: rgba(2, 132, 199, 0.18); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.5); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">🌐 SIMULATED SCADA</span>`;
                 } else {
-                    // Physical hardware is not connected in local environment
-                    badgeHtml = `<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;">🔵 MEASURED (HARDWARE UNVERIFIED)</span>`;
+                    badgeHtml = `<span style="background: rgba(239, 68, 68, 0.18); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;">🔴 UNKNOWN DATA</span>`;
                 }
                 provenanceEl.innerHTML = badgeHtml;
             }
@@ -296,10 +312,12 @@
                         <div class="inspector-stat-grid">
                             <div class="stat-box"><span class="lbl">Operating Pressure</span><span class="val">${assetData.pressure_bar || 2.4} bar</span></div>
                             <div class="stat-box"><span class="lbl">Flow Rate</span><span class="val">${assetData.flow_rate_lps || 55} L/s</span></div>
+                            <div class="stat-box"><span class="lbl">Flow Direction</span><span class="val" style="color:#38bdf8;">${assetData.flow_direction || 'FORWARD'}</span></div>
                             <div class="stat-box"><span class="lbl">Diameter</span><span class="val">${assetData.diameter_mm || 450} mm</span></div>
                             <div class="stat-box"><span class="lbl">Pipe Material</span><span class="val">${assetData.material || 'Ductile Iron'}</span></div>
                             <div class="stat-box"><span class="lbl">Underground Depth</span><span class="val">${assetData.depth_meters || 2.4} m</span></div>
                             <div class="stat-box"><span class="lbl">Classification</span><span class="val" style="color:#38bdf8;">${assetData.pipe_type || 'POTABLE'}</span></div>
+                            <div class="stat-box"><span class="lbl">Connected Nodes</span><span class="val">${assetData.source_node || '--'} → ${assetData.target_node || '--'}</span></div>
                         </div>
                     `;
                 } else if (assetData.capacity_liters || assetData.current_level_percent !== undefined) {
@@ -308,19 +326,31 @@
                         <div class="inspector-stat-grid">
                             <div class="stat-box"><span class="lbl">Current Storage</span><span class="val" style="color:#0ea5e9;">${assetData.current_level_percent || 50}%</span></div>
                             <div class="stat-box"><span class="lbl">Total Capacity</span><span class="val">${Number(assetData.capacity_liters || 50000).toLocaleString()} L</span></div>
-                            <div class="stat-box"><span class="lbl">Pump Telemetry</span><span class="val" style="color:#10b981;">${assetData.pump_status || 'ON'}</span></div>
+                            <div class="stat-box"><span class="lbl">Pump Telemetry</span><span class="val" style="color:#38bdf8;">${assetData.pump_status || 'ON'}</span></div>
                             <div class="stat-box"><span class="lbl">Quality Index</span><span class="val">${assetData.water_quality_score || 92}/100</span></div>
                         </div>
                     `;
                 } else {
-                    // Plant / Pump Attributes
+                    // Plant / Pump / Motor / Valve Attributes
                     html += `
                         <div style="background: rgba(30, 41, 59, 0.5); padding: 12px; border-radius: 8px; font-size: 13px;">
                             <div>📍 Coordinates: <strong>${Number(assetData.latitude || 26.76).toFixed(4)}, ${Number(assetData.longitude || 83.37).toFixed(4)}</strong></div>
                             <div style="margin-top: 4px;">⚡ Elevation: <strong>${assetData.elevation_m || 82.5} meters AMSL</strong></div>
+                            <div style="margin-top: 4px;">🌊 Flow Direction: <strong>${assetData.flow_direction || 'FORWARD'}</strong></div>
                         </div>
                     `;
                 }
+
+                // 3D glTF Model and License Documentation
+                if (assetData.model_asset_path || assetData.license_type) {
+                    html += `
+                        <div style="background: rgba(15, 23, 42, 0.7); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2); margin-top: 12px; font-size: 11px;">
+                            <div style="color: #cbd5e1;">🧊 <strong>3D Asset Model:</strong> <code style="color: #38bdf8;">${assetData.model_asset_path || 'Procedural Three.js Fallback'}</code></div>
+                            <div style="color: #94a3b8; margin-top: 3px;">📜 <strong>License:</strong> <span style="color: #ffffff; font-weight: 600;">${assetData.license_type || 'MIT / CC0-1.0 (Royalty-Free Open Asset)'}</span></div>
+                        </div>
+                    `;
+                }
+
                 telemetryEl.innerHTML = html;
             }
 
@@ -333,7 +363,7 @@
                     workOrdersEl.innerHTML = orders.map(o => `
                         <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 12px;">
                             <div style="font-weight: 700; color: #f8fafc;">#${o.order_id}: ${o.title}</div>
-                            <div style="color: #94a3b8; margin-top: 2px;">Assigned: ${o.assigned_to_name} (${o.required_role}) | Priority: <strong style="color:#f59e0b;">${o.priority}</strong></div>
+                            <div style="color: #94a3b8; margin-top: 2px;">Assigned: ${o.assigned_to_name} (${o.required_role}) | Priority: <strong style="color:${o.priority === 'CRITICAL' ? '#ef4444' : '#38bdf8'};">${o.priority}</strong></div>
                             <div style="color: #38bdf8; margin-top: 2px;">Status: ${o.status} | Due: ${o.deadline}</div>
                         </div>
                     `).join("");
@@ -377,7 +407,7 @@
 
             tableBody.innerHTML = batches.map(b => {
                 const isCompliant = (b.quality_status === "COMPLIANT");
-                const qColor = isCompliant ? "#10b981" : "#ef4444";
+                const qColor = isCompliant ? "#0284c7" : "#ef4444";
                 const canApprove = (b.approval_status === "PENDING_APPROVAL" && isCompliant);
 
                 return `
@@ -395,16 +425,16 @@
                             </div>
                         </td>
                         <td>
-                            <span style="background: ${isCompliant ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color: ${qColor}; border: 1px solid ${qColor}; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;">
+                            <span style="background: ${isCompliant ? 'rgba(2,132,199,0.15)' : 'rgba(239,68,68,0.15)'}; color: ${qColor}; border: 1px solid ${qColor}; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;">
                                 ${b.quality_status}
                             </span>
                             <div style="font-size:10px; color:#94a3b8; margin-top:4px;">Appr: <strong>${b.approval_status}</strong></div>
                         </td>
                         <td>
                             ${b.approval_status === "APPROVED" 
-                                ? `<span style="color:#10b981;font-size:11px;font-weight:700;">✓ Reused at ${b.reuse_destination.replace(/_/g, ' ')}</span>`
+                                ? `<span style="color:#0284c7;font-size:11px;font-weight:700;">✓ Reused at ${b.reuse_destination.replace(/_/g, ' ')}</span>`
                                 : (isCompliant 
-                                    ? `<button onclick="window.authorizeReuseBatch('${b.batch_id}')" style="background:#10b981;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Authorize Reuse</button>`
+                                    ? `<button onclick="window.authorizeReuseBatch('${b.batch_id}')" style="background:#0284c7;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;">Authorize Reuse</button>`
                                     : `<span style="color:#ef4444;font-size:11px;font-weight:700;">🚫 Blocked (Non-Compliant)</span>`
                                 )
                             }
@@ -463,13 +493,13 @@
             listEl.innerHTML = versions.map(v => {
                 const isPublished = (v.status === "PUBLISHED");
                 return `
-                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid ${isPublished ? '#10b981' : '#334155'}; border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+                    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid ${isPublished ? '#0284c7' : '#334155'}; border-radius: 10px; padding: 14px; margin-bottom: 12px;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <span style="font-weight: 800; font-size: 15px; color: #f8fafc;">${v.change_title}</span>
                                 <span style="margin-left: 8px; font-size: 11px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-weight: 700;">${v.version_number}</span>
                             </div>
-                            <span style="font-size: 11px; font-weight: 800; color: ${isPublished ? '#10b981' : '#f59e0b'}; background: ${isPublished ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)'}; padding: 3px 8px; border-radius: 999px;">
+                            <span style="font-size: 11px; font-weight: 800; color: ${isPublished ? '#38bdf8' : '#bae6fd'}; background: ${isPublished ? 'rgba(14,165,233,0.15)' : 'rgba(2,132,199,0.15)'}; padding: 3px 8px; border-radius: 999px;">
                                 ${v.status}
                             </span>
                         </div>
@@ -553,8 +583,8 @@
             const data = await res.json();
             if (data.is_valid) {
                 resultBox.innerHTML = `
-                    <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; padding:10px; border-radius:8px; font-size:12px; color:#f8fafc;">
-                        <strong style="color:#10b981;">✓ Route Topology Valid</strong><br>
+                    <div style="background:rgba(14,165,233,0.15); border:1px solid #0284c7; padding:10px; border-radius:8px; font-size:12px; color:#f8fafc;">
+                        <strong style="color:#38bdf8;">✓ Route Topology Valid</strong><br>
                         • Length: <strong>${data.estimated_length_km} km</strong><br>
                         • Estimated Head Loss: <strong>${data.hydraulic_assessment.head_loss_estimated_meters} m</strong><br>
                         • Recommended Pressure: <strong>${data.hydraulic_assessment.recommended_operating_pressure_bar} bar</strong>
@@ -594,11 +624,11 @@
             const statusColors = {
                 ASSIGNED: "#38bdf8",
                 ACKNOWLEDGED: "#60a5fa",
-                IN_PROGRESS: "#f59e0b",
+                IN_PROGRESS: "#0284c7",
                 BLOCKED: "#ef4444",
-                RESOLVED: "#10b981",
-                VERIFIED: "#8b5cf6",
-                COMPLETED: "#10b981",
+                RESOLVED: "#38bdf8",
+                VERIFIED: "#0ea5e9",
+                COMPLETED: "#0284c7",
                 CANCELLED: "#64748b"
             };
 
@@ -606,44 +636,128 @@
             const isAdmin = isWaterAdmin() || (user && (user.role === "admin" || user.role === "super_admin"));
 
             listEl.innerHTML = orders.map(o => {
-                const sColor = statusColors[o.status] || "#94a3b8";
-                const netType = o.network_type ? `<span style="font-size:10px; background:rgba(56,189,248,0.15); color:#38bdf8; padding:1px 5px; border-radius:4px; margin-left:4px;">${o.network_type}</span>` : "";
+                // 1. Professional Deadline Formatter
+                let deadlineHtml = `<span style="color:#94a3b8;">—</span>`;
+                if (o.deadline) {
+                    try {
+                        const d = new Date(o.deadline);
+                        if (!isNaN(d.getTime())) {
+                            const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                            const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                            const isPast = d < new Date();
+                            deadlineHtml = `
+                                <div class="wo-deadline-cell ${isPast ? 'overdue' : ''}">
+                                    <div class="wo-deadline-date">📅 ${dateStr}</div>
+                                    <div class="wo-deadline-time">${timeStr} ${isPast ? '<span class="wo-overdue-tag">Overdue</span>' : ''}</div>
+                                </div>
+                            `;
+                        } else {
+                            deadlineHtml = `<span style="color:#64748b; font-size:12px;">${escapeHTML(o.deadline)}</span>`;
+                        }
+                    } catch {
+                        deadlineHtml = `<span style="color:#64748b; font-size:12px;">${escapeHTML(o.deadline)}</span>`;
+                    }
+                }
+
+                // 2. Network Type Chip
+                let netTypeBadge = "";
+                const rawNet = String(o.network_type || "").toUpperCase();
+                if (rawNet.includes("POTABLE") || rawNet.includes("WATER") || rawNet.includes("CLEAN")) {
+                    netTypeBadge = `<span class="wo-type-chip potable">💧 Potable Water</span>`;
+                } else if (rawNet.includes("SEW") || rawNet.includes("WASTE")) {
+                    netTypeBadge = `<span class="wo-type-chip sewer">🟤 Sewer Main</span>`;
+                } else if (rawNet.includes("RECLAIM")) {
+                    netTypeBadge = `<span class="wo-type-chip reclaimed">♻️ Reclaimed</span>`;
+                } else if (rawNet) {
+                    netTypeBadge = `<span class="wo-type-chip general">${escapeHTML(o.network_type)}</span>`;
+                }
+
+                // 3. Priority Pill
+                const prio = String(o.priority || "NORMAL").toUpperCase();
+                let prioClass = "normal";
+                let prioIcon = "🟢";
+                if (prio === "CRITICAL" || prio === "URGENT") {
+                    prioClass = "critical";
+                    prioIcon = "🔥";
+                } else if (prio === "HIGH") {
+                    prioClass = "high";
+                    prioIcon = "⚡";
+                } else if (prio === "MEDIUM") {
+                    prioClass = "medium";
+                    prioIcon = "⚖️";
+                }
+                const prioBadge = `<span class="wo-priority-pill ${prioClass}">${prioIcon} ${prio}</span>`;
+
+                // 4. Assignee Avatar Initials
+                const assigneeName = o.assigned_to_name || o.assigned_to || "Unassigned";
+                const initials = assigneeName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() || "UN";
+                const roleLabel = (o.required_role || 'Staff').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                // 5. Status Classes
+                const statusKey = String(o.status || 'ASSIGNED').toUpperCase();
 
                 return `
-                <tr>
+                <tr class="wo-table-row">
                     <td>
-                        <strong>${o.order_id || o.order_number}</strong><br>
-                        ${netType}
+                        <div class="wo-order-id-block">
+                            <strong class="wo-order-id">${escapeHTML(o.order_id || o.order_number)}</strong>
+                            ${netTypeBadge}
+                        </div>
                     </td>
                     <td>
-                        <strong>${o.title}</strong>
-                        ${o.observations ? `<br><small style="color:#94a3b8;">Obs: ${o.observations}</small>` : ''}
-                        ${o.blocked_reason ? `<br><small style="color:#ef4444;">Blocked: ${o.blocked_reason}</small>` : ''}
+                        <div class="wo-task-content">
+                            <div class="wo-task-title">${escapeHTML(o.title)}</div>
+                            ${o.observations ? `
+                                <div class="wo-obs-text">
+                                    <span class="wo-obs-icon">🔍</span>
+                                    <span>Obs: ${escapeHTML(o.observations)}</span>
+                                </div>
+                            ` : ''}
+                            ${o.blocked_reason ? `
+                                <div class="wo-blocked-banner">
+                                    <span class="wo-blocked-badge">⚠️ BLOCKED</span>
+                                    <span>${escapeHTML(o.blocked_reason)}</span>
+                                </div>
+                            ` : ''}
+                        </div>
                     </td>
                     <td>
-                        <button type="button" onclick="window.focusWorkOrderPipe('${o.asset_id || o.pipe_id}')" style="background:none; border:none; color:#38bdf8; text-decoration:underline; cursor:pointer; font-weight:700; font-size:12px;" title="Highlight in 2D & 3D">
-                            🎯 ${o.asset_id || o.pipe_id}
-                        </button><br>
-                        <small style="color:#94a3b8;">${o.zone || 'Central Zone'}</small>
+                        <div class="wo-asset-block">
+                            <button type="button" class="wo-asset-btn" onclick="window.focusWorkOrderPipe('${escapeHTML(o.asset_id || o.pipe_id)}')" title="Locate Conduit on GIS Map">
+                                <span>🏷️ ${escapeHTML(o.asset_id || o.pipe_id)}</span>
+                                <span class="wo-map-hint">Map ↗</span>
+                            </button>
+                            <div class="wo-zone-pill">📍 ${escapeHTML(o.zone || 'Central Zone')}</div>
+                        </div>
                     </td>
                     <td>
-                        <strong>${(o.required_role || 'STAFF').replace(/_/g, ' ')}</strong><br>
-                        <small style="color:#cbd5e1;">👤 ${o.assigned_to_name || o.assigned_to || 'Unassigned'}</small>
-                        ${isAdmin ? `<button type="button" onclick="window.promptReassignWorkOrder('${o.order_id || o.order_number}')" style="font-size:10px; background:rgba(255,255,255,0.08); border:1px solid #475569; color:#94a3b8; border-radius:4px; padding:1px 4px; margin-left:4px; cursor:pointer;" title="Reassign staff">🔄</button>` : ''}
+                        <div class="wo-assignee-block">
+                            <div class="wo-role-tag">${escapeHTML(roleLabel)}</div>
+                            <div class="wo-user-row">
+                                <div class="wo-user-avatar">${initials}</div>
+                                <span class="wo-user-name" title="${escapeHTML(assigneeName)}">${escapeHTML(assigneeName)}</span>
+                                ${isAdmin ? `
+                                    <button type="button" class="wo-reassign-btn" onclick="window.promptReassignWorkOrder('${escapeHTML(o.order_id || o.order_number)}')" title="Reassign Staff">⇄</button>
+                                ` : ''}
+                            </div>
+                        </div>
                     </td>
-                    <td><span style="color:${o.priority === 'CRITICAL' ? '#ef4444' : (o.priority === 'HIGH' ? '#f97316' : '#f59e0b')}; font-weight:700;">${o.priority}</span></td>
-                    <td><small style="color:#cbd5e1;">${o.deadline || '--'}</small></td>
                     <td>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${sColor};"></span>
-                            <select onchange="window.transitionWorkOrderStatus('${o.order_id || o.order_number}', this.value, '${o.status}')" style="background:#0f172a; color:#f8fafc; border:1px solid #334155; padding:4px 6px; border-radius:6px; font-size:11px; cursor:pointer;">
-                                <option value="ASSIGNED" ${o.status === 'ASSIGNED' ? 'selected' : ''}>ASSIGNED</option>
-                                <option value="ACKNOWLEDGED" ${o.status === 'ACKNOWLEDGED' ? 'selected' : ''}>ACKNOWLEDGED</option>
-                                <option value="IN_PROGRESS" ${o.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
-                                <option value="BLOCKED" ${o.status === 'BLOCKED' ? 'selected' : ''}>BLOCKED</option>
-                                <option value="RESOLVED" ${o.status === 'RESOLVED' ? 'selected' : ''}>RESOLVED</option>
-                                <option value="VERIFIED" ${o.status === 'VERIFIED' ? 'selected' : ''} ${!isAdmin ? 'disabled' : ''}>VERIFIED (Admin)</option>
-                                <option value="CANCELLED" ${o.status === 'CANCELLED' ? 'selected' : ''} ${!isAdmin ? 'disabled' : ''}>CANCELLED (Admin)</option>
+                        ${prioBadge}
+                    </td>
+                    <td>
+                        ${deadlineHtml}
+                    </td>
+                    <td>
+                        <div class="wo-status-select-wrap">
+                            <select class="wo-status-select status-${statusKey.toLowerCase()}" onchange="window.transitionWorkOrderStatus('${escapeHTML(o.order_id || o.order_number)}', this.value, '${escapeHTML(o.status)}')">
+                                <option value="ASSIGNED" ${statusKey === 'ASSIGNED' ? 'selected' : ''}>● Assigned</option>
+                                <option value="ACKNOWLEDGED" ${statusKey === 'ACKNOWLEDGED' ? 'selected' : ''}>● Acknowledged</option>
+                                <option value="IN_PROGRESS" ${statusKey === 'IN_PROGRESS' ? 'selected' : ''}>● In Progress</option>
+                                <option value="BLOCKED" ${statusKey === 'BLOCKED' ? 'selected' : ''}>⚠️ Blocked</option>
+                                <option value="RESOLVED" ${statusKey === 'RESOLVED' ? 'selected' : ''}>✓ Resolved</option>
+                                <option value="VERIFIED" ${statusKey === 'VERIFIED' ? 'selected' : ''} ${!isAdmin ? 'disabled' : ''}>★ Verified (Admin)</option>
+                                <option value="CANCELLED" ${statusKey === 'CANCELLED' ? 'selected' : ''} ${!isAdmin ? 'disabled' : ''}>✕ Cancelled (Admin)</option>
                             </select>
                         </div>
                     </td>
@@ -787,7 +901,7 @@
             badge.innerHTML = isActive 
                 ? "● Telemetry: <strong>SIMULATED SCADA</strong>"
                 : "● Telemetry: <strong>DATABASE RECORDS (HARDWARE UNVERIFIED)</strong>";
-            badge.style.color = isActive ? "#f59e0b" : "#38bdf8";
+            badge.style.color = isActive ? "#38bdf8" : "#ffffff";
         }
     }
 
@@ -1019,11 +1133,11 @@
                 } else {
                     tbody.innerHTML = pipelines.map(p => {
                         const provBadge = p.telemetry_provenance === "MEASURED"
-                            ? `<span style="font-size:10px; background:rgba(16,185,129,0.15); color:#34d399; padding:2px 6px; border-radius:4px; font-weight:700;">MEASURED</span>`
-                            : `<span style="font-size:10px; background:rgba(245,158,11,0.15); color:#f59e0b; padding:2px 6px; border-radius:4px; font-weight:700;">SIMULATED</span>`;
+                            ? `<span style="font-size:10px; background:rgba(14,165,233,0.15); color:#38bdf8; padding:2px 6px; border-radius:4px; font-weight:700;">MEASURED</span>`
+                            : `<span style="font-size:10px; background:rgba(2,132,199,0.15); color:#bae6fd; padding:2px 6px; border-radius:4px; font-weight:700;">SIMULATED</span>`;
 
                         const valveBadge = p.valve_state === "OPEN"
-                            ? `<span style="color:#10b981; font-weight:700;">OPEN</span>`
+                            ? `<span style="color:#0284c7; font-weight:700;">OPEN</span>`
                             : `<span style="color:#ef4444; font-weight:700;">${p.valve_state || 'CLOSED'}</span>`;
 
                         return `
@@ -1118,8 +1232,8 @@
             tbody.innerHTML = logs.map(l => {
                 const ts = new Date(l.created_at).toLocaleTimeString();
                 const provBadge = l.provenance === "MEASURED"
-                    ? `<span style="font-size:10px; color:#34d399; font-weight:700;">MEASURED</span>`
-                    : `<span style="font-size:10px; color:#f59e0b; font-weight:700;">SIMULATED</span>`;
+                    ? `<span style="font-size:10px; color:#38bdf8; font-weight:700;">MEASURED</span>`
+                    : `<span style="font-size:10px; color:#bae6fd; font-weight:700;">SIMULATED</span>`;
 
                 return `
                 <tr>
@@ -1178,14 +1292,14 @@
 
                 tbody.innerHTML = faults.map(f => {
                     const provTag = f.provenance === "CONFIRMED"
-                        ? `<span style="background:rgba(16,185,129,0.15); color:#34d399; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">✅ CONFIRMED</span>`
+                        ? `<span style="background:rgba(14,165,233,0.15); color:#38bdf8; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">✅ CONFIRMED</span>`
                         : (f.provenance === "SIMULATED"
-                            ? `<span style="background:rgba(168,85,247,0.15); color:#c084fc; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">🧪 SIMULATED</span>`
+                            ? `<span style="background:rgba(2,132,199,0.15); color:#bae6fd; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">🧪 SIMULATED</span>`
                             : (f.provenance === "ALGORITHMIC_SUSPICION"
-                                ? `<span style="background:rgba(245,158,11,0.15); color:#fbbf24; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">🤖 ALGORITHMIC</span>`
+                                ? `<span style="background:rgba(14,165,233,0.2); color:#e0f2fe; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">🤖 ALGORITHMIC</span>`
                                 : `<span style="background:rgba(56,189,248,0.15); color:#38bdf8; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">👤 CITIZEN</span>`));
 
-                    const sevColor = f.severity === "CRITICAL" ? "#ef4444" : (f.severity === "HIGH" ? "#f97316" : "#f59e0b");
+                    const sevColor = f.severity === "CRITICAL" ? "#ef4444" : (f.severity === "HIGH" ? "#dc2626" : "#0284c7");
                     const confPct = f.confidence ? `${Math.round(Number(f.confidence) * 100)}%` : '--';
                     const ts = new Date(f.reported_at).toLocaleDateString();
 

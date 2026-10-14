@@ -28,7 +28,11 @@ const TEST_SUITES = [
     { name: "Production Hardening, SEO & Legal Compliance", file: "scratch/test_hardening_and_compliance.js" },
     { name: "AI Clinical Care Assistant Suite (28 Tests)", file: "scripts/test_clinical_care_assistant.js" },
     { name: "Multi-Disease Clinical Decision-Support (7-Part Guidance)", file: "scripts/test_diverse_clinical_queries.js" },
-    { name: "Water Intelligence, 3D Explorer & Wastewater Safety Interlock", file: "scratch/test_water_intelligence_suite.js" }
+    { name: "Water Intelligence, 3D Explorer & Wastewater Safety Interlock", file: "scratch/test_water_intelligence_suite.js" },
+    { name: "Sewage Network Planner & 3D Route Designer Suite", file: "scratch/test_sewage_planner_backend.js" },
+    { name: "Water & Sewage Command Center Integration Suite", file: "scratch/test_water_command_center.js" },
+    { name: "Water Management Upgrade & Multi-View Verification", file: "scratch/verify_water_management_upgrade.js" },
+    { name: "Water 3D Digital Twin, Licensed glTF & 3-Layer Role Suite", file: "scratch/test_water_3d_digital_twin.js" }
 ];
 
 async function runSingleTest(suite) {
@@ -39,7 +43,7 @@ async function runSingleTest(suite) {
 
         const proc = spawn('node', [fullPath], {
             cwd: ROOT_DIR,
-            env: { ...process.env, FORCE_COLOR: '1' }
+            env: { ...process.env, FORCE_COLOR: '1', DISABLE_RATE_LIMIT: 'true', NODE_ENV: 'test' }
         });
 
         let output = '';
@@ -100,7 +104,8 @@ async function runAll() {
         console.log('⚡ Backend server not detected on port 5000. Launching automatically...');
         spawnedServer = spawn('node', ['backend/server.js'], {
             cwd: ROOT_DIR,
-            stdio: 'ignore'
+            stdio: 'ignore',
+            env: { ...process.env, DISABLE_RATE_LIMIT: 'true', NODE_ENV: 'test' }
         });
         const ready = await waitForServer();
         if (!ready) {

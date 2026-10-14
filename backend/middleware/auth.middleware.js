@@ -73,6 +73,19 @@ function generateToken(user, role = "citizen") {
 // =========================================================
 // JWT AUTHENTICATION MIDDLEWARE
 // =========================================================
+// TOKEN REVOCATION & BLACKLIST (Server-side Invalidation)
+// =========================================================
+const revokedTokens = new Set();
+
+function revokeToken(token) {
+    if (typeof token === "string" && token.length > 0) {
+        revokedTokens.add(token);
+    }
+}
+
+function isTokenRevoked(token) {
+    return revokedTokens.has(token);
+}
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
@@ -90,6 +103,13 @@ function authenticateToken(req, res, next) {
         return res.status(401).json({
             success: false,
             message: "Access denied. Authentication token required."
+        });
+    }
+
+    if (isTokenRevoked(token)) {
+        return res.status(401).json({
+            success: false,
+            message: "Authentication token has been revoked / logged out. Please sign in again."
         });
     }
 
@@ -248,6 +268,8 @@ module.exports = {
     generateToken,
     authenticateToken,
     optionalToken,
+    revokeToken,
+    isTokenRevoked,
     requireRole,
     requireDepartment,
     requireDoctorOrStaff

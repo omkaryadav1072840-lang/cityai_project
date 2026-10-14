@@ -10,6 +10,7 @@
     "dev:frontend": "node scripts/serve_frontend.js",
     "test": "node scratch/test_master_backend_routes.js",
     "test:all": "node scripts/run_all_tests.js",
+    "test:py": "python -m pytest ai_service/tests",
     "docker:up": "docker compose up --build",
     "docker:dev": "docker compose up",
     "docker:down": "docker compose down",

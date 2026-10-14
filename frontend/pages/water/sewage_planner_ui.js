@@ -171,7 +171,7 @@
         }).addTo(map);
 
         sewageRoutePolyline = L.polyline([], {
-            color: "#ea580c", // Terracotta orange
+            color: "#8d5b4c", // Civil Brown sewage
             weight: 6,
             opacity: 0.9,
             lineJoin: "round"
@@ -266,7 +266,7 @@
         if (t.includes("POTABLE") || t.includes("FRESH")) return "#38bdf8"; // Sky blue fresh water
         if (t.includes("RAIN") || t.includes("STORM") || t.includes("DRAIN")) return "#06b6d4"; // Cyan rainwater
         if (t.includes("RECLAIM") || t.includes("RECYCLE")) return "#10b981"; // Emerald reclaimed water
-        return "#ea580c"; // Terracotta sewage orange
+        return "#8d5b4c"; // Civil Brown sewage
     }
 
     /**

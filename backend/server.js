@@ -101,6 +101,11 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // XSS and script injection sanitizer
 app.use(inputSanitizer);
 
+// Rate Limiters for sensitive endpoints (skipped when process.env.NODE_ENV === "test")
+app.use(["/api/login", "/api/register"], authRateLimiter);
+app.use("/api/emergency/sos", sosRateLimiter);
+app.use("/api/ai", aiRateLimiter);
+
 // Medical uploads security guard (Prescriptions & Diagnostic Reports)
 app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
     if (process.env.REQUIRE_AUTH === "false") return next();

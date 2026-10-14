@@ -156,6 +156,9 @@ async function runTests() {
                 { lat: 26.7559, lng: 83.3705, elevation_m: 83.0 }
             ]
         }, waterAdminToken);
+        if (res.status !== 201) {
+            console.error("DEBUG 2.2 response:", res.status, res.data);
+        }
         assert.strictEqual(res.status, 201);
         assert.strictEqual(res.data.route.status, "VALIDATION_FAILED");
         assert(res.data.validation.errors.some(e => e.includes("Sub-standard burial depth")));

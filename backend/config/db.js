@@ -32,4 +32,22 @@ pool.getConnection((err, connection) => {
     }
 });
 
+// Pool error resilience & auto-reconnect logging
+pool.on("error", (err) => {
+    console.error("⚠️ [MySQL Pool Error Caught]:", err.code || err.message);
+    if (err.code === "PROTOCOL_CONNECTION_LOST" || err.code === "ECONNRESET") {
+        console.log("🔄 MySQL connection lost. Pool will auto-reconnect on next query.");
+    }
+});
+
+// Resilient Health Check Helper for API and System Diagnostics
+pool.healthCheck = async function () {
+    try {
+        const [rows] = await pool.promise().query("SELECT 1 AS alive");
+        return { ok: true, rows };
+    } catch (err) {
+        return { ok: false, error: err.message };
+    }
+};
+
 module.exports = pool;
