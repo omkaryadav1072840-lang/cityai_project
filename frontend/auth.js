@@ -974,10 +974,13 @@ const SmartCityAuth = (() => {
 
     async function refreshNotificationCount() {
         const countBadge = document.getElementById("scGlobalNotifCount");
-        if (!countBadge) return;
+        const ddCountBadge = document.getElementById("scDropdownNotifCount");
+        const pillCountBadge = document.getElementById("scPillNotifBadge");
 
         if (!isAuthenticated()) {
-            countBadge.style.display = "none";
+            if (countBadge) countBadge.style.display = "none";
+            if (ddCountBadge) ddCountBadge.style.display = "none";
+            if (pillCountBadge) pillCountBadge.style.display = "none";
             return;
         }
 
@@ -986,11 +989,24 @@ const SmartCityAuth = (() => {
             if (res.ok) {
                 const data = await res.json();
                 const unread = data.unreadCount || 0;
+                const text = unread > 99 ? "99+" : String(unread);
                 if (unread > 0) {
-                    countBadge.textContent = unread > 99 ? "99+" : unread;
-                    countBadge.style.display = "inline-flex";
+                    if (countBadge) {
+                        countBadge.textContent = text;
+                        countBadge.style.display = "inline-flex";
+                    }
+                    if (ddCountBadge) {
+                        ddCountBadge.textContent = text;
+                        ddCountBadge.style.display = "inline-flex";
+                    }
+                    if (pillCountBadge) {
+                        pillCountBadge.textContent = text;
+                        pillCountBadge.style.display = "inline-flex";
+                    }
                 } else {
-                    countBadge.style.display = "none";
+                    if (countBadge) countBadge.style.display = "none";
+                    if (ddCountBadge) ddCountBadge.style.display = "none";
+                    if (pillCountBadge) pillCountBadge.style.display = "none";
                 }
             }
         } catch (_) {}
@@ -2531,6 +2547,7 @@ const SmartCityAuth = (() => {
                 <span style="background:${roleBg}; color:${roleColor}; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px; border:1px solid ${roleBorder}; letter-spacing:0.3px;">
                     ${_escapeHtml(roleLabel)}
                 </span>
+                <span id="scPillNotifBadge" style="background:#ef4444; color:#fff; font-size:9.5px; font-weight:800; border-radius:999px; padding:1px 5px; min-width:16px; height:16px; display:none; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(239,68,68,0.9); line-height:1;"></span>
                 <span style="font-size:10px; color:#94a3b8; transition:transform 0.2s;" id="scDropdownArrow">▾</span>
 
                 <!-- Dropdown Menu -->
@@ -2551,7 +2568,19 @@ const SmartCityAuth = (() => {
                         <span class="sc-badge sc-badge-verified" style="font-size:9.5px; padding:2px 6px;">VERIFIED</span>
                     </div>
 
-                    <button type="button" id="scDropdownProfileBtn" class="sc-dd-item-btn" style="margin-top:10px; background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3); color:#38bdf8;">
+                    <!-- 1. Dashboard Navigation Inside Login Menu -->
+                    <a href="${window.location.pathname.includes('/pages/') ? '../../index.html' : 'index.html'}" id="scDropdownDashboardBtn" class="sc-dd-item-btn" style="margin-top:10px; background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.35); color:#60a5fa; text-decoration:none;">
+                        <span style="display:flex; align-items:center; gap:8px;"><span>🏠</span> Back to Dashboard</span>
+                        <span style="font-size:12px;">→</span>
+                    </a>
+
+                    <!-- 2. Notifications & Alerts Inside Login Menu -->
+                    <button type="button" id="scDropdownNotifBtn" class="sc-dd-item-btn" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); color:#fbbf24;">
+                        <span style="display:flex; align-items:center; gap:8px;"><span>🔔</span> Notifications &amp; Alerts</span>
+                        <span id="scDropdownNotifCount" style="background:#ef4444; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 6px; min-width:18px; height:18px; display:none; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(239,68,68,0.7); line-height:1;"></span>
+                    </button>
+
+                    <button type="button" id="scDropdownProfileBtn" class="sc-dd-item-btn" style="background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3); color:#38bdf8;">
                         <span style="display:flex; align-items:center; gap:8px;"><span>👤</span> My Profile &amp; Dossier</span>
                         <span style="font-size:12px;">→</span>
                     </button>
@@ -2578,12 +2607,23 @@ const SmartCityAuth = (() => {
             const dd = badge.querySelector("#scGlobalUserDropdown");
             const arrow = badge.querySelector("#scDropdownArrow");
             badge.addEventListener("click", (e) => {
-                if (e.target.closest("#scDropdownSignOutBtn") || e.target.closest("#scDropdownActivityBtn") || e.target.closest("#scDropdownProfileBtn")) return;
+                if (e.target.closest("#scDropdownSignOutBtn") || e.target.closest("#scDropdownActivityBtn") || e.target.closest("#scDropdownProfileBtn") || e.target.closest("#scDropdownNotifBtn") || e.target.closest("#scDropdownDashboardBtn")) return;
                 e.stopPropagation();
                 const isShowing = dd.style.display === "block";
                 dd.style.display = isShowing ? "none" : "block";
                 if (arrow) arrow.style.transform = isShowing ? "rotate(0deg)" : "rotate(180deg)";
             });
+
+            // Notification Button inside dropdown
+            const ddNotifBtn = badge.querySelector("#scDropdownNotifBtn");
+            if (ddNotifBtn) {
+                ddNotifBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    dd.style.display = "none";
+                    if (arrow) arrow.style.transform = "rotate(0deg)";
+                    toggleNotificationDrawer();
+                });
+            }
 
             // Profile Button
             const profBtn = badge.querySelector("#scDropdownProfileBtn");
@@ -2656,6 +2696,7 @@ const SmartCityAuth = (() => {
             }
         } else {
             badge.style.cssText = `
+                position: relative;
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
@@ -2671,19 +2712,62 @@ const SmartCityAuth = (() => {
                 font-weight: 700;
                 transition: all 0.2s ease;
                 box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+                user-select: none;
             `;
             badge.innerHTML = `
                 <span>🔑</span>
                 <span>Sign In</span>
+                <span style="font-size:10px; color:#94a3b8; transition:transform 0.2s;" id="scDropdownArrowVisitor">▾</span>
+
+                <!-- Visitor Dropdown Menu -->
+                <div id="scGlobalVisitorDropdown" class="sc-global-dropdown" style="display:none;">
+                    <div style="font-weight:800; font-size:13px; color:#ffffff; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.08);">
+                        🏛️ SmartCity Navigation
+                    </div>
+                    <a href="${window.location.pathname.includes('/pages/') ? '../../index.html' : 'index.html'}" class="sc-dd-item-btn" style="background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.35); color:#60a5fa; text-decoration:none; margin-top:4px;">
+                        <span style="display:flex; align-items:center; gap:8px;"><span>🏠</span> Back to Dashboard</span>
+                        <span style="font-size:12px;">→</span>
+                    </a>
+                    <button type="button" id="scVisitorSignInActionBtn" class="sc-dd-item-btn" style="background:rgba(56,189,248,0.18); border-color:rgba(56,189,248,0.45); color:#ffffff; margin-top:8px; justify-content:center;">
+                        <span style="display:flex; align-items:center; gap:8px;"><span>🔑</span> Sign In / Register</span>
+                    </button>
+                </div>
             `;
+
+            const visitorDd = badge.querySelector("#scGlobalVisitorDropdown");
+            const visitorArrow = badge.querySelector("#scDropdownArrowVisitor");
             badge.addEventListener("click", (e) => {
-                e.preventDefault();
+                if (e.target.closest("#scVisitorSignInActionBtn")) return;
                 e.stopPropagation();
-                showLoginModal("citizen");
+                const isShowing = visitorDd.style.display === "block";
+                visitorDd.style.display = isShowing ? "none" : "block";
+                if (visitorArrow) visitorArrow.style.transform = isShowing ? "rotate(0deg)" : "rotate(180deg)";
+            });
+
+            const visitorActionBtn = badge.querySelector("#scVisitorSignInActionBtn");
+            if (visitorActionBtn) {
+                visitorActionBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    visitorDd.style.display = "none";
+                    if (visitorArrow) visitorArrow.style.transform = "rotate(0deg)";
+                    showLoginModal("citizen");
+                });
+            }
+
+            document.addEventListener("click", (e) => {
+                if (!badge.contains(e.target) && visitorDd) {
+                    visitorDd.style.display = "none";
+                    if (visitorArrow) visitorArrow.style.transform = "rotate(0deg)";
+                }
             });
         }
 
-        container.appendChild(notifBtn);
+        // Hide any static external .nav-back-link on the page as Dashboard is now inside the login profile menu
+        document.querySelectorAll(".nav-back-link").forEach(link => {
+            link.style.display = "none";
+        });
+
+        // Push only the user/login badge into navbar (Dashboard and Notifications are inside the badge dropdown)
         container.appendChild(badge);
 
         const targets = [
