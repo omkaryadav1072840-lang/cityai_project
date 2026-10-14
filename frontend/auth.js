@@ -2472,36 +2472,6 @@ const SmartCityAuth = (() => {
             font-family: var(--sc-auth-font);
         `;
 
-        // Notification Bell Button
-        const notifBtn = document.createElement("button");
-        notifBtn.id = "scGlobalNotifBtn";
-        notifBtn.title = "View Municipal Notifications & Alerts";
-        notifBtn.style.cssText = `
-            position: relative;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #f1f5f9;
-            font-size: 15px;
-            backdrop-filter: blur(8px);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        `;
-        notifBtn.innerHTML = `
-            <span>🔔</span>
-            <span id="scGlobalNotifCount" style="position:absolute; top:-4px; right:-4px; background:#ef4444; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 5px; min-width:16px; height:16px; display:none; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(239,68,68,0.9); line-height:1;"></span>
-        `;
-        notifBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            toggleNotificationDrawer();
-        });
-
         // User Profile Badge
         const badge = document.createElement("div");
         badge.id = "scGlobalUserBadge";
@@ -2762,9 +2732,18 @@ const SmartCityAuth = (() => {
             });
         }
 
-        // Hide any static external .nav-back-link on the page as Dashboard is now inside the login profile menu
-        document.querySelectorAll(".nav-back-link").forEach(link => {
+        // Hide any static external dashboard links or redundant notification buttons on the page
+        document.querySelectorAll(".nav-back-link, .nav-dashboard-link, .back-home").forEach(link => {
             link.style.display = "none";
+        });
+        document.querySelectorAll(".header-notification-wrapper, #headerNotificationWrapper").forEach(el => {
+            el.style.display = "none";
+        });
+        document.querySelectorAll(".nav-right a, .navbar a:not(.logo), header a:not(.brand)").forEach(link => {
+            const text = (link.textContent || "").toLowerCase().trim();
+            if ((text.includes("dashboard") && (text.includes("←") || text.includes("back") || text.includes("city dashboard") || text.includes("main dashboard"))) || text === "🏠 dashboard") {
+                link.style.display = "none";
+            }
         });
 
         // Push only the user/login badge into navbar (Dashboard and Notifications are inside the badge dropdown)

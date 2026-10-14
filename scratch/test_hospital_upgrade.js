@@ -2,7 +2,12 @@ const http = require('http');
 
 function request(options, data = null) {
   return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
+    const payload = data ? (typeof data === 'string' ? data : JSON.stringify(data)) : null;
+    const opts = { ...options, headers: { ...(options.headers || {}) } };
+    if (payload) {
+      opts.headers['Content-Length'] = Buffer.byteLength(payload);
+    }
+    const req = http.request(opts, (res) => {
       let body = '';
       res.on('data', chunk => body += chunk);
       res.on('end', () => {
@@ -15,8 +20,8 @@ function request(options, data = null) {
       });
     });
     req.on('error', reject);
-    if (data) {
-      req.write(typeof data === 'string' ? data : JSON.stringify(data));
+    if (payload) {
+      req.write(payload);
     }
     req.end();
   });
@@ -176,8 +181,8 @@ async function runTests() {
       payment_method: 'Cash',
       payment_status: 'Paid'
     });
-    assert(offlineBooking.status === 201 && offlineBooking.body.success, 'Offline test booked with instant token');
-    assert(offlineBooking.body.booking.payment_status === 'Paid', 'Offline walk-in payment status is Paid');
+    assert(offlineBooking.status === 201 && offlineBooking.body && offlineBooking.body.success, `Offline test booked with instant token (Status: ${offlineBooking.status})`);
+    assert(offlineBooking.body?.booking?.payment_status === 'Paid', 'Offline walk-in payment status is Paid');
 
     // 9. Diagnostics Live Queue & Queue Call Next
     console.log('\n--- 6. Diagnostics Live Queue Management ---');
