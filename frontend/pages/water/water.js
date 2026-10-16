@@ -15,7 +15,15 @@
     // -------------------------------------------------------
     const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
         ? window.API_BASE_URL
-        : (typeof window !== "undefined" && (window.location.port === "5000" || window.location.protocol === "file:") ? "http://localhost:5000" : "");
+        : (typeof window !== "undefined" && window.location)
+            ? (window.location.protocol === "file:" 
+                ? "http://localhost:5000" 
+                : (window.location.port === "5000" || window.location.port === "3000" 
+                    ? window.location.origin 
+                    : ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+                        ? `http://${window.location.hostname}:5000` 
+                        : (window.location.origin || ""))))
+            : "http://localhost:5000";
 
     let currentLayer = "citizen";
     let waterMap = null;
@@ -61,6 +69,9 @@
     }
 
     function isWaterStaff() {
+        if (window.SmartCityAuth && typeof SmartCityAuth.hasStaffClearance === "function") {
+            return SmartCityAuth.hasStaffClearance("water");
+        }
         const user = getCurrentUser();
         if (user) {
             const role = (user.role || user.type || "").toLowerCase();
@@ -88,6 +99,9 @@
     }
 
     function isWaterAdmin() {
+        if (window.SmartCityAuth && typeof SmartCityAuth.isSuperAdmin === "function" && SmartCityAuth.isSuperAdmin()) {
+            return true;
+        }
         const user = getCurrentUser();
         if (user) {
             const role = (user.role || user.type || "").toLowerCase();
@@ -98,7 +112,7 @@
 
             // Other departments cannot be Water Admin
             const otherDepts = ["hospital", "healthcare", "traffic", "police", "waste", "sanitation", "emergency", "fire"];
-            if (otherDepts.includes(dept) && !dept.includes("water")) {
+            if (otherDepts.includes(dept) && !dept.includes("water") && !(user.editable && user.editable.includes("water"))) {
                 return false;
             }
             if (user.hospitalId || user.hospitalRole) {

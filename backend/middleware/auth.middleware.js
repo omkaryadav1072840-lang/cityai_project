@@ -1,42 +1,64 @@
 const crypto = require("crypto");
+const util = require("util");
 const jwt = require("jsonwebtoken");
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/env.config");
 
-const JWT_SECRET =
-    process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const scryptAsync = util.promisify(crypto.scrypt);
 
 // =========================================================
-// PASSWORD HASHING (built-in crypto, scrypt)
+// PASSWORD HASHING (built-in crypto, asynchronous scrypt)
 // =========================================================
 
-function hashPassword(plainPassword) {
+async function hashPassword(plainPassword) {
     const salt = crypto.randomBytes(16).toString("hex");
-    const hash = crypto
-        .scryptSync(String(plainPassword), salt, 64)
-        .toString("hex");
-    return `scrypt$${salt}$${hash}`;
+    const derivedKey = await scryptAsync(String(plainPassword), salt, 64);
+    return `scrypt$${salt}$${derivedKey.toString("hex")}`;
 }
 
-function verifyPassword(plainPassword, storedPassword) {
+async function verifyPassword(plainPassword, storedPassword) {
     if (!storedPassword) return false;
 
-    if (storedPassword.startsWith("scrypt$")) {
+    if (typeof storedPassword === "string" && storedPassword.startsWith("scrypt$")) {
         const parts = storedPassword.split("$");
         if (parts.length !== 3) return false;
         const [, salt, hashHex] = parts;
-        const candidateHash = crypto.scryptSync(
-            String(plainPassword),
-            salt,
-            64
-        );
+        try {
+            const candidateHash = await scryptAsync(
+                String(plainPassword),
+                salt,
+                64
+            );
+            const storedHash = Buffer.from(hashHex, "hex");
+            if (candidateHash.length !== storedHash.length) return false;
+            return crypto.timingSafeEqual(candidateHash, storedHash);
+        } catch (err) {
+            console.error("[scrypt verification error]", err);
+            return false;
+        }
+    }
+
+    // Legacy plain-text password fallback
+    return storedPassword === plainPassword;
+}
+
+// Synchronous helpers preserved for backward compatibility in synchronous migration scripts
+function hashPasswordSync(plainPassword) {
+    const salt = crypto.randomBytes(16).toString("hex");
+    const hash = crypto.scryptSync(String(plainPassword), salt, 64).toString("hex");
+    return `scrypt$${salt}$${hash}`;
+}
+
+function verifyPasswordSync(plainPassword, storedPassword) {
+    if (!storedPassword) return false;
+    if (typeof storedPassword === "string" && storedPassword.startsWith("scrypt$")) {
+        const parts = storedPassword.split("$");
+        if (parts.length !== 3) return false;
+        const [, salt, hashHex] = parts;
+        const candidateHash = crypto.scryptSync(String(plainPassword), salt, 64);
         const storedHash = Buffer.from(hashHex, "hex");
         if (candidateHash.length !== storedHash.length) return false;
         return crypto.timingSafeEqual(candidateHash, storedHash);
     }
-
-    // Legacy plain-text password fallback
     return storedPassword === plainPassword;
 }
 
@@ -264,6 +286,8 @@ function requireDoctorOrStaff(req, res, next) {
 module.exports = {
     hashPassword,
     verifyPassword,
+    hashPasswordSync,
+    verifyPasswordSync,
     isLegacyPlainPassword,
     generateToken,
     authenticateToken,
@@ -272,5 +296,7 @@ module.exports = {
     isTokenRevoked,
     requireRole,
     requireDepartment,
-    requireDoctorOrStaff
+    requireDoctorOrStaff,
+    JWT_SECRET,
+    JWT_EXPIRES_IN
 };

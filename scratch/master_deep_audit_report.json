@@ -5,13 +5,13 @@
       "category": "DOM_ID",
       "file": "frontend/script.js",
       "html": "frontend/index.html",
-      "message": "33 getElementById target(s) missing from HTML: temperatureValue, hospitalValue, patientForm, patientName, patientDOB, patientGender, patientPhone, generatedPatientId, patientResult, patientQRCode ... and more"
+      "message": "50 getElementById target(s) missing from HTML: temperatureValue, hospitalValue, patientForm, patientName, patientDOB, patientGender, patientPhone, generatedPatientId, patientResult, patientQRCode ... and more"
     },
     {
       "category": "DOM_ID",
       "file": "frontend/auth.js",
       "html": "frontend/index.html",
-      "message": "11 getElementById target(s) missing from HTML: profileButton, userBadgeBtn, navUserName, profileName, profileNavName, profCardName, navLoginBtn, userProfileMenuContainer, profileMenu, roleBadge ... and more"
+      "message": "12 getElementById target(s) missing from HTML: scGlobalNotifCount, profileButton, userBadgeBtn, navUserName, profileName, profileNavName, profCardName, navLoginBtn, userProfileMenuContainer, profileMenu ... and more"
     },
     {
       "category": "DOM_ID",
@@ -27,21 +27,27 @@
     },
     {
       "category": "DOM_ID",
+      "file": "frontend/pages/famous/famous.js",
+      "html": "frontend/pages/famous/famous.html",
+      "message": "1 getElementById target(s) missing from HTML: issueCategorySelect"
+    },
+    {
+      "category": "DOM_ID",
       "file": "frontend/pages/hospital/hospital.js",
       "html": "frontend/pages/hospital/hospital.html",
-      "message": "2 getElementById target(s) missing from HTML: appointmentTime, pageLoader"
+      "message": "9 getElementById target(s) missing from HTML: appointmentTime, pageLoader, ai-hosp-select, ai-hosp-total, ai-hosp-occupied, ai-hosp-icu, ai-hosp-icuo, ai-healthcare-result-box, ai-healthcare-tbody"
     },
     {
       "category": "DOM_ID",
       "file": "frontend/pages/hospital/hospital_dashboard.js",
       "html": "frontend/pages/hospital/hospital_dashboard.html",
-      "message": "5 getElementById target(s) missing from HTML: navUserBadge, btnStaffLogout, userDisplayName, userRoleBadge, userAvatar"
+      "message": "16 getElementById target(s) missing from HTML: navUserBadge, btnStaffLogout, staffAuthModal, userDisplayName, userRoleBadge, userAvatar, offlineTestSelect, offlineFeeDisplay, offlinePatientName, offlinePatientId ... and more"
     },
     {
       "category": "DOM_ID",
       "file": "frontend/pages/police/police.js",
       "html": "frontend/pages/police/police.html",
-      "message": "1 getElementById target(s) missing from HTML: navUserName"
+      "message": "2 getElementById target(s) missing from HTML: navUserName, lastUpdated"
     },
     {
       "category": "DOM_ID",
@@ -53,7 +59,7 @@
       "category": "DOM_ID",
       "file": "frontend/pages/water/water.js",
       "html": "frontend/pages/water/water.html",
-      "message": "5 getElementById target(s) missing from HTML: profileName, profileNavName, profileRole, roleBadge, profileMenu"
+      "message": "7 getElementById target(s) missing from HTML: profileName, profileNavName, profileRole, roleBadge, adminMapPipelineToolbar, btnToggleMovePipe, profileMenu"
     }
   ]
 }

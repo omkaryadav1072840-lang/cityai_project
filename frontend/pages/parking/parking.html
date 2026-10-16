@@ -13,6 +13,10 @@
     <meta property="og:description" content="Live vacant parking slot tracker and instant reservations in Gorakhpur.">
     <meta property="og:image" content="/smartcity-og-preview.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="parking.css">
     <link rel="stylesheet" href="../../components/ui_components.css">
@@ -22,14 +26,12 @@
 
 <!-- ================= NAVBAR ================= -->
 
-<!-- ================= NAVBAR ================= -->
-
 <nav class="navbar">
 
     <div class="nav-left-group">
-        <div class="logo">
+        <a href="../../index.html" class="logo" style="text-decoration: none; color: inherit;">
             Smart<span>City AI</span>
-        </div>
+        </a>
     </div>
 
     <div class="nav-right">
@@ -58,6 +60,13 @@
                         <span id="ddUserContact">Sign in to manage passes</span>
                     </div>
                 </div>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="if(window.SmartCityAuth) SmartCityAuth.showLoginModal();" style="background: rgba(56, 189, 248, 0.12); color: #0284c7; font-weight: 700; margin: 4px 0 6px 0;">
+                    <span class="dd-icon">🔑</span>
+                    <div class="dd-info">
+                        <strong>Sign In / Official Login</strong>
+                        <small>Access citizen bookings or staff controls</small>
+                    </div>
+                </a>
                 <div class="dropdown-separator"></div>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="openUserProfileModal()">
                     <span class="dd-icon">👤</span>
@@ -1597,6 +1606,54 @@
 
 </div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
+<!-- =====================================================
+     MUNICIPAL FOOTER (Universal City AI Footer)
+===================================================== -->
+<footer class="sc-main-footer" role="contentinfo" style="background: #0f172a; color: #94a3b8; padding: 48px 5% 32px; border-top: 1px solid #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 40px;">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px; text-align: left;">
+        <div>
+            <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <span>🏙️</span> SmartCity <span style="color: #38bdf8;">AI</span>
+            </div>
+            <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                Gorakhpur Smart City Mission. Integrated Command and Control Center (ICCC) platform delivering live IoT parking telemetry, FASTag automated barriers, and bay reservation.
+            </p>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Civic Portals</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                <li><a href="../../index.html" style="color: #94a3b8; text-decoration: none;">🏛️ Main City Dashboard</a></li>
+                <li><a href="parking.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🅿️ Smart Parking</a></li>
+                <li><a href="../hospital/hospital.html" style="color: #94a3b8; text-decoration: none;">🏥 Hospital &amp; Healthcare</a></li>
+                <li><a href="../traffic/traffic.html" style="color: #94a3b8; text-decoration: none;">🚦 Live Traffic Grid</a></li>
+                <li><a href="../emergency/emergency.html" style="color: #94a3b8; text-decoration: none;">🚨 Emergency SOS</a></li>
+                <li><a href="../water/water.html" style="color: #94a3b8; text-decoration: none;">💧 Water Management &amp; SCADA</a></li>
+                <li><a href="../waste/waste.html" style="color: #94a3b8; text-decoration: none;">🗑️ Waste Management</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Transparency &amp; Legal</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                <li><a href="../privacy-policy.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🔒 Privacy Policy</a></li>
+                <li><a href="../terms-and-conditions.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">📜 Terms &amp; Conditions</a></li>
+                <li><a href="../../index.html#services" style="color: #94a3b8; text-decoration: none;">📋 Citizen Grievances</a></li>
+                <li><a href="/sitemap.xml" style="color: #94a3b8; text-decoration: none;">🗺️ Site Directory</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Emergency Helplines</h4>
+            <p style="font-size: 13px; line-height: 1.8; color: #cbd5e1; margin: 0;">
+                🚨 <strong>National Emergency:</strong> 112<br>
+                🚑 <strong>State Ambulance:</strong> 108<br>
+                🚒 <strong>Fire Service:</strong> 101<br>
+                📞 <strong>Municipal Toll-Free:</strong> 1800-180-2026
+            </p>
+        </div>
+    </div>
+    <div style="border-top: 1px solid #1e293b; padding-top: 24px; text-align: center; font-size: 12px; color: #64748b;">
+        © 2026 SmartCity AI Municipal Directorate. Grounded AI urban telemetry and civic management system. All rights reserved.
+    </div>
+</footer>
 
 <!-- ================= CITIZEN SLOT BOOKING MODAL ================= -->
 <div class="parking-modal" id="slotBookingModal">

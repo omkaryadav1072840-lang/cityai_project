@@ -2,11 +2,12 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
-    background: #f1f5f9;
+    background: #f0f7fc;
     color: #172033;
 }
 
@@ -31,7 +32,7 @@ body {
 }
 
 .logo span {
-    color: #0ea5e9;
+    color: #2563eb;
 }
 
 .page-title {
@@ -957,7 +958,7 @@ body {
    ===================================================== */
 .layer-tabs-container {
     background: #ffffff;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid #bae6fd;
     padding: 0 5%;
     display: flex;
     gap: 8px;
@@ -965,7 +966,7 @@ body {
     position: sticky;
     top: 70px;
     z-index: 8900; /* Stays securely pinned above map when scrolling */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.06);
 }
 
 .layer-tab-btn {
@@ -990,34 +991,35 @@ body {
 }
 
 .layer-tab-btn.active {
-    color: #0369a1;
+    color: #0284c7;
     border-bottom-color: #0284c7;
-    background: #f0f9ff;
+    background: #e0f2fe;
+    border-radius: 8px 8px 0 0;
 }
 
 /* ================= ROLE BANNER ================= */
 .role-banner {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
     border-radius: 16px;
     padding: 18px 24px;
     margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.08);
 }
 
 .role-banner strong {
     display: block;
     font-size: 17px;
-    color: #0f172a;
+    color: #0369a1;
     margin-bottom: 4px;
 }
 
 .role-banner span {
     font-size: 13px;
-    color: #64748b;
+    color: #0284c7;
 }
 
 .role-pill {

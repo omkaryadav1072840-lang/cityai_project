@@ -31,7 +31,7 @@ class AuthController {
                 name,
                 email,
                 mobile,
-                password: hashPassword(password),
+                password: await hashPassword(password),
                 ward: req.body.ward,
                 vehicleNumber: req.body.vehicleNumber || req.body.vehicle_number,
                 bloodGroup: req.body.bloodGroup || req.body.blood_group,
@@ -75,14 +75,16 @@ class AuthController {
                 return apiError(res, "Invalid credentials or account does not exist.", 401, "INVALID_CREDENTIALS");
             }
 
-            if (!verifyPassword(password, user.password)) {
+            if (!(await verifyPassword(password, user.password))) {
                 return apiError(res, "Incorrect password provided.", 401, "INVALID_CREDENTIALS");
             }
 
             // Upgrade legacy plaintext passwords if needed
             if (isLegacyPlainPassword(user.password)) {
-                db.promise().query("UPDATE users SET password = ? WHERE id = ?", [hashPassword(password), user.id])
-                    .catch(e => console.warn("Password upgrade error:", e.message));
+                hashPassword(password).then(h => {
+                    db.promise().query("UPDATE users SET password = ? WHERE id = ?", [h, user.id])
+                        .catch(e => console.warn("Password upgrade error:", e.message));
+                });
             }
 
             const userRole = user.role || "citizen";
@@ -131,7 +133,7 @@ class AuthController {
                 );
                 if (docs.length > 0) {
                     const doc = docs[0];
-                    if (!verifyPassword(password, doc.password)) {
+                    if (!(await verifyPassword(password, doc.password))) {
                         return apiError(res, "Incorrect password for Doctor profile.", 401, "INVALID_CREDENTIALS");
                     }
                     const doctorData = {
@@ -157,7 +159,7 @@ class AuthController {
                 return apiError(res, "Staff or Doctor ID not found.", 401, "NOT_FOUND");
             }
 
-            if (!verifyPassword(password, staff.password)) {
+            if (!(await verifyPassword(password, staff.password))) {
                 return apiError(res, "Incorrect staff password.", 401, "INVALID_CREDENTIALS");
             }
 

@@ -82,42 +82,71 @@ async function logPatientAudit(patientId, action, req, details = null) {
     }
 }
 
+/**
+ * Normalizes and validates standard 10-digit Indian mobile numbers.
+ * Safely strips common country prefixes (+91, 91, 0) and verifies format.
+ * Returns standard 10-digit string (starting 6-9) or null if invalid.
+ */
+function normalizeIndianMobile(raw) {
+    if (!raw) return null;
+    const digits = String(raw).replace(/\D/g, "");
+    if (digits.length === 10 && /^[6-9]\d{9}$/.test(digits)) {
+        return digits;
+    }
+    if (digits.length === 11 && digits.startsWith("0")) {
+        const sliced = digits.slice(1);
+        if (/^[6-9]\d{9}$/.test(sliced)) return sliced;
+    }
+    if (digits.length === 12 && digits.startsWith("91")) {
+        const sliced = digits.slice(2);
+        if (/^[6-9]\d{9}$/.test(sliced)) return sliced;
+    }
+    return null;
+}
+
 function checkPatientAccess(req, patient) {
-    if (!req.user) {
+    if (!req.user || !patient) {
         return false;
     }
 
     const role = (req.user.role || req.user.type || "").toLowerCase();
-    // Admin, staff, and doctors have system access
-    if (["admin", "staff", "doctor"].includes(role)) {
+    const accountType = (req.user.accountType || "").toLowerCase();
+
+    // Admin, super_admin, staff, and doctors have system access
+    const healthcareRoles = [
+        "admin", "super_admin", "staff", "doctor",
+        "hospital_admin", "receptionist", "nurse", "lab_technician", "radiologist", "pharmacy"
+    ];
+
+    if (
+        healthcareRoles.includes(role) ||
+        healthcareRoles.includes(accountType) ||
+        Boolean(req.user.hospitalId) ||
+        Boolean(req.user.hospitalRole)
+    ) {
         return true;
     }
 
-    // Citizen owner check
+    // Citizen owner check:
+    // 1. Prefer verified user_id mapping where available
     const userId = req.user.id || req.user.userId;
     if (userId && patient.user_id && Number(userId) === Number(patient.user_id)) {
         return true;
     }
 
-    // Mobile match check (normalized 10-digit match)
-    const userMob = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : "";
-    const patMob = patient.mobile ? String(patient.mobile).replace(/\D/g, "") : "";
-    if (userMob && patMob) {
-        if (userMob === patMob || (userMob.length >= 9 && patMob.length >= 9 && (userMob.slice(-9) === patMob.slice(-9)))) {
-            return true;
-        }
+    // 2. Strict normalized 10-digit Indian mobile match (no suffix matching)
+    const userMob = normalizeIndianMobile(req.user.mobile);
+    const patMob = normalizeIndianMobile(patient.mobile);
+    if (userMob && patMob && userMob === patMob) {
+        return true;
     }
 
-    // Session patientId match check
+    // 3. Session patientId match check (explicit claim in JWT)
     if (req.user.patientId && req.user.patientId === patient.patient_id) {
         return true;
     }
 
-    // Authenticated citizens have access in unified smart city portal
-    if (role === "citizen") {
-        return true;
-    }
-
+    // Unrelated citizen or visitor: strictly deny access
     return false;
 }
 
@@ -273,7 +302,7 @@ router.get("/api/patients", authenticateToken, async (req, res) => {
         // If citizen, return strictly their own profile(s)
         if (role === "citizen") {
             const userId = req.user.id || req.user.userId;
-            const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+            const normalizedMob = normalizeIndianMobile(req.user.mobile);
 
             const [citizenPatients] = await db.promise().query(
                 `SELECT p.*, h.hospital_name 
@@ -281,7 +310,7 @@ router.get("/api/patients", authenticateToken, async (req, res) => {
                  LEFT JOIN hospitals h ON p.hospital_id = h.hospital_id
                  WHERE p.user_id = ? OR (p.mobile = ? AND ? IS NOT NULL)
                  ORDER BY p.id DESC`,
-                [userId, mobile, mobile]
+                [userId, normalizedMob, normalizedMob]
             );
 
             return res.json({
@@ -291,8 +320,10 @@ router.get("/api/patients", authenticateToken, async (req, res) => {
             });
         }
 
-        // Restrict general search across all patients to staff, doctor, or admin
-        if (!["admin", "staff", "doctor"].includes(role)) {
+        // Restrict general search across all patients to authorized healthcare staff or admin
+        const allowedHealthcareRoles = ["admin", "super_admin", "staff", "doctor", "hospital_admin", "receptionist", "nurse"];
+        const accountType = (req.user.accountType || "").toLowerCase();
+        if (!allowedHealthcareRoles.includes(role) && !allowedHealthcareRoles.includes(accountType) && !Boolean(req.user.hospitalId)) {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. Action reserved for healthcare staff, doctors, or administrators."
@@ -401,7 +432,7 @@ router.get("/api/patients/:patientId", optionalToken, async (req, res) => {
 // 4. UPDATE PATIENT DETAILS (PUT /api/patients/:id)
 // =========================================================
 
-router.put("/api/patients/:patientId", optionalToken, async (req, res) => {
+router.put("/api/patients/:patientId", authenticateToken, async (req, res) => {
     const patientId = req.params.patientId.trim();
     const {
         name,
@@ -504,6 +535,14 @@ router.get("/api/patients/:patientId/qr", optionalToken, async (req, res) => {
         }
 
         const p = rows[0];
+
+        // Access control check
+        if (!checkPatientAccess(req, p)) {
+            return res.status(req.user ? 403 : 401).json({
+                success: false,
+                message: "Access denied. You can only view your own patient QR code."
+            });
+        }
 
         // If qr_token is missing, generate one
         let token = p.qr_token;
@@ -653,10 +692,10 @@ router.post("/api/patients/verify-qr", optionalToken, async (req, res) => {
 });
 
 // =========================================================
-// 7. ABHA DEMO / CONSENT LINKING WORKFLOW
+// 7. ABHA DEMO / CONSENT LINKING WORKFLOW (AUTHENTICATED & OWNER-GUARDED)
 // =========================================================
 
-router.post("/api/patients/:patientId/link-abha", optionalToken, async (req, res) => {
+router.post("/api/patients/:patientId/link-abha", authenticateToken, async (req, res) => {
     const patientId = req.params.patientId.trim();
     const { abhaAddress, abhaNumber, consentGiven } = req.body;
 
@@ -677,7 +716,7 @@ router.post("/api/patients/:patientId/link-abha", optionalToken, async (req, res
 
     try {
         const [rows] = await db.promise().query(
-            "SELECT id, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            "SELECT * FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
             [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
         );
 
@@ -686,6 +725,14 @@ router.post("/api/patients/:patientId/link-abha", optionalToken, async (req, res
         }
 
         const patient = rows[0];
+
+        // Access control check: owner or authorized healthcare staff only
+        if (!checkPatientAccess(req, patient)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. You are not authorized to link an ABHA identity for this patient."
+            });
+        }
 
         await db.promise().query(
             "UPDATE patients SET abha_status = 'Linked', abha_address = ? WHERE id = ?",
@@ -709,12 +756,12 @@ router.post("/api/patients/:patientId/link-abha", optionalToken, async (req, res
     }
 });
 
-router.post("/api/patients/:patientId/unlink-abha", optionalToken, async (req, res) => {
+router.post("/api/patients/:patientId/unlink-abha", authenticateToken, async (req, res) => {
     const patientId = req.params.patientId.trim();
 
     try {
         const [rows] = await db.promise().query(
-            "SELECT id, patient_id FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+            "SELECT * FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
             [patientId, isNaN(patientId) ? -1 : parseInt(patientId, 10)]
         );
 
@@ -723,6 +770,14 @@ router.post("/api/patients/:patientId/unlink-abha", optionalToken, async (req, r
         }
 
         const patient = rows[0];
+
+        // Access control check: owner or authorized healthcare staff only
+        if (!checkPatientAccess(req, patient)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. You are not authorized to unlink the ABHA identity for this patient."
+            });
+        }
 
         await db.promise().query(
             "UPDATE patients SET abha_status = 'Not Linked', abha_address = NULL WHERE id = ?",

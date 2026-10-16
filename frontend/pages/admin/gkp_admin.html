@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorakhpur ICCC Central Command &amp; Super Admin Console — SmartCity AI</title>
+    <meta name="description" content="Gorakhpur Smart City Integrated Command and Control Center (ICCC) Universal Super Admin Oversight and Departmental Management Console.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="gkp_admin.css">
+</head>
+<body>
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="navbar" role="banner">
+        <div class="nav-left">
+            <a href="../../index.html" class="logo" id="brandLogoLink" title="Return to SmartCity AI Home Portal">
+                🏛️ SmartCity <span>AI</span>
+            </a>
+            <span class="admin-tag">👑 GKP SUPER ADMIN COMMAND</span>
+        </div>
+        <div class="nav-right">
+            <a href="../../index.html" class="nav-link-btn" title="Back to Citizen Portal">
+                <span>🏠</span> Citizen Portal
+            </a>
+            <!-- SmartCityAuth will mount universal badge here -->
+            <div id="navUserBadge"></div>
+        </div>
+    </header>
+
+    <!-- AUTHENTICATION CHECK WARNING (Visible only if unauthorized) -->
+    <div id="superAdminAuthWarn" style="display: none; background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95)); color: #ffffff; padding: 16px 4%; text-align: center; font-size: 14px; font-weight: 700; border-bottom: 2px solid rgba(255, 255, 255, 0.2);">
+        ⚠️ RESTRICTED ACCESS: You are currently viewing as a Visitor or Departmental Staff. Full citywide clearance requires Gorakhpur Super Admin authentication.
+        <button type="button" onclick="SmartCityAuth.quickLoginPersona('super_admin')" style="margin-left: 14px; background: #ffffff; color: #991b1b; border: none; padding: 6px 16px; border-radius: 999px; font-weight: 800; cursor: pointer;">
+            ⚡ 1-Click Login as GKP Super Admin
+        </button>
+    </div>
+
+    <!-- COMMAND HERO BANNER -->
+    <section class="command-hero">
+        <div class="hero-content">
+            <div class="hero-titles">
+                <h1>
+                    <span>👑</span> Gorakhpur ICCC Central Director Command
+                </h1>
+                <p>
+                    Unified High-Authority Oversight Console: Real-time municipal telemetry, direct cross-departmental controls, staff clearance directory &amp; citywide emergency override.
+                </p>
+            </div>
+            <div class="hero-telemetry-badge">
+                <span class="pulse-dot"></span>
+                <span>ICCC DATA STREAM ACTIVE • 8 DEPARTMENTS SYNCHRONIZED</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="command-body">
+
+        <!-- 1. LIVE CITYWIDE TELEMETRY KPIS -->
+        <div class="section-header">
+            <div>
+                <h2><span>📊</span> Gorakhpur Real-Time Municipal Telemetry</h2>
+                <span class="subtext">Aggregated live sensor streams and operational telemetry across all municipal sectors</span>
+            </div>
+            <button type="button" class="nav-link-btn" onclick="location.reload()" style="cursor: pointer;">
+                <span>🔄</span> Refresh Telemetry
+            </button>
+        </div>
+
+        <div class="metrics-deck">
+            <!-- Traffic KPI -->
+            <div class="kpi-card" style="--card-accent: #f97316;">
+                <div class="kpi-top">
+                    <span class="kpi-label">Traffic Management</span>
+                    <span class="kpi-icon">🚦</span>
+                </div>
+                <div class="kpi-val" id="valTrafficIncidents">0 Active</div>
+                <div class="kpi-sub green">
+                    <span>Signals Synchronized:</span>
+                    <strong id="valTrafficSignals">18 / 18 Online</strong>
+                </div>
+            </div>
+
+            <!-- Parking KPI -->
+            <div class="kpi-card" style="--card-accent: #fbbf24;">
+                <div class="kpi-top">
+                    <span class="kpi-label">Smart Parking</span>
+                    <span class="kpi-icon">🅿️</span>
+                </div>
+                <div class="kpi-val" id="valParkingOcc">58% Occ</div>
+                <div class="kpi-sub amber">
+                    <span>Available Slots:</span>
+                    <strong id="valParkingAvail">184 Bays</strong>
+                </div>
+            </div>
+
+            <!-- Water KPI -->
+            <div class="kpi-card" style="--card-accent: #0ea5e9;">
+                <div class="kpi-top">
+                    <span class="kpi-label">Water Network</span>
+                    <span class="kpi-icon">💧</span>
+                </div>
+                <div class="kpi-val" id="valWaterPressure">4.2 bar</div>
+                <div class="kpi-sub cyan">
+                    <span>Trunk Grid Status:</span>
+                    <strong id="valWaterSupply">98.4% Flow Active</strong>
+                </div>
+            </div>
+
+            <!-- Waste KPI -->
+            <div class="kpi-card" style="--card-accent: #10b981;">
+                <div class="kpi-top">
+                    <span class="kpi-label">Sanitation &amp; Waste</span>
+                    <span class="kpi-icon">🚛</span>
+                </div>
+                <div class="kpi-val" id="valWastePending">8 Pending</div>
+                <div class="kpi-sub green">
+                    <span>Fleet Operations:</span>
+                    <strong id="valWasteFleet">24 Trucks Active</strong>
+                </div>
+            </div>
+
+            <!-- Police KPI -->
+            <div class="kpi-card" style="--card-accent: #6366f1;">
+                <div class="kpi-top">
+                    <span class="kpi-label">Police &amp; Security</span>
+                    <span class="kpi-icon">🚨</span>
+                </div>
+                <div class="kpi-val" id="valPoliceComplaints">3 Open</div>
+                <div class="kpi-sub cyan">
+                    <span>Surveillance Grid:</span>
+                    <strong id="valPoliceSos">All Sectors Patrolled</strong>
+                </div>
+            </div>
+
+            <!-- Emergency KPI -->
+            <div class="kpi-card" style="--card-accent: #ef4444;">
+                <div class="kpi-top">
+                    <span class="kpi-label">Emergency Response</span>
+                    <span class="kpi-icon">🚑</span>
+                </div>
+                <div class="kpi-val" id="valEmgIncidents">0 Critical</div>
+                <div class="kpi-sub green">
+                    <span>Fleet Ready:</span>
+                    <strong id="valEmgAmbulances">18 Units Ready</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. UNIVERSAL MODULE ACCESS & JUMP SWITCHBOARD -->
+        <div class="section-header">
+            <div>
+                <h2><span>🎛️</span> Direct Module Controller Switchboard</h2>
+                <span class="subtext">Jump directly into any municipal module with complete GKP Super Admin privileges</span>
+            </div>
+        </div>
+
+        <div class="module-switchboard">
+
+            <!-- Traffic -->
+            <div class="module-card" style="--mod-accent: #f97316; --mod-btn-bg: #ea580c; --mod-btn-glow: rgba(234, 88, 12, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(249, 115, 22, 0.15); --mod-border: rgba(249, 115, 22, 0.4);">🚦</div>
+                        <div>
+                            <div class="module-name">Traffic Management System</div>
+                            <div class="module-status">● Live Signal Control Online</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Manage signal timing algorithms, congestion monitoring at Mohaddipur/Golghar junctions, e-challans, and VIP green corridor overrides.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Primary Officer</div>
+                            <div class="num">Insp. Verma</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../traffic/traffic.html" class="module-action-btn">
+                    <span>🚀 Launch Traffic Command</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Parking -->
+            <div class="module-card" style="--mod-accent: #fbbf24; --mod-btn-bg: #d97706; --mod-btn-glow: rgba(217, 119, 6, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(245, 158, 11, 0.15); --mod-border: rgba(245, 158, 11, 0.4);">🅿️</div>
+                        <div>
+                            <div class="module-name">Smart Parking Control Hub</div>
+                            <div class="module-status">● Bay Sensors Online</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Supervise city multi-level parking lots, digital reservations, automated barrier gates, rate tier overrides, and parking pass verifications.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Supervisor</div>
+                            <div class="num">Manoj Kumar</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../parking/parking.html" class="module-action-btn">
+                    <span>🚀 Launch Parking Console</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Water -->
+            <div class="module-card" style="--mod-accent: #0ea5e9; --mod-btn-bg: #0284c7; --mod-btn-glow: rgba(2, 132, 199, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(14, 165, 233, 0.15); --mod-border: rgba(14, 165, 233, 0.4);">💧</div>
+                        <div>
+                            <div class="module-name">Water Supply &amp; Digital Twin</div>
+                            <div class="module-status">● Pressure Telemetry Active</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Oversight of SCADA water pipelines, sewage planner, WTP water quality compliance, pipe burst alerts, and valve regulation.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Chief Engineer</div>
+                            <div class="num">Er. R. Singh</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../water/water.html" class="module-action-btn">
+                    <span>🚀 Launch Water Network</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Waste -->
+            <div class="module-card" style="--mod-accent: #10b981; --mod-btn-bg: #059669; --mod-btn-glow: rgba(5, 150, 105, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(16, 185, 129, 0.15); --mod-border: rgba(16, 185, 129, 0.4);">🚛</div>
+                        <div>
+                            <div class="module-name">Solid Waste &amp; Sanitation</div>
+                            <div class="module-status">● GPS Fleet Tracking Live</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Manage smart bin fill levels, automated garbage truck route dispatches, citizen bin requests, landfill audits, and sanitation complaints.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Sanitation Lead</div>
+                            <div class="num">Amit Yadav</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../waste/waste.html" class="module-action-btn">
+                    <span>🚀 Launch Sanitation Fleet</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Police -->
+            <div class="module-card" style="--mod-accent: #6366f1; --mod-btn-bg: #4f46e5; --mod-btn-glow: rgba(79, 70, 229, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(99, 102, 241, 0.15); --mod-border: rgba(99, 102, 241, 0.4);">🚨</div>
+                        <div>
+                            <div class="module-name">Civil Security &amp; Police Dispatch</div>
+                            <div class="module-status">● Beat Patrols Active</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Gorakhpur police station beat networks, citizen FIR &amp; complaint investigations, SOS dispatch triggers, and public safety advisory broadcasts.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Station Officer</div>
+                            <div class="num">SHO Cantt</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../police/police.html" class="module-action-btn">
+                    <span>🚀 Launch Police Console</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Emergency -->
+            <div class="module-card" style="--mod-accent: #ef4444; --mod-btn-bg: #dc2626; --mod-btn-glow: rgba(220, 38, 38, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(239, 68, 68, 0.15); --mod-border: rgba(239, 68, 68, 0.4);">🚑</div>
+                        <div>
+                            <div class="module-name">Emergency Response &amp; Disaster</div>
+                            <div class="module-status">● Emergency Grid 100% Ready</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Central ambulance dispatch, fire brigade emergency routing, hazardous flood &amp; storm warnings, and critical patient triage.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Response Officer</div>
+                            <div class="num">Shweta Sen</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../emergency/emergency.html" class="module-action-btn">
+                    <span>🚀 Launch Emergency Hub</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Famous Places -->
+            <div class="module-card" style="--mod-accent: #eab308; --mod-btn-bg: #ca8a04; --mod-btn-glow: rgba(202, 138, 4, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(234, 179, 8, 0.15); --mod-border: rgba(234, 179, 8, 0.4);">🏛️</div>
+                        <div>
+                            <div class="module-name">Heritage &amp; Tourist Places</div>
+                            <div class="module-status">● Footfall Tracker Active</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Manage Gorakhnath Temple, Ramgarh Taal lakefront amenities, tourist ticketing, festival crowd control, and historical landmark guides.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Tourism Lead</div>
+                            <div class="num">City Heritage</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../famous/famous.html" class="module-action-btn">
+                    <span>🚀 Launch Heritage Center</span> <span>→</span>
+                </a>
+            </div>
+
+            <!-- Healthcare AIIMS Network -->
+            <div class="module-card" style="--mod-accent: #3b82f6; --mod-btn-bg: #2563eb; --mod-btn-glow: rgba(37, 99, 235, 0.4);">
+                <div>
+                    <div class="module-card-header">
+                        <div class="module-avatar" style="--mod-bg: rgba(59, 130, 246, 0.15); --mod-border: rgba(59, 130, 246, 0.4);">🏥</div>
+                        <div>
+                            <div class="module-name">Healthcare &amp; AIIMS Network</div>
+                            <div class="module-status">● 2,000 Beds Monitored</div>
+                        </div>
+                    </div>
+                    <p class="module-desc">
+                        Citywide hospital bed availability, AIIMS / BRD Medical College doctor OPD queues, digital pharmacy, and emergency ICU triage.
+                    </p>
+                    <div class="module-stats-row">
+                        <div class="stat-item">
+                            <div class="lbl">Admin Desk</div>
+                            <div class="num">HOSP-ADMIN</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="lbl">Clearance</div>
+                            <div class="num">Level 5 (Full)</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="../hospital/hospital.html" class="module-action-btn">
+                    <span>🚀 Launch Healthcare Hub</span> <span>→</span>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- 3. EMERGENCY CITYWIDE BROADCAST OVERRIDE -->
+        <div class="broadcast-box">
+            <div class="section-header" style="margin-bottom: 0; border: none; padding: 0;">
+                <div>
+                    <h2 style="color: #fbbf24;"><span>📢</span> Instant Citywide Municipal Broadcast &amp; Alert Transmitter</h2>
+                    <span class="subtext">Direct emergency broadcast to all citizen dashboards, staff consoles, and public electronic signboards</span>
+                </div>
+            </div>
+            <form id="gkpBroadcastForm" class="broadcast-form">
+                <input type="text" id="broadcastMessageInput" class="gkp-input" placeholder="Type urgent announcement (e.g. Flash flood advisory / Traffic diversion at Mohaddipur)..." required>
+                <select id="broadcastTargetSelect" class="gkp-select">
+                    <option value="All Citizens & Staff">All Citizens &amp; Staff (Citywide)</option>
+                    <option value="Traffic Sector">Traffic Sector Only</option>
+                    <option value="Water Services">Water Operations Only</option>
+                    <option value="Emergency Fleet">Emergency Fleet Only</option>
+                </select>
+                <button type="submit" class="btn-gold">
+                    <span>🚨</span> Transmit Alert
+                </button>
+            </form>
+        </div>
+
+        <!-- 4. SPLIT GRID: CROSS-DEPARTMENTAL STAFF DIRECTORY & AUDIT LOGS -->
+        <div class="grid-2col">
+
+            <!-- Left: Staff Directory -->
+            <div class="panel-card">
+                <div class="section-header">
+                    <div>
+                        <h2><span>👥</span> Departmental Staff Roster</h2>
+                        <span class="subtext">Active staff verified credentials &amp; department clearance</span>
+                    </div>
+                </div>
+                <div class="panel-filter-bar">
+                    <button type="button" class="filter-chip staff-filter-btn active" data-dept="all">All Departments</button>
+                    <button type="button" class="filter-chip staff-filter-btn" data-dept="traffic">Traffic</button>
+                    <button type="button" class="filter-chip staff-filter-btn" data-dept="water">Water</button>
+                    <button type="button" class="filter-chip staff-filter-btn" data-dept="waste">Sanitation</button>
+                    <button type="button" class="filter-chip staff-filter-btn" data-dept="police">Police</button>
+                    <button type="button" class="filter-chip staff-filter-btn" data-dept="emergency">Emergency</button>
+                </div>
+                <div class="scroll-table-box">
+                    <table class="gkp-table">
+                        <thead>
+                            <tr>
+                                <th>Staff ID</th>
+                                <th>Officer Name</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">Loading staff roster...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right: Real-Time Audit Trail -->
+            <div class="panel-card">
+                <div class="section-header">
+                    <div>
+                        <h2><span>🛡️</span> Live Municipal Audit Trail</h2>
+                        <span class="subtext">Real-time log of administrative and operational actions</span>
+                    </div>
+                </div>
+                <div class="panel-filter-bar">
+                    <button type="button" class="filter-chip audit-filter-btn active" data-mod="all">All Modules</button>
+                    <button type="button" class="filter-chip audit-filter-btn" data-mod="traffic">Traffic</button>
+                    <button type="button" class="filter-chip audit-filter-btn" data-mod="water">Water</button>
+                    <button type="button" class="filter-chip audit-filter-btn" data-mod="waste">Waste</button>
+                    <button type="button" class="filter-chip audit-filter-btn" data-mod="police">Police</button>
+                </div>
+                <div class="scroll-table-box">
+                    <table class="gkp-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Module</th>
+                                <th>Action Performed</th>
+                                <th>Operator / Target</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">Streaming audit events...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- UNIVERSAL MUNICIPAL 4-COLUMN FOOTER -->
+    <footer class="universal-municipal-footer" role="contentinfo">
+        <div class="footer-top-grid">
+            <div class="footer-col">
+                <h4 style="color: #ffffff;"><span style="color: #f59e0b;">🏛️</span> Gorakhpur Municipal Corporation</h4>
+                <p>
+                    Integrated Command and Control Center (ICCC) — Empowering Gorakhpur Smart City with unified digital governance, real-time telemetry, and high-efficiency departmental coordination.
+                </p>
+                <p style="font-size: 12px; color: #64748b;">
+                    Official Central Director Oversight Console • Level 5 Security Protected
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4><span>🔗</span> City Services</h4>
+                <ul>
+                    <li><a href="../traffic/traffic.html">Traffic Command System</a></li>
+                    <li><a href="../parking/parking.html">Smart Parking Network</a></li>
+                    <li><a href="../water/water.html">Water Supply &amp; Drainage</a></li>
+                    <li><a href="../waste/waste.html">Sanitation &amp; Waste Management</a></li>
+                    <li><a href="../hospital/hospital.html">Healthcare &amp; AIIMS Network</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4><span>🛡️</span> Security &amp; Safety</h4>
+                <ul>
+                    <li><a href="../police/police.html">Police &amp; Civil Security</a></li>
+                    <li><a href="../emergency/emergency.html">Disaster &amp; Emergency Response</a></li>
+                    <li><a href="../famous/famous.html">Heritage &amp; Places of Interest</a></li>
+                    <li><a href="../terms-and-conditions.html">Terms &amp; Conditions</a></li>
+                    <li><a href="../privacy-policy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4><span>📞</span> Emergency Helplines</h4>
+                <ul>
+                    <li><strong style="color: #ffffff;">ICCC Central Control:</strong> 0551-2200000</li>
+                    <li><strong style="color: #ffffff;">Police Emergency:</strong> 112</li>
+                    <li><strong style="color: #ffffff;">Ambulance / Medical:</strong> 108 / 102</li>
+                    <li><strong style="color: #ffffff;">Fire Emergency:</strong> 101</li>
+                    <li><strong style="color: #ffffff;">Municipal Grievance:</strong> 1533</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>
+                &copy; 2026 Gorakhpur Smart City Corporation Limited. All Rights Reserved.
+            </div>
+            <div>
+                Universal Municipal RBAC Engine &bull; ICCC Super Admin Module
+            </div>
+        </div>
+    </footer>
+
+    <!-- Universal Scripts -->
+    <script src="../../auth.js"></script>
+    <script src="gkp_admin.js"></script>
+</body>
+</html>

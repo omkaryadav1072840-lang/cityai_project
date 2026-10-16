@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCity AI - Technology Stack Architecture & Technical Summary</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        @page {
+            size: A4;
+            margin: 12mm 14mm 14mm 14mm;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1e293b;
+            background: #ffffff;
+            line-height: 1.55;
+            font-size: 11pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .cover-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0369a1 100%);
+            color: #ffffff;
+            padding: 28px 30px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+
+        .badge-pill {
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 9pt;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .sys-id {
+            font-size: 9pt;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24pt;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+
+        .sub-heading {
+            font-size: 11pt;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .meta-strip {
+            display: flex;
+            gap: 20px;
+            margin-top: 14px;
+            font-size: 8.5pt;
+            color: #cbd5e1;
+            flex-wrap: wrap;
+        }
+
+        .meta-item strong {
+            color: #ffffff;
+        }
+
+        .section-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14pt;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14pt;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .tech-item {
+            background: #f8fafc;
+            border-left: 3px solid #2563eb;
+            padding: 10px 12px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .tech-item.indigo { border-left-color: #6366f1; }
+        .tech-item.cyan { border-left-color: #06b6d4; }
+        .tech-item.emerald { border-left-color: #10b981; }
+        .tech-item.amber { border-left-color: #f59e0b; }
+        .tech-item.purple { border-left-color: #a855f7; }
+
+        .tech-title {
+            font-weight: 700;
+            font-size: 10pt;
+            color: #1e293b;
+            margin-bottom: 3px;
+        }
+
+        .tech-desc {
+            font-size: 9pt;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        /* Matrix Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            margin-top: 10px;
+        }
+
+        th {
+            background: #0f172a;
+            color: #ffffff;
+            text-align: left;
+            padding: 8px 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th:first-child { border-radius: 6px 0 0 0; }
+        th:last-child { border-radius: 0 6px 0 0; }
+
+        td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 7.5pt;
+            font-weight: 600;
+            background: #e2e8f0;
+            color: #334155;
+            margin-right: 3px;
+            margin-bottom: 2px;
+        }
+
+        .tag-blue { background: #dbeafe; color: #1e40af; }
+        .tag-green { background: #d1fae5; color: #065f46; }
+        .tag-purple { background: #f3e8ff; color: #6b21a8; }
+        .tag-amber { background: #fef3c7; color: #92400e; }
+
+        .footer {
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            font-size: 8pt;
+            color: #64748b;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- COVER HEADER -->
+    <div class="cover-header">
+        <div class="header-top">
+            <span class="badge-pill">Technical Specification Report</span>
+            <span class="sys-id">SmartCity AI Urban Core Platform v2.0.0</span>
+        </div>
+        <h1>Technology Stack Architecture & System Summary</h1>
+        <div class="sub-heading">Gorakhpur Integrated Command & Control Centre (ICCC) — Multi-Department Digital Twin</div>
+        <div class="meta-strip">
+            <div class="meta-item">Release Version: <strong>2.0.0 (Production Master)</strong></div>
+            <div class="meta-item">Architecture: <strong>Decoupled Microservices + High-Speed Gateway</strong></div>
+            <div class="meta-item">Relational Core: <strong>129 Verified MySQL Tables</strong></div>
+            <div class="meta-item">Date: <strong>October 2026</strong></div>
+        </div>
+    </div>
+
+    <!-- 1. FRONTEND ARCHITECTURE -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">🎨</div>
+            <h2>1. Client-Side & GIS Mapping Layer (Frontend)</h2>
+        </div>
+        <p style="font-size: 9.5pt; color: #475569; margin-bottom: 8px;">
+            Constructed completely with zero heavy framework bloat (no React/Angular/Vue dependencies), ensuring sub-second rendering, instant paint times, and ultra-reliable long-running stability for municipal operations consoles.
+        </p>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-title">HTML5 Semantic Structure</div>
+                <div class="tech-desc">Modular multi-page application with 7 department control rooms (/traffic, /water, /waste, /police, /parking, /famous, /emergency, /hospital).</div>
+            </div>
+            <div class="tech-item indigo">
+                <div class="tech-title">Pure Vanilla CSS3 & Glassmorphism</div>
+                <div class="tech-desc">Responsive CSS Grid & Flexbox, hardware-accelerated dark/light theme, tailored HSL color tokens, and smooth micro-animations.</div>
+            </div>
+            <div class="tech-item cyan">
+                <div class="tech-title">Vanilla JavaScript (ES6+ Modular)</div>
+                <div class="tech-desc">Modern async/await pipelines, direct DOM event listeners, token-managed state, and zero third-party framework bundle size.</div>
+            </div>
+            <div class="tech-item emerald">
+                <div class="tech-title">Dual GIS Mapping: Leaflet & OpenLayers</div>
+                <div class="tech-desc">Leaflet.js (v1.9) for tactical marker/route navigation; OpenLayers (v9) for high-density congestion heatmaps, CCTV nodes, and pipeline vectors.</div>
+            </div>
+            <div class="tech-item amber">
+                <div class="tech-title">Chart.js (v4.4 Data Visuals)</div>
+                <div class="tech-desc">Dynamic canvas data visualizers: traffic speed trends, Webster cycle distributions, water pressure telemetry, and hospital bed capacity.</div>
+            </div>
+            <div class="tech-item purple">
+                <div class="tech-title">Socket.io Client (v4.8 Real-Time)</div>
+                <div class="tech-desc">Bi-directional WebSocket streaming for live ambulance GPS tracking, traffic signal phase countdowns, and instant SOS beacons.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MOBILE APPLICATION LAYER -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">📱</div>
+            <h2>2. Native Mobile Architecture (Android Engine)</h2>
+        </div>
+        <div class="tech-grid">
+            <div class="tech-item emerald">
+                <div class="tech-title">Ionic Capacitor (v8.5.3 Native Runtime)</div>
+                <div class="tech-desc">Encapsulates client web assets directly into an optimized Android Native WebView container without code duplication.</div>
+            </div>
+            <div class="tech-item cyan">
+                <div class="tech-title">Native Android APK Build Pipeline</div>
+                <div class="tech-desc">Android SDK compilation with Gradle, custom app icons, splash screens, and native permissions for GPS location & push notifications.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BACKEND GATEWAY LAYER -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">⚙️</div>
+            <h2>3. Master Backend Gateway & Application Layer</h2>
+        </div>
+        <p style="font-size: 9.5pt; color: #475569; margin-bottom: 8px;">
+            An asynchronous, high-throughput backend server handling multi-agency civic orchestration, role security, and real-time WebSocket distribution.
+        </p>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-title">Node.js (v20+ / v24 Runtime)</div>
+                <div class="tech-desc">Asynchronous, event-driven runtime capable of handling concurrent municipal requests with minimal memory footprint.</div>
+            </div>
+            <div class="tech-item indigo">
+                <div class="tech-title">Express.js (v5.2 - Modern Express 5)</div>
+                <div class="tech-desc">Advanced Express 5 master router managing 27+ modular route files and 200+ RESTful microservice API endpoints.</div>
+            </div>
+            <div class="tech-item cyan">
+                <div class="tech-title">Socket.io (v4.8 Bi-Directional Server)</div>
+                <div class="tech-desc">WebSocket engine with departmental namespaces (ambulance-tracking, parking-updates, traffic-telemetry, sos-alerts).</div>
+            </div>
+            <div class="tech-item emerald">
+                <div class="tech-title">MySQL2 Connection Pooling</div>
+                <div class="tech-desc">Connection pool with automated lifecycle management, promise-based query resolution, and zero connection exhaustion.</div>
+            </div>
+            <div class="tech-item amber">
+                <div class="tech-title">Enterprise Security & RBAC</div>
+                <div class="tech-desc">Stateless JWT tokens, Scrypt cryptographic password hashing, strict departmental role isolation, and rate-limit shields.</div>
+            </div>
+            <div class="tech-item purple">
+                <div class="tech-title">Multer (v2.2 Secure File Ingestion)</div>
+                <div class="tech-desc">Multi-part form streaming for civic photo grievances, optical ANPR speed evidence, and authenticated clinical documentation.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 4. ARTIFICIAL INTELLIGENCE & ML LAYER -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">🧠</div>
+            <h2>4. Artificial Intelligence, Machine Learning & LLM Layer</h2>
+        </div>
+        <div class="tech-grid">
+            <div class="tech-item purple">
+                <div class="tech-title">Python 3.13 & FastAPI (Port 8000)</div>
+                <div class="tech-desc">High-speed async Python microservice handling algorithmic computational workloads, type-validated with Pydantic v2.8.</div>
+            </div>
+            <div class="tech-item cyan">
+                <div class="tech-title">Scikit-Learn, Pandas & NumPy</div>
+                <div class="tech-desc">Webster cycle optimal traffic split computation, municipal waste overflow regression forecasting, and sensor outlier isolation.</div>
+            </div>
+            <div class="tech-item indigo">
+                <div class="tech-title">Google Gemini LLM (gemini-1.5-flash)</div>
+                <div class="tech-desc">Multi-turn conversational assistant with allowlisted grounded tool calling directly linked to the live municipal database.</div>
+            </div>
+            <div class="tech-item emerald">
+                <div class="tech-title">Autonomous Knowledge Fallback Engine</div>
+                <div class="tech-desc">SmartCity Offline Knowledge Engine providing uninterrupted intelligence if external cloud LLM connections disconnect.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. DATABASE ARCHITECTURE -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">🗄️</div>
+            <h2>5. Database & Relational Storage Layer</h2>
+        </div>
+        <p style="font-size: 9.5pt; color: #475569; margin-bottom: 8px;">
+            A unified relational schema hosting <strong>129 production tables</strong> with foreign-key constraints, spatial coordinates, and audit telemetry.
+        </p>
+        <div class="tech-grid">
+            <div class="tech-item amber">
+                <div class="tech-title">MySQL 8.0 Community Database</div>
+                <div class="tech-desc">InnoDB ACID transactional engine with utf8mb4 multi-lingual encoding for Hindi and international tourist character support.</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-title">7 Civic Core Domains</div>
+                <div class="tech-desc">Traffic junctions & signals, water networks & dual pipelines, smart waste bins, police stations & CCTNS, real parking bays, tourism, & hospitals.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. DEVOPS & TESTING -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">🐳</div>
+            <h2>6. DevOps, Containerization & Automated QA</h2>
+        </div>
+        <div class="tech-grid">
+            <div class="tech-item cyan">
+                <div class="tech-title">Docker & Docker Compose (v3.8)</div>
+                <div class="tech-desc">Multi-container orchestration for smartcity-mysql, smartcity-backend, smartcity-ai-service, and reverse proxy containers.</div>
+            </div>
+            <div class="tech-item emerald">
+                <div class="tech-title">Comprehensive Verification Suites</div>
+                <div class="tech-desc">Python Pytest test suites + 7 Node.js end-to-end regression suites ensuring zero 500 runtime errors across all 127 API routes.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. COMPLETE TECH STACK AT A GLANCE TABLE -->
+    <div class="section-card">
+        <div class="section-header">
+            <div class="section-icon">📊</div>
+            <h2>7. Master Technology Stack Matrix</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain</th>
+                    <th>Core Technologies</th>
+                    <th>Version</th>
+                    <th>Function / Responsibility</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Frontend UI</strong></td>
+                    <td>HTML5, Vanilla CSS3, JavaScript (ES6+)</td>
+                    <td>Modern</td>
+                    <td>Zero-bundle footprint, ultra-responsive civic dashboards and control panels</td>
+                </tr>
+                <tr>
+                    <td><strong>Geospatial Maps</strong></td>
+                    <td>OpenLayers, Leaflet.js, OpenStreetMap</td>
+                    <td>v9.0 / v1.9</td>
+                    <td>Dual GIS mapping, CCTV coordinates, pipeline routing, and congestion heatmaps</td>
+                </tr>
+                <tr>
+                    <td><strong>Mobile App</strong></td>
+                    <td>Ionic Capacitor Android Platform</td>
+                    <td>v8.5.3</td>
+                    <td>Cross-platform native Android APK compilation with GPS location services</td>
+                </tr>
+                <tr>
+                    <td><strong>Backend Gateway</strong></td>
+                    <td>Node.js, Express.js</td>
+                    <td>v24 / v5.2</td>
+                    <td>High-throughput REST API gateway with 27 modular routers and 200+ endpoints</td>
+                </tr>
+                <tr>
+                    <td><strong>Real-Time Stream</strong></td>
+                    <td>Socket.IO Engine</td>
+                    <td>v4.8</td>
+                    <td>Live ambulance movement simulator, signal phase countdowns, emergency SOS alerts</td>
+                </tr>
+                <tr>
+                    <td><strong>ML Layer</strong></td>
+                    <td>Python, FastAPI, Scikit-Learn, Pandas</td>
+                    <td>v3.13 / v0.115</td>
+                    <td>Webster cycle optimal traffic splits, sensor anomaly detection, waste overflow prediction</td>
+                </tr>
+                <tr>
+                    <td><strong>Generative AI</strong></td>
+                    <td>Google Gemini 1.5 Flash + Tool Grounding</td>
+                    <td>REST API</td>
+                    <td>Multi-turn natural language conversational assistant grounded in real database queries</td>
+                </tr>
+                <tr>
+                    <td><strong>Database</strong></td>
+                    <td>MySQL 8.0 (InnoDB, utf8mb4)</td>
+                    <td>v8.0</td>
+                    <td>Enterprise data persistence across 129 structured departmental relational tables</td>
+                </tr>
+                <tr>
+                    <td><strong>Security & Auth</strong></td>
+                    <td>JWT, Scrypt Hashing, Express Rate-Limit</td>
+                    <td>v9.0 / Native</td>
+                    <td>Role-Based Access Control (RBAC), multi-layer rate limiting, and brute-force shields</td>
+                </tr>
+                <tr>
+                    <td><strong>DevOps / Containers</strong></td>
+                    <td>Docker, Docker Compose, Nginx Alpine</td>
+                    <td>v3.8 / Alpine</td>
+                    <td>Production containerization, persistent volume mounts, and automated deployment</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div>SmartCity AI Platform — Urban Operations & Analytics Center (Gorakhpur)</div>
+        <div>Confidential & Proprietary • Generated October 2026</div>
+    </div>
+
+</body>
+</html>

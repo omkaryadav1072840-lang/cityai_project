@@ -11,35 +11,111 @@ const { authenticateToken, requireRole, optionalToken } = require("../middleware
 // =========================================================
 
 router.get(["/api/pharmacy", "/api/pharmacy/medicines"], (req, res) => {
-    const sql = `
-        SELECT
-            id,
-            medicine_name,
-            category,
-            quantity,
-            price,
-            availability,
-            updated_at
-        FROM pharmacy
-        ORDER BY medicine_name ASC
-    `;
+    const page = parseInt(req.query.page, 10);
+    const limit = parseInt(req.query.limit, 10);
+    const category = req.query.category ? req.query.category.trim() : null;
+    const search = req.query.search ? req.query.search.trim() : null;
 
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error("Pharmacy fetch error:", err);
+    let whereClauses = [];
+    let params = [];
+
+    if (category && category.toLowerCase() !== "all") {
+        if (category.toLowerCase() === "instock") {
+            whereClauses.push("(quantity > 0 OR availability = 'In Stock')");
+        } else {
+            whereClauses.push("LOWER(category) = LOWER(?)");
+            params.push(category);
+        }
+    }
+
+    if (search) {
+        whereClauses.push("(LOWER(medicine_name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?))");
+        params.push(`%${search}%`, `%${search}%`);
+    }
+
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
+    const countSql = `SELECT COUNT(*) AS total FROM pharmacy ${whereSql}`;
+
+    db.query(countSql, params, (countErr, countResults) => {
+        if (countErr) {
+            console.error("Pharmacy count error:", countErr);
             return res.status(500).json({
                 success: false,
                 message: "Pharmacy database error",
-                error: err.message,
+                error: countErr.message,
                 medicines: []
             });
         }
 
-        res.status(200).json({
-            success: true,
-            message: "Pharmacy data loaded",
-            medicines: results
+        const total = countResults[0]?.total || 0;
+        const hasExplicitPagination = !isNaN(page) || !isNaN(limit);
+        const safePage = Math.max(1, isNaN(page) ? 1 : page);
+        const safeLimit = hasExplicitPagination
+            ? Math.min(100, Math.max(1, isNaN(limit) ? 20 : limit))
+            : (req.query.all === "true" ? Math.max(total, 1) : 50);
+        const offset = req.query.all === "true" && !hasExplicitPagination ? 0 : (safePage - 1) * safeLimit;
+
+        let dataSql = `
+            SELECT
+                id,
+                medicine_name,
+                category,
+                quantity,
+                price,
+                availability,
+                updated_at
+            FROM pharmacy
+            ${whereSql}
+            ORDER BY medicine_name ASC, id ASC
+            LIMIT ? OFFSET ?
+        `;
+
+        let queryParams = [...params, safeLimit, offset];
+
+        db.query(dataSql, queryParams, (err, results) => {
+            if (err) {
+                console.error("Pharmacy fetch error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Pharmacy database error",
+                    error: err.message,
+                    medicines: []
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                message: "Pharmacy data loaded",
+                medicines: results,
+                pagination: {
+                    total,
+                    page: safePage,
+                    limit: safeLimit,
+                    totalPages: Math.max(1, Math.ceil(total / safeLimit))
+                }
+            });
         });
+    });
+});
+
+// =========================================================
+// PHARMACY - GET SINGLE MEDICINE BY ID
+// =========================================================
+
+router.get("/api/pharmacy/:id", (req, res, next) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return next();
+    }
+    db.query("SELECT * FROM pharmacy WHERE id = ? LIMIT 1", [id], (err, rows) => {
+        if (err) {
+            console.error("Medicine fetch error:", err);
+            return res.status(500).json({ success: false, message: "Database error", error: err.message });
+        }
+        if (!rows.length) {
+            return res.status(404).json({ success: false, message: "Medicine not found" });
+        }
+        res.json({ success: true, medicine: rows[0] });
     });
 });
 
@@ -58,24 +134,14 @@ router.get("/api/pharmacy/search/:medicine", (req, res) => {
         });
     }
 
+    const page = parseInt(req.query.page, 10);
+    const limit = parseInt(req.query.limit, 10);
     const searchValue = `%${medicine}%`;
-    const sql = `
-        SELECT
-            id,
-            medicine_name,
-            category,
-            quantity,
-            price,
-            availability,
-            updated_at
-        FROM pharmacy
-        WHERE LOWER(medicine_name) LIKE LOWER(?)
-        ORDER BY medicine_name ASC
-    `;
+    const countSql = "SELECT COUNT(*) AS total FROM pharmacy WHERE LOWER(medicine_name) LIKE LOWER(?)";
 
-    db.query(sql, [searchValue], (err, results) => {
-        if (err) {
-            console.error("Medicine search error:", err);
+    db.query(countSql, [searchValue], (countErr, countResults) => {
+        if (countErr) {
+            console.error("Medicine search count error:", countErr);
             return res.status(500).json({
                 success: false,
                 message: "Database error.",
@@ -83,10 +149,52 @@ router.get("/api/pharmacy/search/:medicine", (req, res) => {
             });
         }
 
-        res.json({
-            success: true,
-            message: "Medicine search completed.",
-            medicines: results
+        const total = countResults[0]?.total || 0;
+        const hasExplicitPagination = !isNaN(page) || !isNaN(limit);
+        const safePage = Math.max(1, isNaN(page) ? 1 : page);
+        const safeLimit = hasExplicitPagination
+            ? Math.min(100, Math.max(1, isNaN(limit) ? 20 : limit))
+            : (req.query.all === "true" ? Math.min(100, Math.max(total, 50)) : 50);
+        const offset = (safePage - 1) * safeLimit;
+
+        let sql = `
+            SELECT
+                id,
+                medicine_name,
+                category,
+                quantity,
+                price,
+                availability,
+                updated_at
+            FROM pharmacy
+            WHERE LOWER(medicine_name) LIKE LOWER(?)
+            ORDER BY medicine_name ASC, id ASC
+            LIMIT ? OFFSET ?
+        `;
+
+        const queryParams = [searchValue, safeLimit, offset];
+
+        db.query(sql, queryParams, (err, results) => {
+            if (err) {
+                console.error("Medicine search error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error.",
+                    medicines: []
+                });
+            }
+
+            res.json({
+                success: true,
+                message: "Medicine search completed.",
+                medicines: results,
+                pagination: {
+                    total,
+                    page: safePage,
+                    limit: safeLimit,
+                    totalPages: Math.max(1, Math.ceil(total / safeLimit))
+                }
+            });
         });
     });
 });
@@ -746,12 +854,13 @@ router.get("/api/prescriptions/:patientId", optionalToken, (req, res) => {
 
 router.post(
     "/api/prescriptions/upload",
+    authenticateToken,
     prescriptionUpload.single("prescriptionFile"),
     async (req, res) => {
         try {
             const { patientId, uploadedBy, doctorName } = req.body;
 
-            if (!patientId) {
+            if (!patientId || !String(patientId).trim()) {
                 if (req.file) {
                     const uploadedFile = path.join(prescriptionUploadDir, req.file.filename);
                     if (fs.existsSync(uploadedFile)) {
@@ -764,6 +873,66 @@ router.post(
                 });
             }
 
+            const cleanPatientId = String(patientId).trim();
+
+            // Verify patient exists in database and verify authorization
+            const [patientRows] = await db.promise().query(
+                "SELECT id, patient_id, user_id, mobile, name FROM patients WHERE patient_id = ? OR id = ? LIMIT 1",
+                [cleanPatientId, isNaN(cleanPatientId) ? -1 : parseInt(cleanPatientId, 10)]
+            );
+
+            if (!patientRows.length) {
+                if (req.file) {
+                    const uploadedFile = path.join(prescriptionUploadDir, req.file.filename);
+                    if (fs.existsSync(uploadedFile)) {
+                        fs.unlinkSync(uploadedFile);
+                    }
+                }
+                return res.status(404).json({
+                    success: false,
+                    message: `Patient record '${cleanPatientId}' not found.`
+                });
+            }
+
+            const patient = patientRows[0];
+            const userRole = (req.user.role || req.user.type || "").toLowerCase();
+            const accountType = (req.user.accountType || "").toLowerCase();
+            const userId = req.user.id || req.user.userId;
+            const userMob = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : "";
+            const patMob = patient.mobile ? String(patient.mobile).replace(/\D/g, "") : "";
+
+            // Healthcare staff and doctors can upload for any patient in their care
+            const isHealthcareStaff = [
+                "admin", "super_admin", "staff", "doctor",
+                "hospital_admin", "receptionist", "nurse", "pharmacy"
+            ].includes(userRole) ||
+            [
+                "admin", "super_admin", "staff", "doctor",
+                "hospital_admin"
+            ].includes(accountType) ||
+            Boolean(req.user.hospitalId) ||
+            Boolean(req.user.hospitalRole);
+
+            // Citizen can only upload for their own verified patient record
+            const isOwnerCitizen = Boolean(
+                (userId && patient.user_id && Number(userId) === Number(patient.user_id)) ||
+                (userMob && patMob && (userMob === patMob || (userMob.length >= 9 && patMob.length >= 9 && userMob.slice(-9) === patMob.slice(-9)))) ||
+                (req.user.patientId && req.user.patientId === patient.patient_id)
+            );
+
+            if (!isHealthcareStaff && !isOwnerCitizen) {
+                if (req.file) {
+                    const uploadedFile = path.join(prescriptionUploadDir, req.file.filename);
+                    if (fs.existsSync(uploadedFile)) {
+                        fs.unlinkSync(uploadedFile);
+                    }
+                }
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. You can only upload prescriptions for your own verified patient profile."
+                });
+            }
+
             if (!req.file) {
                 return res.status(400).json({
                     success: false,
@@ -771,18 +940,23 @@ router.post(
                 });
             }
 
+            const safeOriginalName = path.basename(req.file.originalname).slice(0, 200);
             const filePath = `/uploads/prescriptions/${req.file.filename}`;
             const sql = `
                 INSERT INTO prescriptions
-                (patient_id, prescription_file, doctor_name, status)
-                VALUES (?, ?, ?, ?)
+                (patient_id, prescription_file, doctor_name, status, original_file_name, file_type, file_size, uploaded_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             const values = [
-                patientId,
+                patient.patient_id,
                 filePath,
-                doctorName || "OPD Consultant",
-                "Uploaded"
+                doctorName ? String(doctorName).trim() : "OPD Consultant",
+                "Uploaded",
+                safeOriginalName,
+                req.file.mimetype,
+                req.file.size,
+                uploadedBy || (isHealthcareStaff ? "Healthcare Staff" : "Patient")
             ];
 
             const [result] = await db.promise().execute(sql, values);
@@ -792,16 +966,16 @@ router.post(
                 message: "Prescription uploaded successfully.",
                 prescription: {
                     id: result.insertId,
-                    patientId,
-                    originalFileName: req.file.originalname,
+                    patientId: patient.patient_id,
+                    originalFileName: safeOriginalName,
                     fileName: req.file.filename,
                     fileType: req.file.mimetype,
                     fileSize: req.file.size,
                     doctorName: doctorName || null,
-                    uploadedBy: uploadedBy || "Patient",
+                    uploadedBy: uploadedBy || (isHealthcareStaff ? "Healthcare Staff" : "Patient"),
                     status: "Uploaded",
                     filePath,
-                    fileUrl: `http://localhost:5000${filePath}`
+                    fileUrl: filePath
                 }
             });
         } catch (error) {

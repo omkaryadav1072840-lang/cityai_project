@@ -12,6 +12,10 @@
     <meta property="og:description" content="Real-time traffic signals, congestion heatmaps, and routing across Gorakhpur city corridors.">
     <meta property="og:image" content="/smartcity-og-preview.png">
     
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- OpenLayers CSS (v9+) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v9.1.0/ol.css">
     <!-- FontAwesome 6 Icons -->
@@ -53,6 +57,9 @@
                     <strong id="ddUserFullName">Guest Visitor</strong>
                     <span id="ddUserContact">Sign in to access controls</span>
                 </div>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="if(window.SmartCityAuth) SmartCityAuth.showLoginModal();" style="background: rgba(56, 189, 248, 0.12); color: #0284c7; font-weight: 700; margin-bottom: 6px;">
+                    <span>🔑</span> Sign In / Official Login
+                </a>
                 <div style="font-size: 11px; font-weight: 700; color: #64748b; margin: 4px 8px;">SWITCH DEMO ROLE:</div>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('citizen')">
                     <span>🚗</span> Citizen View (Public)
@@ -62,6 +69,9 @@
                 </a>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('officer')">
                     <span>👮</span> Insp. R.K. Verma (Golghar Staff)
+                </a>
+                <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('traffic_admin')">
+                    <span>🛡️</span> Traffic Admin (TR-ADMIN / ICCC)
                 </a>
                 <a href="javascript:void(0)" class="dropdown-option-item" onclick="switchRoleProfile('admin')">
                     <span>🛡️</span> ICCC Director (Admin)
@@ -277,9 +287,6 @@
                         </button>
                         <button class="btn-sm" onclick="openAddSignalModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
                             <i class="fa-solid fa-traffic-light" style="color: #4ade80;"></i> Add Signal
-                        </button>
-                        <button class="btn-sm" onclick="openAddCameraModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
-                            <i class="fa-solid fa-video" style="color: #a78bfa;"></i> Add CCTV
                         </button>
                         <button class="btn-sm" onclick="openIncidentModal()" style="background: #1e293b; color: #f1f5f9; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-weight: 600; cursor: pointer;">
                             <i class="fa-solid fa-triangle-exclamation" style="color: #fb923c;"></i> Report Incident
@@ -632,9 +639,6 @@
                 <button class="btn-primary btn-sm" onclick="openAddSignalModal()">
                     <i class="fa-solid fa-traffic-light"></i> Add Traffic Light
                 </button>
-                <button class="btn-primary btn-sm" onclick="openAddCameraModal()">
-                    <i class="fa-solid fa-video"></i> Add CCTV Camera
-                </button>
             </div>
         </div>
 
@@ -904,8 +908,8 @@
                     <button class="btn-primary btn-sm" onclick="openAIVisionModal()" style="background: #7c3aed; border-color: #7c3aed;">
                         <i class="fa-solid fa-brain"></i> Open AI Vision Inspector
                     </button>
-                    <button class="btn-primary btn-sm" onclick="openAddCameraModal()">
-                        <i class="fa-solid fa-plus"></i> Add New Camera
+                    <button class="btn-primary btn-sm" id="btn-wall-add-camera" onclick="openAddCameraModal()" style="display: none;">
+                        <i class="fa-solid fa-plus"></i> Add New Camera (Admin)
                     </button>
                 </div>
             </div>
@@ -1102,6 +1106,12 @@
                 <button class="btn-secondary btn-sm" onclick="startMoveJunctionOnMap()" style="color: #7c3aed; border-color: #c4b5fd; font-weight: 700;">
                     <i class="fa-solid fa-arrows-up-down-left-right"></i> 📍 Move Junction on Map
                 </button>
+                <button class="btn-primary btn-sm" onclick="startAddCameraOnMap()" style="background: #0284c7; border-color: #0284c7;">
+                    <i class="fa-solid fa-video"></i> ➕ Add CCTV Camera on Map
+                </button>
+                <button class="btn-secondary btn-sm" onclick="startMoveCameraOnMap()" style="color: #0369a1; border-color: #bae6fd; font-weight: 700;">
+                    <i class="fa-solid fa-arrows-up-down-left-right"></i> 📍 Move CCTV on Map
+                </button>
                 <button class="btn-secondary btn-sm" onclick="exportMunicipalReport()" style="font-weight: 700; color: #1e293b;">
                     <i class="fa-solid fa-file-arrow-down" style="color: #2563eb;"></i> Export CSV
                 </button>
@@ -1199,6 +1209,47 @@
             </div>
         </div>
 
+        <!-- Registered CCTV Cameras & Optical Units Table (Traffic Admin Only) -->
+        <div class="content-card" style="margin-bottom: 24px; border-left: 4px solid #0284c7;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin-bottom: 2px;"><i class="fa-solid fa-video" style="color: #0284c7;"></i> Registered CCTV Cameras & Telemetry</h3>
+                    <p style="font-size: 13px; color: #64748b;">
+                        Centrally provision, edit, relocate on GIS map, or decommission optical CCTV units across all Gorakhpur corridors.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn-primary btn-sm" onclick="startAddCameraOnMap()" style="background: #0284c7; border-color: #0284c7;">
+                        <i class="fa-solid fa-map-pin"></i> Add on Map
+                    </button>
+                    <button class="btn-primary btn-sm" onclick="openAddCameraModal()">
+                        <i class="fa-solid fa-plus"></i> Add CCTV Camera
+                    </button>
+                    <button class="btn-secondary btn-sm" onclick="loadAdminCamerasTable()">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="custom-table" id="admin-cameras-table">
+                    <thead>
+                        <tr>
+                            <th>Camera ID</th>
+                            <th>Camera Name</th>
+                            <th>Junction / Approach</th>
+                            <th>Coordinates (Lat, Lng)</th>
+                            <th>Feed URL / Source</th>
+                            <th>Status</th>
+                            <th>Admin Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-cameras-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Loading camera inventory...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Staff & RBAC -->
         <div class="two-column-grid" style="margin-bottom: 24px;">
             <div class="content-card">
@@ -1251,6 +1302,55 @@
     </div> <!-- ================= END LAYER 3 (ADMIN) ================= -->
 
 </div>
+
+<!-- =====================================================
+     MUNICIPAL FOOTER (Universal City AI Footer)
+===================================================== -->
+<footer class="sc-main-footer" role="contentinfo" style="background: #0f172a; color: #94a3b8; padding: 48px 5% 32px; border-top: 1px solid #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 40px;">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px; text-align: left;">
+        <div>
+            <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <span>🏙️</span> SmartCity <span style="color: #38bdf8;">AI</span>
+            </div>
+            <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                Gorakhpur Smart City Mission. Integrated Command and Control Center (ICCC) platform delivering live traffic routing, optical AI CCTV surveillance, and emergency corridors.
+            </p>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Civic Portals</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                <li><a href="../../index.html" style="color: #94a3b8; text-decoration: none;">🏛️ Main City Dashboard</a></li>
+                <li><a href="traffic.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🚦 Live Traffic Grid</a></li>
+                <li><a href="../hospital/hospital.html" style="color: #94a3b8; text-decoration: none;">🏥 Hospital &amp; Healthcare</a></li>
+                <li><a href="../parking/parking.html" style="color: #94a3b8; text-decoration: none;">🅿️ Smart Parking</a></li>
+                <li><a href="../emergency/emergency.html" style="color: #94a3b8; text-decoration: none;">🚨 Emergency SOS</a></li>
+                <li><a href="../water/water.html" style="color: #94a3b8; text-decoration: none;">💧 Water Management &amp; SCADA</a></li>
+                <li><a href="../waste/waste.html" style="color: #94a3b8; text-decoration: none;">🗑️ Waste Management</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Transparency &amp; Legal</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                <li><a href="../privacy-policy.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🔒 Privacy Policy</a></li>
+                <li><a href="../terms-and-conditions.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">📜 Terms &amp; Conditions</a></li>
+                <li><a href="../../index.html#services" style="color: #94a3b8; text-decoration: none;">📋 Citizen Grievances</a></li>
+                <li><a href="/sitemap.xml" style="color: #94a3b8; text-decoration: none;">🗺️ Site Directory</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Emergency Helplines</h4>
+            <p style="font-size: 13px; line-height: 1.8; color: #cbd5e1; margin: 0;">
+                🚨 <strong>National Emergency:</strong> 112<br>
+                🚑 <strong>State Ambulance:</strong> 108<br>
+                🚒 <strong>Fire Service:</strong> 101<br>
+                📞 <strong>Municipal Toll-Free:</strong> 1800-180-2026
+            </p>
+        </div>
+    </div>
+    <div style="border-top: 1px solid #1e293b; padding-top: 24px; text-align: center; font-size: 12px; color: #64748b;">
+        © 2026 SmartCity AI Municipal Directorate. Grounded AI urban telemetry and civic management system. All rights reserved.
+    </div>
+</footer>
 
 <!-- ================= MODALS ================= -->
 

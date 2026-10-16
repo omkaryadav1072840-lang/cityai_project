@@ -15,7 +15,7 @@ const { logAudit } = require("../services/audit_logger");
 // CITIZEN REGISTER
 // =========================================================
 
-router.post("/api/register", (req, res) => {
+router.post("/api/register", async (req, res) => {
     const { name, mobile, email, password } = req.body;
 
     if (!name || !mobile || !email || !password) {
@@ -29,10 +29,12 @@ router.post("/api/register", (req, res) => {
         VALUES (?, ?, ?, ?)
     `;
 
-    db.query(
-        sql,
-        [name, mobile, email, hashPassword(password)],
-        (err, result) => {
+    try {
+        const hashedPassword = await hashPassword(password);
+        db.query(
+            sql,
+            [name, mobile, email, hashedPassword],
+            (err, result) => {
             if (err) {
                 console.error("Register error:", err);
                 if (err.code === "ER_DUP_ENTRY") {
@@ -72,8 +74,11 @@ router.post("/api/register", (req, res) => {
                 user: userData,
                 token
             });
-        }
-    );
+        });
+    } catch (hashErr) {
+        console.error("Register password hashing error:", hashErr);
+        return res.status(500).json({ message: "Internal server error during registration." });
+    }
 });
 
 // =========================================================
@@ -162,11 +167,13 @@ router.post("/api/login", async (req, res) => {
 
         if (users.length > 0) {
             const user = users[0];
-            let isMatch = verifyPassword(password, user.password);
+            let isMatch = await verifyPassword(password, user.password);
             if (!isMatch && (user.mobile === "6306880179" || user.email === "omkaryadav@gmail.com")) {
                 if (["password123", "omkar123", "123456"].includes(password)) {
                     isMatch = true;
-                    p.query("UPDATE users SET password = ? WHERE id = ?", [hashPassword(password), user.id]).catch(() => {});
+                    hashPassword(password).then(h => {
+                        p.query("UPDATE users SET password = ? WHERE id = ?", [h, user.id]).catch(() => {});
+                    });
                 }
             }
 
@@ -178,7 +185,9 @@ router.post("/api/login", async (req, res) => {
             }
 
             if (isLegacyPlainPassword(user.password)) {
-                p.query("UPDATE users SET password = ? WHERE id = ?", [hashPassword(password), user.id]).catch(() => {});
+                hashPassword(password).then(h => {
+                    p.query("UPDATE users SET password = ? WHERE id = ?", [h, user.id]).catch(() => {});
+                });
             }
 
             const userRole = user.role || "citizen";
@@ -353,7 +362,7 @@ router.post("/api/staff-login", async (req, res) => {
 // Helper: Process Staff / Admin Authentication
 async function processStaffAuth(req, res, staff, password) {
     // 1. Verify Password
-    let isMatch = verifyPassword(password, staff.password);
+    let isMatch = await verifyPassword(password, staff.password);
     if (!isMatch) {
         const cleanStaffId = String(staff.staff_id || "").toUpperCase();
         const demoStaffIds = [
@@ -366,7 +375,9 @@ async function processStaffAuth(req, res, staff, password) {
         if (demoStaffIds.includes(cleanStaffId)) {
             if (["admin", "admin123", "staff123", "doctor123", "123456", "pandey123", "water123", "engineer123", "Water@Admin2026", "Staff@Water2026", "smartcity2026", "Water@2026"].includes(password)) {
                 isMatch = true;
-                db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [hashPassword(password), staff.id]).catch(() => {});
+                hashPassword(password).then(h => {
+                    db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [h, staff.id]).catch(() => {});
+                });
             }
         }
     }
@@ -380,7 +391,9 @@ async function processStaffAuth(req, res, staff, password) {
 
     // Upgrade password hash if legacy plain
     if (isLegacyPlainPassword(staff.password)) {
-        db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [hashPassword(password), staff.id]).catch(() => {});
+        hashPassword(password).then(h => {
+            db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [h, staff.id]).catch(() => {});
+        });
     }
 
     // 2. Verify Account Status
@@ -408,14 +421,19 @@ async function processStaffAuth(req, res, staff, password) {
     let role = "staff";
     let targetDashboard = "pages/dashboard/dashboard.html";
 
-    const isSuperAdmin = (staff.role === "super_admin" || (staff.role === "admin" && (String(staff.department).toLowerCase() === "admin" || !staff.department || String(staff.department).toLowerCase() === "municipal")));
+    const isSuperAdmin = (
+        staff.role === "super_admin" ||
+        staff.role === "gkp_admin" ||
+        String(staff.staff_id || "").toUpperCase() === "STAFF-001" ||
+        (staff.role === "admin" && (String(staff.department).toLowerCase() === "admin" || !staff.department || String(staff.department).toLowerCase() === "municipal" || String(staff.department).toLowerCase().includes("iccc")))
+    );
     const isWaterAdmin = staff.role === "water_admin" || String(staff.staff_id).toUpperCase() === "WTR-ADMIN" || (staff.role === "admin" && String(staff.department).toLowerCase() === "water");
     const isHospitalAdmin = staff.hospital_role === "hospital_admin" || (staff.role === "admin" && Boolean(staff.hospital_id));
 
     if (isSuperAdmin) {
-        accountType = "ADMIN";
-        role = "admin";
-        targetDashboard = "pages/dashboard/dashboard.html";
+        accountType = "SUPER_ADMIN";
+        role = "super_admin";
+        targetDashboard = "pages/admin/gkp_admin.html";
     } else if (isWaterAdmin) {
         accountType = "WATER_ADMIN";
         role = "water_admin";
@@ -439,19 +457,25 @@ async function processStaffAuth(req, res, staff, password) {
             targetDashboard = "pages/waste/waste.html";
         } else if (dept === "traffic") {
             targetDashboard = "pages/traffic/traffic.html";
+        } else if (dept === "police") {
+            targetDashboard = "pages/police/police.html";
+        } else if (dept === "parking") {
+            targetDashboard = "pages/parking/parking.html";
+        } else if (dept === "emergency") {
+            targetDashboard = "pages/emergency/emergency.html";
         } else {
-            targetDashboard = "pages/dashboard/dashboard.html";
+            targetDashboard = "index.html";
         }
     }
 
     // 5. Determine Permissions & Assigned Modules
-    const assignedModules = parseJsonArray(staff.assigned_modules, ROLE_DEFAULT_MODULES[role] || (role === "admin" || role === "water_admin" ? ["all"] : [staff.department || "general"]));
-    const assignedPermissions = parseJsonArray(staff.permissions, ROLE_DEFAULT_PERMS[role] || (role === "admin" || role === "water_admin" ? ["all"] : ["view", "update", "create"]));
+    const assignedModules = parseJsonArray(staff.assigned_modules, ROLE_DEFAULT_MODULES[role] || (role === "admin" || role === "super_admin" || role === "water_admin" ? ["all"] : [staff.department || "general"]));
+    const assignedPermissions = parseJsonArray(staff.permissions, ROLE_DEFAULT_PERMS[role] || (role === "admin" || role === "super_admin" || role === "water_admin" ? ["all"] : ["view", "update", "create"]));
     const permittedSectors = parseJsonArray(staff.permitted_sectors, role === "water_admin" ? ["ALL_SECTORS"] : []);
     const permittedAssets = parseJsonArray(staff.permitted_assets, role === "water_admin" ? ["ALL_ASSETS"] : []);
 
-    const editableDepts = (role === "admin" || role === "super_admin")
-        ? ["traffic", "waste", "water", "electricity", "roads", "hospital", "admin"]
+    const editableDepts = (role === "admin" || role === "super_admin" || isSuperAdmin)
+        ? ["traffic", "waste", "water", "electricity", "roads", "hospital", "admin", "police", "parking", "emergency", "famous", "healthcare", "pharmacy", "places", "environment", "street_lights", "requests"]
         : (role === "water_admin" ? ["water"] : (staff.department ? [String(staff.department).toLowerCase()] : []));
 
     const staffData = {
@@ -460,9 +484,10 @@ async function processStaffAuth(req, res, staff, password) {
         name: staff.name,
         staffId: staff.staff_id,
         email: staff.email || null,
-        department: staff.department,
+        department: isSuperAdmin ? "ICCC Command Center" : staff.department,
         accountType,
         role,
+        is_super_admin: isSuperAdmin,
         hospitalRole: staff.hospital_role || (isHospitalAdmin ? "hospital_admin" : (staff.hospital_id ? role : null)),
         hospitalId: staff.hospital_id || null,
         hospitalName: staff.hospital_name || null,
@@ -505,13 +530,15 @@ async function processStaffAuth(req, res, staff, password) {
 
 // Helper: Process Doctor Authentication
 async function processDoctorAuth(req, res, doc, password) {
-    let isMatch = verifyPassword(password, doc.password);
+    let isMatch = await verifyPassword(password, doc.password);
     if (!isMatch) {
         const cleanDocId = String(doc.doctor_id || "").toUpperCase();
         if (["DOC-101", "DOC001", "DOC002", "DOC003", "DOC-BRD-02", "DOC-BRD-10"].includes(cleanDocId) || cleanDocId.startsWith("DOC-")) {
             if (["admin", "admin123", "doctor123", "staff123", "123456"].includes(password)) {
                 isMatch = true;
-                db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [hashPassword(password), doc.id]).catch(() => {});
+                hashPassword(password).then(h => {
+                    db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [h, doc.id]).catch(() => {});
+                });
             }
         }
     }
@@ -524,7 +551,9 @@ async function processDoctorAuth(req, res, doc, password) {
     }
 
     if (isLegacyPlainPassword(doc.password)) {
-        db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [hashPassword(password), doc.id]).catch(() => {});
+        hashPassword(password).then(h => {
+            db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [h, doc.id]).catch(() => {});
+        });
     }
 
     // Doctor status check
@@ -875,13 +904,14 @@ router.post("/api/auth/demo-login", async (req, res) => {
             hospital: ["hospital", "healthcare"],
             pharmacy: ["pharmacy"],
             police: ["police"],
-            places: ["places"],
+            famous: ["famous", "places"],
+            places: ["famous", "places"],
             street_lights: ["street_lights"],
             environment: ["environment"],
             admin: [
                 "traffic", "waste", "water", "emergency", "parking",
                 "hospital", "healthcare", "pharmacy", "police",
-                "places", "street_lights", "environment", "requests", "admin"
+                "famous", "places", "street_lights", "environment", "requests", "admin"
             ]
         };
 
@@ -925,45 +955,49 @@ router.post("/api/auth/demo-login", async (req, res) => {
             }
         }
 
-        if (persona === "super_admin" || persona === "superadmin") {
+        if (persona === "super_admin" || persona === "superadmin" || persona === "gkp_admin" || persona === "gkpadmin" || persona === "gkp_super_admin") {
             const [superAdmins] = await db.promise().query(`
                 SELECT id, name, staff_id, department, role, email, hospital_id, hospital_role
                 FROM staff
-                WHERE staff_id = 'STAFF-001' OR role = 'super_admin'
+                WHERE staff_id = 'STAFF-001' OR role = 'super_admin' OR role = 'admin'
                 LIMIT 1
             `);
-            if (superAdmins.length > 0) {
-                const sa = superAdmins[0];
-                const superData = {
-                    id: sa.id,
-                    userId: sa.id,
-                    name: sa.name,
-                    staffId: sa.staff_id,
-                    email: sa.email,
-                    department: "ICCC Command Center",
-                    accountType: "SUPER_ADMIN",
-                    role: "super_admin",
-                    hospitalRole: "super_admin",
-                    hospitalId: null,
-                    targetDashboard: "pages/hospital/superadmin_hospital.html",
-                    type: "super_admin",
-                    editable: permissions.admin
-                };
-                const token = generateToken(superData, "super_admin");
-                return res.json({
-                    success: true,
-                    message: "Super Admin authenticated.",
-                    accountType: "SUPER_ADMIN",
-                    role: "super_admin",
-                    hospitalId: null,
-                    targetDashboard: superData.targetDashboard,
-                    user: superData,
-                    token
-                });
-            }
+            const sa = (superAdmins && superAdmins.length > 0) ? superAdmins[0] : {
+                id: 1,
+                name: "Gorakhpur ICCC Central Director",
+                staff_id: "STAFF-001",
+                email: "director.iccc@smartcity.gorakhpur.gov.in"
+            };
+            const superData = {
+                id: sa.id,
+                userId: sa.id,
+                name: sa.name || "Gorakhpur ICCC Central Director",
+                staffId: sa.staff_id || "STAFF-001",
+                email: sa.email || "director.iccc@smartcity.gorakhpur.gov.in",
+                department: "ICCC Command Center",
+                accountType: "SUPER_ADMIN",
+                role: "super_admin",
+                hospitalRole: "super_admin",
+                hospitalId: null,
+                is_super_admin: true,
+                targetDashboard: "pages/admin/gkp_admin.html",
+                type: "super_admin",
+                editable: permissions.admin
+            };
+            const token = generateToken(superData, "super_admin");
+            return res.json({
+                success: true,
+                message: "Gorakhpur City Super Admin authenticated with full citywide clearance.",
+                accountType: "SUPER_ADMIN",
+                role: "super_admin",
+                hospitalId: null,
+                targetDashboard: superData.targetDashboard,
+                user: superData,
+                token
+            });
         }
 
-        if (persona === "admin" || persona === "city_admin" || persona === "iccc_admin") {
+        if (persona === "admin" || persona === "city_admin" || persona === "iccc_admin" || persona === "traffic_admin") {
             const [admins] = await db.promise().query(`
                 SELECT id, name, staff_id, department, role, email, hospital_id, hospital_role, assigned_junction_id, assigned_junction_name
                 FROM staff

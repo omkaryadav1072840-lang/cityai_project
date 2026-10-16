@@ -10,6 +10,17 @@ const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
 
+const {
+    validateEnv,
+    TRUST_PROXY,
+    JWT_SECRET,
+    CORS_ORIGIN,
+    CORS_ORIGINS
+} = require("./config/env.config");
+
+// Validate critical environment secrets before starting
+validateEnv();
+
 // Ensure DB pool initializes
 const pool = require("./config/db");
 
@@ -69,12 +80,64 @@ const { inputSanitizer } = require("./middleware/validation.middleware");
 // =========================================================
 
 const app = express();
+if (TRUST_PROXY !== false) {
+    app.set("trust proxy", TRUST_PROXY);
+}
 const server = http.createServer(app);
+
+// Explicit CORS Origin Allowlists
+const defaultAllowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:5501",
+    "http://127.0.0.1:5501",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "capacitor://localhost"
+];
+
+const customOrigins = (CORS_ORIGINS || CORS_ORIGIN || "")
+    .split(",")
+    .map(o => o.trim())
+    .filter(Boolean);
+
+const allowedOrigins = customOrigins.length > 0 ? customOrigins : defaultAllowedOrigins;
+
+const isLocalDevOrigin = (origin) => {
+    return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+};
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin) || allowedOrigins.includes("*") || (process.env.NODE_ENV !== "production" && isLocalDevOrigin(origin))) {
+            return callback(null, true);
+        }
+        return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Access-Token", "X-Requested-With"]
+};
 
 const io = new Server(server, {
     cors: {
-        origin: process.env.CORS_ORIGIN || "*",
-        methods: ["GET", "POST", "PUT", "DELETE"]
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin) || allowedOrigins.includes("*") || (process.env.NODE_ENV !== "production" && isLocalDevOrigin(origin))) {
+                return callback(null, true);
+            }
+            return callback(null, false);
+        },
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true
     }
 });
 
@@ -91,10 +154,7 @@ app.use(enforceHttpsInProduction);
 // HTTP Security Headers (anti-sniff, anti-clickjack, XSS filter, HSTS in prod)
 app.use(securityHeaders);
 
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || "*",
-    credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -123,7 +183,6 @@ app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
     }
 
     const jwt = require("jsonwebtoken");
-    const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
             return res.status(403).json({

@@ -1221,19 +1221,25 @@ function getCurrentEmergencyUser() {
 ===================================================== */
 
 function isEmergencyStaff() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.hasStaffClearance === "function") {
+        return SmartCityAuth.hasStaffClearance("emergency");
+    }
     const user = getCurrentEmergencyUser();
     if (!user) return false;
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const dept = String(user.department || "").toLowerCase().trim();
-    return (type === "staff" && (dept === "emergency" || !dept)) || type === "admin" || type === "superadmin";
+    return (type === "staff" && (dept === "emergency" || (user.editable && user.editable.includes("emergency")))) || type === "admin" || type === "superadmin" || type === "super_admin";
 }
 
 function isEmergencyAdmin() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.isSuperAdmin === "function" && SmartCityAuth.isSuperAdmin()) {
+        return true;
+    }
     const user = getCurrentEmergencyUser();
     if (!user) return false;
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const dept = String(user.department || "").toLowerCase().trim();
-    return type === "admin" || type === "superadmin" || (type === "staff" && dept === "admin");
+    return type === "admin" || type === "superadmin" || type === "super_admin" || (type === "staff" && dept === "admin");
 }
 
 let currentEmergencyLayer = "citizen";

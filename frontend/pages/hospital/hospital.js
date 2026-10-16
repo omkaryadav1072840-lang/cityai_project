@@ -5021,6 +5021,11 @@ function openPatientFile(patientId = null) {
     }
 }
 
+function openRecordsModal(patientId = null) {
+    openPatientFile(patientId);
+}
+window.openRecordsModal = openRecordsModal;
+
 function loadMyPatientRecord() {
     const id = getPatientId();
     if (!id) { showNotification("No patient session found. Register or search by ID first.", "warning"); return; }
@@ -6204,20 +6209,70 @@ function logoutPharmacyPatient() {
     showNotification("Patient logged out of pharmacy session.", "success");
 }
 
-async function loadMedicines() {
+let pharmacyCurrentPage = 1;
+const PHARMACY_PAGE_LIMIT = 8;
+let pharmacyPagination = { total: 0, page: 1, limit: PHARMACY_PAGE_LIMIT, totalPages: 1 };
+let pharmacyFetchSeq = 0;
+let pharmacyIsLoading = false;
+let pharmacySearchDebounce = null;
+
+async function loadMedicines(targetPage = 1) {
+    const thisReqSeq = ++pharmacyFetchSeq;
+    pharmacyIsLoading = true;
+    pharmacyCurrentPage = Math.max(1, parseInt(targetPage, 10) || 1);
+
     const result = document.getElementById("medicineResult");
-    if (result) {
+    const search = (document.getElementById("medicineSearch")?.value || "").trim();
+    const clearBtn = document.getElementById("medicineSearchClear");
+    if (clearBtn) clearBtn.style.display = search ? "flex" : "none";
+
+    if (result && (!medicineData || medicineData.length === 0)) {
         result.innerHTML = `
             <div class="pharmacy-loading-box">
                 <div class="pharmacy-spinner"></div>
                 <p>Loading hospital pharmacy inventory...</p>
             </div>
         `;
+    } else if (result) {
+        const grid = result.querySelector(".pharmacy-grid");
+        if (grid) grid.style.opacity = "0.5";
+        const prevBtn = document.getElementById("pharmacyPrevBtn");
+        const nextBtn = document.getElementById("pharmacyNextBtn");
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
     }
 
     try {
-        const data = await apiRequest("/api/pharmacy");
-        medicineData = (data.medicines || []).map(m => {
+        const queryParams = new URLSearchParams();
+        queryParams.set("page", pharmacyCurrentPage);
+        queryParams.set("limit", PHARMACY_PAGE_LIMIT);
+        if (pharmacyActiveCategory && pharmacyActiveCategory !== "all") {
+            queryParams.set("category", pharmacyActiveCategory);
+        }
+        if (search) {
+            queryParams.set("search", search);
+        }
+
+        const data = await apiRequest(`/api/pharmacy?${queryParams.toString()}`);
+
+        // Prevent stale asynchronous responses from overwriting newer results
+        if (thisReqSeq !== pharmacyFetchSeq) return;
+
+        const rawMeds = data.medicines || [];
+        pharmacyPagination = data.pagination || {
+            total: rawMeds.length,
+            page: pharmacyCurrentPage,
+            limit: PHARMACY_PAGE_LIMIT,
+            totalPages: Math.max(1, Math.ceil(rawMeds.length / PHARMACY_PAGE_LIMIT))
+        };
+
+        const totalPages = Math.max(0, pharmacyPagination.totalPages || 0);
+        if (totalPages > 0 && pharmacyCurrentPage > totalPages) {
+            pharmacyIsLoading = false;
+            return loadMedicines(totalPages);
+        }
+
+        medicineData = rawMeds.map(m => {
             const stock = Number(m.quantity ?? m.stock ?? 0);
             return {
                 id: m.id,
@@ -6228,11 +6283,32 @@ async function loadMedicines() {
                 status: m.availability || (stock > 0 ? "Available" : "Out of Stock")
             };
         });
-        applyMedicineFilters();
+
+        renderMedicines(medicineData, pharmacyPagination);
     } catch (error) {
+        if (thisReqSeq !== pharmacyFetchSeq) return;
         console.error("Medicine loading error:", error);
-        if (result) showError(result, error.message || "Unable to load pharmacy inventory.");
+        if (result) {
+            result.innerHTML = `
+                <div class="pharmacy-loading-box">
+                    <p style="color:#ef4444; font-weight:600;">${escapeHTML(error.message || "Unable to load pharmacy inventory.")}</p>
+                    <button type="button" class="btn-reset-filters" style="margin-top:10px;" onclick="loadMedicines(${pharmacyCurrentPage})">🔄 Retry Loading</button>
+                </div>
+            `;
+        }
+    } finally {
+        if (thisReqSeq === pharmacyFetchSeq) {
+            pharmacyIsLoading = false;
+        }
     }
+}
+
+function changePharmacyPage(targetPage) {
+    if (pharmacyIsLoading) return;
+    const totalPages = Math.max(1, pharmacyPagination?.totalPages || 1);
+    const newPage = Math.min(totalPages, Math.max(1, targetPage));
+    if (newPage === pharmacyCurrentPage) return;
+    loadMedicines(newPage);
 }
 
 function filterMedicineCategory(category) {
@@ -6241,48 +6317,39 @@ function filterMedicineCategory(category) {
         const onclickAttr = chip.getAttribute("onclick") || "";
         chip.classList.toggle("active", onclickAttr.includes(`'${category}'`));
     });
-    applyMedicineFilters();
+    pharmacyCurrentPage = 1;
+    loadMedicines(1);
 }
 
 function searchMedicines() {
-    applyMedicineFilters();
+    clearTimeout(pharmacySearchDebounce);
+    pharmacySearchDebounce = setTimeout(() => {
+        pharmacyCurrentPage = 1;
+        loadMedicines(1);
+    }, 250);
 }
 
 function clearMedicineSearch() {
     const input = document.getElementById("medicineSearch");
     if (input) {
         input.value = "";
-        applyMedicineFilters();
+        const clearBtn = document.getElementById("medicineSearchClear");
+        if (clearBtn) clearBtn.style.display = "none";
+        pharmacyCurrentPage = 1;
+        loadMedicines(1);
         input.focus();
     }
 }
 
 function applyMedicineFilters() {
-    const search = (document.getElementById("medicineSearch")?.value || "").trim().toLowerCase();
-    const clearBtn = document.getElementById("medicineSearchClear");
-    if (clearBtn) clearBtn.style.display = search ? "flex" : "none";
-
-    let filtered = medicineData;
-    if (pharmacyActiveCategory === "instock") {
-        filtered = filtered.filter(m => Number(m.stock) > 0);
-    } else if (pharmacyActiveCategory !== "all") {
-        filtered = filtered.filter(m => (m.category || "").toLowerCase().includes(pharmacyActiveCategory.toLowerCase()));
-    }
-
-    if (search) {
-        filtered = filtered.filter(m =>
-            (m.name || "").toLowerCase().includes(search) ||
-            (m.category || "").toLowerCase().includes(search)
-        );
-    }
-    renderMedicines(filtered);
+    renderMedicines(medicineData, pharmacyPagination);
 }
 
-function renderMedicines(medicines) {
+function renderMedicines(medicines, pagination = pharmacyPagination) {
     const result = document.getElementById("medicineResult");
     if (!result) return;
 
-    if (!medicines.length) {
+    if (!medicines || !medicines.length) {
         result.innerHTML = `
             <div class="pharmacy-empty-catalog">
                 <div class="empty-icon-wrap">
@@ -6299,69 +6366,112 @@ function renderMedicines(medicines) {
         return;
     }
 
+    const curPage = Math.max(1, pagination?.page || pharmacyCurrentPage || 1);
+    const totalPages = Math.max(1, pagination?.totalPages || 1);
+    const totalCount = Number(pagination?.total ?? medicines.length);
+    const pageLimit = Number(pagination?.limit || PHARMACY_PAGE_LIMIT);
+    const startIdx = totalCount > 0 ? (curPage - 1) * pageLimit + 1 : 0;
+    const endIdx = totalCount > 0 ? Math.min(totalCount, startIdx + medicines.length - 1) : 0;
+
+    const cardsHtml = medicines.map(medicine => {
+        const stock = Number(medicine.stock);
+        const priceFormatted = Number(medicine.price).toFixed(2);
+        const [intPart, decPart] = priceFormatted.split(".");
+        const inCartItem = pharmacyCart.find(i => String(i.medicine_id ?? i.id) === String(medicine.id));
+        const inCartQty = inCartItem ? Number(inCartItem.quantity) : 0;
+
+        let stockBadge = "";
+        if (stock > 20) {
+            stockBadge = `<span class="stock-pill in-stock"><span class="pulse-dot"></span> In Stock (${stock})</span>`;
+        } else if (stock > 0) {
+            stockBadge = `<span class="stock-pill low-stock">Low Stock (${stock} left)</span>`;
+        } else {
+            stockBadge = `<span class="stock-pill out-of-stock">Out of Stock</span>`;
+        }
+
+        return `
+            <div class="med-product-card ${stock <= 0 ? 'is-out-of-stock' : ''}">
+                <div class="med-card-header">
+                    <span class="med-category-tag">${escapeHTML(medicine.category)}</span>
+                    ${stockBadge}
+                </div>
+                
+                <div class="med-card-body">
+                    <h4 class="med-card-title" title="${escapeHTML(medicine.name)}">${escapeHTML(medicine.name)}</h4>
+                    <div class="med-card-subtitle">Hospital Formulary • Dispensing Pack</div>
+                </div>
+
+                <div class="med-card-pricing">
+                    <div class="price-stack">
+                        <span class="price-currency">₹</span>
+                        <span class="price-val">${intPart}</span>
+                        <span class="price-dec">.${decPart}</span>
+                        <span class="price-unit">/ pack</span>
+                    </div>
+                    <span class="mrp-badge">Jan Aushadhi Subsidized</span>
+                </div>
+
+                <div class="med-card-actions">
+                    <button type="button" class="btn-med-details" onclick="viewMedicine(${Number(medicine.id)})">
+                        Details
+                    </button>
+                    <button
+                        type="button"
+                        class="btn-med-cart ${inCartQty > 0 ? 'in-cart' : ''}"
+                        ${stock <= 0 ? "disabled" : ""}
+                        onclick="addToCart(${Number(medicine.id)})"
+                    >
+                        ${stock <= 0
+                            ? "Out of Stock"
+                            : (inCartQty > 0
+                                ? `✓ In Cart (${inCartQty})`
+                                : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg> Add to Cart`
+                            )
+                        }
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    const paginationHtml = `
+        <div class="pharmacy-pagination-bar" id="pharmacyPagination">
+            <div class="pharmacy-pagination-info">
+                Showing <strong>${startIdx}–${endIdx}</strong> of <strong>${totalCount}</strong> medicines
+            </div>
+            <div class="pharmacy-pagination-actions">
+                <button
+                    type="button"
+                    class="pharmacy-page-btn"
+                    id="pharmacyPrevBtn"
+                    ${curPage <= 1 || pharmacyIsLoading ? 'disabled' : ''}
+                    onclick="changePharmacyPage(${curPage - 1})"
+                    aria-label="Previous Page"
+                >
+                    ← Previous
+                </button>
+                <span class="pharmacy-page-counter" id="pharmacyPageIndicator">
+                    Page <strong>${curPage}</strong> of <strong>${totalPages}</strong>
+                </span>
+                <button
+                    type="button"
+                    class="pharmacy-page-btn"
+                    id="pharmacyNextBtn"
+                    ${curPage >= totalPages || pharmacyIsLoading ? 'disabled' : ''}
+                    onclick="changePharmacyPage(${curPage + 1})"
+                    aria-label="Next Page"
+                >
+                    Next →
+                </button>
+            </div>
+        </div>
+    `;
+
     result.innerHTML = `
         <div class="pharmacy-grid">
-            ${medicines.map(medicine => {
-                const stock = Number(medicine.stock);
-                const priceFormatted = Number(medicine.price).toFixed(2);
-                const [intPart, decPart] = priceFormatted.split(".");
-                const inCartItem = pharmacyCart.find(i => String(i.medicine_id ?? i.id) === String(medicine.id));
-                const inCartQty = inCartItem ? Number(inCartItem.quantity) : 0;
-
-                let stockBadge = "";
-                if (stock > 20) {
-                    stockBadge = `<span class="stock-pill in-stock"><span class="pulse-dot"></span> In Stock (${stock})</span>`;
-                } else if (stock > 0) {
-                    stockBadge = `<span class="stock-pill low-stock">Low Stock (${stock} left)</span>`;
-                } else {
-                    stockBadge = `<span class="stock-pill out-of-stock">Out of Stock</span>`;
-                }
-
-                return `
-                    <div class="med-product-card ${stock <= 0 ? 'is-out-of-stock' : ''}">
-                        <div class="med-card-header">
-                            <span class="med-category-tag">${escapeHTML(medicine.category)}</span>
-                            ${stockBadge}
-                        </div>
-                        
-                        <div class="med-card-body">
-                            <h4 class="med-card-title" title="${escapeHTML(medicine.name)}">${escapeHTML(medicine.name)}</h4>
-                            <div class="med-card-subtitle">Hospital Formulary • Dispensing Pack</div>
-                        </div>
-
-                        <div class="med-card-pricing">
-                            <div class="price-stack">
-                                <span class="price-currency">₹</span>
-                                <span class="price-val">${intPart}</span>
-                                <span class="price-dec">.${decPart}</span>
-                                <span class="price-unit">/ pack</span>
-                            </div>
-                            <span class="mrp-badge">Jan Aushadhi Subsidized</span>
-                        </div>
-
-                        <div class="med-card-actions">
-                            <button type="button" class="btn-med-details" onclick="viewMedicine(${Number(medicine.id)})">
-                                Details
-                            </button>
-                            <button
-                                type="button"
-                                class="btn-med-cart ${inCartQty > 0 ? 'in-cart' : ''}"
-                                ${stock <= 0 ? "disabled" : ""}
-                                onclick="addToCart(${Number(medicine.id)})"
-                            >
-                                ${stock <= 0
-                                    ? "Out of Stock"
-                                    : (inCartQty > 0
-                                        ? `✓ In Cart (${inCartQty})`
-                                        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg> Add to Cart`
-                                    )
-                                }
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join("")}
+            ${cardsHtml}
         </div>
+        ${paginationHtml}
     `;
 }
 
@@ -9137,7 +9247,7 @@ Object.assign(window, {
     openCitizenBedBookingModal, handleCitizenBookingHospitalChange, handleCitizenBookingWardChange,
     handleCitizenBedOptionSelected, submitCitizenBedBooking, openCitizenBillingHistory,
 
-    openPatientFile, searchPatientFile, loadMyPatientRecord, switchRecordTab, printPatientRecord,
+    openPatientFile, openRecordsModal, searchPatientFile, loadMyPatientRecord, switchRecordTab, printPatientRecord,
     renderRecordTab, toggleInlineForm,
 
     openPrescriptionUpload, setupPrescriptionForm, resetPrescriptionDropzone, setupPrescriptionDropzone, loadRecentPrescriptions,

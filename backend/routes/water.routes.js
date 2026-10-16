@@ -3457,7 +3457,7 @@ router.post("/api/water/admin/staff", authenticateToken, requireWaterAdmin, asyn
     }
 
     const rawPassword = (password && password.trim()) ? password.trim() : `Water@${Math.floor(1000 + Math.random() * 9000)}`;
-    const hashedPassword = hashPassword(rawPassword);
+    const hashedPassword = await hashPassword(rawPassword);
 
     const defaultPerms = ["view", "update", "work_orders", "inspect_assets", "update_status"];
     const defaultModules = ["water_pipelines", "assigned_work_orders", "fault_reports", "flow_telemetry"];
@@ -3668,7 +3668,7 @@ router.put("/api/water/admin/staff/:staffId", authenticateToken, requireWaterAdm
         if (modules) { updates.push("assigned_modules = ?"); params.push(typeof modules === "string" ? modules : JSON.stringify(modules)); }
         if (permitted_sectors) { updates.push("permitted_sectors = ?"); params.push(typeof permitted_sectors === "string" ? permitted_sectors : JSON.stringify(permitted_sectors)); }
         if (permitted_assets) { updates.push("permitted_assets = ?"); params.push(typeof permitted_assets === "string" ? permitted_assets : JSON.stringify(permitted_assets)); }
-        if (newPassword && newPassword.trim()) { updates.push("password = ?"); params.push(hashPassword(newPassword.trim())); }
+        if (newPassword && newPassword.trim()) { updates.push("password = ?"); params.push(await hashPassword(newPassword.trim())); }
 
         if (updates.length > 0) {
             params.push(member.id);

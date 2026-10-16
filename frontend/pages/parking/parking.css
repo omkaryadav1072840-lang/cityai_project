@@ -2,11 +2,12 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 body {
-    background: #f1f5f9;
+    background: #fdfcf4;
     color: #172033;
 }
 
@@ -274,9 +275,11 @@ body {
     background:
         linear-gradient(
             135deg,
-            #eff6ff,
-            #f8fafc
+            #fef9c3,
+            #fffdf5 60%,
+            #fefce8
         );
+    border-bottom: 1px solid #fef08a;
 }
 
 .hero-content {
@@ -284,7 +287,7 @@ body {
 }
 
 .hero-label {
-    color: #2563eb;
+    color: #b45309;
 
     font-size: 11px;
 
@@ -302,7 +305,7 @@ body {
 }
 
 .hero-content h1 span {
-    color: #2563eb;
+    color: #d97706;
 }
 
 .hero-content p {
@@ -330,21 +333,31 @@ body {
 
     border-radius: 9px;
 
-    background: #2563eb;
+    background: #d97706;
 
     color: white;
 
     font-weight: 800;
 
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hero-buttons button:hover {
+    background: #b45309;
+    transform: translateY(-1px);
 }
 
 .hero-buttons .secondary-btn {
     background: white;
 
-    color: #2563eb;
+    color: #92400e;
 
-    border: 1px solid #dbeafe;
+    border: 1px solid #fde047;
+}
+
+.hero-buttons .secondary-btn:hover {
+    background: #fefce8;
 }
 
 .hero-visual {
@@ -433,17 +446,20 @@ body {
 
     border-radius: 12px;
 
-    background: #eff6ff;
+    background: #fef9c3;
+    color: #b45309;
 
     font-size: 21px;
 }
 
 .stat-icon.available {
     background: #f0fdf4;
+    color: #15803d;
 }
 
 .stat-icon.occupied {
     background: #fef2f2;
+    color: #dc2626;
 }
 
 .stat-card span {
@@ -473,7 +489,7 @@ body {
 }
 
 .section-title > span {
-    color: #2563eb;
+    color: #d97706;
 
     font-size: 10px;
 
@@ -545,7 +561,7 @@ body {
     align-items: center;
     justify-content: center;
 
-    background: #eff6ff;
+    background: #fef9c3;
 
     border-radius: 11px;
 
@@ -3483,7 +3499,7 @@ body {
    ===================================================== */
 .layer-tabs-container {
     background: #ffffff;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid #fde047;
     padding: 0 5%;
     display: flex;
     gap: 10px;
@@ -3491,7 +3507,7 @@ body {
     position: sticky;
     top: 70px;
     z-index: 990;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 10px rgba(217, 119, 6, 0.05);
 }
 
 .layer-tab-btn {
@@ -3511,40 +3527,40 @@ body {
 }
 
 .layer-tab-btn:hover {
-    color: #0284c7;
-    background: #f0f9ff;
+    color: #d97706;
+    background: #fefce8;
 }
 
 .layer-tab-btn.active {
-    color: #0284c7;
-    border-bottom-color: #0284c7;
-    background: #e0f2fe;
+    color: #92400e;
+    border-bottom-color: #d97706;
+    background: #fef9c3;
     border-radius: 8px 8px 0 0;
 }
 
 /* ================= ROLE BANNER ================= */
 .role-banner {
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
+    background: #fefce8;
+    border: 1px solid #fde047;
     border-radius: 16px;
     padding: 16px 24px;
     margin: 20px 0 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 12px rgba(2, 132, 199, 0.08);
+    box-shadow: 0 2px 12px rgba(217, 119, 6, 0.08);
 }
 
 .role-banner strong {
     display: block;
     font-size: 16px;
-    color: #0369a1;
+    color: #92400e;
     margin-bottom: 3px;
 }
 
 .role-banner span {
     font-size: 13px;
-    color: #0284c7;
+    color: #b45309;
 }
 
 .role-pill {

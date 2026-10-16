@@ -512,39 +512,62 @@ router.post("/api/parking/staff-book", authenticateToken, requireRole(["staff", 
         const qrToken = crypto.randomBytes(16).toString("hex");
         const qrPayload = `SMARTCITY|${newBookingId}|${qrToken}|${cleanLot}|${cleanSlot}`;
 
-        // 4. Insert booking
-        await db.promise().query(`
-            INSERT INTO parking_bookings
-            (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, end_time, duration_hours, total_amount, status, qr_token, qr_used, checked_in_at, verified_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, 'Active', ?, ?, ?, ?)
-        `, [
-            newBookingId,
-            cleanLot,
-            userId || (req.user ? req.user.id : "staff-gate"),
-            cleanPlate,
-            cleanName,
-            cleanPhone,
-            cleanSlot,
-            hours,
-            hours,
-            totalAmount,
-            qrToken,
-            shouldCheckIn ? 1 : 0,
-            shouldCheckIn ? new Date() : null,
-            shouldCheckIn ? (req.user ? (req.user.name || req.user.email) : "Gate Staff") : null
-        ]);
+        // 4. Atomic Transaction: Slot reservation, booking creation, and counter update
+        const connection = await db.promise().getConnection();
+        try {
+            await connection.beginTransaction();
 
-        // 5. Update slot status
-        await db.promise().query(
-            "UPDATE parking_slots SET status = ?, current_booking_id = ? WHERE id = ?",
-            [finalSlotStatus, newBookingId, slot.id]
-        );
+            // Check & Reserve slot atomically
+            const [slotUpdateResult] = await connection.query(`
+                UPDATE parking_slots 
+                SET status = ?, current_booking_id = ? 
+                WHERE id = ? AND status = 'Available'
+            `, [finalSlotStatus, newBookingId, slot.id]);
 
-        // 6. Update lot counts
-        await db.promise().query(
-            "UPDATE parking_lots SET available_slots = GREATEST(available_slots - 1, 0), occupied_slots = occupied_slots + ? WHERE parking_code = ?",
-            [shouldCheckIn ? 1 : 0, cleanLot]
-        );
+            if (slotUpdateResult.affectedRows === 0) {
+                await connection.rollback();
+                connection.release();
+                return res.status(409).json({
+                    success: false,
+                    message: `Bay ${cleanSlot} was just booked by another user. Please pick another vacant bay.`
+                });
+            }
+
+            // Insert booking
+            await connection.query(`
+                INSERT INTO parking_bookings
+                (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, end_time, duration_hours, total_amount, status, qr_token, qr_used, checked_in_at, verified_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL ? HOUR), ?, ?, 'Active', ?, ?, ?, ?)
+            `, [
+                newBookingId,
+                cleanLot,
+                userId || (req.user ? req.user.id : "staff-gate"),
+                cleanPlate,
+                cleanName,
+                cleanPhone,
+                cleanSlot,
+                hours,
+                hours,
+                totalAmount,
+                qrToken,
+                shouldCheckIn ? 1 : 0,
+                shouldCheckIn ? new Date() : null,
+                shouldCheckIn ? (req.user ? (req.user.name || req.user.email) : "Gate Staff") : null
+            ]);
+
+            // Update lot counts atomically
+            await connection.query(
+                "UPDATE parking_lots SET available_slots = GREATEST(available_slots - 1, 0), occupied_slots = occupied_slots + ? WHERE parking_code = ?",
+                [shouldCheckIn ? 1 : 0, cleanLot]
+            );
+
+            await connection.commit();
+            connection.release();
+        } catch (txErr) {
+            await connection.rollback().catch(() => {});
+            connection.release();
+            throw txErr;
+        }
 
         // 7. Real-time broadcast
         emitParkingUpdate({
@@ -1622,53 +1645,78 @@ router.post("/api/parking/anpr-scan", optionalToken, async (req, res) => {
             });
         }
 
-        // 3. Walk-in vehicle: allocate best available slot
-        let slotQuery = "SELECT id, slot_number, slot_type, floor FROM parking_slots WHERE lot_id = ? AND status = 'Available'";
-        const params = [cleanLot];
-        if (isEv) {
-            slotQuery += " ORDER BY (slot_type = 'ev') DESC, slot_number ASC LIMIT 1";
-        } else {
-            slotQuery += " ORDER BY (slot_type = 'car') DESC, slot_number ASC LIMIT 1";
+        // 3. Walk-in vehicle: allocate best available slot with transaction and row lock
+        const connection = await db.promise().getConnection();
+        let freeSlot = null;
+        let newBookingId = "";
+        try {
+            await connection.beginTransaction();
+
+            let slotQuery = "SELECT id, slot_number, slot_type, floor FROM parking_slots WHERE lot_id = ? AND status = 'Available'";
+            const params = [cleanLot];
+            if (isEv) {
+                slotQuery += " ORDER BY (slot_type = 'ev') DESC, slot_number ASC LIMIT 1 FOR UPDATE";
+            } else {
+                slotQuery += " ORDER BY (slot_type = 'car') DESC, slot_number ASC LIMIT 1 FOR UPDATE";
+            }
+
+            const [availSlots] = await connection.query(slotQuery, params);
+            if (!availSlots.length) {
+                await connection.rollback();
+                connection.release();
+                return res.status(409).json({
+                    success: false,
+                    message: `⚠️ Facility Full: No vacant bay available in ${lot.name} for ${cleanPlate}.`
+                });
+            }
+
+            freeSlot = availSlots[0];
+            newBookingId = "BKG-ANPR-" + Date.now().toString(36).toUpperCase();
+            const durationHours = 2;
+            const totalAmount = Number(lot.hourly_rate) * durationHours;
+
+            // Atomically reserve slot
+            const [updateSlotRes] = await connection.query(
+                "UPDATE parking_slots SET status = 'Occupied', current_booking_id = ? WHERE id = ? AND status = 'Available'",
+                [newBookingId, freeSlot.id]
+            );
+
+            if (updateSlotRes.affectedRows === 0) {
+                await connection.rollback();
+                connection.release();
+                return res.status(409).json({
+                    success: false,
+                    message: `⚠️ Bay ${freeSlot.slot_number} was just occupied. Please try again.`
+                });
+            }
+
+            // Insert walk-in booking
+            await connection.query(`
+                INSERT INTO parking_bookings
+                (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, duration_hours, total_amount, status)
+                VALUES (?, ?, 'anpr-walkin', ?, 'Walk-in Citizen (AI Camera)', 'N/A', ?, NOW(), ?, ?, 'Active')
+            `, [
+                newBookingId,
+                cleanLot,
+                cleanPlate,
+                freeSlot.slot_number,
+                durationHours,
+                totalAmount
+            ]);
+
+            // Update lot counters
+            await connection.query(
+                "UPDATE parking_lots SET available_slots = GREATEST(available_slots - 1, 0), occupied_slots = occupied_slots + 1 WHERE parking_code = ?",
+                [cleanLot]
+            );
+
+            await connection.commit();
+            connection.release();
+        } catch (anprErr) {
+            await connection.rollback().catch(() => {});
+            connection.release();
+            throw anprErr;
         }
-
-        const [availSlots] = await db.promise().query(slotQuery, params);
-        if (!availSlots.length) {
-            return res.status(409).json({
-                success: false,
-                message: `⚠️ Facility Full: No vacant bay available in ${lot.name} for ${cleanPlate}.`
-            });
-        }
-
-        const freeSlot = availSlots[0];
-        const newBookingId = "BKG-ANPR-" + Date.now().toString(36).toUpperCase();
-        const durationHours = 2;
-        const totalAmount = Number(lot.hourly_rate) * durationHours;
-
-        // Insert walk-in booking
-        await db.promise().query(`
-            INSERT INTO parking_bookings
-            (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, duration_hours, total_amount, status)
-            VALUES (?, ?, 'anpr-walkin', ?, 'Walk-in Citizen (AI Camera)', 'N/A', ?, NOW(), ?, ?, 'Active')
-        `, [
-            newBookingId,
-            cleanLot,
-            cleanPlate,
-            freeSlot.slot_number,
-            durationHours,
-            totalAmount
-        ]);
-
-        // Mark slot Occupied
-        await db.promise().query(
-            "UPDATE parking_slots SET status = 'Occupied', current_booking_id = ? WHERE id = ?",
-            [newBookingId, freeSlot.id]
-        );
-
-        // Update lot counters
-        await db.promise().query(
-            "UPDATE parking_lots SET available_slots = GREATEST(available_slots - 1, 0), occupied_slots = occupied_slots + 1 WHERE parking_code = ?",
-            [cleanLot]
-        );
 
         emitParkingUpdate({
             lotId: cleanLot,

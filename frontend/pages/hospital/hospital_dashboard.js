@@ -6,9 +6,15 @@
 
 const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
     ? window.API_BASE_URL
-    : (typeof window !== "undefined" && window.location && window.location.port === "5000"
-        ? window.location.origin
-        : (typeof window !== "undefined" && window.location && window.location.protocol === "file:" ? "http://localhost:5000" : ""));
+    : (typeof window !== "undefined" && window.location)
+        ? (window.location.protocol === "file:" 
+            ? "http://localhost:5000" 
+            : (window.location.port === "5000" || window.location.port === "3000" 
+                ? window.location.origin 
+                : ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+                    ? `http://${window.location.hostname}:5000` 
+                    : (window.location.origin || ""))))
+        : "http://localhost:5000";
 
 // Global Dashboard State
 let currentHospitalId = "HOSP-001";
@@ -1568,54 +1574,183 @@ async function handleAssignBedSubmit(e) {
 // ====================================================================
 
 let currentPharmacyMedicines = [];
+let pharmacyDashboardCurrentPage = 1;
+const PHARMACY_DASHBOARD_LIMIT = 10;
+let pharmacyDashboardTotalPages = 1;
+let pharmacyDashboardTotal = 0;
+let pharmacyDashboardSearch = "";
+let pharmacyDashboardCategory = "";
+let pharmacyDashboardIsLoading = false;
+let pharmacyDashboardFetchSeq = 0;
+let pharmacyDashboardDebounceTimer = null;
 
-async function loadPharmacyStock() {
+function updatePharmacyDashboardPaginationUI() {
+    const controls = document.getElementById("pharmacyDashboardPagination");
+    if (!controls) return;
+
+    const prevBtn = document.getElementById("pharmacyDashPrevBtn");
+    const nextBtn = document.getElementById("pharmacyDashNextBtn");
+    const indicator = document.getElementById("pharmacyDashPageIndicator");
+    const startEl = document.getElementById("pharmacyDashStart");
+    const endEl = document.getElementById("pharmacyDashEnd");
+    const totalEl = document.getElementById("pharmacyDashTotal");
+
+    const effectiveTotalPages = Math.max(1, pharmacyDashboardTotalPages);
+    const startIdx = pharmacyDashboardTotal === 0 ? 0 : (pharmacyDashboardCurrentPage - 1) * PHARMACY_DASHBOARD_LIMIT + 1;
+    const endIdx = Math.min(
+        startIdx + (currentPharmacyMedicines ? currentPharmacyMedicines.length : 0) - (pharmacyDashboardTotal === 0 ? 0 : 1),
+        pharmacyDashboardTotal
+    );
+
+    if (startEl) startEl.textContent = startIdx;
+    if (endEl) endEl.textContent = endIdx;
+    if (totalEl) totalEl.textContent = pharmacyDashboardTotal;
+
+    if (indicator) {
+        indicator.textContent = `Page ${pharmacyDashboardTotal === 0 ? 0 : pharmacyDashboardCurrentPage} of ${effectiveTotalPages}`;
+    }
+
+    if (prevBtn) {
+        prevBtn.disabled = pharmacyDashboardCurrentPage <= 1 || pharmacyDashboardIsLoading || pharmacyDashboardTotal === 0;
+        prevBtn.style.opacity = prevBtn.disabled ? "0.5" : "1";
+        prevBtn.style.cursor = prevBtn.disabled ? "not-allowed" : "pointer";
+    }
+
+    if (nextBtn) {
+        nextBtn.disabled = pharmacyDashboardCurrentPage >= effectiveTotalPages || pharmacyDashboardIsLoading || pharmacyDashboardTotal === 0;
+        nextBtn.style.opacity = nextBtn.disabled ? "0.5" : "1";
+        nextBtn.style.cursor = nextBtn.disabled ? "not-allowed" : "pointer";
+    }
+}
+
+async function loadPharmacyStock(targetPage = pharmacyDashboardCurrentPage) {
     const tbody = document.getElementById("pharmacyTableBody");
     if (!tbody) return;
 
-    try {
-        const res = await fetch(`${API_BASE}/api/pharmacy`);
-        const data = await res.json();
-        const meds = data.medicines || [];
-        currentPharmacyMedicines = meds;
+    pharmacyDashboardCurrentPage = targetPage;
+    pharmacyDashboardIsLoading = true;
+    updatePharmacyDashboardPaginationUI();
 
-        if (!meds.length) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:28px; color:#64748b;">No medicines found in pharmacy catalog. Click <strong>"➕ Add New Medicine"</strong> above to register inventory.</td></tr>`;
+    const thisSeq = ++pharmacyDashboardFetchSeq;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:#64748b;">⏳ Loading pharmacy catalog...</td></tr>`;
+
+    try {
+        const params = new URLSearchParams();
+        params.set("page", String(pharmacyDashboardCurrentPage));
+        params.set("limit", String(PHARMACY_DASHBOARD_LIMIT));
+        if (pharmacyDashboardSearch) {
+            params.set("search", pharmacyDashboardSearch);
+        }
+        if (pharmacyDashboardCategory) {
+            params.set("category", pharmacyDashboardCategory);
+        }
+
+        const res = await fetch(`${API_BASE}/api/pharmacy?${params.toString()}`);
+        if (!res.ok) {
+            throw new Error(`Failed to load pharmacy catalog (HTTP ${res.status})`);
+        }
+        const data = await res.json();
+
+        // Stale response check
+        if (thisSeq !== pharmacyDashboardFetchSeq) {
             return;
         }
 
-        tbody.innerHTML = meds.map(m => `
-            <tr>
-                <td><strong>${escapeHtml(m.medicine_name)}</strong></td>
-                <td><span class="hd-badge blue">${escapeHtml(m.category || "General")}</span></td>
-                <td>
-                    <strong style="color:${m.quantity < 100 ? '#dc2626' : '#16a34a'}; font-size:14px;">${m.quantity}</strong>
-                    ${m.quantity <= 0 ? '<span class="hd-badge red" style="margin-left:6px;">Out of Stock</span>' : (m.quantity < 100 ? '<span class="hd-badge red" style="margin-left:6px;">Low Stock</span>' : '')}
-                </td>
-                <td><strong>₹${Number(m.price).toFixed(2)}</strong></td>
-                <td>
-                    <span class="hd-badge ${m.availability === 'In Stock' ? 'green' : (m.availability === 'Low Stock' ? 'amber' : 'red')}">
-                        ${escapeHtml(m.availability)}
-                    </span>
-                </td>
-                <td>
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <button type="button" class="hd-btn hd-btn-primary hd-btn-sm" style="padding:4px 10px; font-weight:700;" onclick="openDispenseModal(${m.id})">
-                            💊 Dispense
-                        </button>
-                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="padding:4px 10px; font-weight:700;" onclick="openEditMedicineModal(${m.id})">
-                            ✏️ Edit
-                        </button>
-                        <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="color:#ef4444; border-color:rgba(239,68,68,0.3); padding:4px 8px;" title="Delete Medicine" onclick="handleDeleteMedicine(${m.id}, '${escapeHtml(m.medicine_name)}')">
-                            🗑️
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join("");
+        const meds = Array.isArray(data.medicines) ? data.medicines : [];
+        currentPharmacyMedicines = meds;
+
+        const pagination = data.pagination || {
+            total: meds.length,
+            page: pharmacyDashboardCurrentPage,
+            limit: PHARMACY_DASHBOARD_LIMIT,
+            totalPages: Math.ceil(meds.length / PHARMACY_DASHBOARD_LIMIT) || 1
+        };
+
+        pharmacyDashboardTotal = Number(pagination.total) || 0;
+        pharmacyDashboardTotalPages = Number(pagination.totalPages) || (pharmacyDashboardTotal > 0 ? 1 : 0);
+        pharmacyDashboardCurrentPage = Number(pagination.page) || 1;
+
+        // Auto-recalibrate if page exceeds totalPages (e.g., after deletion)
+        if (pharmacyDashboardTotalPages > 0 && pharmacyDashboardCurrentPage > pharmacyDashboardTotalPages) {
+            pharmacyDashboardIsLoading = false;
+            return loadPharmacyStock(pharmacyDashboardTotalPages);
+        }
+
+        renderPharmacyStockTable(meds);
+        pharmacyDashboardIsLoading = false;
+        updatePharmacyDashboardPaginationUI();
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444; padding:20px;">${err.message}</td></tr>`;
+        if (thisSeq !== pharmacyDashboardFetchSeq) return;
+        pharmacyDashboardIsLoading = false;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444; padding:20px;">
+            ⚠️ ${escapeHtml(err.message)}
+            <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="margin-left:10px;" onclick="loadPharmacyStock(${pharmacyDashboardCurrentPage})">🔄 Retry</button>
+        </td></tr>`;
+        updatePharmacyDashboardPaginationUI();
     }
+}
+
+function renderPharmacyStockTable(meds) {
+    const tbody = document.getElementById("pharmacyTableBody");
+    if (!tbody) return;
+
+    if (!meds.length) {
+        const queryDesc = pharmacyDashboardSearch || pharmacyDashboardCategory
+            ? `matching "${escapeHtml(pharmacyDashboardSearch || pharmacyDashboardCategory)}"`
+            : "in pharmacy catalog";
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:28px; color:#64748b;">No medicines found ${queryDesc}. Click <strong>"➕ Add New Medicine"</strong> above to register inventory.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = meds.map(m => `
+        <tr>
+            <td><strong>${escapeHtml(m.medicine_name)}</strong></td>
+            <td><span class="hd-badge blue">${escapeHtml(m.category || "General")}</span></td>
+            <td>
+                <strong style="color:${m.quantity < 100 ? '#dc2626' : '#16a34a'}; font-size:14px;">${m.quantity}</strong>
+                ${m.quantity <= 0 ? '<span class="hd-badge red" style="margin-left:6px;">Out of Stock</span>' : (m.quantity < 100 ? '<span class="hd-badge red" style="margin-left:6px;">Low Stock</span>' : '')}
+            </td>
+            <td><strong>₹${Number(m.price).toFixed(2)}</strong></td>
+            <td>
+                <span class="hd-badge ${m.availability === 'In Stock' ? 'green' : (m.availability === 'Low Stock' ? 'amber' : 'red')}">
+                    ${escapeHtml(m.availability)}
+                </span>
+            </td>
+            <td>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button type="button" class="hd-btn hd-btn-primary hd-btn-sm" style="padding:4px 10px; font-weight:700;" onclick="openDispenseModal(${m.id})">
+                        💊 Dispense
+                    </button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="padding:4px 10px; font-weight:700;" onclick="openEditMedicineModal(${m.id})">
+                        ✏️ Edit
+                    </button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" style="color:#ef4444; border-color:rgba(239,68,68,0.3); padding:4px 8px;" title="Delete Medicine" onclick="handleDeleteMedicine(${m.id}, '${escapeHtml(m.medicine_name)}')">
+                        🗑️
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join("");
+}
+
+function changePharmacyDashboardPage(delta) {
+    if (pharmacyDashboardIsLoading) return;
+    const targetPage = pharmacyDashboardCurrentPage + delta;
+    if (targetPage < 1 || (pharmacyDashboardTotalPages > 0 && targetPage > pharmacyDashboardTotalPages)) return;
+    loadPharmacyStock(targetPage);
+}
+
+function handlePharmacyDashboardSearch(val) {
+    if (pharmacyDashboardDebounceTimer) clearTimeout(pharmacyDashboardDebounceTimer);
+    pharmacyDashboardDebounceTimer = setTimeout(() => {
+        pharmacyDashboardSearch = (val || "").trim();
+        loadPharmacyStock(1);
+    }, 250);
+}
+
+function handlePharmacyDashboardCategory(val) {
+    pharmacyDashboardCategory = (val || "").trim();
+    loadPharmacyStock(1);
 }
 
 function openAddMedicineModal() {
@@ -1652,7 +1787,7 @@ async function handleAddMedicineSubmit(e) {
 
         closeHdModal("modalAddMedicine");
         showHdToast(res.message || `Medicine '${medicineName}' added to inventory!`, "success");
-        await loadPharmacyStock();
+        await loadPharmacyStock(1);
     } catch (err) {
         alert("Failed to add medicine: " + err.message);
     }
@@ -1712,7 +1847,7 @@ async function handleEditMedicineSubmit(e) {
 
         closeHdModal("modalEditMedicine");
         showHdToast(res.message || "Medicine updated successfully!", "success");
-        await loadPharmacyStock();
+        await loadPharmacyStock(pharmacyDashboardCurrentPage);
     } catch (err) {
         alert("Failed to update medicine: " + err.message);
     }
@@ -1766,7 +1901,7 @@ async function handleDispenseMedicineSubmit(e) {
 
         closeHdModal("modalDispenseMedicine");
         showHdToast(res.message || `Dispensed ${units} unit(s) successfully!`, "success");
-        await loadPharmacyStock();
+        await loadPharmacyStock(pharmacyDashboardCurrentPage);
     } catch (err) {
         alert("Failed to dispense: " + err.message);
     }
@@ -1781,7 +1916,7 @@ async function handleDeleteMedicine(id, name) {
         });
 
         showHdToast(res.message || `Medicine '${name}' removed.`, "success");
-        await loadPharmacyStock();
+        await loadPharmacyStock(pharmacyDashboardCurrentPage);
     } catch (err) {
         alert("Failed to delete medicine: " + err.message);
     }
@@ -2258,6 +2393,9 @@ window.handleAddMedicineSubmit = handleAddMedicineSubmit;
 window.handleEditMedicineSubmit = handleEditMedicineSubmit;
 window.handleDispenseMedicineSubmit = handleDispenseMedicineSubmit;
 window.loadPharmacyStock = loadPharmacyStock;
+window.changePharmacyDashboardPage = changePharmacyDashboardPage;
+window.handlePharmacyDashboardSearch = handlePharmacyDashboardSearch;
+window.handlePharmacyDashboardCategory = handlePharmacyDashboardCategory;
 
 // ====================================================================
 // HOSPITAL ADMIN SELF-SERVICE CONFIGURATION CONSOLE

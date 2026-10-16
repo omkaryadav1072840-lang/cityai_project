@@ -101,6 +101,9 @@ function initUserSession() {
 
 // Check if currently authenticated user is Traffic Staff or Administrator with valid token
 function isStaffUser() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.hasStaffClearance === "function") {
+        return SmartCityAuth.hasStaffClearance("traffic");
+    }
     if (window.SmartCityAuth && typeof SmartCityAuth.canEdit === "function") {
         return SmartCityAuth.canEdit("traffic");
     }
@@ -113,7 +116,7 @@ function isStaffUser() {
     const user = (window.SmartCityAuth && SmartCityAuth.getUser()) ||
                  JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
     const role = ((user && (user.role || user.type)) || "").toLowerCase();
-    if (role === "admin") return true;
+    if (role === "admin" || role === "super_admin") return true;
     if (role === "staff") {
         const dept = (user.department || "").toLowerCase();
         return dept === "traffic" || (user.editable && Array.isArray(user.editable) && user.editable.includes("traffic"));
@@ -122,6 +125,9 @@ function isStaffUser() {
 }
 
 function isAdminUser() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.isSuperAdmin === "function" && SmartCityAuth.isSuperAdmin()) {
+        return true;
+    }
     const token = (window.SmartCityAuth && SmartCityAuth.getToken()) ||
                   localStorage.getItem("smartCityJWT") ||
                   localStorage.getItem("smartcity_auth_token") ||
@@ -131,7 +137,8 @@ function isAdminUser() {
     const user = (window.SmartCityAuth && SmartCityAuth.getUser()) ||
                  JSON.parse(localStorage.getItem("smartCityCurrentUser") || "{}");
     const role = ((user && (user.role || user.department)) || "").toLowerCase();
-    return role === "admin" || role.includes("director") || role.includes("superadmin");
+    const staffId = ((user && (user.staffId || user.staff_id)) || "").toUpperCase();
+    return role === "admin" || role === "super_admin" || role.includes("director") || role.includes("superadmin") || role.includes("traffic_admin") || staffId === "TR-ADMIN" || staffId === "STAFF-001";
 }
 
 // Attach active role & JWT bearer token to staff mutation API requests
@@ -183,7 +190,7 @@ async function switchRoleProfile(role) {
         await quickLoginTrafficStaff("mohaddipur");
     } else if (role === "officer") {
         await quickLoginTrafficStaff("officer");
-    } else if (role === "admin") {
+    } else if (role === "admin" || role === "traffic_admin") {
         if (!isAdminUser()) {
             await quickLoginTrafficAdmin();
         } else {
@@ -297,6 +304,7 @@ function switchLayer(layer) {
         loadAdminOfficerRoster();
         loadAdminJunctionsTable();
         loadAdminSignalsTable();
+        loadAdminCamerasTable();
         loadAdminStaff();
         loadAdminAISettings();
         loadAuditLogs();
@@ -5034,3 +5042,156 @@ async function handleAssignOfficerSubmit(staffId) {
     }
 }
 window.handleAssignOfficerSubmit = handleAssignOfficerSubmit;
+
+// =========================================================
+// 15. ADMIN CCTV CAMERAS INVENTORY & GIS MAP OPERATIONS
+// =========================================================
+async function loadAdminCamerasTable() {
+    const tbody = document.getElementById("admin-cameras-tbody");
+    if (!tbody) return;
+    const isAdm = isAdminUser();
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading CCTV camera inventory...</td></tr>`;
+
+    try {
+        const res = await fetch("/api/traffic/cameras", { headers: getAuthHeaders() });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.cameras)) {
+            allCameras = json.cameras;
+            if (allCameras.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">No CCTV cameras currently registered.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = allCameras.map(cam => {
+                const jName = cam.junction_name || cam.junction_id || "Gorakhpur Corridor";
+                const approach = cam.approach || cam.direction || "All Approaches";
+                const latStr = cam.latitude !== undefined && cam.latitude !== null ? Number(cam.latitude).toFixed(6) : "--";
+                const lngStr = cam.longitude !== undefined && cam.longitude !== null ? Number(cam.longitude).toFixed(6) : "--";
+                const isOnline = cam.status === "Online" || cam.status === "Active";
+
+                return `
+                    <tr>
+                        <td><strong>${cam.id}</strong></td>
+                        <td>
+                            <div style="font-weight:700; color:#0f172a;">${escapeHTML(cam.camera_name || 'CCTV Unit')}</div>
+                            <small style="color:#64748b;">${escapeHTML(cam.model_type || 'Optical PTZ')}</small>
+                        </td>
+                        <td>
+                            <div>${escapeHTML(jName)}</div>
+                            <small style="color:#0284c7; font-weight:600;">${escapeHTML(approach)}</small>
+                        </td>
+                        <td style="font-family:monospace; font-size:12px;">${latStr}, ${lngStr}</td>
+                        <td style="font-size:11px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHTML(cam.feed_url || 'Emulated Feed')}">
+                            <span class="badge ${cam.stream_type === 'HLS' ? 'badge-primary' : 'badge-secondary'}" style="font-size:10px; margin-right:4px;">${escapeHTML(cam.stream_type || 'MJPEG')}</span>
+                            ${escapeHTML(cam.feed_url || 'Internal Sim')}
+                        </td>
+                        <td>
+                            <span class="badge ${isOnline ? 'badge-online' : 'badge-offline'}">
+                                <i class="fa-solid fa-circle" style="font-size:7px; margin-right:3px;"></i> ${cam.status || 'Active'}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                ${isAdm ? `
+                                    <button class="btn-primary btn-sm" onclick="startMoveCameraOnMap('${cam.id}')" title="Move CCTV Camera on GIS Map" style="font-size:11px; padding:3px 7px; background:#0284c7; border-color:#0284c7;">
+                                        <i class="fa-solid fa-arrows-up-down-left-right"></i> Move
+                                    </button>
+                                    <button class="btn-secondary btn-sm" onclick="openEditCameraModal('${cam.id}')" style="font-size:11px; padding:3px 7px;">Edit</button>
+                                    <button class="btn-secondary btn-sm" onclick="deleteCamera('${cam.id}')" style="font-size:11px; padding:3px 7px; color:#dc2626;">Delete</button>
+                                ` : `
+                                    <span class="badge badge-offline" style="font-size:10px; background:#e2e8f0; color:#64748b;"><i class="fa-solid fa-lock"></i> Admin Only</span>
+                                `}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626; padding: 14px;">Failed to load cameras: ${json.message || 'Unauthorized'}</td></tr>`;
+        }
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #dc2626; padding: 14px;">Network error loading cameras: ${err.message}</td></tr>`;
+    }
+}
+window.loadAdminCamerasTable = loadAdminCamerasTable;
+
+function startAddCameraOnMap() {
+    if (!isAdminUser()) {
+        if (typeof showToast === "function") showToast("Admin clearance required to add cameras on map.", "error");
+        else alert("Admin clearance required to add cameras on map.");
+        return;
+    }
+    if (!window.trafficMap) {
+        alert("Traffic map is initializing. Please try again.");
+        return;
+    }
+    const mapCard = document.getElementById("trafficMapContainerCard");
+    if (mapCard) mapCard.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (typeof showToast === "function") {
+        showToast("📍 Map Selection Active: Click anywhere on the map to place the new CCTV Camera.", "info");
+    }
+
+    trafficMap.startCoordinatePickMode((lat, lng) => {
+        openAddCameraModal();
+        const latInput = document.getElementById("cam-lat-input");
+        const lngInput = document.getElementById("cam-lng-input");
+        if (latInput) latInput.value = Number(lat).toFixed(7);
+        if (lngInput) lngInput.value = Number(lng).toFixed(7);
+        if (typeof showToast === "function") {
+            showToast(`📍 Selected camera coords: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, "success");
+        }
+    });
+}
+window.startAddCameraOnMap = startAddCameraOnMap;
+
+function startMoveCameraOnMap(presetCamId) {
+    if (!isAdminUser()) {
+        if (typeof showToast === "function") showToast("Admin clearance required to move cameras on map.", "error");
+        else alert("Admin clearance required to move cameras on map.");
+        return;
+    }
+    let targetId = presetCamId;
+    if (!targetId) {
+        targetId = prompt("Enter Camera ID to relocate on GIS map (e.g. CAM-01, CAM-02):", "CAM-01");
+        if (!targetId || !targetId.trim()) return;
+        targetId = targetId.trim();
+    }
+    const mapCard = document.getElementById("trafficMapContainerCard");
+    if (mapCard) mapCard.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    if (typeof showToast === "function") {
+        showToast(`📍 Click new location on map to move CCTV Camera ${targetId}...`, "info");
+    }
+
+    trafficMap.startCoordinatePickMode(async (lat, lng) => {
+        const confirmed = confirm(`Relocate CCTV Camera ${targetId} to new GIS coordinates:\nLatitude: ${lat.toFixed(6)}\nLongitude: ${lng.toFixed(6)}\n\nProceed?`);
+        if (!confirmed) return;
+
+        try {
+            if (typeof showToast === "function") showToast(`Relocating camera ${targetId}...`);
+            const res = await fetch(`/api/traffic/cameras/${targetId}/location`, {
+                method: "PUT",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lng)
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (typeof showToast === "function") showToast(`✅ Camera ${targetId} relocated successfully!`, "success");
+                alert(`Camera Relocated:\n${data.message || 'Updated'}\nNew Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+                await loadAdminCamerasTable();
+                await loadSharedTrafficData();
+            } else {
+                alert(`Error relocating camera: ${data.message || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert("Network error relocating camera: " + err.message);
+        }
+    });
+}
+window.startMoveCameraOnMap = startMoveCameraOnMap;
+window.openIncidentModal = openReportIncidentModal;

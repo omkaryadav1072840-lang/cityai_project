@@ -175,6 +175,68 @@ async function runTests() {
     });
     assert(assignRes.status === 200 && assignRes.data.success, "Admin successfully assigned Sub-Insp. Amit Pandey to Mohaddipur Junction");
 
+    // 4. CCTV Camera Management: Strictly Admin Only (Staff Blocked from Add/Move/Remove)
+    console.log("\n--- 4. Camera Provisioning, GIS Relocation & Decommissioning: Strictly Admin ---");
+
+    // Staff officer blocked from adding camera
+    const staffAddCam = await request(`${BASE_URL}/api/traffic/cameras`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${mohaddipurOfficerToken}` },
+        body: {
+            junction_id: 'JNC-02',
+            camera_name: 'Unauthorized Staff Camera',
+            direction: 'North',
+            stream_url: 'http://test/stream'
+        }
+    });
+    assert(staffAddCam.status === 403, "Staff officer strictly blocked with 403 from creating/adding CCTV cameras");
+
+    // Staff officer blocked from relocating camera on GIS map
+    const staffMoveCam = await request(`${BASE_URL}/api/traffic/cameras/CAM-02-E/location`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${mohaddipurOfficerToken}` },
+        body: { latitude: 26.745678, longitude: 83.398765 }
+    });
+    assert(staffMoveCam.status === 403, "Staff officer strictly blocked with 403 from relocating CCTV cameras on map");
+
+    // Staff officer blocked from deleting camera
+    const staffDelCam = await request(`${BASE_URL}/api/traffic/cameras/CAM-02-E`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${mohaddipurOfficerToken}` }
+    });
+    assert(staffDelCam.status === 403, "Staff officer strictly blocked with 403 from deleting/removing CCTV cameras");
+
+    // Admin successfully creates a new camera
+    const adminAddCam = await request(`${BASE_URL}/api/traffic/cameras`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${adminToken}` },
+        body: {
+            junction_id: 'JNC-02',
+            camera_name: 'Admin Added Optical Unit',
+            direction: 'South',
+            stream_url: 'http://192.168.1.50:8080/video',
+            latitude: 26.746100,
+            longitude: 83.398200
+        }
+    });
+    assert(adminAddCam.status === 201 && adminAddCam.data.success, "Traffic Admin successfully added new CCTV camera");
+    const testAdminCamId = adminAddCam.data.cameraId;
+
+    // Admin successfully relocates camera on GIS map
+    const adminMoveCam = await request(`${BASE_URL}/api/traffic/cameras/${testAdminCamId}/location`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${adminToken}` },
+        body: { latitude: 26.747000, longitude: 83.399000 }
+    });
+    assert(adminMoveCam.status === 200 && adminMoveCam.data.success, "Traffic Admin successfully relocated camera coordinates on GIS map");
+
+    // Admin successfully deletes camera
+    const adminDelCam = await request(`${BASE_URL}/api/traffic/cameras/${testAdminCamId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(adminDelCam.status === 200 && adminDelCam.data.success, "Traffic Admin successfully decommissioned/deleted camera");
+
     console.log(`\n=======================================================`);
     console.log(`SUMMARY: ${passed} PASSED, ${failed} FAILED`);
     console.log(`=======================================================`);

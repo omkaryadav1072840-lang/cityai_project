@@ -1095,21 +1095,29 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
         return res.status(400).json({ success: false, message: "bed_id, patient_id, and patient_name are required." });
     }
 
+    const connection = await db.promise().getConnection();
     try {
-        const p = db.promise();
-        const [bedRows] = await p.query(`
+        await connection.beginTransaction();
+
+        const [bedRows] = await connection.query(`
             SELECT b.*, w.ward_name, w.ward_type, w.floor AS ward_floor, w.building_wing AS ward_wing, w.charge_per_day
             FROM hospital_ward_beds b
             LEFT JOIN hospital_wards w ON (b.ward_id = w.ward_id OR b.ward_id = CAST(w.id AS CHAR))
             WHERE (b.bed_id = ? OR CAST(b.id AS CHAR) = ?) AND (b.hospital_id = ? OR b.hospital_id = (SELECT id FROM hospitals WHERE hospital_id = ? LIMIT 1))
+            LIMIT 1
+            FOR UPDATE
         `, [bed_id, bed_id, hospitalId, hospitalId]);
 
         if (!bedRows.length) {
+            await connection.rollback();
+            connection.release();
             return res.status(404).json({ success: false, message: "Bed not found in hospital registry." });
         }
 
         const bed = bedRows[0];
         if (bed.status === "Occupied" && bed.patient_id && bed.patient_id !== patient_id) {
+            await connection.rollback();
+            connection.release();
             return res.status(409).json({ success: false, message: `Bed is already occupied by ${bed.patient_name || 'another patient'}.` });
         }
 
@@ -1124,16 +1132,22 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
         const bedCat = bed.bed_category || bedType;
         const charge = Number(bed.charge || bed.charge_per_day || 500);
 
-        // 1. Update physical bed status
-        await p.query(`
+        // 1. Atomic conditional update on bed status
+        const [updateRes] = await connection.query(`
             UPDATE hospital_ward_beds
             SET status = 'Occupied', patient_id = ?, patient_name = ?, admission_date = NOW(), notes = ?
-            WHERE bed_id = ?
-        `, [patient_id, patient_name, notes || null, actualBedId]);
+            WHERE bed_id = ? AND (status = 'Available' OR status = 'Reserved' OR (status = 'Occupied' AND patient_id = ?))
+        `, [patient_id, patient_name, notes || null, actualBedId, patient_id]);
+
+        if (updateRes.affectedRows === 0) {
+            await connection.rollback();
+            connection.release();
+            return res.status(409).json({ success: false, message: "Bed is already allocated to another patient." });
+        }
 
         // 2. Log permanent admission record in hospital_bed_admissions
         const admissionId = `ADM-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
-        await p.query(`
+        await connection.query(`
             INSERT INTO hospital_bed_admissions 
             (admission_id, hospital_id, patient_id, patient_name, bed_id, bed_number, ward_id, ward_name, building_wing, floor, room_number, bed_type, bed_category, charge_per_day, admission_date, status, doctor_id, doctor_name, diagnosis, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'Admitted', ?, ?, ?, ?)
@@ -1161,7 +1175,7 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
         // 3. Ensure patient exists in patients table and insert permanent clinical history entry into patient_records
         if (patient_id) {
             try {
-                await p.query(`
+                await connection.query(`
                     INSERT INTO patients (patient_id, name, created_at)
                     VALUES (?, ?, NOW())
                     ON DUPLICATE KEY UPDATE name = COALESCE(VALUES(name), name)
@@ -1169,7 +1183,7 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
             } catch (pErr) {}
 
             try {
-                await p.query(`
+                await connection.query(`
                     INSERT INTO patient_records 
                     (patient_id, hospital_id, doctor_id, doctor_name, diagnosis, treatment, notes, record_date)
                     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
@@ -1188,14 +1202,14 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
         }
 
         // 4. Update occupied count on ward
-        await p.query(`
+        await connection.query(`
             UPDATE hospital_wards
             SET occupied_beds = (SELECT COUNT(*) FROM hospital_ward_beds WHERE (ward_id = ? OR CAST(id AS CHAR) = ?) AND status = 'Occupied')
             WHERE ward_id = ? OR CAST(id AS CHAR) = ?
         `, [actualWardId, actualWardId, actualWardId, actualWardId]);
 
         // 5. Update hospital counters
-        await p.query(`
+        await connection.query(`
             UPDATE hospitals h SET
                 total_beds = (SELECT COUNT(*) FROM hospital_ward_beds WHERE hospital_id = h.hospital_id AND status != 'Retired'),
                 icu_beds = (SELECT COUNT(*) FROM hospital_ward_beds WHERE hospital_id = h.hospital_id AND (bed_type = 'ICU' OR bed_category LIKE '%ICU%') AND status != 'Retired'),
@@ -1203,7 +1217,10 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
             WHERE h.hospital_id = ?
         `, [hospitalId]);
 
-        // Broadcast live bed updates
+        await connection.commit();
+        connection.release();
+
+        // Broadcast live bed updates (post-commit)
         HospitalBedService.getGorakhpurBedAvailability().then(freshData => {
             emitHospitalBedUpdate(freshData);
         }).catch(() => {});
@@ -1219,6 +1236,8 @@ router.post("/api/hospitals/:hospitalId/ward-beds/assign", optionalToken, async 
             floor
         });
     } catch (err) {
+        await connection.rollback().catch(() => {});
+        connection.release();
         console.error("Bed assign error:", err);
         res.status(500).json({ success: false, message: "Database error assigning bed." });
     }
@@ -1350,13 +1369,15 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
         });
     }
 
-    const p = db.promise();
     const effectivePatientId = patient_id || `PAT-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
+    const connection = await db.promise().getConnection();
     try {
+        await connection.beginTransaction();
+
         // 1. Ensure patient exists in patients table (Foreign key safety)
         try {
-            await p.query(`
+            await connection.query(`
                 INSERT INTO patients (patient_id, name, mobile, age, gender, created_at)
                 VALUES (?, ?, ?, ?, ?, NOW())
                 ON DUPLICATE KEY UPDATE 
@@ -1373,7 +1394,7 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
 
         // 2. ATOMIC TRANSACTION-SAFE CONCURRENCY CHECK
         // Updates bed ONLY if its current status is 'Available'
-        const [updateRes] = await p.query(`
+        const [updateRes] = await connection.query(`
             UPDATE hospital_ward_beds
             SET status = 'Reserved',
                 patient_id = ?,
@@ -1395,7 +1416,10 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
 
         // If affectedRows === 0, bed was already reserved/occupied by someone else
         if (updateRes.affectedRows === 0) {
-            const [checkRows] = await p.query(`
+            await connection.rollback();
+            connection.release();
+
+            const [checkRows] = await db.promise().query(`
                 SELECT bed_id, bed_number, status, patient_name 
                 FROM hospital_ward_beds 
                 WHERE (bed_id = ? OR CAST(id AS CHAR) = ?)
@@ -1418,7 +1442,7 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
         }
 
         // 3. SUCCESS PATH: Fetch full bed, ward, and hospital information
-        const [bedDetails] = await p.query(`
+        const [bedDetails] = await connection.query(`
             SELECT b.*, w.ward_name, w.floor AS ward_floor, w.building_wing AS ward_wing, w.charge_per_day, h.hospital_name, h.logo AS hospital_logo
             FROM hospital_ward_beds b
             LEFT JOIN hospital_wards w ON (b.ward_id = w.ward_id OR b.ward_id = CAST(w.id AS CHAR))
@@ -1441,7 +1465,7 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
         const invoiceId = `INV-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
         const serviceDesc = `${wardName} Bed (${bedNumber}) - Daily Hospital Charge`;
 
-        await p.query(`
+        await connection.query(`
             INSERT INTO hospital_invoices
             (invoice_id, hospital_id, patient_id, patient_name, service_type, service_reference_id, total_amount, discount, paid_amount, remaining_amount, payment_method, payment_status, billed_by, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, 0.00, 0.00, ?, 'Pay at Hospital Counter', 'Unpaid', 'Online Bed Reservation System', NOW())
@@ -1458,7 +1482,7 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
 
         // 5. Log permanent reservation entry in hospital_bed_admissions
         const admissionId = `RES-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
-        await p.query(`
+        await connection.query(`
             INSERT INTO hospital_bed_admissions 
             (admission_id, hospital_id, patient_id, patient_name, bed_id, bed_number, ward_id, ward_name, building_wing, floor, room_number, bed_type, bed_category, charge_per_day, admission_date, status, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'Reserved', ?)
@@ -1481,13 +1505,13 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
         ]);
 
         // 6. Recalculate ward & hospital counters
-        await p.query(`
+        await connection.query(`
             UPDATE hospital_wards
             SET occupied_beds = (SELECT COUNT(*) FROM hospital_ward_beds WHERE (ward_id = ? OR CAST(id AS CHAR) = ?) AND status IN ('Occupied', 'Reserved'))
             WHERE ward_id = ? OR CAST(id AS CHAR) = ?
         `, [actualWardId, actualWardId, actualWardId, actualWardId]);
 
-        await p.query(`
+        await connection.query(`
             UPDATE hospitals h SET
                 total_beds = (SELECT COUNT(*) FROM hospital_ward_beds WHERE hospital_id = h.hospital_id AND status != 'Retired'),
                 icu_beds = (SELECT COUNT(*) FROM hospital_ward_beds WHERE hospital_id = h.hospital_id AND (bed_type = 'ICU' OR bed_category LIKE '%ICU%') AND status != 'Retired'),
@@ -1495,7 +1519,10 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
             WHERE h.hospital_id = ?
         `, [hospitalId]);
 
-        // 7. REAL-TIME BROADCAST VIA SOCKET.IO
+        await connection.commit();
+        connection.release();
+
+        // 7. REAL-TIME BROADCAST VIA SOCKET.IO (post-commit)
         HospitalBedService.getGorakhpurBedAvailability().then(freshData => {
             emitHospitalBedUpdate(freshData);
             if (global.io) {
@@ -1543,6 +1570,8 @@ router.post("/api/hospitals/:hospitalId/ward-beds/book", optionalToken, async (r
             }
         });
     } catch (err) {
+        await connection.rollback().catch(() => {});
+        connection.release();
         console.error("Bed booking error:", err);
         res.status(500).json({ success: false, message: "Database error booking bed: " + err.message });
     }
@@ -2012,7 +2041,7 @@ router.post("/api/hospitals/:hospitalId/staff", authenticateToken, async (req, r
 
     // Auto-generate Initial Password if omitted
     const rawPassword = (password && password.trim()) ? password.trim() : `Staff@${Math.floor(1000 + Math.random() * 9000)}`;
-    const hashedPassword = hashPassword(rawPassword);
+    const hashedPassword = await hashPassword(rawPassword);
 
     // Default permissions & modules if not provided
     const defaultPerms = ["view", "create", "update"];
@@ -2134,7 +2163,7 @@ router.put("/api/hospitals/:hospitalId/staff/:staffId", authenticateToken, async
         if (status) { updates.push("status = ?"); params.push(status); }
         if (permissions) { updates.push("permissions = ?"); params.push(JSON.stringify(permissions)); }
         if (modules) { updates.push("assigned_modules = ?"); params.push(JSON.stringify(modules)); }
-        if (newPassword && newPassword.trim()) { updates.push("password = ?"); params.push(hashPassword(newPassword.trim())); }
+        if (newPassword && newPassword.trim()) { updates.push("password = ?"); params.push(await hashPassword(newPassword.trim())); }
 
         if (updates.length > 0) {
             params.push(staffId, hospitalId);
@@ -2414,7 +2443,7 @@ router.post("/api/admin/hospitals", authenticateToken, requireRole(["admin"]), a
                 ? admin_staff_id.trim() 
                 : (admin_email ? admin_email.split('@')[0].toUpperCase() : `ADM-${targetHospId}`);
             const rawPassword = admin_password || "admin123";
-            const hashedPassword = hashPassword(rawPassword);
+            const hashedPassword = await hashPassword(rawPassword);
             const adminPerms = ["view", "create", "update", "delete", "manage_staff", "manage_doctors", "manage_beds"];
             const adminModules = [
                 "hospital_overview", "departments", "doctors", "doctor_slots",
@@ -2559,7 +2588,7 @@ router.post("/api/admin/hospitals/:hospitalId/admin", authenticateToken, require
     try {
         const p = db.promise();
         const rawPassword = password || "admin123";
-        const hashedPassword = hashPassword(rawPassword);
+        const hashedPassword = await hashPassword(rawPassword);
 
         // 1. Check hospital exists
         const [hRows] = await p.query("SELECT hospital_name FROM hospitals WHERE hospital_id = ?", [hospitalId]);

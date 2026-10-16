@@ -3,6 +3,19 @@
  */
 
 const http = require('http');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
+const adminToken = jwt.sign({
+    id: 990,
+    staffId: 'TR-ADMIN',
+    name: 'ICCC Traffic Admin',
+    role: 'admin',
+    department: 'traffic',
+    assigned_junction_id: null,
+    assigned_junction_name: 'All Citywide Junctions'
+}, JWT_SECRET, { expiresIn: '1h' });
 
 function request(url, options = {}, data = null) {
     return new Promise((resolve, reject) => {
@@ -14,6 +27,7 @@ function request(url, options = {}, data = null) {
             method: options.method || 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`,
                 ...(options.headers || {})
             }
         };

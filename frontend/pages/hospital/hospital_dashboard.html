@@ -505,6 +505,17 @@
                 <p>Medicine catalog, inventory stock alerts, and prescription fulfillment direct from OPD.</p>
             </div>
             <div class="hd-actions-row">
+                <input type="text" id="pharmacyDashboardSearch" class="hd-input" placeholder="🔍 Search medicine..." style="padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; width: 180px;" oninput="handlePharmacyDashboardSearch(this.value)">
+                <select id="pharmacyDashboardCategory" class="hd-select" style="padding: 6px 10px; font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1;" onchange="handlePharmacyDashboardCategory(this.value)">
+                    <option value="">All Categories</option>
+                    <option value="Tablets">Tablets</option>
+                    <option value="Syrups">Syrups</option>
+                    <option value="Antibiotics">Antibiotics</option>
+                    <option value="Analgesics">Analgesics</option>
+                    <option value="Cardiac">Cardiac</option>
+                    <option value="First Aid">First Aid</option>
+                    <option value="instock">In Stock Only</option>
+                </select>
                 <button type="button" class="hd-btn hd-btn-primary" onclick="openAddMedicineModal()">
                     ➕ Add New Medicine
                 </button>
@@ -528,6 +539,24 @@
                     <!-- Injected via JavaScript -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pharmacy Catalog Pagination Controls -->
+        <div class="hd-pagination" id="pharmacyDashboardPagination" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:14px; padding:10px 16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; color:#475569;">
+            <div id="pharmacyDashboardPageInfo">
+                Showing <strong id="pharmacyDashStart">0</strong>–<strong id="pharmacyDashEnd">0</strong> of <strong id="pharmacyDashTotal">0</strong> medicines
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" id="pharmacyDashPrevBtn" class="hd-btn hd-btn-outline hd-btn-sm" onclick="changePharmacyDashboardPage(-1)" disabled style="cursor:pointer; padding:5px 12px;">
+                    ← Previous
+                </button>
+                <span id="pharmacyDashPageIndicator" style="font-weight:600; padding:0 6px; color:#1e293b;">
+                    Page 1 of 1
+                </span>
+                <button type="button" id="pharmacyDashNextBtn" class="hd-btn hd-btn-outline hd-btn-sm" onclick="changePharmacyDashboardPage(1)" disabled style="cursor:pointer; padding:5px 12px;">
+                    Next →
+                </button>
+            </div>
         </div>
     </section>
 

@@ -69,6 +69,9 @@
     }
 
     function isWasteStaff() {
+        if (window.SmartCityAuth && typeof SmartCityAuth.hasStaffClearance === "function") {
+            return SmartCityAuth.hasStaffClearance("waste");
+        }
         const user = getCurrentUser();
         if (!user) return false;
         const role = (user.role || user.type || "").toLowerCase();

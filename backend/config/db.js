@@ -2,21 +2,29 @@ const mysql = require("mysql2");
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 
+const {
+    DB_CONNECTION_LIMIT,
+    DB_CONNECT_TIMEOUT_MS,
+    DB_QUEUE_LIMIT
+} = require("./env.config");
+
 // =========================================================
 // MYSQL CONNECTION POOL
 // =========================================================
-// Connection pooling automatically manages connections,
-// handles auto-reconnect, and scales under concurrent traffic.
+// Tuned connection pool grounded in MySQL server capacity (max_connections=151).
+// Connection pooling automatically manages connections, handles auto-reconnect,
+// and scales under concurrent traffic.
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST || process.env.MYSQL_HOST || "localhost",
     user: process.env.DB_USER || process.env.MYSQL_USER || "root",
-    password: process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : "omkar"),
+    password: process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQL_PASSWORD !== undefined ? process.env.MYSQL_PASSWORD : ""),
     database: process.env.DB_NAME || process.env.MYSQL_DATABASE || "smartcity",
     port: Number(process.env.DB_PORT || process.env.MYSQL_PORT) || 3306,
     waitForConnections: true,
-    connectionLimit: 15,
-    queueLimit: 0,
+    connectionLimit: DB_CONNECTION_LIMIT || 25,
+    queueLimit: DB_QUEUE_LIMIT !== undefined ? DB_QUEUE_LIMIT : 50,
+    connectTimeout: DB_CONNECT_TIMEOUT_MS || 10000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000
 });

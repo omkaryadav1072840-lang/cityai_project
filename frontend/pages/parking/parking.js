@@ -168,6 +168,9 @@ function getCurrentUser() {
 ===================================================== */
 
 function isParkingStaff() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.hasStaffClearance === "function") {
+        return SmartCityAuth.hasStaffClearance("parking");
+    }
     const token = (typeof getAuthToken === "function" ? getAuthToken() : null) ||
                   localStorage.getItem("smartCityJWT") ||
                   localStorage.getItem("smartcity_token") ||
@@ -178,7 +181,7 @@ function isParkingStaff() {
     if (!user) return false;
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const department = String(user.department || "").toLowerCase().trim();
-    return (type === "staff" && (department === "parking" || (user.editable && Array.isArray(user.editable) && user.editable.includes("parking")))) || type === "admin" || type === "superadmin";
+    return (type === "staff" && (department === "parking" || (user.editable && Array.isArray(user.editable) && user.editable.includes("parking")))) || type === "admin" || type === "superadmin" || type === "super_admin";
 }
 
 let currentParkingLayer = "citizen";

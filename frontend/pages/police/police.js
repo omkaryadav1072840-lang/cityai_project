@@ -204,21 +204,27 @@ function getCurrentUser() {
 ===================================================== */
 
 function isPoliceStaff() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.hasStaffClearance === "function") {
+        return SmartCityAuth.hasStaffClearance("police");
+    }
     const user = getCurrentUser();
     if (!user) {
         return false;
     }
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const department = String(user.department || "").toLowerCase().trim();
-    return (type === "staff" && (department === "police" || !department)) || type === "admin" || type === "superadmin";
+    return (type === "staff" && (department === "police" || (user.editable && user.editable.includes("police")))) || type === "admin" || type === "superadmin" || type === "super_admin";
 }
 
 function isPoliceAdmin() {
+    if (window.SmartCityAuth && typeof SmartCityAuth.isSuperAdmin === "function" && SmartCityAuth.isSuperAdmin()) {
+        return true;
+    }
     const user = getCurrentUser();
     if (!user) return false;
     const type = String(user.type || user.role || "").toLowerCase().trim();
     const department = String(user.department || "").toLowerCase().trim();
-    return type === "admin" || type === "superadmin" || (type === "staff" && department === "admin");
+    return type === "admin" || type === "superadmin" || type === "super_admin" || (type === "staff" && department === "admin");
 }
 
 let currentPoliceLayer = "citizen";

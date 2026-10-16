@@ -189,7 +189,7 @@ async function runMasterExpansionMigration() {
         { name: "Tourism Guide Coordinator", staff_id: "PLC001", department: "places", role: "staff" }
     ];
 
-    const defaultStaffPasswordHash = hashPassword("staff123");
+    const defaultStaffPasswordHash = await hashPassword("staff123");
     for (const st of defaultStaff) {
         const [existing] = await pool.query("SELECT id FROM staff WHERE staff_id = ?", [st.staff_id]);
         if (existing.length === 0) {

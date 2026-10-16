@@ -6,9 +6,15 @@
 
 const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
     ? window.API_BASE_URL
-    : (typeof window !== "undefined" && window.location && window.location.port === "5000"
-        ? window.location.origin
-        : (typeof window !== "undefined" && window.location && window.location.protocol === "file:" ? "http://localhost:5000" : ""));
+    : (typeof window !== "undefined" && window.location)
+        ? (window.location.protocol === "file:" 
+            ? "http://localhost:5000" 
+            : (window.location.port === "5000" || window.location.port === "3000" 
+                ? window.location.origin 
+                : ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+                    ? `http://${window.location.hostname}:5000` 
+                    : (window.location.origin || ""))))
+        : "http://localhost:5000";
 
 let hospitalsData = [];
 

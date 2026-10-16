@@ -96,7 +96,7 @@ async function runTests() {
         }, { staffId: "STAFF-001", password: "admin123" });
 
         assert(adminLoginRes.status === 200, "Admin Staff login returns 200 OK");
-        assert(adminLoginRes.data.user && adminLoginRes.data.user.role === "admin", "Admin user role is 'admin'");
+        assert(adminLoginRes.data.user && (adminLoginRes.data.user.role === "admin" || adminLoginRes.data.user.role === "super_admin"), "Admin user role is 'admin' or 'super_admin'");
         const adminToken = adminLoginRes.data.token;
 
         // 4. Department Security Guard: Citizen trying to access Command Center -> 403

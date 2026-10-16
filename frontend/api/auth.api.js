@@ -28,7 +28,11 @@
 
         logout: () => {
             client.clearToken();
-            window.location.href = "/pages/login.html";
+            if (window.SmartCityAuth && typeof window.SmartCityAuth.logout === "function") {
+                window.SmartCityAuth.logout();
+            } else {
+                window.location.href = "/";
+            }
         },
 
         getCurrentUser: () => {

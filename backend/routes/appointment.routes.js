@@ -783,343 +783,290 @@ router.post("/api/appointments", async (req, res) => {
         });
     }
 
-    db.beginTransaction((txErr) => {
-        if (txErr) {
-            console.error("Transaction start error:", txErr);
-            return res.status(500).json({ success: false, message: "Database error." });
+    let conn;
+    try {
+        conn = await db.promise().getConnection();
+        await conn.beginTransaction();
+
+        const [pRows] = await conn.query(
+            "SELECT id FROM patients WHERE patient_id = ? LIMIT 1",
+            [patientId]
+        );
+
+        if (!pRows.length) {
+            await conn.rollback();
+            return res.status(404).json({
+                success: false,
+                message: "Patient ID not found. Please register the patient first."
+            });
         }
 
-        db.query(
-            "SELECT id FROM patients WHERE patient_id = ? LIMIT 1",
-            [patientId],
-            (pErr, pRows) => {
-                if (pErr) {
-                    console.error("Patient lookup error:", pErr);
-                    return db.rollback(() =>
-                        res.status(500).json({ success: false, message: "Database error." })
-                    );
-                }
-
-                if (!pRows.length) {
-                    return db.rollback(() =>
-                        res.status(404).json({
-                            success: false,
-                            message: "Patient ID not found. Please register the patient first."
-                        })
-                    );
-                }
-
-                db.query(
-                    "SELECT * FROM doctor_slots WHERE id = ? FOR UPDATE",
-                    [slotId],
-                    (sErr, sRows) => {
-                        if (sErr) {
-                            console.error("Slot lookup error:", sErr);
-                            return db.rollback(() =>
-                                res.status(500).json({ success: false, message: "Database error." })
-                            );
-                        }
-
-                        if (!sRows.length) {
-                            return db.rollback(() =>
-                                res.status(404).json({ success: false, message: "Slot not found." })
-                            );
-                        }
-
-                        const slot = sRows[0];
-                        const maxPatients = Number(slot.max_patients || 1);
-                        const bookedPatients = Number(slot.booked_patients || 0);
-                        const slotFull =
-                            bookedPatients >= maxPatients ||
-                            String(slot.status || "").toLowerCase() === "full";
-
-                        if (slotFull) {
-                            return db.rollback(() =>
-                                res.status(409).json({
-                                    success: false,
-                                    message: "This slot is already fully booked. Please choose another."
-                                })
-                            );
-                        }
-
-                        db.query(
-                            "SELECT name, hospital_id, status, department FROM doctors WHERE doctor_id = ? LIMIT 1",
-                            [slot.doctor_id],
-                            (dErr, dRows) => {
-                                if (dErr) {
-                                    console.error("Doctor lookup error:", dErr);
-                                    return db.rollback(() =>
-                                        res.status(500).json({ success: false, message: "Database error." })
-                                    );
-                                }
-
-                                if (!dRows.length) {
-                                    return db.rollback(() =>
-                                        res.status(404).json({ success: false, message: "Doctor not found." })
-                                    );
-                                }
-
-                                const doc = dRows[0];
-                                const docStatus = String(doc.status || "available").toLowerCase();
-                                if (!["active", "available"].includes(docStatus)) {
-                                    return db.rollback(() =>
-                                        res.status(400).json({ success: false, message: "Doctor is currently inactive or unavailable." })
-                                    );
-                                }
-
-                                const requestedHosp = req.body.hospitalId || req.body.hospital_id;
-                                if (requestedHosp && String(doc.hospital_id).toLowerCase() !== String(requestedHosp).toLowerCase()) {
-                                    return db.rollback(() =>
-                                        res.status(400).json({ success: false, message: "Cross-hospital booking rejected. Doctor belongs to a different hospital." })
-                                    );
-                                }
-
-                                const doctorName = doc.name || doctor || null;
-                                const hospitalId = doc.hospital_id || null;
-
-                                const insertSql = `
-                                    INSERT INTO appointments
-                                    (patient_id, hospital_id, doctor_id, doctor, slot_id, appointment_date, appointment_time, status)
-                                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Confirmed')
-                                `;
-
-                                db.query(
-                                    insertSql,
-                                    [
-                                        patientId,
-                                        hospitalId,
-                                        slot.doctor_id,
-                                        doctorName,
-                                        slotId,
-                                        slot.slot_date,
-                                        slot.start_time
-                                    ],
-                                    (iErr, iRes) => {
-                                        if (iErr) {
-                                            console.error("Slot-based booking insert error:", iErr);
-                                            if (iErr.code === "ER_DUP_ENTRY") {
-                                                return db.rollback(() =>
-                                                    res.status(409).json({
-                                                        success: false,
-                                                        message: "This appointment slot has already been booked."
-                                                    })
-                                                );
-                                            }
-                                            return db.rollback(() =>
-                                                res.status(500).json({
-                                                    success: false,
-                                                    message: "Appointment booking failed."
-                                                })
-                                            );
-                                        }
-
-                                        const newBookedCount = bookedPatients + 1;
-                                        const newStatus =
-                                            newBookedCount >= maxPatients ? "Full" : "Available";
-
-                                        db.query(
-                                            "UPDATE doctor_slots SET booked_patients = ?, status = ? WHERE id = ?",
-                                            [newBookedCount, newStatus, slotId],
-                                            (uErr) => {
-                                                if (uErr) {
-                                                    console.error("Slot update error:", uErr);
-                                                    return db.rollback(() =>
-                                                        res.status(500).json({
-                                                            success: false,
-                                                            message: "Appointment booking failed."
-                                                        })
-                                                    );
-                                                }
-
-                                                db.commit((cErr) => {
-                                                    if (cErr) {
-                                                        console.error("Commit error:", cErr);
-                                                        return db.rollback(() =>
-                                                            res.status(500).json({
-                                                                success: false,
-                                                                message: "Appointment booking failed."
-                                                            })
-                                                        );
-                                                    }
-
-                                                    // Broadcast real-time appointment event for Doctor Dashboard
-                                                    const io = req.app.get("io");
-                                                    if (io) {
-                                                        io.emit("appointment:new", {
-                                                            id: iRes.insertId,
-                                                            patientId,
-                                                            doctorName,
-                                                            doctorId: slot.doctor_id,
-                                                            hospitalId,
-                                                            date: slot.slot_date,
-                                                            time: slot.start_time,
-                                                            status: "Confirmed"
-                                                        });
-                                                    }
-
-                                                    res.status(201).json({
-                                                        success: true,
-                                                        message: "Appointment confirmed successfully.",
-                                                        appointment: {
-                                                            id: iRes.insertId,
-                                                            patientId,
-                                                            doctorName,
-                                                            hospitalId,
-                                                            appointmentDate: slot.slot_date,
-                                                            appointmentTime: slot.start_time,
-                                                            slotId
-                                                        }
-                                                    });
-                                                });
-                                            }
-                                        );
-                                    }
-                                );
-                            }
-                        );
-                    }
-                );
-            }
+        const [sRows] = await conn.query(
+            "SELECT * FROM doctor_slots WHERE id = ? FOR UPDATE",
+            [slotId]
         );
-    });
+
+        if (!sRows.length) {
+            await conn.rollback();
+            return res.status(404).json({ success: false, message: "Slot not found." });
+        }
+
+        const slot = sRows[0];
+        const maxPatients = Number(slot.max_patients || 1);
+        const bookedPatients = Number(slot.booked_patients || 0);
+        const slotFull =
+            bookedPatients >= maxPatients ||
+            String(slot.status || "").toLowerCase() === "full";
+
+        if (slotFull) {
+            await conn.rollback();
+            return res.status(409).json({
+                success: false,
+                message: "This slot is already fully booked. Please choose another."
+            });
+        }
+
+        const [dRows] = await conn.query(
+            "SELECT name, hospital_id, status, department FROM doctors WHERE doctor_id = ? LIMIT 1",
+            [slot.doctor_id]
+        );
+
+        if (!dRows.length) {
+            await conn.rollback();
+            return res.status(404).json({ success: false, message: "Doctor not found." });
+        }
+
+        const doc = dRows[0];
+        const docStatus = String(doc.status || "available").toLowerCase();
+        if (!["active", "available"].includes(docStatus)) {
+            await conn.rollback();
+            return res.status(400).json({ success: false, message: "Doctor is currently inactive or unavailable." });
+        }
+
+        const requestedHosp = req.body.hospitalId || req.body.hospital_id;
+        if (requestedHosp && String(doc.hospital_id).toLowerCase() !== String(requestedHosp).toLowerCase()) {
+            await conn.rollback();
+            return res.status(400).json({ success: false, message: "Cross-hospital booking rejected. Doctor belongs to a different hospital." });
+        }
+
+        const doctorName = doc.name || doctor || null;
+        const hospitalId = doc.hospital_id || null;
+
+        let iRes;
+        try {
+            const [existingAppts] = await conn.query(
+                "SELECT id, status FROM appointments WHERE slot_id = ? FOR UPDATE",
+                [slotId]
+            );
+
+            const activeAppt = existingAppts.find(a => !["cancelled", "rejected"].includes(String(a.status || "").toLowerCase()));
+            if (activeAppt) {
+                await conn.rollback();
+                return res.status(409).json({
+                    success: false,
+                    message: "This appointment slot has already been booked."
+                });
+            }
+
+            const cancelledAppt = existingAppts.find(a => ["cancelled", "rejected"].includes(String(a.status || "").toLowerCase()));
+            if (cancelledAppt) {
+                await conn.query(
+                    `UPDATE appointments 
+                     SET patient_id = ?, hospital_id = ?, doctor_id = ?, doctor = ?, slot_id = ?, status = 'Confirmed'
+                     WHERE id = ?`,
+                    [patientId, hospitalId, slot.doctor_id, doctorName, slotId, cancelledAppt.id]
+                );
+                iRes = { insertId: cancelledAppt.id };
+            } else {
+                const insertSql = `
+                    INSERT INTO appointments
+                    (patient_id, hospital_id, doctor_id, doctor, slot_id, appointment_date, appointment_time, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Confirmed')
+                `;
+                const [insertResult] = await conn.query(insertSql, [
+                    patientId,
+                    hospitalId,
+                    slot.doctor_id,
+                    doctorName,
+                    slotId,
+                    slot.slot_date,
+                    slot.start_time
+                ]);
+                iRes = insertResult;
+            }
+        } catch (iErr) {
+            console.error("Slot-based booking insert error:", iErr);
+            await conn.rollback();
+            if (iErr.code === "ER_DUP_ENTRY") {
+                return res.status(409).json({
+                    success: false,
+                    message: "This appointment slot has already been booked."
+                });
+            }
+            return res.status(500).json({
+                success: false,
+                message: "Appointment booking failed."
+            });
+        }
+
+        const newBookedCount = bookedPatients + 1;
+        const newStatus =
+            newBookedCount >= maxPatients ? "Full" : "Available";
+
+        await conn.query(
+            "UPDATE doctor_slots SET booked_patients = ?, status = ? WHERE id = ?",
+            [newBookedCount, newStatus, slotId]
+        );
+
+        await conn.commit();
+
+        // Broadcast real-time appointment event for Doctor Dashboard
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("appointment:new", {
+                id: iRes.insertId,
+                patientId,
+                doctorName,
+                doctorId: slot.doctor_id,
+                hospitalId,
+                date: slot.slot_date,
+                time: slot.start_time,
+                status: "Confirmed"
+            });
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: "Appointment confirmed successfully.",
+            appointment: {
+                id: iRes.insertId,
+                patientId,
+                doctorName,
+                hospitalId,
+                appointmentDate: slot.slot_date,
+                appointmentTime: slot.start_time,
+                slotId
+            }
+        });
+    } catch (err) {
+        if (conn) {
+            try {
+                await conn.rollback();
+            } catch (rbErr) {
+                console.error("Rollback error:", rbErr);
+            }
+        }
+        console.error("Slot-based booking error:", err);
+        return res.status(500).json({ success: false, message: "Appointment booking failed due to server error." });
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
 });
 
 // =========================================================
 // CANCEL APPOINTMENT (releases the slot seat back)
 // =========================================================
 
-router.put("/api/appointments/:id/cancel", optionalToken, (req, res) => {
+router.put("/api/appointments/:id/cancel", optionalToken, async (req, res) => {
     const appointmentId = req.params.id;
 
     if (!req.user && process.env.REQUIRE_AUTH !== "false") {
         return res.status(401).json({ success: false, message: "Authentication required to cancel an appointment." });
     }
 
-    db.getConnection((connErr, conn) => {
-        if (connErr) {
-            console.error("Connection acquire error:", connErr);
-            return res.status(500).json({ message: "Database connection error." });
+    let conn;
+    try {
+        conn = await db.promise().getConnection();
+        await conn.beginTransaction();
+
+        const findSql = `
+            SELECT a.id, a.slot_id, a.status, a.patient_id, a.doctor_id, a.doctor, a.hospital_id, a.appointment_date, a.appointment_time,
+                   p.user_id, p.mobile
+            FROM appointments a
+            LEFT JOIN patients p ON a.patient_id = p.patient_id
+            WHERE a.id = ?
+            FOR UPDATE
+        `;
+
+        const [rows] = await conn.query(findSql, [appointmentId]);
+
+        if (!rows.length) {
+            await conn.rollback();
+            return res.status(404).json({ message: "Appointment not found." });
         }
 
-        conn.beginTransaction((txErr) => {
-            if (txErr) {
-                conn.release();
-                console.error("Transaction start error:", txErr);
-                return res.status(500).json({ message: "Database error." });
+        const appointment = rows[0];
+
+        // Ownership / Authorization verification
+        if (req.user) {
+            const role = (req.user.role || req.user.type || "").toLowerCase();
+            if (role === "citizen") {
+                const userId = req.user.id || req.user.userId;
+                const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
+                const patientMobile = appointment.mobile ? String(appointment.mobile).replace(/\D/g, "") : null;
+                const isOwner = (userId && appointment.user_id && Number(userId) === Number(appointment.user_id)) ||
+                                (mobile && patientMobile && mobile === patientMobile) ||
+                                (req.user.patientId && req.user.patientId === appointment.patient_id);
+                if (!isOwner) {
+                    await conn.rollback();
+                    return res.status(403).json({ message: "Access denied. You can only cancel your own appointments." });
+                }
             }
+        }
 
-            const findSql = `
-                SELECT a.id, a.slot_id, a.status, a.patient_id, p.user_id, p.mobile
-                FROM appointments a
-                LEFT JOIN patients p ON a.patient_id = p.patient_id
-                WHERE a.id = ?
-                FOR UPDATE
-            `;
-
-            conn.query(findSql, [appointmentId], (findErr, rows) => {
-                if (findErr) {
-                    console.error("Appointment lookup error:", findErr);
-                    return conn.rollback(() => {
-                        conn.release();
-                        res.status(500).json({ message: "Database error." });
-                    });
-                }
-
-                if (!rows.length) {
-                    return conn.rollback(() => {
-                        conn.release();
-                        res.status(404).json({ message: "Appointment not found." });
-                    });
-                }
-
-                const appointment = rows[0];
-
-                // Ownership / Authorization verification
-                if (req.user) {
-                    const role = (req.user.role || req.user.type || "").toLowerCase();
-                    if (role === "citizen") {
-                        const userId = req.user.id || req.user.userId;
-                        const mobile = req.user.mobile ? req.user.mobile.replace(/\D/g, "") : null;
-                        const patientMobile = appointment.mobile ? String(appointment.mobile).replace(/\D/g, "") : null;
-                        const isOwner = (userId && appointment.user_id && Number(userId) === Number(appointment.user_id)) ||
-                                        (mobile && patientMobile && mobile === patientMobile) ||
-                                        (req.user.patientId && req.user.patientId === appointment.patient_id);
-                        if (!isOwner) {
-                            return conn.rollback(() => {
-                                conn.release();
-                                res.status(403).json({ message: "Access denied. You can only cancel your own appointments." });
-                            });
-                        }
-                    }
-                }
-
-                if (["Cancelled", "Completed"].includes(appointment.status)) {
-                    return conn.rollback(() => {
-                        conn.release();
-                        res.status(400).json({
-                            message: `Appointment is already ${appointment.status}.`
-                        });
-                    });
-                }
-
-                const cancelSql = `
-                    UPDATE appointments SET status = 'Cancelled' WHERE id = ?
-                `;
-
-                conn.query(cancelSql, [appointmentId], (cancelErr) => {
-                    if (cancelErr) {
-                        console.error("Appointment cancel error:", cancelErr);
-                        return conn.rollback(() => {
-                            conn.release();
-                            res.status(500).json({ message: "Cancellation failed." });
-                        });
-                    }
-
-                    if (!appointment.slot_id) {
-                        return conn.commit((commitErr) => {
-                            if (commitErr) {
-                                return conn.rollback(() => {
-                                    conn.release();
-                                    res.status(500).json({ message: "Cancellation failed." });
-                                });
-                            }
-                            conn.release();
-                            res.json({ message: "Appointment cancelled successfully." });
-                        });
-                    }
-
-                    const freeSlotSql = `
-                        UPDATE doctor_slots
-                        SET booked_patients = GREATEST(booked_patients - 1, 0),
-                            status = 'Available'
-                        WHERE id = ?
-                    `;
-
-                    conn.query(freeSlotSql, [appointment.slot_id], (slotErr) => {
-                        if (slotErr) {
-                            console.error("Slot release error:", slotErr);
-                            return conn.rollback(() => {
-                                conn.release();
-                                res.status(500).json({ message: "Cancellation failed." });
-                            });
-                        }
-
-                        conn.commit((commitErr) => {
-                            if (commitErr) {
-                                console.error("Commit error:", commitErr);
-                                return conn.rollback(() => {
-                                    conn.release();
-                                    res.status(500).json({ message: "Cancellation failed." });
-                                });
-                            }
-                            conn.release();
-                            res.json({ message: "Appointment cancelled successfully." });
-                        });
-                    });
-                });
+        if (["Cancelled", "Completed"].includes(appointment.status)) {
+            await conn.rollback();
+            return res.status(400).json({
+                message: `Appointment is already ${appointment.status}.`
             });
-        });
-    });
+        }
+
+        const cancelSql = `
+            UPDATE appointments SET status = 'Cancelled' WHERE id = ?
+        `;
+        await conn.query(cancelSql, [appointmentId]);
+
+        if (appointment.slot_id) {
+            const freeSlotSql = `
+                UPDATE doctor_slots
+                SET booked_patients = GREATEST(booked_patients - 1, 0),
+                    status = 'Available'
+                WHERE id = ?
+            `;
+            await conn.query(freeSlotSql, [appointment.slot_id]);
+        }
+
+        await conn.commit();
+
+        const io = req.app.get("io");
+        if (io) {
+            io.emit("appointment:cancelled", {
+                id: appointment.id,
+                patientId: appointment.patient_id,
+                slotId: appointment.slot_id,
+                doctorId: appointment.doctor_id,
+                status: "Cancelled"
+            });
+        }
+
+        return res.json({ message: "Appointment cancelled successfully." });
+    } catch (err) {
+        if (conn) {
+            try {
+                await conn.rollback();
+            } catch (rbErr) {
+                console.error("Rollback error:", rbErr);
+            }
+        }
+        console.error("Appointment cancel error:", err);
+        return res.status(500).json({ message: "Cancellation failed." });
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
 });
 
 // =========================================================

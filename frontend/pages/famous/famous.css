@@ -13,15 +13,15 @@
 }
 
 :root {
-    --primary: #0284c7;
-    --primary-hover: #0369a1;
-    --primary-light: #e0f2fe;
+    --primary: #ea580c;
+    --primary-hover: #c2410c;
+    --primary-light: #ffedd5;
     --secondary: #0f172a;
-    --bg-body: #f8fafc;
+    --bg-body: #fdfaf6;
     --bg-surface: #ffffff;
     --text-main: #0f172a;
     --text-muted: #64748b;
-    --border: #e2e8f0;
+    --border: #fed7aa;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -1806,7 +1806,7 @@ footer p {
     display: flex;
     gap: 8px;
     background: #ffffff;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid #fed7aa;
     padding: 10px 5% 0;
     position: sticky;
     top: 74px;
@@ -1831,21 +1831,21 @@ footer p {
 }
 
 .layer-tab-btn:hover {
-    color: #0284c7;
-    background: #f8fafc;
+    color: #ea580c;
+    background: #fff7ed;
 }
 
 .layer-tab-btn.active {
-    color: #0284c7;
-    border-bottom-color: #0284c7;
-    background: #e0f2fe;
+    color: #ea580c;
+    border-bottom-color: #ea580c;
+    background: #ffedd5;
     border-radius: 8px 8px 0 0;
 }
 
 /* ================= ROLE BANNER ================= */
 .role-banner {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
     border-radius: 16px;
     padding: 16px 24px;
     margin: 20px auto 24px;
@@ -1853,19 +1853,19 @@ footer p {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.08);
+    box-shadow: 0 2px 12px rgba(234, 88, 12, 0.08);
 }
 
 .role-banner strong {
     display: block;
     font-size: 16px;
-    color: #065f46;
+    color: #9a3412;
     margin-bottom: 3px;
 }
 
 .role-banner span {
     font-size: 13px;
-    color: #047857;
+    color: #c2410c;
 }
 
 .role-pill {

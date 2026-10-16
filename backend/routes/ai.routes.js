@@ -89,7 +89,7 @@ router.get("/api/ai/models", async (req, res) => {
 // 2. GROUNDED SMARTCITY AI ASSISTANT (Allowlisted Tools)
 // =========================================================
 
-router.post(["/api/ai/assistant", "/api/ai/chat", "/api/ai/orchestrate"], optionalToken, async (req, res) => {
+router.post(["/api/ai/assistant", "/api/ai/chat", "/api/ai/orchestrate", "/api/ai/ask"], optionalToken, async (req, res) => {
     try {
         const question = req.body.question || req.body.message || req.body.query;
         if (!question || !question.trim()) {

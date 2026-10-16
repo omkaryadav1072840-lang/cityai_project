@@ -59,7 +59,7 @@ router.post("/api/doctor/login", async (req, res) => {
         const doc = results[0];
 
         // Secure password verification (if provided)
-        if (password && !verifyPassword(password, doc.password)) {
+        if (password && !(await verifyPassword(password, doc.password))) {
             return res.status(401).json({
                 success: false,
                 message: "Incorrect password for Doctor profile."
@@ -67,10 +67,9 @@ router.post("/api/doctor/login", async (req, res) => {
         }
 
         if (isLegacyPlainPassword(doc.password)) {
-            db.promise().query(
-                "UPDATE doctors SET password = ? WHERE id = ?",
-                [hashPassword(password), doc.id]
-            ).catch(e => console.warn("Doctor password upgrade error:", e.message));
+            hashPassword(password).then(h => {
+                db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [h, doc.id]).catch(() => {});
+            }).catch(e => console.warn("Doctor password upgrade error:", e.message));
         }
 
         const doctorData = {

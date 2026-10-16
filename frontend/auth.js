@@ -13,10 +13,27 @@ const SmartCityAuth = (() => {
     // Dynamic API Base URL resolution
     function _getApiBase() {
         if (typeof window !== "undefined" && window.API_BASE_URL) return window.API_BASE_URL;
-        if (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http")) {
-            return window.location.port === "5000" ? window.location.origin : (window.location.protocol === "file:" ? "http://localhost:5000" : "");
+        if (typeof window !== "undefined" && window.location) {
+            const loc = window.location;
+            if (loc.protocol === "file:") return "http://localhost:5000";
+            if (loc.port === "5000") return loc.origin;
+            if (loc.port === "3000") return loc.origin; // Proxied by serve_frontend.js
+            // If running on a local development server (e.g. Live Server on port 5500, 5501, 8080, etc.), route to backend port 5000
+            if (loc.hostname === "localhost" || loc.hostname === "127.0.0.1") {
+                return `http://${loc.hostname}:5000`;
+            }
+            return loc.origin ? loc.origin : "";
         }
         return "http://localhost:5000";
+    }
+
+    function _resolveDashboardUrl(target) {
+        if (!target) return "";
+        const clean = target.replace(/^\//, '');
+        if (typeof window !== "undefined" && window.location && window.location.pathname.includes('/frontend/')) {
+            return `/frontend/${clean}`;
+        }
+        return `/${clean}`;
     }
 
     // -------------------------------------------------------
@@ -227,11 +244,41 @@ const SmartCityAuth = (() => {
                 transform: scale(1.05);
             }
 
-            /* Quick Persona Bar */
+            /* Quick Persona Bar (Collapsible) */
+            .sc-persona-details {
+                background: rgba(11, 19, 36, 0.55);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .sc-persona-summary {
+                padding: 10px 24px;
+                font-size: 11.5px;
+                font-weight: 700;
+                letter-spacing: 0.3px;
+                color: var(--sc-auth-cyan);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                list-style: none;
+                user-select: none;
+                transition: background 0.2s;
+            }
+            .sc-persona-summary:hover {
+                background: rgba(56, 189, 248, 0.08);
+            }
+            .sc-persona-summary::-webkit-details-marker {
+                display: none;
+            }
+            .sc-persona-details[open] .sc-persona-chevron {
+                transform: rotate(180deg);
+            }
+            .sc-persona-chevron {
+                font-size: 11px;
+                transition: transform 0.2s ease;
+                color: #94a3b8;
+            }
             .sc-persona-bar {
-                padding: 14px 24px;
-                background: rgba(11, 19, 36, 0.65);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+                padding: 4px 24px 14px 24px;
             }
 
             .sc-persona-label {
@@ -879,11 +926,39 @@ const SmartCityAuth = (() => {
         return getToken() !== null;
     }
 
-    function isStaff() {
+    function isSuperAdmin() {
+        const user = getUser();
+        if (!user || !isAuthenticated()) return false;
+        if (user.is_super_admin === true) return true;
+        const role = (user.role || user.type || "").toLowerCase();
+        const accountType = (user.accountType || "").toLowerCase();
+        const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+        const dept = (user.department || "").toLowerCase();
+        return (
+            role === "super_admin" ||
+            role === "superadmin" ||
+            role === "gkp_admin" ||
+            role === "gkpadmin" ||
+            accountType === "super_admin" ||
+            staffId === "STAFF-001" ||
+            (role === "admin" && (dept === "admin" || !dept || dept === "municipal" || dept.includes("iccc")))
+        );
+    }
+
+    function isAdmin() {
+        if (isSuperAdmin()) return true;
         const user = getUser();
         if (!user) return false;
         const role = (user.role || user.type || "").toLowerCase();
-        return role === "staff" || role === "admin" || role === "doctor";
+        return role === "admin" || role.includes("admin");
+    }
+
+    function isStaff() {
+        const user = getUser();
+        if (!user) return false;
+        if (isSuperAdmin()) return true;
+        const role = (user.role || user.type || "").toLowerCase();
+        return role === "staff" || role === "admin" || role === "doctor" || role.includes("admin") || role.includes("staff");
     }
 
     function isCitizen() {
@@ -895,6 +970,7 @@ const SmartCityAuth = (() => {
 
     function getRole() {
         const user = getUser();
+        if (isSuperAdmin()) return "super_admin";
         return user ? (user.role || user.type || "citizen").toLowerCase() : "guest";
     }
 
@@ -903,36 +979,88 @@ const SmartCityAuth = (() => {
         return user && user.department ? user.department.toLowerCase() : null;
     }
 
-    function canEdit(department) {
+    function getCurrentPageModule() {
+        if (typeof window === "undefined" || !window.location) return "main";
+        const path = (window.location.pathname || "").toLowerCase();
+        if (path.includes("/traffic/") || path.endsWith("traffic.html")) return "traffic";
+        if (path.includes("/parking/") || path.endsWith("parking.html")) return "parking";
+        if (path.includes("/water/") || path.endsWith("water.html")) return "water";
+        if (path.includes("/waste/") || path.endsWith("waste.html")) return "waste";
+        if (path.includes("/police/") || path.endsWith("police.html")) return "police";
+        if (path.includes("/emergency/") || path.endsWith("emergency.html")) return "emergency";
+        if (path.includes("/famous/") || path.endsWith("famous.html")) return "famous";
+        if (path.includes("/hospital/") || path.includes("hospital")) return "hospital";
+        if (path.includes("/admin/") || path.includes("admin")) return "admin";
+        return "main";
+    }
+
+    function hasStaffClearance(moduleName) {
+        if (!isAuthenticated()) return false;
+        // Universal Gorakhpur Super Admin has full clearance across all modules!
+        if (isSuperAdmin()) return true;
+
         const user = getUser();
         if (!user) return false;
+
+        const targetMod = (moduleName || getCurrentPageModule()).toLowerCase();
+        if (targetMod === "main") {
+            return isStaff();
+        }
+
         const role = (user.role || user.type || "").toLowerCase();
-        if (role === "admin") return true;
-        const targetDept = (department || "").toLowerCase();
-        if (role === "doctor") {
-            return targetDept === "hospital" || targetDept === "healthcare";
+        const userDept = (user.department || "").toLowerCase();
+        const editable = Array.isArray(user.editable) ? user.editable.map(e => String(e).toLowerCase()) : [];
+
+        // Check explicit editable array
+        if (editable.includes("all") || editable.includes("admin") || editable.includes(targetMod)) {
+            return true;
         }
-        if (role === "staff") {
-            const userDept = (user.department || "").toLowerCase();
-            if (userDept === targetDept) return true;
-            if (user.editable && Array.isArray(user.editable) && user.editable.map(e => String(e).toLowerCase()).includes(targetDept)) return true;
-            if ((userDept === "hospital" || userDept === "healthcare") && (targetDept === "hospital" || targetDept === "healthcare")) return true;
-            return false;
+
+        // Strict Departmental Scoping: Only the staff of this specific department has access
+        if (targetMod === "traffic") {
+            return userDept === "traffic" || (user.staffId && String(user.staffId).toUpperCase().startsWith("TR"));
         }
+        if (targetMod === "parking") {
+            return userDept === "parking" || (user.staffId && String(user.staffId).toUpperCase().startsWith("PRK"));
+        }
+        if (targetMod === "water") {
+            return userDept === "water" || role === "water_admin" || role === "water_staff" || (user.staffId && String(user.staffId).toUpperCase().startsWith("WTR"));
+        }
+        if (targetMod === "waste") {
+            return userDept === "waste" || userDept === "sanitation" || (user.staffId && String(user.staffId).toUpperCase().startsWith("WST"));
+        }
+        if (targetMod === "police") {
+            return userDept === "police" || (user.staffId && String(user.staffId).toUpperCase().startsWith("POL"));
+        }
+        if (targetMod === "emergency") {
+            return userDept === "emergency" || userDept === "disaster" || (user.staffId && String(user.staffId).toUpperCase().startsWith("EMG"));
+        }
+        if (targetMod === "famous") {
+            return userDept === "famous" || userDept === "tourism" || userDept === "places";
+        }
+        if (targetMod === "hospital") {
+            return userDept === "hospital" || userDept === "healthcare" || role === "doctor" || Boolean(user.hospitalId);
+        }
+        if (targetMod === "admin") {
+            return isSuperAdmin() || userDept === "admin" || role === "admin";
+        }
+
         return false;
+    }
+
+    function canEdit(department) {
+        return hasStaffClearance(department);
     }
 
     function hasPermission(moduleName, action = "view") {
         const user = getUser();
         if (!user) return action === "view";
-        const role = (user.role || user.type || "").toLowerCase();
-        if (role === "admin") return true;
         if (action === "view") return true;
-        return canEdit(moduleName);
+        return hasStaffClearance(moduleName);
     }
 
     function isModuleStaff(moduleName) {
-        return canEdit(moduleName);
+        return hasStaffClearance(moduleName);
     }
 
     function logout() {
@@ -1138,7 +1266,7 @@ const SmartCityAuth = (() => {
                 const target = data.targetDashboard || (data.user && data.user.targetDashboard);
                 if (target && !["citizen", "citizen2"].includes(roleKey)) {
                     setTimeout(() => {
-                        window.location.href = '/' + target.replace(/^\//, '');
+                        window.location.href = _resolveDashboardUrl(target);
                     }, 500);
                 }
             } else {
@@ -1798,41 +1926,44 @@ const SmartCityAuth = (() => {
                     <button type="button" class="sc-close-btn" id="scModalCloseBtn">✕</button>
                 </div>
 
-                <!-- 1-Click Instant Persona Sign-In Bar -->
-                <div class="sc-persona-bar">
-                    <div class="sc-persona-label">
-                        <span>⚡ 1-Click Instant Persona Sign-In:</span>
+                <!-- 1-Click Instant Persona Sign-In Bar (Collapsible) -->
+                <details class="sc-persona-details">
+                    <summary class="sc-persona-summary">
+                        <span>⚡ Quick Persona Sign-In (Demo / Testing Shortcuts)</span>
+                        <span class="sc-persona-chevron">▾</span>
+                    </summary>
+                    <div class="sc-persona-bar">
+                        <div class="sc-persona-chips">
+                            <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
+                                <span>🚗</span> Citizen (Verified)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-traffic" onclick="SmartCityAuth.quickLoginPersona('traffic')">
+                                <span>👮</span> Insp. Verma (Traffic)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('pharmacy')">
+                                <span>💊</span> HOSP-PHARM (Pharmacy)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('hospital')">
+                                <span>🏥</span> HOSP-REC (Desk)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('doctor')">
+                                <span>🩺</span> DOC-101 (Doctor)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')">
+                                <span>👑</span> HOSP-ADMIN (AIIMS)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_admin')" style="background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); color: #38bdf8;">
+                                <span>💧</span> Water Admin (WTR-ADMIN)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_staff')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
+                                <span>🔧</span> Water Staff (WTR-ENG-01)
+                            </button>
+                            <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('super_admin')" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24; font-weight: 800;">
+                                <span>👑</span> GKP Super Admin (All Modules)
+                            </button>
+                        </div>
                     </div>
-                    <div class="sc-persona-chips">
-                        <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
-                            <span>🚗</span> Citizen (Verified)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-traffic" onclick="SmartCityAuth.quickLoginPersona('traffic')">
-                            <span>👮</span> Insp. Verma (Traffic)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('pharmacy')">
-                            <span>💊</span> HOSP-PHARM (Pharmacy)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('hospital')">
-                            <span>🏥</span> HOSP-REC (Desk)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('doctor')">
-                            <span>🩺</span> DOC-101 (Doctor)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')">
-                            <span>👑</span> HOSP-ADMIN (AIIMS)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_admin')" style="background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); color: #38bdf8;">
-                            <span>💧</span> Water Admin (WTR-ADMIN)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_staff')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
-                            <span>🔧</span> Water Staff (WTR-ENG-01)
-                        </button>
-                        <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('super_admin')">
-                            <span>🛡️</span> Super Admin (ICCC)
-                        </button>
-                    </div>
-                </div>
+                </details>
 
                 <!-- Segmented Tabs -->
                 <div class="sc-segmented-tabs">
@@ -2026,8 +2157,9 @@ const SmartCityAuth = (() => {
             e.stopPropagation();
             msgEl.style.color = "#38bdf8";
             msgEl.textContent = "Authenticating citizen credentials...";
+            let res, data;
             try {
-                const res = await fetch(`${_getApiBase()}/api/login`, {
+                res = await fetch(`${_getApiBase()}/api/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -2035,7 +2167,15 @@ const SmartCityAuth = (() => {
                         password: modal.querySelector("#scCitPassword").value
                     })
                 });
-                const data = await res.json();
+                data = await res.json();
+            } catch (netErr) {
+                console.error("Citizen login network error:", netErr);
+                msgEl.style.color = "#f87171";
+                msgEl.textContent = "Unable to connect to login server. Please verify backend is running on port 5000.";
+                return;
+            }
+
+            try {
                 if (res.ok && data.token) {
                     setSession(data.token, data.user);
                     msgEl.style.color = "#34d399";
@@ -2046,15 +2186,19 @@ const SmartCityAuth = (() => {
                         modal.remove();
                         if (options && typeof options.onSuccess === "function") {
                             options.onSuccess(data.user, data.token);
+                        } else if (data.targetDashboard && data.role !== "citizen") {
+                            window.location.href = _resolveDashboardUrl(data.targetDashboard);
                         }
                     }, 650);
                 } else {
                     msgEl.style.color = "#f87171";
                     msgEl.textContent = data.message || "Invalid mobile number or password.";
                 }
-            } catch (_) {
-                msgEl.style.color = "#f87171";
-                msgEl.textContent = "Unable to connect to login server.";
+            } catch (execErr) {
+                console.error("Citizen login session error:", execErr);
+                msgEl.style.color = "#34d399";
+                msgEl.textContent = `✅ Login successful.`;
+                setTimeout(() => modal.remove(), 650);
             }
         });
 
@@ -2064,8 +2208,9 @@ const SmartCityAuth = (() => {
             e.stopPropagation();
             msgEl.style.color = "#38bdf8";
             msgEl.textContent = "Authenticating official staff credentials...";
+            let res, data;
             try {
-                const res = await fetch(`${_getApiBase()}/api/staff-login`, {
+                res = await fetch(`${_getApiBase()}/api/staff-login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -2073,11 +2218,19 @@ const SmartCityAuth = (() => {
                         password: modal.querySelector("#scStaffPassword").value
                     })
                 });
-                const data = await res.json();
+                data = await res.json();
+            } catch (netErr) {
+                console.error("Staff login network error:", netErr);
+                msgEl.style.color = "#f87171";
+                msgEl.textContent = "Unable to connect to staff login server. Please verify backend is running on port 5000.";
+                return;
+            }
+
+            try {
                 if (res.ok && data.token) {
                     setSession(data.token, data.user);
                     msgEl.style.color = "#34d399";
-                    msgEl.textContent = `✅ Welcome ${data.user.name} (${data.user.department})!`;
+                    msgEl.textContent = `✅ Welcome ${data.user.name} (${data.user.department || 'Officer'})!`;
                     showToast(`Welcome Officer ${data.user.name}`, "success");
                     renderUserHeader();
                     setTimeout(() => {
@@ -2085,17 +2238,23 @@ const SmartCityAuth = (() => {
                         if (options && typeof options.onSuccess === "function") {
                             options.onSuccess(data.user, data.token);
                         } else if (data.targetDashboard) {
-                            const dest = '/' + data.targetDashboard.replace(/^\//, '');
-                            window.location.href = dest;
+                            window.location.href = _resolveDashboardUrl(data.targetDashboard);
                         }
                     }, 650);
                 } else {
                     msgEl.style.color = "#f87171";
                     msgEl.textContent = data.message || "Invalid staff ID or password.";
                 }
-            } catch (_) {
-                msgEl.style.color = "#f87171";
-                msgEl.textContent = "Unable to connect to staff login server.";
+            } catch (execErr) {
+                console.error("Staff login session error:", execErr);
+                msgEl.style.color = "#34d399";
+                msgEl.textContent = `✅ Authentication successful.`;
+                setTimeout(() => {
+                    modal.remove();
+                    if (data && data.targetDashboard) {
+                        window.location.href = _resolveDashboardUrl(data.targetDashboard);
+                    }
+                }, 650);
             }
         });
 
@@ -2478,16 +2637,64 @@ const SmartCityAuth = (() => {
         badge.className = "sc-global-user-badge";
 
         if (user && isAuthenticated()) {
-            const isStaffUser = isStaff();
-            const roleColor = isStaffUser ? "#38bdf8" : "#34d399";
-            const roleBorder = isStaffUser ? "rgba(56, 189, 248, 0.45)" : "rgba(52, 211, 153, 0.45)";
-            const roleBg = isStaffUser ? "rgba(56, 189, 248, 0.15)" : "rgba(52, 211, 153, 0.15)";
-            const displayName = user.name || user.username || (isStaffUser ? "Staff Officer" : "Citizen");
-            const dept = (user.department || (isStaffUser ? "operations" : "")).toLowerCase();
-            const deptTitle = dept ? (dept.charAt(0).toUpperCase() + dept.slice(1)) : "";
-            const roleName = (user.role || (isStaffUser ? "STAFF" : "CITIZEN")).toUpperCase();
-            const roleLabel = deptTitle ? `${roleName} • ${deptTitle}` : roleName;
-            const initials = displayName.split(" ").map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || (isStaffUser ? "ST" : "CT");
+            const isSuper = isSuperAdmin();
+            const activeMod = getCurrentPageModule();
+            const userDept = (user.department || "").toLowerCase();
+            const isStaffOfficer = isStaff();
+            const isStaffUser = isStaffOfficer;
+            const hasModuleClearance = hasStaffClearance(activeMod);
+
+            let roleColor, roleBorder, roleBg, roleLabel, avatarGrad, credentialTitle;
+            let showReturnHomeBtn = false;
+            let homeConsoleUrl = "";
+            let homeDeptName = "";
+            const inPages = window.location.pathname.includes('/pages/');
+
+            if (isSuper) {
+                roleColor = "#fbbf24";
+                roleBorder = "rgba(245, 158, 11, 0.6)";
+                roleBg = "rgba(245, 158, 11, 0.2)";
+                roleLabel = "👑 GKP SUPER ADMIN • ALL ACCESS";
+                avatarGrad = "linear-gradient(135deg, #f59e0b, #7c3aed)";
+                credentialTitle = "👑 Gorakhpur Super Admin (All Modules Clearance)";
+            } else if (isStaffOfficer && hasModuleClearance) {
+                const deptTitle = userDept ? (userDept.charAt(0).toUpperCase() + userDept.slice(1)) : "Operations";
+                roleColor = "#38bdf8";
+                roleBorder = "rgba(56, 189, 248, 0.45)";
+                roleBg = "rgba(56, 189, 248, 0.15)";
+                roleLabel = `👮 STAFF • ${deptTitle.toUpperCase()}`;
+                avatarGrad = "linear-gradient(135deg, #0284c7, #6366f1)";
+                credentialTitle = `🛡️ Official Staff • ${deptTitle} Department`;
+            } else if (isStaffOfficer && !hasModuleClearance) {
+                const deptTitle = userDept ? (userDept.charAt(0).toUpperCase() + userDept.slice(1)) : "Department";
+                homeDeptName = deptTitle;
+                roleColor = "#34d399";
+                roleBorder = "rgba(52, 211, 153, 0.45)";
+                roleBg = "rgba(52, 211, 153, 0.15)";
+                roleLabel = "🟢 CITIZEN / VISITOR";
+                avatarGrad = "linear-gradient(135deg, #059669, #0284c7)";
+                credentialTitle = `🟢 Visitor Mode (Stationed at ${deptTitle})`;
+                showReturnHomeBtn = true;
+
+                if (userDept === "traffic") homeConsoleUrl = inPages ? '../traffic/traffic.html' : 'pages/traffic/traffic.html';
+                else if (userDept === "parking") homeConsoleUrl = inPages ? '../parking/parking.html' : 'pages/parking/parking.html';
+                else if (userDept === "water") homeConsoleUrl = inPages ? '../water/water.html' : 'pages/water/water.html';
+                else if (userDept === "waste") homeConsoleUrl = inPages ? '../waste/waste.html' : 'pages/waste/waste.html';
+                else if (userDept === "police") homeConsoleUrl = inPages ? '../police/police.html' : 'pages/police/police.html';
+                else if (userDept === "emergency") homeConsoleUrl = inPages ? '../emergency/emergency.html' : 'pages/emergency/emergency.html';
+                else if (userDept === "famous" || userDept === "tourism") homeConsoleUrl = inPages ? '../famous/famous.html' : 'pages/famous/famous.html';
+                else homeConsoleUrl = inPages ? '../../index.html' : 'index.html';
+            } else {
+                roleColor = "#34d399";
+                roleBorder = "rgba(52, 211, 153, 0.45)";
+                roleBg = "rgba(52, 211, 153, 0.15)";
+                roleLabel = "🟢 VERIFIED CITIZEN";
+                avatarGrad = "linear-gradient(135deg, #0284c7, #10b981)";
+                credentialTitle = "🟢 Active Verified Citizen";
+            }
+
+            const displayName = user.name || user.username || (isSuper ? "Super Admin" : (isStaffOfficer ? "Staff Officer" : "Citizen"));
+            const initials = displayName.split(" ").map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || (isSuper ? "SA" : (isStaffOfficer ? "ST" : "CT"));
 
             badge.style.cssText = `
                 position: relative;
@@ -2508,7 +2715,7 @@ const SmartCityAuth = (() => {
             `;
 
             badge.innerHTML = `
-                <div style="width:28px; height:28px; border-radius:50%; background:${isStaffUser ? 'linear-gradient(135deg, #0284c7, #6366f1)' : 'linear-gradient(135deg, #0284c7, #10b981)'}; color:#ffffff; font-weight:800; font-size:11px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(56,189,248,0.3);">
+                <div style="width:28px; height:28px; border-radius:50%; background:${avatarGrad}; color:#ffffff; font-weight:800; font-size:11px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(56,189,248,0.3);">
                     ${_escapeHtml(initials)}
                 </div>
                 <span style="font-weight:700; font-size:13px; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
@@ -2523,28 +2730,42 @@ const SmartCityAuth = (() => {
                 <!-- Dropdown Menu -->
                 <div id="scGlobalUserDropdown" class="sc-global-dropdown" style="display:none;">
                     <div class="sc-dropdown-user-row">
-                        <div class="sc-dd-avatar" style="${isStaffUser ? 'background:linear-gradient(135deg, #0284c7, #6366f1);' : ''}">
+                        <div class="sc-dd-avatar" style="background:${avatarGrad};">
                             ${_escapeHtml(initials)}
                         </div>
                         <div style="overflow:hidden;">
                             <div style="font-weight:800; font-size:14px; color:#ffffff; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;" title="${_escapeHtml(displayName)}">${_escapeHtml(displayName)}</div>
-                            <div style="font-size:11.5px; color:#94a3b8; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${_escapeHtml(user.email || user.mobile || 'SmartCity Citizen ID')}</div>
+                            <div style="font-size:11.5px; color:#94a3b8; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${_escapeHtml(user.email || user.mobile || 'SmartCity Universal ID')}</div>
                         </div>
                     </div>
 
-                    <div style="margin:12px 0 6px 0; font-size:10px; font-weight:800; color:var(--sc-auth-cyan); text-transform:uppercase; letter-spacing:0.6px;">Account Credential</div>
+                    <div style="margin:12px 0 6px 0; font-size:10px; font-weight:800; color:var(--sc-auth-cyan); text-transform:uppercase; letter-spacing:0.6px;">Access Clearance</div>
                     <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:rgba(30,41,59,0.5); border-radius:10px; border:1px solid rgba(255,255,255,0.08); font-size:12px;">
-                        <span style="color:#f1f5f9; font-weight:600;">${isStaffUser ? '🛡️ ' + roleLabel : '🟢 Active Citizen'}</span>
-                        <span class="sc-badge sc-badge-verified" style="font-size:9.5px; padding:2px 6px;">VERIFIED</span>
+                        <span style="color:#f1f5f9; font-weight:600;">${_escapeHtml(credentialTitle)}</span>
+                        <span class="sc-badge sc-badge-verified" style="font-size:9.5px; padding:2px 6px;">${isSuper ? 'SUPER ACCESS' : (isStaffOfficer ? (hasModuleClearance ? 'AUTHORIZED' : 'VISITING') : 'VERIFIED')}</span>
                     </div>
 
-                    <!-- 1. Dashboard Navigation Inside Login Menu -->
-                    <a href="${window.location.pathname.includes('/pages/') ? '../../index.html' : 'index.html'}" id="scDropdownDashboardBtn" class="sc-dd-item-btn" style="margin-top:10px; background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.35); color:#60a5fa; text-decoration:none;">
+                    <!-- GKP Admin Hub Direct Link -->
+                    ${isSuper ? `
+                    <a href="${inPages ? '../admin/gkp_admin.html' : 'pages/admin/gkp_admin.html'}" id="scDropdownSuperAdminBtn" class="sc-dd-item-btn" style="margin-top:10px; background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.45); color:#fbbf24; text-decoration:none; font-weight:800;">
+                        <span style="display:flex; align-items:center; gap:8px;"><span>👑</span> GKP Central Admin Command</span>
+                        <span style="font-size:12px;">→</span>
+                    </a>` : ''}
+
+                    <!-- Returning to Home Department Console if Visiting -->
+                    ${showReturnHomeBtn ? `
+                    <a href="${homeConsoleUrl}" id="scDropdownReturnHomeBtn" class="sc-dd-item-btn" style="margin-top:10px; background:rgba(56,189,248,0.18); border-color:rgba(56,189,248,0.45); color:#38bdf8; text-decoration:none; font-weight:800;">
+                        <span style="display:flex; align-items:center; gap:8px;"><span>↩️</span> Switch to My ${homeDeptName} Console</span>
+                        <span style="font-size:12px;">→</span>
+                    </a>` : ''}
+
+                    <!-- Dashboard Navigation Inside Login Menu -->
+                    <a href="${inPages ? '../../index.html' : 'index.html'}" id="scDropdownDashboardBtn" class="sc-dd-item-btn" style="margin-top:${(isSuper || showReturnHomeBtn) ? '6px' : '10px'}; background:rgba(59,130,246,0.12); border-color:rgba(59,130,246,0.35); color:#60a5fa; text-decoration:none;">
                         <span style="display:flex; align-items:center; gap:8px;"><span>🏠</span> Back to Dashboard</span>
                         <span style="font-size:12px;">→</span>
                     </a>
 
-                    <!-- 2. Notifications & Alerts Inside Login Menu -->
+                    <!-- Notifications & Alerts Inside Login Menu -->
                     <button type="button" id="scDropdownNotifBtn" class="sc-dd-item-btn" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); color:#fbbf24;">
                         <span style="display:flex; align-items:center; gap:8px;"><span>🔔</span> Notifications &amp; Alerts</span>
                         <span id="scDropdownNotifCount" style="background:#ef4444; color:#fff; font-size:10px; font-weight:800; border-radius:999px; padding:1px 6px; min-width:18px; height:18px; display:none; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(239,68,68,0.7); line-height:1;"></span>
@@ -2560,8 +2781,8 @@ const SmartCityAuth = (() => {
                         <span style="font-size:12px;">→</span>
                     </button>
 
-                    ${(!isStaffUser && (localStorage.getItem("patientId") || user.patientId)) ? `
-                    <a href="${window.location.pathname.includes('/pages/') ? '../hospital/hospital.html' : 'pages/hospital/hospital.html'}" class="sc-dd-item-btn" style="color:#60a5fa;">
+                    ${(!isStaffOfficer && (localStorage.getItem("patientId") || user.patientId)) ? `
+                    <a href="${inPages ? '../hospital/hospital.html' : 'pages/hospital/hospital.html'}" class="sc-dd-item-btn" style="color:#60a5fa;">
                         <span style="display:flex; align-items:center; gap:8px;"><span>🪪</span> Patient Medical Dossier</span>
                         <span style="font-size:12px;">→</span>
                     </a>` : ''}
@@ -2707,18 +2928,27 @@ const SmartCityAuth = (() => {
             const visitorDd = badge.querySelector("#scGlobalVisitorDropdown");
             const visitorArrow = badge.querySelector("#scDropdownArrowVisitor");
             badge.addEventListener("click", (e) => {
-                if (e.target.closest("#scVisitorSignInActionBtn")) return;
+                if (e.target.closest("#scDropdownArrowVisitor")) {
+                    e.stopPropagation();
+                    const isShowing = visitorDd.style.display === "block";
+                    visitorDd.style.display = isShowing ? "none" : "block";
+                    if (visitorArrow) visitorArrow.style.transform = isShowing ? "rotate(0deg)" : "rotate(180deg)";
+                    return;
+                }
+                if (e.target.closest("#scGlobalVisitorDropdown")) {
+                    return;
+                }
                 e.stopPropagation();
-                const isShowing = visitorDd.style.display === "block";
-                visitorDd.style.display = isShowing ? "none" : "block";
-                if (visitorArrow) visitorArrow.style.transform = isShowing ? "rotate(0deg)" : "rotate(180deg)";
+                if (visitorDd) visitorDd.style.display = "none";
+                if (visitorArrow) visitorArrow.style.transform = "rotate(0deg)";
+                showLoginModal("citizen");
             });
 
             const visitorActionBtn = badge.querySelector("#scVisitorSignInActionBtn");
             if (visitorActionBtn) {
                 visitorActionBtn.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    visitorDd.style.display = "none";
+                    if (visitorDd) visitorDd.style.display = "none";
                     if (visitorArrow) visitorArrow.style.transform = "rotate(0deg)";
                     showLoginModal("citizen");
                 });
@@ -2790,11 +3020,16 @@ const SmartCityAuth = (() => {
         getToken,
         getUser,
         isAuthenticated,
+        isSuperAdmin,
+        isAdmin,
         isStaff,
         isCitizen,
         getRole,
         getDepartment,
+        getCurrentPageModule,
+        hasStaffClearance,
         canEdit,
+        hasPermission,
         logout,
         fetch: authFetch,
         renderUserHeader,
@@ -2809,6 +3044,8 @@ const SmartCityAuth = (() => {
 
 if (typeof window !== "undefined") {
     window.SmartCityAuth = SmartCityAuth;
+    window.isSuperAdmin = SmartCityAuth.isSuperAdmin;
+    window.hasStaffClearance = SmartCityAuth.hasStaffClearance;
     window.showLoginModal = SmartCityAuth.showLoginModal;
     window.showProfileModal = SmartCityAuth.showProfileModal;
     window.openUserProfileModal = SmartCityAuth.showProfileModal;

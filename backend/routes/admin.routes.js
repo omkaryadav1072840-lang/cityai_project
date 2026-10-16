@@ -7,14 +7,28 @@ const { detectAnomalies } = require("../services/python_ai_bridge");
 
 function requireAdmin(req, res, next) {
     const user = req.user;
-    const role = (user && (user.role || user.type || "")).toLowerCase();
-    const dept = (user && (user.department || "")).toLowerCase();
-    if (role === "admin" || dept === "admin") {
+    if (!user) {
+        return res.status(401).json({ success: false, message: "Authentication required." });
+    }
+    const role = (user.role || user.type || "").toLowerCase();
+    const dept = (user.department || "").toLowerCase();
+    const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+    const isSuperAdmin = Boolean(
+        user.is_super_admin ||
+        role === "super_admin" ||
+        role === "superadmin" ||
+        role === "gkp_admin" ||
+        role === "gkpadmin" ||
+        staffId === "STAFF-001" ||
+        (role === "admin" && (dept === "admin" || !dept || dept === "municipal" || dept.includes("iccc")))
+    );
+
+    if (role === "admin" || dept === "admin" || isSuperAdmin) {
         return next();
     }
     return res.status(403).json({
         success: false,
-        message: "Access denied. System Administrator privileges required."
+        message: "Access denied. Gorakhpur System Administrator privileges required."
     });
 }
 

@@ -9,12 +9,12 @@
       "response": "{\"message\":\"Hospital not found.\"}"
     },
     {
-      "endpoint": "/api/parking/bookings/1/cancel",
-      "method": "POST",
+      "endpoint": "/api/ambulances/1",
+      "method": "GET",
       "callers": [
-        "frontend\\pages\\parking\\parking.js"
+        "frontend\\pages\\hospital\\hospital.js"
       ],
-      "response": "{\"success\":false,\"message\":\"Booking pass not found.\"}"
+      "response": "{\"message\":\"Ambulance not found.\"}"
     },
     {
       "endpoint": "/api/traffic/junctions/1",
@@ -66,5 +66,5 @@
     }
   ],
   "serverErrors": [],
-  "okCount": 183
+  "okCount": 295
 }

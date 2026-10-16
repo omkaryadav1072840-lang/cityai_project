@@ -47,7 +47,8 @@ for (const relHtml of htmlFiles) {
       // Dynamic route served by socket.io server
       continue;
     }
-    const resolved = src.startsWith('/') ? path.join(FRONTEND_DIR, src.slice(1)) : path.resolve(htmlDir, src);
+    const cleanSrc = src.split('?')[0];
+    const resolved = cleanSrc.startsWith('/') ? path.join(FRONTEND_DIR, cleanSrc.slice(1)) : path.resolve(htmlDir, cleanSrc);
     if (!fs.existsSync(resolved)) {
       issues.push({ category: "Asset", file: relHtml, message: `Missing script: ${src} (resolved to ${path.relative(ROOT_DIR, resolved)})` });
     }
@@ -59,7 +60,8 @@ for (const relHtml of htmlFiles) {
     .map(m => m[1]);
   for (const href of styles) {
     if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) continue;
-    const resolved = href.startsWith('/') ? path.join(FRONTEND_DIR, href.slice(1)) : path.resolve(htmlDir, href);
+    const cleanHref = href.split('?')[0];
+    const resolved = cleanHref.startsWith('/') ? path.join(FRONTEND_DIR, cleanHref.slice(1)) : path.resolve(htmlDir, cleanHref);
     if (!fs.existsSync(resolved)) {
       issues.push({ category: "Asset", file: relHtml, message: `Missing stylesheet: ${href} (resolved to ${path.relative(ROOT_DIR, resolved)})` });
     }
@@ -79,7 +81,8 @@ for (const relHtml of htmlFiles) {
   let combinedJs = '';
   for (const src of scriptSrcs) {
     if (src.startsWith('http://') || src.startsWith('https://') || src === '/socket.io/socket.io.js') continue;
-    const resolved = src.startsWith('/') ? path.join(FRONTEND_DIR, src.slice(1)) : path.resolve(htmlDir, src);
+    const cleanSrc = src.split('?')[0];
+    const resolved = cleanSrc.startsWith('/') ? path.join(FRONTEND_DIR, cleanSrc.slice(1)) : path.resolve(htmlDir, cleanSrc);
     if (fs.existsSync(resolved)) {
       combinedJs += '\n' + fs.readFileSync(resolved, 'utf8');
     }
@@ -100,7 +103,7 @@ for (const relHtml of htmlFiles) {
       const fnMatch = trimmed.match(/^([a-zA-Z0-9_$]+)\s*\(/);
       if (fnMatch) {
         const fnName = fnMatch[1];
-        const builtins = ['alert', 'confirm', 'prompt', 'openModal', 'closeModal', 'console', 'history', 'event', 'stopPropagation', 'preventDefault'];
+        const builtins = ['if', 'for', 'while', 'switch', 'catch', 'alert', 'confirm', 'prompt', 'openModal', 'closeModal', 'console', 'history', 'event', 'stopPropagation', 'preventDefault'];
         if (builtins.includes(fnName)) continue;
 
         // Check if declared in combinedJs

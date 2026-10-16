@@ -26,8 +26,14 @@
 
 const BACKEND_URL = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
     ? window.API_BASE_URL
-    : (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
-        ? (window.location.port === "5000" || window.location.protocol === "file:" ? (window.location.port === "5000" ? window.location.origin : "http://localhost:5000") : "")
+    : (typeof window !== "undefined" && window.location)
+        ? (window.location.protocol === "file:" 
+            ? "http://localhost:5000" 
+            : (window.location.port === "5000" || window.location.port === "3000" 
+                ? window.location.origin 
+                : ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+                    ? `http://${window.location.hostname}:5000` 
+                    : (window.location.origin || ""))))
         : "http://localhost:5000";
 
 
@@ -454,6 +460,12 @@ async function loadCityStatus() {
 
             ambulanceValue.textContent =
                 data.ambulances;
+
+            const ambulanceProgress = document.getElementById("ambulanceProgress");
+            if (ambulanceProgress && typeof data.ambulances === "number") {
+                const pct = Math.min(100, Math.max(15, Math.round((data.ambulances / 15) * 100)));
+                ambulanceProgress.style.width = `${pct}%`;
+            }
 
         }
 
@@ -5299,21 +5311,7 @@ async function rateGrievance(requestId, rating) {
 // --------------------------------------------------------------------------
 
 function openCommandCenterModal() {
-    const isOfficer = typeof SmartCityAuth !== "undefined" && (SmartCityAuth.isAdmin() || SmartCityAuth.isStaff());
-    if (!isOfficer) {
-        if (typeof SmartCityAuth !== "undefined") {
-            SmartCityAuth.showLoginModal("staff", {
-                message: "Integrated Command & Control Center (ICCC) is restricted to municipal staff and administrators. Please log in with your official ID."
-            });
-        } else {
-            alert("ICCC Command Center requires municipal staff or admin credentials.");
-        }
-        return;
-    }
-    const modal = document.getElementById("scCommandCenterModal");
-    if (!modal) return;
-    modal.classList.add("active");
-    fetchCommandCenterData();
+    window.location.href = "pages/admin/gkp_admin.html";
 }
 
 function closeCommandCenterModal() {
