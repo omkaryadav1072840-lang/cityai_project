@@ -7,9 +7,11 @@ const {
     isLegacyPlainPassword,
     generateToken,
     authenticateToken,
+    optionalToken,
     revokeToken
 } = require("../middleware/auth.middleware");
 const { logAudit } = require("../services/audit_logger");
+const { sendEmailOtp, verifyEmailOtp } = require("../services/otp_service");
 
 // =========================================================
 // CITIZEN REGISTER
@@ -167,23 +169,18 @@ router.post("/api/login", async (req, res) => {
 
         if (users.length > 0) {
             const user = users[0];
-            let isMatch = await verifyPassword(password, user.password);
-            if (!isMatch && (user.mobile === "6306880179" || user.email === "omkaryadav@gmail.com")) {
-                if (["password123", "omkar123", "123456"].includes(password)) {
-                    isMatch = true;
-                    hashPassword(password).then(h => {
-                        p.query("UPDATE users SET password = ? WHERE id = ?", [h, user.id]).catch(() => {});
-                    });
-                }
-            }
+            const isMatch = await verifyPassword(password, user.password);
 
+            // SECURITY: No backdoor credentials. Only verify against stored hash.
             if (!isMatch) {
+                // VULN-008 FIX: Generic message — does not reveal whether account exists
                 return res.status(401).json({
                     success: false,
-                    message: "Incorrect password."
+                    message: "Invalid credentials. Please check your email/mobile and password."
                 });
             }
 
+            // Opportunistic upgrade of legacy plain-text passwords
             if (isLegacyPlainPassword(user.password)) {
                 hashPassword(password).then(h => {
                     p.query("UPDATE users SET password = ? WHERE id = ?", [h, user.id]).catch(() => {});
@@ -262,9 +259,10 @@ router.post("/api/login", async (req, res) => {
             return processDoctorAuth(req, res, docRows[0], password);
         }
 
+        // VULN-008 FIX: Generic message — does not reveal whether account exists
         return res.status(401).json({
             success: false,
-            message: "User or Staff ID not found."
+            message: "Invalid credentials. Please check your credentials."
         });
     } catch (err) {
         console.error("Login route error:", err);
@@ -276,7 +274,7 @@ router.post("/api/login", async (req, res) => {
 // LOGOUT & TOKEN REVOCATION (SESSION INVALIDATION)
 // =========================================================
 
-router.post(["/api/auth/logout", "/api/logout"], (req, res) => {
+router.post(["/api/auth/logout", "/api/logout"], optionalToken, (req, res) => {
     const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
     const token = authHeader && authHeader.startsWith("Bearer ")
         ? authHeader.slice(7).trim()
@@ -286,10 +284,187 @@ router.post(["/api/auth/logout", "/api/logout"], (req, res) => {
         revokeToken(token);
     }
 
+    if (req.user) {
+        logAudit(req, {
+            userId: req.user.id || req.user.userId,
+            userName: req.user.name,
+            role: req.user.role,
+            department: req.user.department,
+            action: "USER_LOGOUT",
+            module: "AUTH"
+        });
+    }
+
     return res.json({
         success: true,
         message: "Successfully logged out. Authentication session invalidated."
     });
+});
+
+// =========================================================
+// OTP VERIFICATION & PASSWORD RESET (SECURE CSPRNG / FREE SMTP)
+// =========================================================
+
+router.post("/api/auth/otp/send", async (req, res) => {
+    try {
+        const { email, purpose = "verification" } = req.body;
+        if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "A valid email address is required."
+            });
+        }
+
+        const validPurposes = ["verification", "login", "reset", "phone_otp"];
+        const selectedPurpose = validPurposes.includes(purpose) ? purpose : "verification";
+
+        const result = await sendEmailOtp(email.trim().toLowerCase(), selectedPurpose);
+        if (result.cooldown) {
+            return res.status(429).json({
+                success: false,
+                message: result.message,
+                retryAfterSeconds: result.retryAfterSeconds
+            });
+        }
+
+        logAudit(req, {
+            userName: email,
+            action: `OTP_REQUEST_${selectedPurpose.toUpperCase()}`,
+            module: "AUTH"
+        });
+
+        return res.json({
+            success: true,
+            message: result.message,
+            expiresInMinutes: result.expiresInMinutes,
+            devMode: result.devMode || false
+        });
+    } catch (err) {
+        console.error("OTP send error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to send OTP. Please try again later."
+        });
+    }
+});
+
+router.post("/api/auth/otp/verify", async (req, res) => {
+    try {
+        const { email, otp, purpose = "verification" } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and 6-digit OTP are required."
+            });
+        }
+
+        const cleanOtp = String(otp).trim();
+        if (!/^\d{6}$/.test(cleanOtp)) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP must be a 6-digit numeric code."
+            });
+        }
+
+        const result = await verifyEmailOtp(email.trim().toLowerCase(), cleanOtp, purpose);
+        if (!result.success) {
+            return res.status(400).json({
+                success: false,
+                message: result.message
+            });
+        }
+
+        logAudit(req, {
+            userName: email,
+            action: `OTP_VERIFY_${purpose.toUpperCase()}_SUCCESS`,
+            module: "AUTH"
+        });
+
+        return res.json({
+            success: true,
+            message: result.message
+        });
+    } catch (err) {
+        console.error("OTP verify error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error verifying OTP. Please try again."
+        });
+    }
+});
+
+router.post("/api/auth/reset-password", async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Email, OTP, and new password are required."
+            });
+        }
+
+        if (typeof newPassword !== "string" || newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "New password must be at least 8 characters long."
+            });
+        }
+
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanOtp = String(otp).trim();
+
+        // 1. Verify OTP with scrypt verification
+        const otpResult = await verifyEmailOtp(cleanEmail, cleanOtp, "reset");
+        if (!otpResult.success) {
+            return res.status(400).json({
+                success: false,
+                message: otpResult.message
+            });
+        }
+
+        // 2. Hash new password
+        const hashedPassword = await hashPassword(newPassword);
+
+        // 3. Update password in users or staff table
+        const [userUpdate] = await db.promise().query(
+            "UPDATE users SET password = ? WHERE email = ?",
+            [hashedPassword, cleanEmail]
+        );
+
+        let updated = userUpdate.affectedRows > 0;
+
+        if (!updated) {
+            const [staffUpdate] = await db.promise().query(
+                "UPDATE staff SET password = ? WHERE email = ?",
+                [hashedPassword, cleanEmail]
+            );
+            updated = staffUpdate.affectedRows > 0;
+        }
+
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                message: "Account associated with this email not found."
+            });
+        }
+
+        logAudit(req, {
+            userName: cleanEmail,
+            action: "PASSWORD_RESET_SUCCESS",
+            module: "AUTH"
+        });
+
+        return res.json({
+            success: true,
+            message: "Password reset successfully. You may now log in with your new credentials."
+        });
+    } catch (err) {
+        console.error("Password reset error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to reset password. Please try again later."
+        });
+    }
 });
 
 // =========================================================
@@ -361,35 +536,18 @@ router.post("/api/staff-login", async (req, res) => {
 
 // Helper: Process Staff / Admin Authentication
 async function processStaffAuth(req, res, staff, password) {
-    // 1. Verify Password
-    let isMatch = await verifyPassword(password, staff.password);
-    if (!isMatch) {
-        const cleanStaffId = String(staff.staff_id || "").toUpperCase();
-        const demoStaffIds = [
-            "STAFF-001", "TR-ADMIN", "TR-VERMA", "TR-PANDEY", "WST001",
-            "STAFF-HOSP-ADMIN", "HOSP-ADMIN", "AIIMS-ADMIN",
-            "STAFF-BRD-REC", "STAFF-BRD-ADMIN", "HOSP-REC", "HOSP-PHARM",
-            "HOSP-NUR", "HOSP-LAB", "HOSP-BILL", "HOSP-AMB",
-            "WTR-ADMIN", "WTR-ENG-01", "WTR001"
-        ];
-        if (demoStaffIds.includes(cleanStaffId)) {
-            if (["admin", "admin123", "staff123", "doctor123", "123456", "pandey123", "water123", "engineer123", "Water@Admin2026", "Staff@Water2026", "smartcity2026", "Water@2026"].includes(password)) {
-                isMatch = true;
-                hashPassword(password).then(h => {
-                    db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [h, staff.id]).catch(() => {});
-                });
-            }
-        }
-    }
+    // 1. Verify Password — VULN-001 FIX: No backdoor bypass, only check stored hash
+    const isMatch = await verifyPassword(password, staff.password);
 
     if (!isMatch) {
+        // VULN-008 FIX: Generic message
         return res.status(401).json({
             success: false,
-            message: "Incorrect password."
+            message: "Invalid credentials. Please check your Staff ID and password."
         });
     }
 
-    // Upgrade password hash if legacy plain
+    // Opportunistic upgrade of legacy plain-text passwords
     if (isLegacyPlainPassword(staff.password)) {
         hashPassword(password).then(h => {
             db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [h, staff.id]).catch(() => {});
@@ -421,13 +579,15 @@ async function processStaffAuth(req, res, staff, password) {
     let role = "staff";
     let targetDashboard = "pages/dashboard/dashboard.html";
 
+    // VULN-006 FIX: Removed hardcoded STAFF-001 magic number.
+    // Super-admin status derived exclusively from database role column.
     const isSuperAdmin = (
         staff.role === "super_admin" ||
         staff.role === "gkp_admin" ||
-        String(staff.staff_id || "").toUpperCase() === "STAFF-001" ||
-        (staff.role === "admin" && (String(staff.department).toLowerCase() === "admin" || !staff.department || String(staff.department).toLowerCase() === "municipal" || String(staff.department).toLowerCase().includes("iccc")))
+        (staff.role === "admin" && (String(staff.department || "").toLowerCase() === "admin" || !staff.department || String(staff.department || "").toLowerCase() === "municipal" || String(staff.department || "").toLowerCase().includes("iccc")))
     );
-    const isWaterAdmin = staff.role === "water_admin" || String(staff.staff_id).toUpperCase() === "WTR-ADMIN" || (staff.role === "admin" && String(staff.department).toLowerCase() === "water");
+    // VULN-006 FIX: Removed hardcoded WTR-ADMIN magic. Role derived from DB only.
+    const isWaterAdmin = staff.role === "water_admin" || (staff.role === "admin" && String(staff.department || "").toLowerCase() === "water");
     const isHospitalAdmin = staff.hospital_role === "hospital_admin" || (staff.role === "admin" && Boolean(staff.hospital_id));
 
     if (isSuperAdmin) {
@@ -530,26 +690,18 @@ async function processStaffAuth(req, res, staff, password) {
 
 // Helper: Process Doctor Authentication
 async function processDoctorAuth(req, res, doc, password) {
-    let isMatch = await verifyPassword(password, doc.password);
-    if (!isMatch) {
-        const cleanDocId = String(doc.doctor_id || "").toUpperCase();
-        if (["DOC-101", "DOC001", "DOC002", "DOC003", "DOC-BRD-02", "DOC-BRD-10"].includes(cleanDocId) || cleanDocId.startsWith("DOC-")) {
-            if (["admin", "admin123", "doctor123", "staff123", "123456"].includes(password)) {
-                isMatch = true;
-                hashPassword(password).then(h => {
-                    db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [h, doc.id]).catch(() => {});
-                });
-            }
-        }
-    }
+    // VULN-001 FIX: No backdoor bypass for doctors. Only verify stored hash.
+    const isMatch = await verifyPassword(password, doc.password);
 
     if (!isMatch) {
+        // VULN-008 FIX: Generic message
         return res.status(401).json({
             success: false,
-            message: "Incorrect password for Doctor profile."
+            message: "Invalid credentials. Please check your Doctor ID and password."
         });
     }
 
+    // Opportunistic upgrade of legacy plain-text passwords
     if (isLegacyPlainPassword(doc.password)) {
         hashPassword(password).then(h => {
             db.promise().query("UPDATE doctors SET password = ? WHERE id = ?", [h, doc.id]).catch(() => {});
@@ -726,24 +878,6 @@ router.put("/api/auth/profile", authenticateToken, (req, res) => {
     }
 });
 
-// =========================================================
-// LOGOUT (/api/auth/logout)
-// =========================================================
-
-router.post(["/api/auth/logout", "/api/logout"], authenticateToken, (req, res) => {
-    logAudit(req, {
-        userId: req.user.id || req.user.userId,
-        userName: req.user.name,
-        role: req.user.role,
-        department: req.user.department,
-        action: "USER_LOGOUT",
-        module: "AUTH"
-    });
-    res.json({
-        success: true,
-        message: "Session ended successfully."
-    });
-});
 
 // =========================================================
 // CENTRALIZED USER ACTIVITIES (/api/user/activities)

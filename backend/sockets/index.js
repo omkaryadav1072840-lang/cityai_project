@@ -3,6 +3,10 @@
  * Centralized room management, lifecycle handlers, and broadcast helpers
  */
 
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/env.config");
+const { isTokenRevoked } = require("../middleware/auth.middleware");
+
 let ioInstance = null;
 
 /**
@@ -12,8 +16,35 @@ let ioInstance = null;
 function initSockets(io) {
     ioInstance = io;
 
+    // Layer 1: Handshake Authentication Middleware
+    io.use((socket, next) => {
+        const rawToken = socket.handshake.auth?.token ||
+                         socket.handshake.headers?.authorization ||
+                         socket.handshake.query?.token;
+
+        const token = rawToken && rawToken.startsWith("Bearer ")
+            ? rawToken.slice(7).trim()
+            : rawToken;
+
+        if (token) {
+            if (isTokenRevoked(token)) {
+                return next(new Error("Authentication token has been revoked / logged out."));
+            }
+            jwt.verify(token, JWT_SECRET, (err, decoded) => {
+                if (!err && decoded) {
+                    socket.user = decoded;
+                }
+                next();
+            });
+        } else {
+            // Allow unauthenticated connection for public telemetry channels
+            socket.user = null;
+            next();
+        }
+    });
+
     io.on("connection", (socket) => {
-        console.log(`🟢 [Socket.IO] Client connected: ${socket.id}`);
+        console.log(`🟢 [Socket.IO] Client connected: ${socket.id} (User: ${socket.user ? socket.user.name : "Guest"})`);
 
         // Room subscriptions
         socket.on("join-ambulance-tracking", () => {
@@ -38,6 +69,15 @@ function initSockets(io) {
         socket.on("join-water", () => {
             socket.join("water-updates");
             console.log(`💧 [Socket.IO] ${socket.id} joined water-updates`);
+        });
+
+        socket.on("join-waste", () => {
+            socket.join("waste-updates");
+            console.log(`♻️ [Socket.IO] ${socket.id} joined waste-updates`);
+        });
+
+        socket.on("leave-waste", () => {
+            socket.leave("waste-updates");
         });
 
         socket.on("join-city", () => {
@@ -128,6 +168,33 @@ function emitHospitalBedUpdate(bedData) {
     ioInstance.emit("bed-updated", bedData);
 }
 
+/**
+ * Broadcast waste bin fill level and status updates
+ */
+function emitWasteBinUpdate(binData) {
+    if (!ioInstance) return;
+    ioInstance.to("waste-updates").emit("waste:bin-updated", binData);
+    ioInstance.emit("waste-bin-updated", binData);
+}
+
+/**
+ * Broadcast waste vehicle GPS location tracking
+ */
+function emitWasteVehicleLocation(vehicleData) {
+    if (!ioInstance) return;
+    ioInstance.to("waste-updates").emit("waste:vehicle-location", vehicleData);
+    ioInstance.emit("waste-vehicle-location", vehicleData);
+}
+
+/**
+ * Broadcast general waste management operational alerts
+ */
+function emitWasteAlert(alertData) {
+    if (!ioInstance) return;
+    ioInstance.to("waste-updates").emit("waste:alert", alertData);
+    ioInstance.emit("waste-alert", alertData);
+}
+
 module.exports = {
     initSockets,
     emitAmbulanceLocation,
@@ -138,6 +205,9 @@ module.exports = {
     emitWaterUpdate,
     emitCityUpdate,
     emitHospitalBedUpdate,
+    emitWasteBinUpdate,
+    emitWasteVehicleLocation,
+    emitWasteAlert,
     getIO: () => ioInstance
 };
 

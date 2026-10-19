@@ -453,18 +453,20 @@ router.post("/api/waste/pickups", optionalToken, async (req, res) => {
  */
 router.get("/api/waste/my-requests", optionalToken, async (req, res) => {
     try {
-        let userId = req.user?.id || req.user?.userId || req.query.userId || null;
-        let mobile = req.user?.mobile || req.query.mobile || null;
-
         let reports = [];
         let binRequests = [];
 
-        if (userId || mobile) {
+        if (req.user && (req.user.id || req.user.userId)) {
+            // LAYER 3 OBJECT-LEVEL AUTHORIZATION:
+            // User ID is strictly derived from verified JWT session, never from untrusted query params
+            const userId = req.user.id || req.user.userId;
+            const mobile = req.user.mobile || "";
+
             const [rows] = await pool.query(
                 `SELECT * FROM service_requests 
-                 WHERE department = 'waste' AND (user_id = ? OR citizen_mobile = ?)
+                 WHERE department = 'waste' AND (user_id = ? OR (citizen_mobile = ? AND ? != ''))
                  ORDER BY created_at DESC`,
-                [userId || 0, mobile || ""]
+                [userId, mobile, mobile]
             );
             reports = rows;
 
@@ -472,9 +474,24 @@ router.get("/api/waste/my-requests", optionalToken, async (req, res) => {
                 `SELECT * FROM waste_bin_requests 
                  WHERE user_id = ? 
                  ORDER BY created_at DESC`,
-                [userId || 0]
+                [userId]
             );
             binRequests = binRows;
+        } else if (req.query.requestCode) {
+            // Unauthenticated guest tracking strictly limited to exact requestCode
+            const [rows] = await pool.query(
+                `SELECT id, request_code, category, waste_type, description, address, priority, status,
+                        sla_deadline, collection_date, collection_time, created_at, updated_at
+                 FROM service_requests
+                 WHERE department = 'waste' AND request_code = ?`,
+                [String(req.query.requestCode).trim()]
+            );
+            reports = rows;
+        } else {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required to view personal requests. Sign in or provide a valid tracking requestCode."
+            });
         }
 
         return res.json({

@@ -283,6 +283,102 @@ function requireDoctorOrStaff(req, res, next) {
     });
 }
 
+// =========================================================
+// LAYER 3: OBJECT-LEVEL AUTHORIZATION GUARDS (IDOR / BOLA)
+// =========================================================
+
+/**
+ * Enforce strict ownership: only the owner of the resource or an administrator
+ * can access or modify the object.
+ * 
+ * @param {Function} getOwnerIdFn - Async function (req) => ownerUserId
+ */
+function requireOwnership(getOwnerIdFn) {
+    return async (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication required."
+            });
+        }
+
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+        // Super admins and system admins have administrative bypass
+        if (userRole === "admin" || userRole === "super_admin" || userRole === "superadmin") {
+            return next();
+        }
+
+        try {
+            const ownerId = await getOwnerIdFn(req);
+            const currentUserId = req.user.id || req.user.userId;
+
+            if (ownerId == null) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Resource not found."
+                });
+            }
+
+            if (String(ownerId) !== String(currentUserId)) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. You do not have permission to access or modify this resource (Object Ownership Violation)."
+                });
+            }
+
+            next();
+        } catch (err) {
+            console.error("[Layer 3 Auth Error]", err);
+            return res.status(500).json({
+                success: false,
+                message: "Error verifying resource ownership."
+            });
+        }
+    };
+}
+
+/**
+ * Departmental Resource Access Guard: Ensures municipal staff can only access
+ * resources mapped to their own authorized department or assigned jurisdiction.
+ * 
+ * @param {Function} getResourceDeptFn - Async function (req) => resourceDepartment
+ */
+function requireResourceDepartment(getResourceDeptFn) {
+    return async (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: "Authentication required." });
+        }
+
+        const userRole = (req.user.role || req.user.type || "").toLowerCase();
+        if (userRole === "admin" || userRole === "super_admin" || userRole === "superadmin") {
+            return next();
+        }
+
+        try {
+            const resourceDept = await getResourceDeptFn(req);
+            const userDept = (req.user.department || "").toLowerCase();
+            const editable = (req.user.editable || []).map(e => e.toLowerCase());
+
+            if (!resourceDept) {
+                return res.status(404).json({ success: false, message: "Resource not found." });
+            }
+
+            const targetDept = String(resourceDept).toLowerCase();
+            if (userDept === targetDept || editable.includes(targetDept)) {
+                return next();
+            }
+
+            return res.status(403).json({
+                success: false,
+                message: `Access denied. Resource belongs to [${resourceDept}] department, but caller is in [${userDept}].`
+            });
+        } catch (err) {
+            console.error("[Layer 3 Dept Auth Error]", err);
+            return res.status(500).json({ success: false, message: "Error verifying departmental resource access." });
+        }
+    };
+}
+
 module.exports = {
     hashPassword,
     verifyPassword,
@@ -297,6 +393,8 @@ module.exports = {
     requireRole,
     requireDepartment,
     requireDoctorOrStaff,
+    requireOwnership,
+    requireResourceDepartment,
     JWT_SECRET,
     JWT_EXPIRES_IN
 };

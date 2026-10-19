@@ -162,7 +162,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(inputSanitizer);
 
 // Rate Limiters for sensitive endpoints (skipped when process.env.NODE_ENV === "test")
-app.use(["/api/login", "/api/register"], authRateLimiter);
+app.use([
+    "/api/login",
+    "/api/register",
+    "/api/staff-login",
+    "/api/auth/otp/send",
+    "/api/auth/otp/verify",
+    "/api/auth/reset-password"
+], authRateLimiter);
 app.use("/api/emergency/sos", sosRateLimiter);
 app.use("/api/ai", aiRateLimiter);
 

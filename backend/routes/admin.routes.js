@@ -13,13 +13,15 @@ function requireAdmin(req, res, next) {
     const role = (user.role || user.type || "").toLowerCase();
     const dept = (user.department || "").toLowerCase();
     const staffId = (user.staffId || user.staff_id || "").toUpperCase();
+    // VULN-006 FIX: Removed hardcoded "STAFF-001" magic number.
+    // Super-admin status is derived exclusively from the database-backed role column.
+    // Never grant privileges based on a predictable staff ID string.
     const isSuperAdmin = Boolean(
         user.is_super_admin ||
         role === "super_admin" ||
         role === "superadmin" ||
         role === "gkp_admin" ||
         role === "gkpadmin" ||
-        staffId === "STAFF-001" ||
         (role === "admin" && (dept === "admin" || !dept || dept === "municipal" || dept.includes("iccc")))
     );
 

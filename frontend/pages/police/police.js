@@ -1253,35 +1253,22 @@ function updatePoliceStats() {
         );
 
 
-    document.getElementById(
-        "activeCases"
-    ).textContent =
-        active.length;
+    const activeEl = document.getElementById("activeCases");
+    if (activeEl) activeEl.textContent = active.length;
 
+    const unitsEl = document.getElementById("activeUnits");
+    if (unitsEl) unitsEl.textContent = units.size;
 
-    document.getElementById(
-        "activeUnits"
-    ).textContent =
-        units.size;
+    const highEl = document.getElementById("highPriority");
+    if (highEl) highEl.textContent = high.length;
 
-
-    document.getElementById(
-        "highPriority"
-    ).textContent =
-        high.length;
-
-
-    document.getElementById(
-        "lastUpdated"
-    ).textContent =
-        new Date().toLocaleTimeString(
-            [],
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-
+    const updatedEl = document.getElementById("lastUpdated");
+    if (updatedEl) {
+        updatedEl.textContent = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
 }
 
 
@@ -1290,45 +1277,24 @@ function updatePoliceStats() {
 ===================================================== */
 
 async function refreshCrimeData() {
-
-    const status =
-        document.getElementById(
-            "dataStatus"
-        );
-
-
-    const source =
-        document.getElementById(
-            "dataSourceText"
-        );
-
-
-    /*
-       No API connected
-    */
+    const CRIME_API_URL = (typeof window !== "undefined" && window.CRIME_API_URL) ? window.CRIME_API_URL : null;
+    const status = document.getElementById("dataStatus");
+    const source = document.getElementById("dataSourceText");
 
     if (!CRIME_API_URL) {
-
-        status.textContent =
-            "● API NOT CONNECTED";
-
-
-        status.style.color =
-            "#d97706";
-
-
-        source.textContent =
-            "No verified crime-data API connected. " +
-            "Waiting for official/backend data.";
-
-
-        renderCrimeCharts(
-            fallbackCrimeData
-        );
-
-
+        if (status) {
+            status.textContent = "● API NOT CONNECTED";
+            status.style.color = "#d97706";
+        }
+        if (source) {
+            source.textContent =
+                "No verified crime-data API connected. " +
+                "Waiting for official/backend data.";
+        }
+        if (typeof renderCrimeCharts === "function") {
+            renderCrimeCharts(fallbackCrimeData);
+        }
         return;
-
     }
 
 
