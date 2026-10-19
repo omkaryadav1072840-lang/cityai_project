@@ -8,7 +8,8 @@ const {
     generateToken,
     authenticateToken,
     optionalToken,
-    revokeToken
+    revokeToken,
+    revokeAllUserSessions
 } = require("../middleware/auth.middleware");
 const { logAudit } = require("../services/audit_logger");
 const { sendEmailOtp, verifyEmailOtp } = require("../services/otp_service");
@@ -425,28 +426,28 @@ router.post("/api/auth/reset-password", async (req, res) => {
         // 2. Hash new password
         const hashedPassword = await hashPassword(newPassword);
 
-        // 3. Update password in users or staff table
-        const [userUpdate] = await db.promise().query(
-            "UPDATE users SET password = ? WHERE email = ?",
-            [hashedPassword, cleanEmail]
-        );
-
-        let updated = userUpdate.affectedRows > 0;
-
-        if (!updated) {
-            const [staffUpdate] = await db.promise().query(
-                "UPDATE staff SET password = ? WHERE email = ?",
-                [hashedPassword, cleanEmail]
-            );
-            updated = staffUpdate.affectedRows > 0;
+        let updatedUserId = null;
+        const [users] = await db.promise().query("SELECT id FROM users WHERE email = ? LIMIT 1", [cleanEmail]);
+        if (users.length > 0) {
+            updatedUserId = users[0].id;
+            await db.promise().query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, updatedUserId]);
+        } else {
+            const [staff] = await db.promise().query("SELECT id FROM staff WHERE email = ? LIMIT 1", [cleanEmail]);
+            if (staff.length > 0) {
+                updatedUserId = staff[0].id;
+                await db.promise().query("UPDATE staff SET password = ? WHERE id = ?", [hashedPassword, updatedUserId]);
+            }
         }
 
-        if (!updated) {
+        if (!updatedUserId) {
             return res.status(404).json({
                 success: false,
                 message: "Account associated with this email not found."
             });
         }
+
+        // SECURITY: Invalidate all existing tokens / sessions for this user upon password reset
+        revokeAllUserSessions(updatedUserId);
 
         logAudit(req, {
             userName: cleanEmail,
@@ -524,9 +525,10 @@ router.post("/api/staff-login", async (req, res) => {
             return processDoctorAuth(req, res, docResults[0], password);
         }
 
+        // VULN-008 FIX: Uniform error message to prevent staff/doctor ID enumeration
         return res.status(401).json({
             success: false,
-            message: "Staff or Doctor ID not found."
+            message: "Invalid credentials. Please check your Staff ID and password."
         });
     } catch (err) {
         console.error("Staff login error:", err);

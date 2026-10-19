@@ -33,14 +33,18 @@ function securityHeaders(req, res, next) {
     // Clickjacking defense: only allow embedding from same origin
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
 
-    // XSS filter enable
-    res.setHeader("X-XSS-Protection", "1; mode=block");
+    // Obsolete X-XSS-Protection disabled per modern OWASP/W3C guidance (avoids client-side side-channel leaks)
+    res.setHeader("X-XSS-Protection", "0");
 
     // Referrer policy
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
     // Device permissions policy
     res.setHeader("Permissions-Policy", "geolocation=(self), camera=(), microphone=(), payment=()");
+
+    // Cross-Origin Isolation headers
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
 
     // HSTS (HTTP Strict Transport Security) - active in production HTTPS
     const isProduction = process.env.NODE_ENV === "production";

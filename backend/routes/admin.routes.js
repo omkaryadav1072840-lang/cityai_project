@@ -25,7 +25,7 @@ function requireAdmin(req, res, next) {
         (role === "admin" && (dept === "admin" || !dept || dept === "municipal" || dept.includes("iccc")))
     );
 
-    if (role === "admin" || dept === "admin" || isSuperAdmin) {
+    if (role === "admin" || isSuperAdmin) {
         return next();
     }
     return res.status(403).json({

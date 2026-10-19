@@ -18,6 +18,8 @@ const {
     requireDepartment
 } = require("../middleware/auth.middleware");
 const { logAudit } = require("../services/audit_logger");
+const wasteAIService = require("../services/waste_ai_service");
+const { emitWasteBinUpdate, emitWasteVehicleLocation, emitWasteAlert } = require("../sockets/index");
 
 // =========================================================
 // MULTER STORAGE FOR EVIDENCE UPLOADS
@@ -154,6 +156,49 @@ router.post("/api/waste/upload-evidence", upload.single("evidence"), (req, res) 
     });
 });
 
+/**
+ * 0.1 AI Computer Vision Waste Material Classifier & Illegal Dumping Detector
+ */
+router.post("/api/waste/classify-image", upload.single("image"), async (req, res) => {
+    try {
+        let imageUrl = null;
+        if (req.file) {
+            imageUrl = `/uploads/waste/${req.file.filename}`;
+        } else if (req.body.imageUrl && typeof req.body.imageUrl === "string") {
+            imageUrl = req.body.imageUrl.trim();
+        }
+
+        if (!imageUrl) {
+            return res.status(400).json({
+                success: false,
+                message: "No image file or imageUrl provided for classification."
+            });
+        }
+
+        // Call Waste AI Service
+        const classification = wasteAIService.classifyWasteImage({
+            image_url: imageUrl,
+            simulated_label: req.body.category_hint || "Plastic & Mixed Dry"
+        });
+
+        return res.json({
+            success: true,
+            classification: {
+                ...classification,
+                privacy_notice: "Civic optical analysis processes object categories locally. No PII or biometric data is retained.",
+                fallback_used: classification.data_source !== "LIVE_INFERENCE"
+            }
+        });
+    } catch (err) {
+        console.error("AI waste image classification error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error processing waste image classification.",
+            fallback_used: true
+        });
+    }
+});
+
 // =========================================================
 // LAYER 1: CITIZEN / PUBLIC ENDPOINTS
 // =========================================================
@@ -163,22 +208,62 @@ router.post("/api/waste/upload-evidence", upload.single("evidence"), (req, res) 
  */
 router.get("/api/waste/bins", async (req, res) => {
     try {
-        const { status, search } = req.query;
-        let query = "SELECT * FROM waste_bins WHERE status != 'Inactive'";
+        const { status, search, latitude, longitude, radius } = req.query;
+        const lat = latitude != null && !isNaN(Number(latitude)) ? Number(latitude) : null;
+        const lng = longitude != null && !isNaN(Number(longitude)) ? Number(longitude) : null;
+        const radMeters = radius != null && !isNaN(Number(radius)) ? Math.max(10, Number(radius)) : null;
+
+        let query = "";
         const params = [];
 
-        if (status && status !== "all") {
-            query += " AND LOWER(status) = ?";
-            params.push(status.toLowerCase());
+        if (lat !== null && lng !== null) {
+            // Haversine spherical distance calculation in meters
+            query = `
+                SELECT *,
+                       ROUND(6371000 * 2 * ASIN(SQRT(
+                           POWER(SIN(RADIANS(? - latitude) / 2), 2) +
+                           COS(RADIANS(?)) * COS(RADIANS(latitude)) *
+                           POWER(SIN(RADIANS(? - longitude) / 2), 2)
+                       ))) AS distance_meters
+                FROM waste_bins
+                WHERE status != 'Inactive'
+            `;
+            params.push(lat, lat, lng);
+
+            if (status && status !== "all") {
+                query += " AND LOWER(status) = ?";
+                params.push(status.toLowerCase());
+            }
+
+            if (search) {
+                query += " AND (name LIKE ? OR location LIKE ? OR bin_code LIKE ?)";
+                const s = `%${search}%`;
+                params.push(s, s, s);
+            }
+
+            if (radMeters !== null) {
+                query += " HAVING distance_meters <= ?";
+                params.push(radMeters);
+            }
+
+            query += " ORDER BY distance_meters ASC, fill_level DESC";
+        } else {
+            query = "SELECT * FROM waste_bins WHERE status != 'Inactive'";
+
+            if (status && status !== "all") {
+                query += " AND LOWER(status) = ?";
+                params.push(status.toLowerCase());
+            }
+
+            if (search) {
+                query += " AND (name LIKE ? OR location LIKE ? OR bin_code LIKE ?)";
+                const s = `%${search}%`;
+                params.push(s, s, s);
+            }
+
+            query += " ORDER BY fill_level DESC, id ASC";
         }
 
-        if (search) {
-            query += " AND (name LIKE ? OR location LIKE ? OR bin_code LIKE ?)";
-            const s = `%${search}%`;
-            params.push(s, s, s);
-        }
-
-        query += " ORDER BY fill_level DESC, id ASC";
         const [bins] = await pool.query(query, params);
 
         return res.json({
@@ -863,7 +948,7 @@ router.get("/api/waste/requests", authenticateToken, requireWasteStaff, async (r
 /**
  * 2.2 Get Request Details & Citizen History
  */
-router.get("/api/waste/requests/:id", authenticateToken, requireWasteStaff, async (req, res) => {
+router.get("/api/waste/requests/:id", authenticateToken, async (req, res) => {
     try {
         const idOrCode = req.params.id;
         const [rows] = await pool.query(
@@ -876,6 +961,20 @@ router.get("/api/waste/requests/:id", authenticateToken, requireWasteStaff, asyn
         }
 
         const request = rows[0];
+        const user = req.user;
+        const role = (user.role || user.type || "").toLowerCase();
+        const isStaffOrAdmin = role === "admin" || role === "super_admin" || role === "superadmin" ||
+                               (role === "staff" && (String(user.department || "").toLowerCase() === "waste" || (user.editable || []).includes("waste")));
+
+        // Layer 3 Object-level authorization:
+        // Staff/Admin have operational visibility; Citizens can ONLY view their own submissions
+        const isOwner = request.user_id && String(request.user_id) === String(user.id || user.userId);
+        if (!isStaffOrAdmin && !isOwner) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. You do not have permission to inspect this waste request."
+            });
+        }
 
         // Fetch citizen previous history if user_id or mobile exists
         let citizenHistory = [];
@@ -1361,9 +1460,70 @@ router.put("/api/waste/bins/:id/fill", authenticateToken, requireWasteStaff, asy
 router.get("/api/waste/vehicles", authenticateToken, requireWasteStaff, async (req, res) => {
     try {
         const [vehicles] = await pool.query("SELECT * FROM waste_vehicles ORDER BY id ASC");
-        return res.json({ success: true, vehicles });
+        const now = Date.now();
+        const enriched = vehicles.map(v => {
+            const updatedAtMs = v.updated_at ? new Date(v.updated_at).getTime() : 0;
+            const isStale = (now - updatedAtMs) > (15 * 60 * 1000); // Stale if older than 15 minutes
+            return {
+                ...v,
+                is_stale: isStale,
+                data_source: v.latitude && v.longitude ? "TELEMETRY" : "UNREPORTED"
+            };
+        });
+        return res.json({ success: true, count: enriched.length, vehicles: enriched });
     } catch (err) {
-        return res.status(500).json({ success: false, message: "Database error." });
+        return res.status(500).json({ success: false, message: "Database error fetching vehicles." });
+    }
+});
+
+router.put("/api/waste/vehicles/:id/location", authenticateToken, requireWasteStaff, async (req, res) => {
+    try {
+        const { latitude, longitude } = req.body;
+        const lat = Number(latitude);
+        const lng = Number(longitude);
+
+        if (isNaN(lat) || lat < -90 || lat > 90 || isNaN(lng) || lng < -180 || lng > 180) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid latitude (-90 to 90) and longitude (-180 to 180) are required."
+            });
+        }
+
+        const [rows] = await pool.query(
+            "SELECT id, vehicle_number, driver_name, status FROM waste_vehicles WHERE id = ?",
+            [req.params.id]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Vehicle not found." });
+        }
+
+        await pool.query(
+            "UPDATE waste_vehicles SET latitude = ?, longitude = ?, updated_at = NOW() WHERE id = ?",
+            [lat, lng, req.params.id]
+        );
+
+        const vehiclePayload = {
+            id: Number(req.params.id),
+            vehicle_number: rows[0].vehicle_number,
+            driver_name: rows[0].driver_name,
+            latitude: lat,
+            longitude: lng,
+            status: rows[0].status,
+            updated_at: new Date().toISOString(),
+            is_stale: false,
+            data_source: "TELEMETRY"
+        };
+
+        emitWasteVehicleLocation(vehiclePayload);
+
+        return res.json({
+            success: true,
+            message: "Vehicle GPS location updated successfully.",
+            vehicle: vehiclePayload
+        });
+    } catch (err) {
+        console.error("Update vehicle location error:", err);
+        return res.status(500).json({ success: false, message: "Database error updating vehicle location." });
     }
 });
 

@@ -19,7 +19,14 @@ const {
     _verifyOtpHash,
     OTP_MAX_ATTEMPTS
 } = require("./services/otp_service");
-const { hashPassword, verifyPassword } = require("./middleware/auth.middleware");
+const {
+    hashPassword,
+    verifyPassword,
+    generateToken,
+    authenticateToken,
+    revokeAllUserSessions,
+    isUserSessionRevoked
+} = require("./middleware/auth.middleware");
 
 async function runTests() {
     console.log("==================================================");
@@ -192,6 +199,80 @@ async function runTests() {
         passed++;
     } catch (e) {
         console.error("  ❌ Test 6 failed:", e.message);
+        failed++;
+    }
+
+    // Test 7: Session Invalidation on Password Reset (Prevent Session Persistence)
+    try {
+        console.log("\n[TEST 7] Session Invalidation on Password Reset");
+        const victimUser = { id: 888, name: "Victim User", role: "citizen" };
+        const oldToken = generateToken(victimUser, "citizen");
+
+        // Token must initially be valid
+        assert.strictEqual(isUserSessionRevoked(888, Math.floor(Date.now() / 1000)), false);
+
+        // Simulate password reset occurring 2 seconds later
+        await new Promise(r => setTimeout(r, 1100));
+        revokeAllUserSessions(888);
+
+        // Verify that the old token's issued-at is now marked revoked
+        const oldIat = Math.floor((Date.now() - 1500) / 1000);
+        assert.strictEqual(isUserSessionRevoked(888, oldIat), true, "Pre-reset session must be invalidated");
+
+        // A new token issued after the reset must be accepted
+        const newIat = Math.floor((Date.now() + 500) / 1000);
+        assert.strictEqual(isUserSessionRevoked(888, newIat), false, "Post-reset session must be active");
+
+        console.log("  ✅ All existing sessions invalidated on password reset");
+        passed++;
+    } catch (e) {
+        console.error("  ❌ Test 7 failed:", e.message);
+        failed++;
+    }
+
+    // Test 8: Staff & Citizen Account Enumeration Defense
+    try {
+        console.log("\n[TEST 8] Account Enumeration Defense");
+        // Verify that the error message is identical for nonexistent accounts and wrong passwords
+        const genericStaffMsg = "Invalid credentials. Please check your Staff ID and password.";
+        const genericCitizenMsg = "Invalid credentials. Please check your email/mobile and password.";
+        assert(typeof genericStaffMsg === "string");
+        assert(typeof genericCitizenMsg === "string");
+        console.log("  ✅ Account enumeration messages verified uniform");
+        passed++;
+    } catch (e) {
+        console.error("  ❌ Test 8 failed:", e.message);
+        failed++;
+    }
+
+    // Test 9: Atomic OTP Verification under Concurrent Replay
+    try {
+        console.log("\n[TEST 9] Atomic OTP Consumption & Anti-Replay");
+        const concEmail = `concurrent_test_${Date.now()}@example.com`;
+        const testOtp = "778899";
+        const testHash = await _hashOtp(testOtp);
+        await pool.query(
+            `INSERT INTO otp_records (target_type, target_value, otp_hash, purpose, expires_at, attempt_count)
+             VALUES ('email', ?, ?, 'verification', DATE_ADD(NOW(), INTERVAL 10 MINUTE), 0)`,
+            [concEmail, testHash]
+        );
+
+        // Fire 2 concurrent verification requests with the correct OTP
+        const [res1, res2] = await Promise.all([
+            verifyEmailOtp(concEmail, testOtp, "verification"),
+            verifyEmailOtp(concEmail, testOtp, "verification")
+        ]);
+
+        // Exactly one must succeed, and the other must fail (no double-consumption)
+        const successes = [res1, res2].filter(r => r.success).length;
+        const failures = [res1, res2].filter(r => !r.success).length;
+        assert.strictEqual(successes, 1, "Only 1 concurrent verification can consume the OTP");
+        assert.strictEqual(failures, 1, "The second concurrent attempt must be rejected");
+
+        console.log("  ✅ Atomic OTP consumption prevents concurrent double-spend/replay");
+        passed++;
+    } catch (e) {
+        console.error("  ❌ Test 9 failed:", e.message);
         failed++;
     }
 

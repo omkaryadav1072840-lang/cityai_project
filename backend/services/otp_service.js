@@ -213,23 +213,30 @@ async function checkResendCooldown(targetType, targetValue, purpose) {
 }
 
 /**
- * Increment attempt count on failed verification.
+ * Increment attempt count on failed verification atomically.
+ * Automatically marks invalidated_at if threshold reached.
  */
 async function incrementAttempts(otpId) {
-    await pool.query(
-        `UPDATE otp_records SET attempt_count = attempt_count + 1 WHERE id = ?`,
-        [otpId]
+    const [result] = await pool.query(
+        `UPDATE otp_records 
+         SET attempt_count = attempt_count + 1,
+             invalidated_at = CASE WHEN attempt_count + 1 >= ? THEN NOW() ELSE invalidated_at END
+         WHERE id = ? AND used = 0`,
+        [OTP_MAX_ATTEMPTS, otpId]
     );
+    return result;
 }
 
 /**
- * Invalidate (consume) OTP after successful verification.
+ * Invalidate (consume) OTP atomically after successful verification.
+ * Returns true if consumed, false if already consumed/invalidated by concurrent request.
  */
 async function consumeOtp(otpId) {
-    await pool.query(
-        `UPDATE otp_records SET used = 1, used_at = NOW() WHERE id = ?`,
+    const [result] = await pool.query(
+        `UPDATE otp_records SET used = 1, used_at = NOW() WHERE id = ? AND used = 0`,
         [otpId]
     );
+    return result.affectedRows > 0;
 }
 
 // =========================================================
@@ -276,6 +283,7 @@ async function sendEmailOtp(email, purpose = "verification") {
  * Verify an OTP submitted by a user.
  * Returns: { success, message }
  * Does NOT reveal the stored hash or OTP.
+ * Atomic verification prevents replay and concurrent race conditions.
  */
 async function verifyEmailOtp(email, submittedOtp, purpose = "verification") {
     if (!email || !submittedOtp) {
@@ -310,7 +318,12 @@ async function verifyEmailOtp(email, submittedOtp, purpose = "verification") {
         };
     }
 
-    await consumeOtp(record.id);
+    // Atomic consumption: ensures single-use and prevents TOCTOU race conditions
+    const consumed = await consumeOtp(record.id);
+    if (!consumed) {
+        return { success: false, message: "OTP has already been used or invalidated." };
+    }
+
     return { success: true, message: "OTP verified successfully." };
 }
 

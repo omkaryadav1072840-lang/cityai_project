@@ -95,9 +95,11 @@ function generateToken(user, role = "citizen") {
 // =========================================================
 // JWT AUTHENTICATION MIDDLEWARE
 // =========================================================
+// =========================================================
 // TOKEN REVOCATION & BLACKLIST (Server-side Invalidation)
 // =========================================================
 const revokedTokens = new Set();
+const userRevocationTime = new Map();
 
 function revokeToken(token) {
     if (typeof token === "string" && token.length > 0) {
@@ -107,6 +109,20 @@ function revokeToken(token) {
 
 function isTokenRevoked(token) {
     return revokedTokens.has(token);
+}
+
+function revokeAllUserSessions(userId) {
+    if (userId) {
+        userRevocationTime.set(String(userId), Date.now());
+    }
+}
+
+function isUserSessionRevoked(userId, iat) {
+    if (!userId || !iat) return false;
+    const revokedAt = userRevocationTime.get(String(userId));
+    if (!revokedAt) return false;
+    // iat is in seconds, revokedAt is in ms
+    return (iat * 1000) < (revokedAt - 1000);
 }
 
 function authenticateToken(req, res, next) {
@@ -141,6 +157,13 @@ function authenticateToken(req, res, next) {
             return res.status(403).json({
                 success: false,
                 message: "Invalid or expired authentication token."
+            });
+        }
+
+        if (decoded && isUserSessionRevoked(decoded.id, decoded.iat)) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication session has been revoked following a password change. Please sign in again."
             });
         }
 
@@ -390,6 +413,8 @@ module.exports = {
     optionalToken,
     revokeToken,
     isTokenRevoked,
+    revokeAllUserSessions,
+    isUserSessionRevoked,
     requireRole,
     requireDepartment,
     requireDoctorOrStaff,
