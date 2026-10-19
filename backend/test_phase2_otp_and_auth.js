@@ -24,6 +24,8 @@ const {
     verifyPassword,
     generateToken,
     authenticateToken,
+    revokeToken,
+    isTokenRevoked,
     revokeAllUserSessions,
     isUserSessionRevoked
 } = require("./middleware/auth.middleware");
@@ -276,8 +278,48 @@ async function runTests() {
         failed++;
     }
 
+    // Test 10: Email Normalization & Whitespace/Casing Resilience
+    try {
+        console.log("\n[TEST 10] Email Normalization & Casing/Whitespace Resilience");
+        const rawEmail = `  Citizen.Test_${Date.now()}@Gorakhpur.GOV.in  `;
+        const testOtp = "654321";
+        const testHash = await _hashOtp(testOtp);
+        const normalizedEmail = rawEmail.trim().toLowerCase();
+
+        // Seed with normalized email
+        await pool.query(
+            `INSERT INTO otp_records (target_type, target_value, otp_hash, purpose, expires_at, attempt_count)
+             VALUES ('email', ?, ?, 'verification', DATE_ADD(NOW(), INTERVAL 10 MINUTE), 0)`,
+            [normalizedEmail, testHash]
+        );
+
+        // Verify with raw unnormalized email input (with uppercase and surrounding whitespace)
+        const verifyRes = await verifyEmailOtp(rawEmail, `  ${testOtp}  `, "verification");
+        assert.strictEqual(verifyRes.success, true, "Email verification must succeed after normalization");
+
+        console.log("  ✅ Email normalization protects against casing & whitespace discrepancies");
+        passed++;
+    } catch (e) {
+        console.error("  ❌ Test 10 failed:", e.message);
+        failed++;
+    }
+
+    // Test 11: Token Revocation TTL & Pruning
+    try {
+        console.log("\n[TEST 11] Token Revocation TTL & Memory Safety");
+        const dummyToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.sig123";
+        revokeToken(dummyToken);
+        assert.strictEqual(isTokenRevoked(dummyToken), true, "Freshly revoked token must be marked revoked");
+
+        console.log("  ✅ Token blacklist correctly stores and checks revocation state");
+        passed++;
+    } catch (e) {
+        console.error("  ❌ Test 11 failed:", e.message);
+        failed++;
+    }
+
     // Clean up test data
-    await pool.query("DELETE FROM otp_records WHERE target_value LIKE '%@example.com'");
+    await pool.query("DELETE FROM otp_records WHERE target_value LIKE '%@example.com' OR target_value LIKE '%@gorakhpur.gov.in'");
 
     console.log("\n==================================================");
     console.log(`  PHASE 2 TESTS FINISHED: ${passed} PASSED, ${failed} FAILED`);

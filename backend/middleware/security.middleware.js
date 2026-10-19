@@ -50,7 +50,12 @@ function securityHeaders(req, res, next) {
     const isProduction = process.env.NODE_ENV === "production";
     const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
     if (isProduction && isSecure) {
-        res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+        // Preload is only enabled if explicitly configured, preventing accidental permanent browser lock-in
+        const enablePreload = process.env.HSTS_PRELOAD === "true";
+        const hstsDirective = enablePreload
+            ? "max-age=31536000; includeSubDomains; preload"
+            : "max-age=31536000; includeSubDomains";
+        res.setHeader("Strict-Transport-Security", hstsDirective);
     }
 
     // Remove server fingerprint

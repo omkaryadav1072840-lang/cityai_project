@@ -96,19 +96,51 @@ function generateToken(user, role = "citizen") {
 // JWT AUTHENTICATION MIDDLEWARE
 // =========================================================
 // =========================================================
-// TOKEN REVOCATION & BLACKLIST (Server-side Invalidation)
+// TOKEN REVOCATION & BLACKLIST (Server-side Invalidation with TTL)
 // =========================================================
-const revokedTokens = new Set();
-const userRevocationTime = new Map();
+const revokedTokens = new Map(); // token -> expiresAtMs
+const userRevocationTime = new Map(); // userId -> revokedAtMs
+
+// Periodic prune every 10 minutes to prevent unbounded memory growth
+const PRUNE_INTERVAL_MS = 10 * 60 * 1000;
+const MAX_SESSION_RECORD_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days (JWT_EXPIRES_IN)
+
+const pruneInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [token, expMs] of revokedTokens.entries()) {
+        if (now > expMs) {
+            revokedTokens.delete(token);
+        }
+    }
+    for (const [userId, revokedAt] of userRevocationTime.entries()) {
+        if (now - revokedAt > MAX_SESSION_RECORD_AGE_MS) {
+            userRevocationTime.delete(userId);
+        }
+    }
+}, PRUNE_INTERVAL_MS);
+if (pruneInterval.unref) pruneInterval.unref();
 
 function revokeToken(token) {
     if (typeof token === "string" && token.length > 0) {
-        revokedTokens.add(token);
+        let expMs = Date.now() + (7 * 24 * 60 * 60 * 1000);
+        try {
+            const decoded = jwt.decode(token);
+            if (decoded && decoded.exp) {
+                expMs = decoded.exp * 1000;
+            }
+        } catch (_) {}
+        revokedTokens.set(token, expMs);
     }
 }
 
 function isTokenRevoked(token) {
-    return revokedTokens.has(token);
+    if (!token || !revokedTokens.has(token)) return false;
+    const expMs = revokedTokens.get(token);
+    if (Date.now() > expMs) {
+        revokedTokens.delete(token);
+        return false;
+    }
+    return true;
 }
 
 function revokeAllUserSessions(userId) {

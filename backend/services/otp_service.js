@@ -252,9 +252,10 @@ async function sendEmailOtp(email, purpose = "verification") {
     if (!email || typeof email !== "string") {
         throw new Error("Valid email address is required.");
     }
+    const cleanEmail = email.trim().toLowerCase();
 
     // Cooldown check
-    const cooldownMs = await checkResendCooldown("email", email, purpose);
+    const cooldownMs = await checkResendCooldown("email", cleanEmail, purpose);
     if (cooldownMs > 0) {
         return {
             success: false,
@@ -267,8 +268,8 @@ async function sendEmailOtp(email, purpose = "verification") {
     const otp = generateOtp();
     const hashedOtp = await hashOtp(otp);
 
-    await storeOtp("email", email, hashedOtp, purpose);
-    const delivery = await sendOtpEmail(email, otp, purpose);
+    await storeOtp("email", cleanEmail, hashedOtp, purpose);
+    const delivery = await sendOtpEmail(cleanEmail, otp, purpose);
 
     // otp is intentionally NOT returned in any field
     return {
@@ -289,8 +290,10 @@ async function verifyEmailOtp(email, submittedOtp, purpose = "verification") {
     if (!email || !submittedOtp) {
         return { success: false, message: "Email and OTP are required." };
     }
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanOtp = String(submittedOtp).trim();
 
-    const record = await getActiveOtpRecord("email", email, purpose);
+    const record = await getActiveOtpRecord("email", cleanEmail, purpose);
     if (!record) {
         // Generic message — do not reveal whether email exists
         return { success: false, message: "OTP is invalid or has expired. Please request a new one." };
@@ -305,7 +308,7 @@ async function verifyEmailOtp(email, submittedOtp, purpose = "verification") {
         return { success: false, message: "Too many incorrect attempts. Please request a new OTP." };
     }
 
-    const isValid = await verifyOtpHash(submittedOtp, record.otp_hash);
+    const isValid = await verifyOtpHash(cleanOtp, record.otp_hash);
 
     if (!isValid) {
         await incrementAttempts(record.id);

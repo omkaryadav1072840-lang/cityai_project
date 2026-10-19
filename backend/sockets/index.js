@@ -5,7 +5,7 @@
 
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/env.config");
-const { isTokenRevoked } = require("../middleware/auth.middleware");
+const { isTokenRevoked, isUserSessionRevoked } = require("../middleware/auth.middleware");
 
 let ioInstance = null;
 
@@ -31,9 +31,13 @@ function initSockets(io) {
                 return next(new Error("Authentication token has been revoked / logged out."));
             }
             jwt.verify(token, JWT_SECRET, (err, decoded) => {
-                if (!err && decoded) {
-                    socket.user = decoded;
+                if (err) {
+                    return next(new Error("Invalid or expired authentication token."));
                 }
+                if (decoded && isUserSessionRevoked(decoded.id, decoded.iat)) {
+                    return next(new Error("Authentication session has been revoked following a password change."));
+                }
+                socket.user = decoded;
                 next();
             });
         } else {

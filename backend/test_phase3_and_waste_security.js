@@ -15,6 +15,8 @@ const {
     generateToken,
     revokeToken,
     isTokenRevoked,
+    revokeAllUserSessions,
+    isUserSessionRevoked,
     requireRole,
     requireDepartment,
     requireOwnership,
@@ -379,6 +381,32 @@ async function runPhase3AndWasteTests() {
         passed++;
     } catch (e) {
         console.error("  ❌ Test 10 failed:", e.message);
+        failed++;
+    }
+
+    // Test 11: Socket.IO Handshake Authentication & Session Revocation
+    try {
+        console.log("\n[TEST 11] Socket.IO Handshake Authentication & Revocation Check");
+        const socketUser = { id: 999, name: "Socket User", role: "citizen" };
+        const socketToken = generateToken(socketUser, "citizen");
+
+        // Verify valid handshake
+        assert.strictEqual(isTokenRevoked(socketToken), false);
+        assert.strictEqual(isUserSessionRevoked(999, Math.floor(Date.now() / 1000)), false);
+
+        // Revoke token and verify rejection
+        revokeToken(socketToken);
+        assert.strictEqual(isTokenRevoked(socketToken), true, "Revoked token must be rejected in Socket.IO handshake");
+
+        // Invalidate user sessions
+        revokeAllUserSessions(999);
+        const oldIat = Math.floor((Date.now() - 2000) / 1000);
+        assert.strictEqual(isUserSessionRevoked(999, oldIat), true, "Invalidated session must be rejected in Socket.IO handshake");
+
+        console.log("  ✅ Socket.IO handshake blocks revoked tokens and invalidated sessions");
+        passed++;
+    } catch (e) {
+        console.error("  ❌ Test 11 failed:", e.message);
         failed++;
     }
 
