@@ -33,8 +33,8 @@ function securityHeaders(req, res, next) {
     // Clickjacking defense: only allow embedding from same origin
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
 
-    // Obsolete X-XSS-Protection disabled per modern OWASP/W3C guidance (avoids client-side side-channel leaks)
-    res.setHeader("X-XSS-Protection", "0");
+    // XSS filter enable (aligned with Nginx configuration)
+    res.setHeader("X-XSS-Protection", "1; mode=block");
 
     // Referrer policy
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");

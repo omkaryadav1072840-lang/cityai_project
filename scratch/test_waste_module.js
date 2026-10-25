@@ -33,7 +33,7 @@ async function runTests() {
         const res = await fetch(`${API_BASE}/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ loginId: "6306880179", password: "omkar123" })
+            body: JSON.stringify({ loginId: "6306880179", password: "password123" })
         });
         const data = await res.json();
         if (!res.ok || !data.token) throw new Error(data.message || "Failed to login as citizen");

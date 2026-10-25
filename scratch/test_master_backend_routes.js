@@ -66,7 +66,7 @@ async function runTests() {
             path: "/api/login",
             method: "POST",
             headers: { "Content-Type": "application/json" }
-        }, { loginId: "6306880179", password: "omkar123" });
+        }, { loginId: "6306880179", password: "password123" });
 
         assert(citizenLoginRes.status === 200, "Citizen login returns 200 OK");
         assert(citizenLoginRes.data.user && citizenLoginRes.data.user.role === "citizen", "Citizen user payload contains role='citizen'");

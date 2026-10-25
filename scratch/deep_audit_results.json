@@ -1,0 +1,3129 @@
+{
+  "CONFIRMED_MISSING": [],
+  "BROKEN_REFERENCE": [],
+  "MISSING_DEPENDENCY": [],
+  "MISSING_CONFIGURATION": [],
+  "INCOMPLETE_IMPLEMENTATION": [],
+  "OPTIONAL": [],
+  "VERIFIED_PRESENT": [
+    {
+      "file": "backend/server.js",
+      "context": "root package.json script \"start\""
+    },
+    {
+      "file": "scripts/dev.js",
+      "context": "root package.json script \"dev\""
+    },
+    {
+      "file": "backend/server.js",
+      "context": "root package.json script \"dev:backend\""
+    },
+    {
+      "file": "scripts/serve_frontend.js",
+      "context": "root package.json script \"dev:frontend\""
+    },
+    {
+      "file": "scratch/test_master_backend_routes.js",
+      "context": "root package.json script \"test\""
+    },
+    {
+      "file": "scripts/run_all_tests.js",
+      "context": "root package.json script \"test:all\""
+    },
+    {
+      "file": "backend/database/init_db.js",
+      "context": "root package.json script \"init-db\""
+    },
+    {
+      "file": "backend\\server.js",
+      "context": "backend package.json script \"start\""
+    },
+    {
+      "file": "backend\\database\\init_db.js",
+      "context": "backend package.json script \"init-db\""
+    },
+    {
+      "file": "backend\\database\\view_data.js",
+      "context": "backend package.json script \"view-db\""
+    },
+    {
+      "file": "scratch/test_master_backend_routes.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/verify_bug_fixes.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "backend/test_all_traffic_enhancements.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "backend/test_ambulance_and_parking_integration.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "backend/test_signal_location_and_heatmap.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "backend/test_staff_auth_and_camera_congestion.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "backend/test_traffic_api.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_ai_intelligence_integration.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_phases_2_to_6.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_phases_7_to_11.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_phases_12_13.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_hospital_upgrade.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_doctor_login.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_doctor_portal.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_waste_module.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_auth_system.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_hardening_and_compliance.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scripts/test_clinical_care_assistant.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scripts/test_diverse_clinical_queries.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_water_intelligence_suite.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_sewage_planner_backend.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_water_command_center.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/verify_water_management_upgrade.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "scratch/test_water_3d_digital_twin.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "backend/test_traffic_jurisdiction_and_ai.js",
+      "context": "scripts/run_all_tests.js TEST_SUITES"
+    },
+    {
+      "file": "run.bat",
+      "context": "Root project launch script"
+    },
+    {
+      "file": "backend/server.js",
+      "context": "run.bat reference"
+    },
+    {
+      "file": "build_apk.bat",
+      "context": "Root project launch script"
+    },
+    {
+      "file": "android/gradlew.bat",
+      "context": "build_apk.bat reference"
+    },
+    {
+      "file": "build_apk.ps1",
+      "context": "Root project launch script"
+    },
+    {
+      "file": "./open_android.bat",
+      "context": "build_apk.ps1 reference"
+    },
+    {
+      "file": "open_android.bat",
+      "context": "Root project launch script"
+    },
+    {
+      "file": "capacitor.config.json",
+      "context": "Mobile build config"
+    },
+    {
+      "file": "frontend",
+      "context": "capacitor.config.json webDir"
+    },
+    {
+      "file": "docker-compose.yml",
+      "context": "Container orchestration"
+    },
+    {
+      "file": "backend/Dockerfile",
+      "context": "Backend container build"
+    },
+    {
+      "file": "frontend/Dockerfile",
+      "context": "Frontend container build"
+    },
+    {
+      "file": "ai_service/Dockerfile",
+      "context": "AI Service container build"
+    },
+    {
+      "file": "frontend/nginx.conf",
+      "context": "Nginx web server reverse proxy config"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\403.html",
+      "referenced": "/index.html?openAuth=staff",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\404.html",
+      "referenced": "/pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\500.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/favicon.png",
+      "target": "frontend\\favicon.png"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/apple-touch-icon.png",
+      "target": "frontend\\apple-touch-icon.png"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/favicon.ico",
+      "target": "frontend\\favicon.ico"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "manifest.json",
+      "target": "frontend\\manifest.json"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/cookie_consent.css",
+      "target": "frontend\\components\\cookie_consent.css"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/",
+      "target": "frontend"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/police/police.html",
+      "target": "frontend\\pages\\police\\police.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/famous/famous.html",
+      "target": "frontend\\pages\\famous\\famous.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/police/police.html",
+      "target": "frontend\\pages\\police\\police.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/famous/famous.html",
+      "target": "frontend\\pages\\famous\\famous.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?view=admin",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=3d",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=monitoring",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=assets",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=routes",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=sewage",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=complaints",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/pages/traffic/traffic.html#cctv",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/water/water.html?tab=3d",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "pages/terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/cookie_consent.js",
+      "target": "frontend\\components\\cookie_consent.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/analytics.js",
+      "target": "frontend\\components\\analytics.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "js/mobile-app.js",
+      "target": "frontend\\js\\mobile-app.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\index.html",
+      "referenced": "script.js",
+      "target": "frontend\\script.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "gkp_admin.css",
+      "target": "frontend\\pages\\admin\\gkp_admin.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../police/police.html",
+      "target": "frontend\\pages\\police\\police.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../famous/famous.html",
+      "target": "frontend\\pages\\famous\\famous.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../police/police.html",
+      "target": "frontend\\pages\\police\\police.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../famous/famous.html",
+      "target": "frontend\\pages\\famous\\famous.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\admin\\gkp_admin.html",
+      "referenced": "gkp_admin.js",
+      "target": "frontend\\pages\\admin\\gkp_admin.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "/apple-touch-icon.png",
+      "target": "frontend\\apple-touch-icon.png"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "emergency.css",
+      "target": "frontend\\pages\\emergency\\emergency.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../api/emergency.api.js",
+      "target": "frontend\\api\\emergency.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\emergency\\emergency.html",
+      "referenced": "emergency.js",
+      "target": "frontend\\pages\\emergency\\emergency.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "famous.css",
+      "target": "frontend\\pages\\famous\\famous.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "famous.html",
+      "target": "frontend\\pages\\famous\\famous.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../api/ai.api.js",
+      "target": "frontend\\api\\ai.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\famous\\famous.html",
+      "referenced": "famous.js",
+      "target": "frontend\\pages\\famous\\famous.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\doctor_dashboard.html",
+      "referenced": "doctor_dashboard.css",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\doctor_dashboard.html",
+      "referenced": "hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\doctor_dashboard.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\doctor_dashboard.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\doctor_dashboard.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\doctor_dashboard.html",
+      "referenced": "doctor_dashboard.js",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "/apple-touch-icon.png",
+      "target": "frontend\\apple-touch-icon.png"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital.css",
+      "target": "frontend\\pages\\hospital\\hospital.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "clinical_care_assistant.css",
+      "target": "frontend\\pages\\hospital\\clinical_care_assistant.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital_dashboard.html",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital_dashboard.html?role=hospital_admin",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "superadmin_hospital.html",
+      "target": "frontend\\pages\\hospital\\superadmin_hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "doctor_dashboard.html",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "doctor_dashboard.html",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "doctor_dashboard.html",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital_dashboard.html",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "doctor_dashboard.html",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "doctor_dashboard.html",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital_dashboard.html",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital_dashboard.html?role=hospital_admin",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "superadmin_hospital.html",
+      "target": "frontend\\pages\\hospital\\superadmin_hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "doctor_dashboard.html",
+      "target": "frontend\\pages\\hospital\\doctor_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital_dashboard.html",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../api/hospital.api.js",
+      "target": "frontend\\api\\hospital.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../auth.js?v=2.2",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "hospital.js?v=2.2",
+      "target": "frontend\\pages\\hospital\\hospital.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital.html",
+      "referenced": "clinical_care_assistant.js",
+      "target": "frontend\\pages\\hospital\\clinical_care_assistant.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital_dashboard.html",
+      "referenced": "hospital_dashboard.css",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital_dashboard.html",
+      "referenced": "hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital_dashboard.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital_dashboard.html",
+      "referenced": "hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital_dashboard.html",
+      "referenced": "../../auth.js?v=2.3",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\hospital_dashboard.html",
+      "referenced": "hospital_dashboard.js?v=2.3",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\superadmin_hospital.html",
+      "referenced": "hospital_dashboard.css",
+      "target": "frontend\\pages\\hospital\\hospital_dashboard.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\superadmin_hospital.html",
+      "referenced": "../../index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\superadmin_hospital.html",
+      "referenced": "hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\superadmin_hospital.html",
+      "referenced": "hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\superadmin_hospital.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\hospital\\superadmin_hospital.html",
+      "referenced": "superadmin_hospital.js",
+      "target": "frontend\\pages\\hospital\\superadmin_hospital.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "/apple-touch-icon.png",
+      "target": "frontend\\apple-touch-icon.png"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "parking.css",
+      "target": "frontend\\pages\\parking\\parking.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../api/parking.api.js",
+      "target": "frontend\\api\\parking.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "parking.js",
+      "target": "frontend\\pages\\parking\\parking.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\parking\\parking.html",
+      "referenced": "../../components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "police.css",
+      "target": "frontend\\pages\\police\\police.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "police.html",
+      "target": "frontend\\pages\\police\\police.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../api/police.api.js",
+      "target": "frontend\\api\\police.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\police\\police.html",
+      "referenced": "police.js",
+      "target": "frontend\\pages\\police\\police.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "/index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\privacy-policy.html",
+      "referenced": "terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "/index.css",
+      "target": "frontend\\index.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\terms-and-conditions.html",
+      "referenced": "terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "/favicon.svg",
+      "target": "frontend\\favicon.svg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "/apple-touch-icon.png",
+      "target": "frontend\\apple-touch-icon.png"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "traffic.css",
+      "target": "frontend\\pages\\traffic\\traffic.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../api/traffic.api.js",
+      "target": "frontend\\api\\traffic.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "openlayers_map.js",
+      "target": "frontend\\pages\\traffic\\openlayers_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "traffic_ai_vision.js",
+      "target": "frontend\\pages\\traffic\\traffic_ai_vision.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "traffic.js",
+      "target": "frontend\\pages\\traffic\\traffic.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\traffic\\traffic.html",
+      "referenced": "../../components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "waste.css",
+      "target": "frontend\\pages\\waste\\waste.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../water/water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../api/waste.api.js",
+      "target": "frontend\\api\\waste.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "waste.js",
+      "target": "frontend\\pages\\waste\\waste.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\waste\\waste.html",
+      "referenced": "../../components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "water.css",
+      "target": "frontend\\pages\\water\\water.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../components/ui_components.css",
+      "target": "frontend\\components\\ui_components.css"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "/assets/models/water/pump_thumb.jpg",
+      "target": "frontend\\assets\\models\\water\\pump_thumb.jpg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "/assets/models/water/infra_3d_thumb.jpg",
+      "target": "frontend\\assets\\models\\water\\infra_3d_thumb.jpg"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../index.html",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "water.html",
+      "target": "frontend\\pages\\water\\water.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../hospital/hospital.html",
+      "target": "frontend\\pages\\hospital\\hospital.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../traffic/traffic.html",
+      "target": "frontend\\pages\\traffic\\traffic.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../parking/parking.html",
+      "target": "frontend\\pages\\parking\\parking.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../emergency/emergency.html",
+      "target": "frontend\\pages\\emergency\\emergency.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../waste/waste.html",
+      "target": "frontend\\pages\\waste\\waste.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../privacy-policy.html",
+      "target": "frontend\\pages\\privacy-policy.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../terms-and-conditions.html",
+      "target": "frontend\\pages\\terms-and-conditions.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../index.html#services",
+      "target": "frontend\\index.html"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "/sitemap.xml",
+      "target": "frontend\\sitemap.xml"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../components/ui_components.js",
+      "target": "frontend\\components\\ui_components.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../components/smartcity_map.js",
+      "target": "frontend\\components\\smartcity_map.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../api/client.js",
+      "target": "frontend\\api\\client.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../api/water.api.js",
+      "target": "frontend\\api\\water.api.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../auth.js",
+      "target": "frontend\\auth.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../realtime.js",
+      "target": "frontend\\realtime.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "water.js",
+      "target": "frontend\\pages\\water\\water.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "water_3d_explorer.js",
+      "target": "frontend\\pages\\water\\water_3d_explorer.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "water_intelligence_ui.js",
+      "target": "frontend\\pages\\water\\water_intelligence_ui.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "sewage_planner_ui.js",
+      "target": "frontend\\pages\\water\\sewage_planner_ui.js"
+    },
+    {
+      "sourceFile": "frontend\\pages\\water\\water.html",
+      "referenced": "../../components/ai_widget.js",
+      "target": "frontend\\components\\ai_widget.js"
+    },
+    {
+      "sourceFile": "backend\\ai\\chatbot\\chatbot_engine.js",
+      "referenced": "../tools/smartcity_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./chatbot/chatbot_engine"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./tools/smartcity_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./models"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./predictions/traffic/traffic_predictor"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./predictions/parking/parking_predictor"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./predictions/hospital/hospital_predictor"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./predictions/waste/waste_predictor"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./predictions/aqi/aqi_predictor"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./recommendations/hospital_recommender"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./recommendations/parking_recommender"
+    },
+    {
+      "sourceFile": "backend\\ai\\index.js",
+      "referenced": "./tourist/tourist_guide"
+    },
+    {
+      "sourceFile": "backend\\ai\\models\\index.js",
+      "referenced": "../../models/ai.model"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\aqi\\aqi_predictor.js",
+      "referenced": "../../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\aqi\\aqi_predictor.js",
+      "referenced": "../../../services/environment_disaster_ai_service"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\hospital\\hospital_predictor.js",
+      "referenced": "../../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\hospital\\hospital_predictor.js",
+      "referenced": "../../../services/healthcare_ai_service"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\parking\\parking_predictor.js",
+      "referenced": "../../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\parking\\parking_predictor.js",
+      "referenced": "../../../services/parking_ai_service"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\traffic\\traffic_predictor.js",
+      "referenced": "../../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\traffic\\traffic_predictor.js",
+      "referenced": "../../../services/ai_service_client"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\traffic\\traffic_predictor.js",
+      "referenced": "../../../services/traffic_ai_service"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\waste\\waste_predictor.js",
+      "referenced": "../../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\predictions\\waste\\waste_predictor.js",
+      "referenced": "../../../services/waste_ai_service"
+    },
+    {
+      "sourceFile": "backend\\ai\\recommendations\\hospital_recommender.js",
+      "referenced": "../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\recommendations\\parking_recommender.js",
+      "referenced": "../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\tools\\smartcity_tools.js",
+      "referenced": "../../config/db"
+    },
+    {
+      "sourceFile": "backend\\ai\\tools\\smartcity_tools.js",
+      "referenced": "../../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\tools\\smartcity_tools.js",
+      "referenced": "../../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\tools\\smartcity_tools.js",
+      "referenced": "../../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\tools\\smartcity_tools.js",
+      "referenced": "../../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\tools\\smartcity_tools.js",
+      "referenced": "../../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\ai\\tourist\\tourist_guide.js",
+      "referenced": "../../config/db"
+    },
+    {
+      "sourceFile": "backend\\config\\db.js",
+      "referenced": "./env.config"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../services/ai_orchestrator"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../services/model_monitoring_service"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../models/ai.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/predictions/traffic/traffic_predictor"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/predictions/waste/waste_predictor"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/predictions/aqi/aqi_predictor"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/recommendations/parking_recommender"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/recommendations/hospital_recommender"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/tourist/tourist_guide"
+    },
+    {
+      "sourceFile": "backend\\controllers\\ai.controller.js",
+      "referenced": "../ai/tourist/tourist_guide"
+    },
+    {
+      "sourceFile": "backend\\controllers\\auth.controller.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\controllers\\auth.controller.js",
+      "referenced": "../models/user.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\auth.controller.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\controllers\\auth.controller.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\controllers\\auth.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\clinical_care_assistant_controller.js",
+      "referenced": "../services/clinical_care_assistant_service"
+    },
+    {
+      "sourceFile": "backend\\controllers\\emergency.controller.js",
+      "referenced": "../models/emergency.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\emergency.controller.js",
+      "referenced": "../models/traffic.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\emergency.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\hospital.controller.js",
+      "referenced": "../models/hospital.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\hospital.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\parking.controller.js",
+      "referenced": "../models/parking.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\parking.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\police.controller.js",
+      "referenced": "../models/police.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\police.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\traffic.controller.js",
+      "referenced": "../models/traffic.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\traffic.controller.js",
+      "referenced": "../services/traffic_engine"
+    },
+    {
+      "sourceFile": "backend\\controllers\\traffic.controller.js",
+      "referenced": "../services/traffic_ai_service"
+    },
+    {
+      "sourceFile": "backend\\controllers\\traffic.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\waste.controller.js",
+      "referenced": "../models/waste.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\waste.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\controllers\\water.controller.js",
+      "referenced": "../models/water.model"
+    },
+    {
+      "sourceFile": "backend\\controllers\\water.controller.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\database\\hospital_management_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\master_expansion_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\master_expansion_migration.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\database\\migrate_complete_bed_system.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\migrate_hospital_admin_system.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\migrate_parking_slots.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\migration_billing_logo_v2.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\patch_enhancements_db.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\police_enhancement_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\run_20260929_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\run_phase2_to_6_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\run_phase7_to_11_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\view_data.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\water_digital_twin_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\water_intelligence_migration.js",
+      "referenced": "./sewage_planner_migration"
+    },
+    {
+      "sourceFile": "backend\\database\\water_network_usability_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\water_road_dual_pipelines_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\database\\water_sectors_and_rbac_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\middleware\\auth.middleware.js",
+      "referenced": "../config/env.config"
+    },
+    {
+      "sourceFile": "backend\\migrations\\doctor_password_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\migrations\\doctor_password_migration.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\migrations\\migrate_cctv_camera_columns.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\migrations\\waste_migration.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\ai.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\emergency.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\hospital.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\hospital.model.js",
+      "referenced": "../services/hospital_bed_service"
+    },
+    {
+      "sourceFile": "backend\\models\\parking.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\police.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\traffic.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\user.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\waste.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\models\\water.model.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\admin.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\admin.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\admin.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\admin.routes.js",
+      "referenced": "../services/python_ai_bridge"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/ai_service_client"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/ai_orchestrator"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/traffic_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/cv_anpr_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/grievance_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/waste_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/water_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/healthcare_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/hospital_bed_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/parking_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/environment_disaster_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/command_center_simulation_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/model_monitoring_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../services/python_ai_bridge"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../controllers/ai.controller"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../controllers/ai.controller"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../controllers/ai.controller"
+    },
+    {
+      "sourceFile": "backend\\routes\\ai.routes.js",
+      "referenced": "../controllers/ai.controller"
+    },
+    {
+      "sourceFile": "backend\\routes\\ambulance.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\ambulance.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\analytics.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\appointment.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\appointment.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\auth.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\auth.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\auth.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\auth.routes.js",
+      "referenced": "../services/otp_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\city.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\clinical_care_assistant.routes.js",
+      "referenced": "../controllers/clinical_care_assistant_controller"
+    },
+    {
+      "sourceFile": "backend\\routes\\clinical_care_assistant.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\diagnostics.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\diagnostics.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\doctor.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\doctor.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\emergency.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\emergency.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\emergency.routes.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\routes\\emergency.routes.js",
+      "referenced": "../controllers/emergency.controller"
+    },
+    {
+      "sourceFile": "backend\\routes\\environment.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\environment.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\environment.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\famous_places.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\famous_places.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\famous_places.routes.js",
+      "referenced": "../services/ai_engine"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital.routes.js",
+      "referenced": "../services/hospital_bed_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital.routes.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital_config.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital_config.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital_config.routes.js",
+      "referenced": "../services/hospital_bed_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\hospital_config.routes.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\routes\\map.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\notifications.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\notifications.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\parking.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\parking.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\parking.routes.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\routes\\parking.routes.js",
+      "referenced": "../validators/parking.validator"
+    },
+    {
+      "sourceFile": "backend\\routes\\patient.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\patient.routes.js",
+      "referenced": "../middleware/upload.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\patient.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\pharmacy.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\pharmacy.routes.js",
+      "referenced": "../middleware/upload.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\pharmacy.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\police.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\police.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\requests.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\requests.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\requests.routes.js",
+      "referenced": "../services/priority_engine"
+    },
+    {
+      "sourceFile": "backend\\routes\\requests.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\search.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\search.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\street_lights.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\street_lights.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\street_lights.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\traffic.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\traffic.routes.js",
+      "referenced": "../services/traffic_engine"
+    },
+    {
+      "sourceFile": "backend\\routes\\traffic.routes.js",
+      "referenced": "../services/ambulance_simulator"
+    },
+    {
+      "sourceFile": "backend\\routes\\traffic.routes.js",
+      "referenced": "../services/ai_service_client"
+    },
+    {
+      "sourceFile": "backend\\routes\\traffic.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\waste.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\waste.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\waste.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\waste.routes.js",
+      "referenced": "../services/waste_ai_service"
+    },
+    {
+      "sourceFile": "backend\\routes\\waste.routes.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\routes\\water.routes.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\routes\\water.routes.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\routes\\water.routes.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\routes\\water.routes.js",
+      "referenced": "../services/audit_logger"
+    },
+    {
+      "sourceFile": "backend\\routes\\water.routes.js",
+      "referenced": "../services/water_intelligence_service"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./config/env.config"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./config/db"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/city.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/auth.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/patient.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/appointment.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/doctor.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/hospital.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/hospital_config.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/diagnostics.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/ambulance.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/emergency.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/pharmacy.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/waste.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/parking.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/water.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/police.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/ai.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/famous_places.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/traffic.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/requests.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/notifications.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/street_lights.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/environment.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/admin.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/search.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/map.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/analytics.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./routes/clinical_care_assistant.routes"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./services/traffic_engine"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./services/sla_engine"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./middleware/error.middleware"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./middleware/security.middleware"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./middleware/validation.middleware"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./sockets/index"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./services/ambulance_simulator"
+    },
+    {
+      "sourceFile": "backend\\server.js",
+      "referenced": "./package.json"
+    },
+    {
+      "sourceFile": "backend\\services\\ai_engine.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\ai_orchestrator.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\ai_orchestrator.js",
+      "referenced": "./grounded_tools"
+    },
+    {
+      "sourceFile": "backend\\services\\ai_orchestrator.js",
+      "referenced": "./ai_service_client"
+    },
+    {
+      "sourceFile": "backend\\services\\ambulance_simulator.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\ambulance_simulator.js",
+      "referenced": "../sockets/index"
+    },
+    {
+      "sourceFile": "backend\\services\\ambulance_simulator.js",
+      "referenced": "./traffic_engine"
+    },
+    {
+      "sourceFile": "backend\\services\\audit_logger.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\clinical_care_assistant_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\clinical_care_assistant_service.js",
+      "referenced": "./clinical_safety_privacy_engine"
+    },
+    {
+      "sourceFile": "backend\\services\\clinical_care_assistant_service.js",
+      "referenced": "./clinical_tools_engine"
+    },
+    {
+      "sourceFile": "backend\\services\\clinical_care_assistant_service.js",
+      "referenced": "./medical_web_research_engine"
+    },
+    {
+      "sourceFile": "backend\\services\\clinical_tools_engine.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\clinical_tools_engine.js",
+      "referenced": "./clinical_safety_privacy_engine"
+    },
+    {
+      "sourceFile": "backend\\services\\command_center_simulation_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\cv_anpr_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\environment_disaster_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\grievance_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\grounded_tools.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\healthcare_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\hospital_bed_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\model_monitoring_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\otp_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\parking_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\python_ai_bridge.js",
+      "referenced": "./ai_service_client"
+    },
+    {
+      "sourceFile": "backend\\services\\sla_engine.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\traffic_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\traffic_engine.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\waste_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\water_ai_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\water_intelligence_service.js",
+      "referenced": "../config/db"
+    },
+    {
+      "sourceFile": "backend\\services\\water_intelligence_service.js",
+      "referenced": "./audit_logger"
+    },
+    {
+      "sourceFile": "backend\\sockets\\index.js",
+      "referenced": "../config/env.config"
+    },
+    {
+      "sourceFile": "backend\\sockets\\index.js",
+      "referenced": "../middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\test_all_traffic_enhancements.js",
+      "referenced": "./services/traffic_engine"
+    },
+    {
+      "sourceFile": "backend\\test_all_traffic_enhancements.js",
+      "referenced": "./config/db"
+    },
+    {
+      "sourceFile": "backend\\test_phase2_otp_and_auth.js",
+      "referenced": "./config/db"
+    },
+    {
+      "sourceFile": "backend\\test_phase2_otp_and_auth.js",
+      "referenced": "./services/otp_service"
+    },
+    {
+      "sourceFile": "backend\\test_phase2_otp_and_auth.js",
+      "referenced": "./middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\test_phase3_and_waste_security.js",
+      "referenced": "./config/db"
+    },
+    {
+      "sourceFile": "backend\\test_phase3_and_waste_security.js",
+      "referenced": "./middleware/auth.middleware"
+    },
+    {
+      "sourceFile": "backend\\test_phase3_and_waste_security.js",
+      "referenced": "./services/waste_ai_service"
+    },
+    {
+      "sourceFile": "backend\\test_phase3_and_waste_security.js",
+      "referenced": "./services/ai_service_client"
+    },
+    {
+      "sourceFile": "backend\\validators\\auth.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\emergency.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\hospital.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\parking.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\police.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\traffic.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\waste.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "sourceFile": "backend\\validators\\water.validator.js",
+      "referenced": "../utils/response"
+    },
+    {
+      "file": ".env.example",
+      "context": "Root Environment Example"
+    },
+    {
+      "file": "backend/.env.example",
+      "context": "Backend Environment Example"
+    },
+    {
+      "file": "ai_service/.env.example",
+      "context": "AI Service Environment Example"
+    },
+    {
+      "file": "docker.env.example",
+      "context": "Docker Environment Example"
+    }
+  ]
+}

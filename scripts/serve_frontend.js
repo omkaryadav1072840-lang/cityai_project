@@ -25,7 +25,9 @@ const MIME_TYPES = {
     '.ico': 'image/x-icon',
     '.woff': 'font/woff',
     '.woff2': 'font/woff2',
-    '.ttf': 'font/ttf'
+    '.ttf': 'font/ttf',
+    '.gltf': 'model/gltf+json',
+    '.bin': 'application/octet-stream'
 };
 
 function proxyRequest(req, res, targetUrl) {
@@ -62,6 +64,9 @@ const server = http.createServer((req, res) => {
 
     // 2. Serve static frontend files
     let reqPath = decodeURIComponent(new URL(req.url, `http://localhost:${PORT}`).pathname);
+    if (reqPath.startsWith('/frontend/')) {
+        reqPath = reqPath.slice(9);
+    }
     if (reqPath === '/' || reqPath === '') {
         reqPath = '/index.html';
     } else if (reqPath === '/privacy-policy') {

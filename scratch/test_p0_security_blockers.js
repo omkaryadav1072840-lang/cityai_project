@@ -94,7 +94,7 @@ async function runP0Tests() {
             path: "/api/login",
             method: "POST",
             headers: { "Content-Type": "application/json" }
-        }, { loginId: "6306880179", password: "omkar123" });
+        }, { loginId: "6306880179", password: "password123" });
 
         assert(citRes.status === 200 && citRes.data.token, "Citizen logged in successfully and received JWT token.");
         citizenToken = citRes.data.token;

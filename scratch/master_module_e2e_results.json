@@ -1,0 +1,244 @@
+[
+  {
+    "module": "1. Homepage & Civic Intelligence Portal",
+    "url": "http://localhost:5000/index.html",
+    "passed": true,
+    "selectors": {
+      "#hero": true,
+      "#navBrandLogo": true,
+      "#navUserHeaderContainer": true,
+      "#map": true,
+      ".sc-platform-hero": true
+    },
+    "interactiveResult": {
+      "grievanceModalOpen": false,
+      "title": "SmartCity AI — Integrated Urban Operations & Citizen Platform"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_1_screenshot.png"
+  },
+  {
+    "module": "2. Smart Traffic Management & Signals",
+    "url": "http://localhost:5000/pages/traffic/traffic.html",
+    "passed": true,
+    "selectors": {
+      ".traffic-hero": true,
+      "#trafficMap": false,
+      "#navUserName": true
+    },
+    "interactiveResult": {
+      "tabsFound": 3,
+      "title": "Live Traffic & Navigation Grid | SmartCity AI Gorakhpur"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_2_screenshot.png"
+  },
+  {
+    "module": "3. Smart Parking & Bay Booking",
+    "url": "http://localhost:5000/pages/parking/parking.html",
+    "passed": true,
+    "selectors": {
+      ".parking-hero": true,
+      "#parkingMapContainer": false,
+      "#userBadgeBtn": true
+    },
+    "interactiveResult": {
+      "hasSearch": true,
+      "title": "Smart Parking & EV Reservations | SmartCity AI Gorakhpur"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_3_screenshot.png"
+  },
+  {
+    "module": "4. Hospital & Bed Occupancy (Citizen OPD)",
+    "url": "http://localhost:5000/pages/hospital/hospital.html",
+    "passed": true,
+    "selectors": {
+      ".hospital-hero": true,
+      "#hospitalMap": false,
+      ".hospital-navbar": true
+    },
+    "interactiveResult": {
+      "doctorCardsCount": 0,
+      "bookBtnsCount": 0,
+      "title": "Healthcare & Hospitals | SmartCity AI Gorakhpur"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_4_screenshot.png"
+  },
+  {
+    "module": "5. Doctor Clinical EHR & Consultations",
+    "url": "http://localhost:5000/pages/hospital/doctor_dashboard.html?hospital_id=HOSP-001",
+    "passed": true,
+    "selectors": {
+      ".doctor-dashboard-container": false,
+      "#doctorHeaderName": false,
+      "#appointmentQueueList": false
+    },
+    "interactiveResult": {
+      "headerName": null,
+      "title": "Doctor Portal & Clinical Console | SmartCity AI"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_5_screenshot.png"
+  },
+  {
+    "module": "6. Hospital Desk Operations & Bed Management",
+    "url": "http://localhost:5000/pages/hospital/hospital_dashboard.html?hospital_id=HOSP-001",
+    "passed": true,
+    "selectors": {
+      "#hospitalTitle": false,
+      "#bedManagementSection": false,
+      "#receptionQueueTable": false
+    },
+    "interactiveResult": {
+      "title": "Hospital Management Dashboard | SmartCity AI",
+      "hospitalTitle": null
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_6_screenshot.png"
+  },
+  {
+    "module": "7. Super Admin Hospital Management Console",
+    "url": "http://localhost:5000/pages/hospital/superadmin_hospital.html",
+    "passed": true,
+    "selectors": {
+      ".admin-container": false,
+      "#hospitalsOverviewTable": false,
+      ".admin-nav": false
+    },
+    "interactiveResult": {
+      "title": "Super Admin — City Hospital Management | SmartCity Gorakhpur",
+      "tableExists": false
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_7_screenshot.png"
+  },
+  {
+    "module": "8. Water Supply Grid & 3D Digital Twin",
+    "url": "http://localhost:5000/pages/water/water.html",
+    "passed": true,
+    "selectors": {
+      ".water-hero": false,
+      "#waterMap": true,
+      "#water3DContainer": true,
+      "#tankerBookingSection": false
+    },
+    "interactiveResult": {
+      "has3DContainer": true,
+      "hasMap": true,
+      "title": "SmartCity AI - Water Management"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_8_screenshot.png"
+  },
+  {
+    "module": "9. Solid Waste Management & Bin Telemetry",
+    "url": "http://localhost:5000/pages/waste/waste.html",
+    "passed": true,
+    "selectors": {
+      ".waste-hero": false,
+      "#wasteMap": true,
+      "#wasteComplaintsTable": false
+    },
+    "interactiveResult": {
+      "hasMap": true,
+      "title": "SmartCity AI - Waste Management"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_9_screenshot.png"
+  },
+  {
+    "module": "10. Police Dispatch & Crime Geo-Analytics",
+    "url": "http://localhost:5000/pages/police/police.html",
+    "passed": true,
+    "selectors": {
+      ".police-hero": true,
+      "#policeMap": false,
+      "#pcrVanTable": false
+    },
+    "interactiveResult": {
+      "hasMap": false,
+      "title": "Police Management & Public Safety | SmartCity AI Gorakhpur"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_10_screenshot.png"
+  },
+  {
+    "module": "11. Emergency 112 / 108 SOS Dispatch",
+    "url": "http://localhost:5000/pages/emergency/emergency.html",
+    "passed": true,
+    "selectors": {
+      ".emergency-hero": false,
+      "#emergencyMap": true,
+      "#sosTriggerBtn": false
+    },
+    "interactiveResult": {
+      "sosBtnFound": false,
+      "title": "Emergency SOS & Live Ambulance Dispatch | SmartCity AI Gorakhpur"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_11_screenshot.png"
+  },
+  {
+    "module": "12. Famous Places, Tourism & Ramgarh Taal",
+    "url": "http://localhost:5000/pages/famous/famous.html",
+    "passed": true,
+    "selectors": {
+      ".famous-hero": false,
+      "#placesMap": false,
+      "#aqiWidgetContainer": false
+    },
+    "interactiveResult": {
+      "hasPlacesMap": false,
+      "hasAqiWidget": false,
+      "title": "Smart Tourism & Heritage Explorer | Gorakhpur SmartCity AI"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_12_screenshot.png"
+  },
+  {
+    "module": "13. ICCC Central Super Admin Console",
+    "url": "http://localhost:5000/pages/admin/gkp_admin.html",
+    "passed": true,
+    "selectors": {
+      ".gkp-admin-shell": false,
+      "#gkpAdminHeader": false,
+      "#gkpSystemMetricsBar": false
+    },
+    "interactiveResult": {
+      "hasMetrics": false,
+      "title": "Gorakhpur ICCC Central Command & Super Admin Console — SmartCity AI"
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_13_screenshot.png"
+  },
+  {
+    "module": "14. Privacy Policy & Civic Legal Compliance",
+    "url": "http://localhost:5000/pages/privacy-policy.html",
+    "passed": true,
+    "selectors": {
+      ".legal-container, main, body": true
+    },
+    "interactiveResult": {
+      "title": "Privacy Policy | SmartCity AI - Gorakhpur Smart City Platform",
+      "contentLength": 6172
+    },
+    "exceptionsCount": 0,
+    "consoleErrorsCount": 0,
+    "screenshot": "module_14_screenshot.png"
+  }
+]

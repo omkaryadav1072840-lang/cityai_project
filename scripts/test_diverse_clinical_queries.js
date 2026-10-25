@@ -1,4 +1,4 @@
-const fetch = global.fetch || require("node-fetch");
+const fetch = typeof globalThis.fetch === "function" ? globalThis.fetch : fetch;
 
 async function testAllQueries() {
     console.log("🏥 Running Multi-Disease Clinical Reasoning Suite...\n");

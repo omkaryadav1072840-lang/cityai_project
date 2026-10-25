@@ -91,7 +91,7 @@ async function runAllTests() {
     console.log("\n--- TEST 3: Doctor Login & Scoped Access ---");
     const docRes = await request("/api/staff-login", {
         method: "POST",
-        body: JSON.stringify({ staffId: "DOC-101", password: "admin" })
+        body: JSON.stringify({ staffId: "DOC-101", password: "doctor123" })
     });
     if (docRes.ok && docRes.body.role === "doctor" && docRes.body.hospitalId === "HOSP-001") {
         docToken = docRes.body.token;
@@ -194,7 +194,7 @@ async function runAllTests() {
     console.log("\n--- TEST 9: Hospital Admin A (HOSP-001) Complete Management ---");
     const admARes = await request("/api/staff-login", {
         method: "POST",
-        body: JSON.stringify({ staffId: "STAFF-HOSP-ADMIN", password: "admin" })
+        body: JSON.stringify({ staffId: "STAFF-HOSP-ADMIN", password: "admin123" })
     });
     if (admARes.ok && admARes.body.accountType === "HOSPITAL_ADMIN" && admARes.body.hospitalId === "HOSP-001") {
         adminAToken = admARes.body.token;
@@ -306,7 +306,7 @@ async function runAllTests() {
     console.log("\n--- TEST 11: Super Admin System-Wide Authority ---");
     const superRes = await request("/api/staff-login", {
         method: "POST",
-        body: JSON.stringify({ staffId: "STAFF-001", password: "admin" })
+        body: JSON.stringify({ staffId: "STAFF-001", password: "admin123" })
     });
     if (superRes.ok && superRes.body.accountType === "SUPER_ADMIN") {
         superAdminToken = superRes.body.token;
