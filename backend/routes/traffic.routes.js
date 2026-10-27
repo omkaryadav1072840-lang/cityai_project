@@ -92,8 +92,8 @@ function requireStaffRole(req, res, next) {
  */
 function requireAdminRole(req, res, next) {
     requireStaffRole(req, res, () => {
-        const userRole = (req.staffUser?.role || req.user?.role || req.headers["x-user-role"] || req.body?.role || "").toLowerCase();
-        const staffId = String(req.staffUser?.staffId || req.user?.staffId || req.user?.staff_id || req.headers["x-staff-id"] || "").toUpperCase();
+        const userRole = (req.user?.role || req.staffUser?.role || "").toLowerCase();
+        const staffId = String(req.user?.staffId || req.user?.staff_id || req.staffUser?.staffId || "").toUpperCase();
         const isAdmin = userRole.includes("admin") || userRole.includes("super_admin") || staffId === "TR-ADMIN" || staffId === "STAFF-001";
         if (!isAdmin) {
             return res.status(403).json({
@@ -110,8 +110,8 @@ function requireAdminRole(req, res, next) {
  * Admins have citywide access. Assigned staff are strictly restricted to their designated junction.
  */
 function checkJunctionAuthority(req, junctionId) {
-    const userRole = (req.staffUser?.role || req.user?.role || req.headers["x-user-role"] || req.body?.role || "").toLowerCase();
-    const staffId = String(req.staffUser?.staffId || req.user?.staffId || req.user?.staff_id || req.headers["x-staff-id"] || "").toUpperCase();
+    const userRole = (req.user?.role || req.staffUser?.role || "").toLowerCase();
+    const staffId = String(req.user?.staffId || req.user?.staff_id || req.staffUser?.staffId || "").toUpperCase();
     const isAdmin = userRole.includes("admin") || userRole.includes("super_admin") || staffId === "TR-ADMIN" || staffId === "STAFF-001";
     if (isAdmin) {
         return { authorized: true };
@@ -905,6 +905,12 @@ router.put("/api/traffic/junctions/:id/signals", requireStaffRole, async (req, r
 // 1E. Manual Signal Override (Controller / Admin / Emergency Radar)
 const handleJunctionOverride = async (req, res) => {
     try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({
+                success: false,
+                error: "Authentication required: A valid JWT Bearer token is strictly required for traffic signal overrides."
+            });
+        }
         const id = req.params.id || req.body.junctionId || req.body.junction_id || 'GKP-JNC-001';
         const authCheck = checkJunctionAuthority(req, id);
         if (!authCheck.authorized) {

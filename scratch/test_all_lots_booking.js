@@ -29,7 +29,7 @@ async function testAllLots() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     slotNumber: targetSlot.slotNumber,
-                    vehicleNumber: "UP-53-AUDIT-01",
+                    vehicleNumber: "UP-53-AD-1001",
                     customerName: "Audit Test Citizen",
                     customerPhone: "9988112233",
                     durationHours: 2,

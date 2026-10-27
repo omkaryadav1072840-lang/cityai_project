@@ -709,23 +709,34 @@ router.post(["/api/parking/book", "/api/parking/:id/book"], optionalToken, (req,
                      VALUES (?, ?, ?, ?, NOW(), ?, ?, 'Active')`,
                     [bookingId, lot.parking_code, resolvedUserId, vehicleNumber, hours, totalAmount],
                     (bookErr) => {
-                        if (bookErr) console.error("Booking record error:", bookErr);
+                        if (bookErr) {
+                            console.error("Booking record error:", bookErr);
+                            db.query(
+                                `UPDATE parking_lots 
+                                 SET available_slots = available_slots + 1, 
+                                     occupied_slots = GREATEST(occupied_slots - 1, 0),
+                                     status = CASE WHEN status = 'FULL' THEN 'OPEN' ELSE status END
+                                 WHERE ${clause}`,
+                                [value]
+                            );
+                            return res.status(500).json({ success: false, message: "Failed to persist parking booking." });
+                        }
+
+                        res.status(201).json({
+                            success: true,
+                            message: "Parking slot booked successfully.",
+                            booking: {
+                                bookingId,
+                                lotId: lot.parking_code,
+                                lotName: lot.name,
+                                vehicleNumber,
+                                durationHours: hours,
+                                totalAmount,
+                                slotsRemainingAfter: lot.available_slots
+                            }
+                        });
                     }
                 );
-
-                res.status(201).json({
-                    success: true,
-                    message: "Parking slot booked successfully.",
-                    booking: {
-                        bookingId,
-                        lotId: lot.parking_code,
-                        lotName: lot.name,
-                        vehicleNumber,
-                        durationHours: hours,
-                        totalAmount,
-                        slotsRemainingAfter: lot.available_slots
-                    }
-                });
             }
         );
     });
