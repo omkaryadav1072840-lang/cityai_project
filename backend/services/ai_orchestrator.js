@@ -12,6 +12,7 @@ const crypto = require("crypto");
 const pool = require("../config/db").promise();
 const groundedTools = require("./grounded_tools");
 const aiClient = require("./ai_service_client");
+const llmClient = require("./llm_client");
 
 class AIOrchestrator {
     constructor() {
@@ -107,7 +108,7 @@ class AIOrchestrator {
         }
 
         // 8. Solid Waste & Sanitation (Excludes wastewater)
-        if ((q.includes("waste") && !q.includes("wastewater")) || q.includes("garbage") || q.includes("कचरा") || q.includes("कूड़ा") || q.includes("safai") || q.includes("dustbin")) {
+        if ((q.includes("waste") && !q.includes("wastewater")) || q.includes("garbage") || q.includes("kachra") || q.includes("kachre") || q.includes("kuda") || q.includes("safayi") || q.includes("कचरा") || q.includes("कूड़ा") || q.includes("safai") || q.includes("dustbin")) {
             return { tool: "get_waste_status", module: "waste", intent: "waste_management" };
         }
 
@@ -550,42 +551,27 @@ class AIOrchestrator {
         // 3. Response Synthesis (Local Deterministic Grounded)
         const synthesized = this.synthesizeResponse(intentObj, toolExecution.result, text);
 
-        // 4. Check if Gemini 1.5 Flash is configured and enrich if possible
+        // 4. Grounded LLM Enrichment (via resilient LLM Client with timeouts, retries, jitter, and zero PII leakage)
         let finalReply = synthesized.reply;
         let aiModelName = "grounded-local-orchestrator-v2.0";
 
-        if (this.geminiKey) {
-            try {
-                // Grounded prompt with database facts injected
-                const prompt = `You are the bilingual AI Assistant for SmartCity Gorakhpur.
+        if (llmClient.isConfigured()) {
+            const systemPrompt = `You are the official bilingual AI Assistant for SmartCity Gorakhpur.
 Ground your response ONLY on these verified facts from the live MySQL database:
 ${JSON.stringify(toolExecution.result)}
-
-User question: "${text}"
 Rules:
 - Be polite, concise, professional, and clear.
 - Support English and Hindi seamlessly.
 - DO NOT invent facts not present in the verified database facts.`;
 
-                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent?key=${this.geminiKey}`;
-                const geminiRes = await fetch(geminiUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
-                });
+            const llmRes = await llmClient.generateGroundedContent({
+                systemPrompt,
+                userPrompt: text
+            });
 
-                if (geminiRes.ok) {
-                    const geminiData = await geminiRes.json();
-                    const candidateText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (candidateText) {
-                        finalReply = candidateText.trim();
-                        aiModelName = `gemini-1.5-flash-grounded`;
-                    }
-                }
-            } catch (llmErr) {
-                console.warn("[Gemini Grounding] Fallback to deterministic synthesis:", llmErr.message);
+            if (llmRes.success && llmRes.reply) {
+                finalReply = llmRes.reply.trim();
+                aiModelName = `${llmClient.model}-grounded`;
             }
         }
 
@@ -646,6 +632,9 @@ Rules:
             module: intentObj.module,
             tool_called: intentObj.tool,
             data_source: toolExecution.result.data_source || "REAL",
+            freshness: "LIVE_TRANSACTIONAL",
+            freshness_timestamp: new Date().toISOString(),
+            source_system: "MySQL Live Replica",
             model_name: aiModelName,
             model_version: "2.0.0",
             confidence: confidenceScore,

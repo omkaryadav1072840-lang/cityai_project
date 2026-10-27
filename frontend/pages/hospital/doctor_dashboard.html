@@ -187,20 +187,37 @@
         </div>
 
         <div class="prescription-paper" id="printablePrescriptionArea" style="background: white; border: 2px solid #0284c7; border-radius: 8px; padding: 24px; color: #0f172a; font-family: system-ui, -apple-system, sans-serif;">
-            <!-- HOSPITAL LETTERHEAD HEADER -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 16px;">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <img id="rxHospLogo" src="" alt="Hospital Logo" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid #cbd5e1;">
+            <!-- HOSPITAL & SMART CITY LETTERHEAD HEADER -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 16px; gap: 16px;">
+                <!-- ONE SIDE (LEFT): HOSPITAL LOGO & HOSPITAL IDENTITY -->
+                <div style="display: flex; align-items: center; gap: 14px; flex: 1;">
+                    <img id="rxHospLogo" src="" alt="Hospital Logo" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: #f8fafc;">
                     <div>
-                        <h2 id="rxHospName" style="margin: 0 0 4px; font-size: 22px; color: #0369a1; font-weight: 800;">HOSPITAL NAME</h2>
+                        <h2 id="rxHospName" style="margin: 0 0 4px; font-size: 20px; color: #0369a1; font-weight: 800; line-height: 1.2;">HOSPITAL NAME</h2>
                         <div id="rxHospAddress" style="font-size: 11px; color: #64748b;">Gorakhpur, Uttar Pradesh</div>
                         <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;" id="rxHospAccreditation">NABH Accredited • Ayushman Bharat Verified</div>
                     </div>
                 </div>
-                <div style="text-align: right;">
-                    <span style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">OFFICIAL OPD DOSSIER</span>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Helpline: <strong id="rxHospPhone">102</strong></div>
-                    <div style="font-size: 10px; color: #94a3b8; font-family: monospace;" id="rxDocId">RX-2026-0001</div>
+
+                <!-- OTHER SIDE (RIGHT): SMART CITY LOGO & AUTHORITY SEAL -->
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                    <div>
+                        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; display: inline-block;">GORAKHPUR SMART CITY</span>
+                        <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-top: 2px;">Helpline: <strong id="rxHospPhone">102</strong></div>
+                        <div style="font-size: 10px; color: #94a3b8; font-family: monospace;" id="rxDocId">RX-2026-0001</div>
+                    </div>
+                    <img id="rxSmartCityLogo" src="/favicon.svg" alt="SmartCity Logo" style="width: 52px; height: 52px; border-radius: 8px; object-fit: contain; border: 1.5px solid #bfdbfe; padding: 2px; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                </div>
+            </div>
+
+            <!-- IN THE MIDDLE: DOCTOR'S SYMPTOMS & CHIEF COMPLAINTS -->
+            <div style="margin-bottom: 16px; padding: 12px 16px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%); border: 1.5px solid #86efac; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="font-size: 16px;">🩺</span>
+                    <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #166534;">Patient Symptoms &amp; Chief Complaints (Recorded by Doctor):</strong>
+                </div>
+                <div style="font-size: 13.5px; font-weight: 600; color: #0f172a; padding-left: 24px; line-height: 1.5;" id="rxSymptoms">
+                    --
                 </div>
             </div>
 
@@ -220,11 +237,10 @@
                 </div>
             </div>
 
-            <!-- CLINICAL DIAGNOSIS & SYMPTOMS -->
+            <!-- CLINICAL DIAGNOSIS -->
             <div style="margin-bottom: 16px; padding: 10px 14px; background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
-                <div style="font-size: 12px; font-weight: 700; color: #1e40af;">Clinical Diagnosis &amp; Symptoms:</div>
-                <div style="font-size: 13px; color: #1e293b; margin-top: 4px;" id="rxDiagnosis">Normal Consultation</div>
-                <div style="font-size: 11px; color: #475569; margin-top: 2px;" id="rxSymptoms">--</div>
+                <div style="font-size: 12px; font-weight: 700; color: #1e40af;">Clinical Diagnosis:</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin-top: 4px;" id="rxDiagnosis">Normal Consultation</div>
             </div>
 
             <!-- MEDICATIONS TABLE (Rx) -->

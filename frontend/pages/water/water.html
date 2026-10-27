@@ -15,6 +15,8 @@
 
     <!-- Leaflet Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Auth Helpers -->
+    <script src="../../js/auth-helpers.js"></script>
 </head>
 
 <body>
@@ -24,8 +26,9 @@
 ===================================================== -->
 <header class="navbar">
 
-    <a href="../../index.html" class="logo" style="text-decoration:none; color:inherit;">
-        Smart<span>City AI</span>
+    <a href="../../index.html" class="logo" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
+        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+        <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
     </a>
 
     <div class="page-title">
@@ -2263,7 +2266,7 @@
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
                             <label style="font-size: 12px; font-weight: 600; color: #475569;">Pipeline Classification *</label>
-                            <select id="sewageNetworkType" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                            <select id="sewagePipelineClassification" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
                                 <option value="SEWAGE" selected>Sewage / Gravity Wastewater Trunk</option>
                                 <option value="POTABLE">Fresh Water / Potable Supply (Sky Blue)</option>
                                 <option value="RAINWATER">Rainwater / Stormwater Drainage (Sky Blue)</option>
@@ -2331,6 +2334,7 @@
                             <select id="sewageNetworkType" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600;">
                                 <option value="SEWAGE" selected>🟤 SEWAGE (Sanitary Trunk)</option>
                                 <option value="POTABLE_WATER">🔵 POTABLE_WATER (Drinking Supply)</option>
+                                <option value="POTABLE">🔵 POTABLE (Fresh Water Supply)</option>
                                 <option value="RECLAIMED_WATER">🟣 RECLAIMED_WATER (Recycled)</option>
                                 <option value="STORMWATER">🟢 STORMWATER (Drainage Channel)</option>
                             </select>

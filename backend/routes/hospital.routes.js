@@ -1674,12 +1674,14 @@ router.get("/api/hospitals/:hospitalId/invoices", optionalToken, async (req, res
 
     try {
         let sql = `
-            SELECT id, invoice_id, hospital_id, patient_id, patient_name, service_type, service_reference_id,
-                   total_amount, discount, paid_amount,
-                   GREATEST(0, total_amount - discount - paid_amount) AS remaining_amount,
-                   payment_method, payment_status, billed_by, created_at
-            FROM hospital_invoices 
-            WHERE hospital_id = ?
+            SELECT i.id, i.invoice_id, i.hospital_id, i.patient_id, i.patient_name, i.service_type, i.service_reference_id,
+                   i.total_amount, i.discount, i.paid_amount,
+                   GREATEST(0, i.total_amount - i.discount - i.paid_amount) AS remaining_amount,
+                   i.payment_method, i.payment_status, i.billed_by, i.created_at,
+                   h.hospital_name, h.logo AS hospital_logo, h.address AS hospital_address, h.phone AS hospital_phone
+            FROM hospital_invoices i
+            LEFT JOIN hospitals h ON (i.hospital_id = h.hospital_id OR i.hospital_id = CAST(h.id AS CHAR))
+            WHERE i.hospital_id = ?
         `;
         const params = [hospitalId];
 

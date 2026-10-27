@@ -140,3 +140,40 @@ def test_assistant_chat_grounded():
     assert len(data["reply"]) > 0
     assert data["intent"] == "hospital_discovery"
     assert data["tool_called"] == "find_hospitals"
+
+def test_clinical_intent_emergency_triage():
+    payload = {
+        "query": "Patient has crushing chest pain radiating to left arm with cold sweats",
+        "language": "en"
+    }
+    response = client.post("/api/v1/healthcare/clinical-intent", json=payload, headers=AUTH_HEADER)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["intent"] == "EMERGENCY"
+    assert data["is_emergency"] is True
+    assert data["safety_tier_invoked"] == "TIER_0_DETERMINISTIC_EMERGENCY"
+
+def test_clinical_intent_dosage_alteration_blocking():
+    payload = {
+        "query": "Can I double my dosage of Metformin from 500mg to 1000mg?",
+        "language": "en"
+    }
+    response = client.post("/api/v1/healthcare/clinical-intent", json=payload, headers=AUTH_HEADER)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["intent"] == "DOSAGE_ALTERATION"
+    assert data["requires_doctor_handoff"] is True
+    assert data["safety_tier_invoked"] == "TIER_0_DETERMINISTIC_DOSAGE_ALTERATION"
+
+def test_clinical_intent_prescription_explanation():
+    payload = {
+        "query": "Please explain my prescription and what each medicine is for",
+        "language": "en"
+    }
+    response = client.post("/api/v1/healthcare/clinical-intent", json=payload, headers=AUTH_HEADER)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["is_emergency"] is False
+    assert "intent" in data
+    assert data["confidence"] > 0.0
+

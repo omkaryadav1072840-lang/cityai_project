@@ -1,0 +1,155 @@
+[
+  {
+    "text": "BP ki goli badha lu kya dard kam karne ke liye?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Abscess ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000004",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Anal Disorders ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000031",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Addison Disease ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000011",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Chhooti hui goli ke badle do goli ek sath khaa lu?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Dry persistent cough with throat irritation especially at night",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Consult an orthopedic specialist for knee and joint pain",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Air Pollution",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000019",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "High BP me namak aur kya kya cheez ka parhez karna chahiye?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Achanak behosh ho kar gir gaye hain hosh nahi aa raha",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Foods that help increase blood platelets in dengue fever",
+    "intent": "DIET_NUTRITION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Feeling sick since yesterday morning",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Acute Myeloid Leukemia ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000010",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Angina ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000037",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Sudden facial drooping, arm weakness, and slurred speech",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Mark my morning Metformin pill as taken",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can you explain why the doctor gave me Metformin?",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "My urine routine report shows pus cells 10 to 12",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Severe joint pain with high fever suspected dengue",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Subah se dast aur ulti ho rahi hai kamzori lag rahi hai",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Khansi me taja lal khoon nikal raha hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  }
+]

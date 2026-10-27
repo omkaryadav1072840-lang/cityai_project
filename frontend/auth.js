@@ -940,7 +940,6 @@ const SmartCityAuth = (() => {
             role === "gkp_admin" ||
             role === "gkpadmin" ||
             accountType === "super_admin" ||
-            staffId === "STAFF-001" ||
             (role === "admin" && (dept === "admin" || !dept || dept === "municipal" || dept.includes("iccc")))
         );
     }
@@ -1315,14 +1314,14 @@ const SmartCityAuth = (() => {
             <div class="sc-dialog-card sc-card-wide" role="dialog" aria-modal="true">
                 <!-- Header -->
                 <div class="sc-dialog-header">
-                    <div class="sc-header-title-wrap">
-                        <div class="sc-header-icon-box">🏛️</div>
+<div class="sc-header-title-wrap">
+                        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 44px; width: auto; border-radius: 14px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px;">
                         <div>
                             <h2 class="sc-header-title">
                                 <span>Official Digital Identity Dossier</span>
                                 <span class="sc-badge sc-badge-verified">✓ ACTIVE KYC</span>
                             </h2>
-                            <p class="sc-header-subtitle">Gorakhpur Smart City Municipal Authority • Citizen &amp; Official Registry</p>
+                            <p class="sc-header-subtitle">Gorakhpur Smart City Municipal Authority • Citizen & Official Registry</p>
                         </div>
                     </div>
                     <button type="button" class="sc-close-btn" id="scProfileCloseBtn">✕</button>
@@ -1916,11 +1915,11 @@ const SmartCityAuth = (() => {
             <div class="sc-dialog-card" role="dialog" aria-modal="true">
                 <!-- Header -->
                 <div class="sc-dialog-header">
-                    <div class="sc-header-title-wrap">
-                        <div class="sc-header-icon-box">🏛️</div>
+<div class="sc-header-title-wrap">
+                        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 44px; width: auto; border-radius: 14px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px;">
                         <div>
                             <h2 class="sc-header-title">SmartCity AI Portal Access</h2>
-                            <p class="sc-header-subtitle">Unified Digital Municipal Identity &amp; Command Services</p>
+                            <p class="sc-header-subtitle">Unified Digital Municipal Identity & Command Services</p>
                         </div>
                     </div>
                     <button type="button" class="sc-close-btn" id="scModalCloseBtn">✕</button>
@@ -2324,10 +2323,10 @@ const SmartCityAuth = (() => {
             <div class="sc-dialog-card sc-card-wide" role="dialog" aria-modal="true">
                 <!-- Header -->
                 <div class="sc-dialog-header">
-                    <div class="sc-header-title-wrap">
-                        <div class="sc-header-icon-box">📊</div>
+<div class="sc-header-title-wrap">
+                        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 44px; width: auto; border-radius: 14px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px;">
                         <div>
-                            <h2 class="sc-header-title">Citizen Activity &amp; Live Service History</h2>
+                            <h2 class="sc-header-title">Citizen Activity & Live Service History</h2>
                             <p class="sc-header-subtitle">Real-time status of service requests, healthcare appointments, and parking passes</p>
                         </div>
                     </div>

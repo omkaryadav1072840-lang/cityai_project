@@ -121,6 +121,21 @@ class HospitalCapacityResponse(BaseModel):
     model_version: str
     safety_disclaimer: str = "Decision support only. Clinical admissions require authorized triage staff."
 
+class ClinicalIntentRequest(BaseModel):
+    query: str = Field(..., min_length=2, max_length=1000, description="Patient health or triage inquiry")
+    language: Optional[str] = Field("auto", description="Detected or requested language (en/hi/auto)")
+
+class ClinicalIntentResponse(BaseModel):
+    query: str
+    intent: str
+    confidence: float
+    is_emergency: bool
+    requires_doctor_handoff: bool
+    model_version: str
+    safety_tier_invoked: str
+    disclaimer: str = "Decision support only. Clinical advice requires a registered medical practitioner (NMC/ICMR)."
+
+
 
 # =========================================================
 # 6. EMERGENCY DISPATCH AI SCHEMAS

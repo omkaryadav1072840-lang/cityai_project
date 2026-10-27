@@ -21,6 +21,7 @@ const pool = require("../config/db").promise();
 const safetyEngine = require("./clinical_safety_privacy_engine");
 const ClinicalToolsEngine = require("./clinical_tools_engine");
 const MedicalWebResearchEngine = require("./medical_web_research_engine");
+const clinicalRagService = require("./clinical_rag_service");
 
 class ClinicalCareAssistantService {
     constructor() {
@@ -136,8 +137,12 @@ class ClinicalCareAssistantService {
             .replace(/\ballergies\b/g, "allergy");
 
         // 0. Prompt Injection / Safety Override Defense
+        const injectionCheckRaw = this.safetyEngine.detectPromptInjection(raw);
+        const injectionCheckQ = this.safetyEngine.detectPromptInjection(q);
         if (
+            injectionCheckRaw.isInjection || injectionCheckQ.isInjection ||
             q.includes("ignore all previous instructions") || q.includes("ignore previous instructions") ||
+            q.includes("ignore prior instructions") || q.includes("bypass safety") ||
             q.includes("system prompt") || q.includes("developer prompt") ||
             q.includes("show me another patient") || q.includes("other patient's") ||
             q.includes("show another patient") || q.includes("other patient") ||
@@ -157,7 +162,8 @@ class ClinicalCareAssistantService {
             ...this.commonEmergencyKeywords,
             "ambulance chahiye", "call ambulance", "108", "hospital emergency",
             "saans lene me bahut dikkat", "saans lene me dikkat", "saans phool rahi", "bahut tez dard", "seene me jalan",
-            "chhati me tez dard", "khoon nikal", "blood coughing", "bleeding profusely"
+            "chhati me tez dard", "khoon nikal", "blood coughing", "bleeding profusely",
+            "coughing up bright red blood", "coughing up blood", "blood in cough", "hemoptysis", "bright red blood"
         ];
         for (const kw of emergencyExtended) {
             if (q.includes(kw) || raw.includes(kw)) {
@@ -176,7 +182,7 @@ class ClinicalCareAssistantService {
         if (
             q.includes("real doctor") || q.includes("human doctor") || q.includes("human support") ||
             q.includes("ai se baat nahi karni") || q.includes("doctor se connect karo") ||
-            q.includes("doctor se connect") || q.includes("doctor se baat karni hai") ||
+            q.includes("doctor se connect") || q.includes("doctor se बात karni hai") ||
             q.includes("real dr") || raw.includes("real doctor") || raw.includes("ai se baat nahi karni")
         ) {
             return {
@@ -189,21 +195,25 @@ class ClinicalCareAssistantService {
         }
 
         // 1.3 Dosage Alteration Question Guardrail (Section 10)
-        const dosageCheck = this.safetyEngine.detectDosageAlteration(raw);
+        const dosageCheckRaw = this.safetyEngine.detectDosageAlteration(raw);
+        const dosageCheckQ = this.safetyEngine.detectDosageAlteration(q);
         if (
-            dosageCheck.isAlterationRequest ||
+            dosageCheckRaw.isAlterationRequest || dosageCheckQ.isAlterationRequest ||
             /\b(\d+|do|dono)\s*(tablet|tablets|goli|medicine|dawa)\s*(kar\s*du|kar\s*du\?|badha\s*du|double|le\s*lu|kha\s*lu)/i.test(raw) ||
             /\b(\d+|do|dono)\s*(tablet|tablets|goli|medicine|dawa)\s*(kar\s*du|kar\s*du\?|badha\s*du|double|le\s*lu|kha\s*lu)/i.test(q) ||
             /2\s*tablet\s*kar\s*du/i.test(raw) ||
             /2\s*medicine\s*kar\s*du/i.test(q) ||
             /\b(can\s*i\s*take|should\s*i\s*take)\s*(\d+)\s*(tablets?|doses?)/i.test(raw) ||
-            /\b(increase|double)\s*(my\s*)?(dose|dosage|tablets?)/i.test(raw)
+            /\b(increase|double)\s*(my\s*)?(dose|dosage|tablets?)/i.test(raw) ||
+            /dose\s*badha\s*(lu|du|sakta\s*hu)/i.test(raw) ||
+            /dose\s*badha/i.test(raw)
         ) {
             return {
-                intent: "DOSAGE_QUESTION",
-                intents: ["DOSAGE_QUESTION"],
+                intent: "DOSAGE_ALTERATION_ATTEMPT",
+                intents: ["DOSAGE_ALTERATION_ATTEMPT", "DOSAGE_QUESTION"],
                 category: "SAFETY",
                 entity: "DOSAGE_SAFETY_WARNING",
+                doctorHandoff: true,
                 normalizedMeaning: "Patient inquiring about modifying prescribed medicine dosage"
             };
         }
@@ -482,12 +492,13 @@ class ClinicalCareAssistantService {
         // 10. Prescription Explanation
         if (
             q.includes("kya medicine di") || q.includes("kya dawa di") || q.includes("prescription") ||
-            q.includes("parchi") || q.includes("parcha") || q.includes("parche") ||
-            q.includes("dawa samjhao") || q.includes("dawai samjhao") || q.includes("explain my prescription") ||
+            q.includes("dawa samjhao") || q.includes("dawai samjhao") || q.includes("medicine samjhao") ||
+            raw.includes("dawa samjhao") || raw.includes("dawai samjhao") || raw.includes("dava samjhao") ||
+            q.includes("explain my prescription") || q.includes("explain prescription") ||
             q.includes("my medicines") || q.includes("meri dawa") || q.includes("prescribed") ||
-            q.includes("explain prescription") || q.includes("dawa batao") || q.includes("show my prescription") ||
-            q.includes("medicine list") || q.includes("meri dawai") || q.includes("medicine di hai") ||
-            q.includes("medicine di hain") || q.includes("dawa di hai") || q.includes("dawa di hain") ||
+            q.includes("dawa batao") || q.includes("show my prescription") ||
+            q.includes("medicine list") || q.includes("meri dawai") || q.includes("meri medicine") ||
+            q.includes("medicine di hai") || q.includes("medicine di hain") || q.includes("dawa di hai") ||
             q.includes("dawa di h") || q.includes("medicine di h") || q.includes("medicines di") ||
             q.includes("kisliye") || q.includes("kis kaam") || raw.includes("kisliye") || raw.includes("kis kaam") ||
             raw.includes("ye tablet") || raw.includes("ye goli") || raw.includes("ye dawa")
@@ -635,6 +646,29 @@ class ClinicalCareAssistantService {
             };
         }
 
+        // Ambiguous Medical Query (e.g. "kuch theek nahi lag raha", "tabiyat kharab hai", "problem ho rahi hai" without specific symptoms)
+        const ambiguousPhrases = [
+            "kuch theek nahi", "theek nahi lag raha", "theek nahi lag rha", "theek nahi h", "theek nahi hai",
+            "tabiyat kharab", "tabiyat theek nahi", "halat kharab", "halat theek nahi",
+            "not feeling well", "feeling sick", "unwell", "bimar lag raha",
+            "problem ho rahi hai", "problem hai", "dikkat ho rahi hai", "dikkat hai", "pareshani ho rahi hai",
+            "kuch samajh nahi", "kya karu", "kya kare", "kya kru", "kya karun",
+            "kuch samajh nahi aa raha", "help me doctor", "mujhe achha nahi lag raha",
+            "feel sick", "feeling ill"
+        ];
+        if (ambiguousPhrases.some(ap => q.includes(ap) || raw.includes(ap))) {
+            // Only trigger ambiguous clarification if no specific organ/symptom is mentioned
+            const hasSpecificSymptom = /bukhar|fever|dard|pain|cough|khansi|vomit|ulti|loose motion|dast|rash|swelling|jalan|burning/i.test(q);
+            if (!hasSpecificSymptom) {
+                return {
+                    intent: "AMBIGUOUS_MEDICAL_QUERY",
+                    category: "CLARIFICATION_NEEDED",
+                    normalizedMeaning: "Unspecified health complaint requiring clarification",
+                    entity: "AMBIGUOUS_QUERY"
+                };
+            }
+        }
+
         for (const sk of symptomKeywords) {
             if (q.includes(sk)) {
                 let entity = "GENERAL_SYMPTOM";
@@ -694,23 +728,7 @@ class ClinicalCareAssistantService {
             return { intent: "PATIENT_RECORD" };
         }
 
-        // Ambiguous Medical Query (e.g. "kuch theek nahi lag raha", "tabiyat kharab hai", "kya karu" without symptoms)
-        const ambiguousPhrases = [
-            "kuch theek nahi", "theek nahi lag raha", "theek nahi lag rha", "theek nahi h", "theek nahi hai",
-            "tabiyat kharab", "tabiyat theek nahi", "halat kharab", "halat theek nahi",
-            "not feeling well", "feeling sick", "unwell", "bimar lag raha",
-            "kuch samajh nahi", "kya karu", "kya kare", "kya kru", "kya karun",
-            "kuch samajh nahi aa raha", "help me doctor", "mujhe achha nahi lag raha",
-            "feel sick", "feeling ill"
-        ];
-        if (ambiguousPhrases.some(ap => q.includes(ap) || raw.includes(ap))) {
-            return {
-                intent: "AMBIGUOUS_MEDICAL_QUERY",
-                category: "CLARIFICATION_NEEDED",
-                normalizedMeaning: "Unspecified health complaint requiring clarification",
-                entity: "AMBIGUOUS_QUERY"
-            };
-        }
+
 
         // Conversational Greeting
         if (/^(hi|hello|hey|namaste|namaskar|good morning|good evening|pranam)\b/i.test(raw.trim())) {
@@ -1845,10 +1863,13 @@ You can also use the calendar option below to book an immediate OPD appointment 
         // ---------------------------------------------------------
         // CASE 1.3: DOSAGE ALTERATION GUARDRAIL (Section 10)
         // ---------------------------------------------------------
-        if (intent === "DOSAGE_QUESTION") {
+        if (intent === "DOSAGE_QUESTION" || intent === "DOSAGE_ALTERATION_ATTEMPT") {
+            responsePayload.intent = "DOSAGE_ALTERATION_ATTEMPT";
             responsePayload.classification_tag = "Medication Safety Warning";
             responsePayload.safety_badge = "🛑 Do NOT Alter Dosage";
             responsePayload.confidence_status = "HIGH_CONFIDENCE";
+            responsePayload.doctor_handoff_recommended = true;
+            responsePayload.handoff = true;
             responsePayload.actions = [
                 {
                     action: "OPEN_PRESCRIPTION",
@@ -3509,6 +3530,19 @@ ${hospitals.length > 0
 
 7. 📊 **Symptom & Diet Tracking (लक्षण व आहार ट्रैकिंग):**
 • Monitor your recovery daily using the **'Track This Symptom & Diet'** tool on your dashboard.`;
+            }
+
+            // Evidence-Based RAG Guidelines Enrichment (ICMR / MoHFW / AIIMS)
+            const ragMatches = clinicalRagService.searchGuidelines(queryText, { topK: 2 });
+            if (ragMatches.length > 0) {
+                for (const m of ragMatches) {
+                    const tag = `${m.organization} (${m.year}): ${m.citation}`;
+                    if (!responsePayload.sources_used.includes(tag)) {
+                        responsePayload.sources_used.push(tag);
+                    }
+                }
+                const citationText = clinicalRagService.buildCitationBlock(ragMatches);
+                responsePayload.message += citationText;
             }
 
             responsePayload.medicine_card = {

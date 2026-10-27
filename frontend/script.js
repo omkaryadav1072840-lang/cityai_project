@@ -1736,7 +1736,12 @@ function createRoute(
                 L.Routing.osrmv1({
 
                     serviceUrl:
-                        "https://router.project-osrm.org/route/v1"
+                        "https://router.project-osrm.org/route/v1",
+
+                    // Request alternatives from OSRM - maximum supported by the engine
+                    alternatives: true,
+                    // OSRM supports up to 3 alternatives typically, but we request true to get all valid routes
+                    // The actual number returned depends on the road network and OSRM configuration
 
                 }),
 
@@ -1754,7 +1759,7 @@ function createRoute(
                 true,
 
             showAlternatives:
-                false,
+                true,
 
             createMarker:
                 () => null,
@@ -1762,20 +1767,33 @@ function createRoute(
             lineOptions: {
 
                 styles: [
-
+                    // Primary route (fastest)
                     {
-
-                        color:
-                            "#2563eb",
-
-                        weight:
-                            6,
-
-                        opacity:
-                            0.85
-
+                        color: "#2563eb",
+                        weight: 6,
+                        opacity: 0.9
+                    },
+                    // Alternative 1
+                    {
+                        color: "#10b981",
+                        weight: 5,
+                        opacity: 0.7,
+                        dashArray: "8,8"
+                    },
+                    // Alternative 2
+                    {
+                        color: "#f59e0b",
+                        weight: 5,
+                        opacity: 0.7,
+                        dashArray: "12,6"
+                    },
+                    // Alternative 3+
+                    {
+                        color: "#ef4444",
+                        weight: 5,
+                        opacity: 0.7,
+                        dashArray: "6,4,2,4"
                     }
-
                 ]
 
             },
@@ -1791,8 +1809,7 @@ function createRoute(
 
         .addTo(map);
 
-
-    routingControl.on(
+routingControl.on(
 
         "routesfound",
 
@@ -1808,77 +1825,14 @@ function createRoute(
             }
 
 
-            const route =
-                event.routes[0];
+            // Store all routes for selection
+            window.currentRoutes = event.routes;
 
+            // Render route legend with all alternatives
+            renderRouteLegend(event.routes, destinationName);
 
-            const distance =
-                (
-                    route.summary.totalDistance /
-                    1000
-                ).toFixed(2);
-
-
-            const minutes =
-                Math.max(
-
-                    1,
-
-                    Math.round(
-                        route.summary.totalTime /
-                        60
-                    )
-
-                );
-
-
-            const panel =
-                document.getElementById(
-                    "navigationInfo"
-                );
-
-
-            if (panel) {
-
-                panel.innerHTML = `
-
-                    <div class="navigation-icon">
-                        🧭
-                    </div>
-
-                    <div>
-
-                        <h3>
-                            Navigation
-                        </h3>
-
-                        <p>
-                            <b>
-                                ${escapeHTML(
-                                    destinationName
-                                )}
-                            </b>
-                        </p>
-
-                        <p>
-                            📏
-                            <b>${distance} km</b>
-                        </p>
-
-                        <p>
-                            ⏱️
-                            <b>${minutes} min</b>
-                        </p>
-
-                        <p>
-                            🚗 Route calculated
-                        </p>
-
-                    </div>
-
-                `;
-
-            }
+            // Default: show first route info
+            updateNavigationPanel(event.routes[0], destinationName, 0);
 
         }
 
@@ -5379,7 +5333,154 @@ async function fetchCommandCenterData() {
                         if (elAQIStatus && cityData.aqi) {
                             elAQIStatus.textContent = cityData.aqi > 200 ? "Poor / Unhealthy" : (cityData.aqi > 100 ? "Moderate" : "Good");
                             elAQIStatus.style.color = cityData.aqi > 200 ? "#f87171" : (cityData.aqi > 100 ? "#fbbf24" : "#34d399");
-                        }
+}
+
+
+function renderRouteLegend(routes, destinationName) {
+    // Create or get the route legend container
+    let legendContainer = document.getElementById("routeLegendContainer");
+    if (!legendContainer) {
+        legendContainer = document.createElement("div");
+        legendContainer.id = "routeLegendContainer";
+        legendContainer.className = "route-legend-container";
+
+        // Insert after the navigation info panel
+        const navInfo = document.getElementById("navigationInfo");
+        if (navInfo && navInfo.parentNode) {
+            navInfo.parentNode.insertBefore(legendContainer, navInfo.nextSibling);
+        }
+    }
+
+    // Clean up previous event listeners by cloning and replacing the container
+    // This removes all previously attached event listeners
+    const newContainer = legendContainer.cloneNode(true);
+    if (legendContainer.parentNode) {
+        legendContainer.parentNode.replaceChild(newContainer, legendContainer);
+    }
+    legendContainer = newContainer;
+
+    const routeColors = [
+        { color: "#2563eb", label: "Primary (Fastest)", dashArray: "none" },
+        { color: "#10b981", label: "Alternative 1", dashArray: "8,8" },
+        { color: "#f59e0b", label: "Alternative 2", dashArray: "12,6" },
+        { color: "#ef4444", label: "Alternative 3", dashArray: "6,4,2,4" }
+    ];
+
+    legendContainer.innerHTML = `
+        <div class="route-legend-header">
+            <h4>🗺️ Route Options to ${escapeHTML(destinationName)}</h4>
+            <span class="route-count">${routes.length} route${routes.length > 1 ? 's' : ''} found</span>
+        </div>
+        <div class="route-legend-list" id="routeLegendList">
+            ${routes.map((route, index) => {
+                const distanceKm = (route.summary.totalDistance / 1000).toFixed(2);
+                const durationMin = Math.max(1, Math.round(route.summary.totalTime / 60));
+                const color = routeColors[index]?.color || "#64748b";
+                const dash = routeColors[index]?.dashArray || "none";
+                const label = routeColors[index]?.label || `Route ${index + 1}`;
+                return `
+                    <div class="route-legend-item ${index === 0 ? 'selected' : ''}" data-route-index="${index}" style="border-left-color: ${color};">
+                        <div class="route-legend-main">
+                            <span class="route-legend-badge" style="background: ${color}; --dash: ${dash};">${index + 1}</span>
+                            <div class="route-legend-info">
+                                <span class="route-legend-label">${escapeHTML(label)}</span>
+                                <span class="route-legend-meta">📏 ${distanceKm} km • ⏱️ ${durationMin} min</span>
+                            </div>
+                        </div>
+                        <button class="route-select-btn" data-route-index="${index}" title="Select this route">
+                            ${index === 0 ? '✓ Selected' : 'Select'}
+                        </button>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+
+    // Add click handlers for route selection (using event delegation to avoid duplicates)
+    const list = legendContainer.querySelector("#routeLegendList");
+    if (list) {
+        list.addEventListener("click", (e) => {
+            const btn = e.target.closest(".route-select-btn");
+            const item = e.target.closest(".route-legend-item");
+            
+            if (btn) {
+                e.stopPropagation();
+                const routeIndex = parseInt(btn.dataset.routeIndex, 10);
+                selectRoute(routeIndex, destinationName);
+            } else if (item && !e.target.closest(".route-select-btn")) {
+                const routeIndex = parseInt(item.dataset.routeIndex, 10);
+                selectRoute(routeIndex, destinationName);
+            }
+        });
+    }
+}
+
+function updateNavigationPanel(route, destinationName, routeIndex) {
+    const distance = (route.summary.totalDistance / 1000).toFixed(2);
+    const minutes = Math.max(1, Math.round(route.summary.totalTime / 60));
+
+    const panel = document.getElementById("navigationInfo");
+    if (!panel) return;
+
+    const routeLabels = ["Primary (Fastest)", "Alternative 1", "Alternative 2", "Alternative 3"];
+    const label = routeLabels[routeIndex] || `Route ${routeIndex + 1}`;
+
+    panel.innerHTML = `
+        <div class="navigation-icon">
+            🧭
+        </div>
+        <div>
+            <h3>Navigation</h3>
+            <p><b>${escapeHTML(destinationName)}</b></p>
+            <p>📏 <b>${distance} km</b></p>
+            <p>⏱️ <b>${minutes} min</b></p>
+            <p class="route-current-label">🛣️ ${label}${routeIndex > 0 ? ' (Alternative)' : ''}</p>
+        </div>
+    `;
+}
+
+function selectRoute(routeIndex, destinationName) {
+    const routes = window.currentRoutes;
+    if (!routes || !routes[routeIndex]) return;
+
+    // Update the visual selection in the legend
+    document.querySelectorAll(".route-legend-item").forEach((item, idx) => {
+        item.classList.toggle("selected", idx === routeIndex);
+    });
+    document.querySelectorAll(".route-select-btn").forEach(btn => {
+        const idx = parseInt(btn.dataset.routeIndex, 10);
+        btn.textContent = idx === routeIndex ? "✓ Selected" : "Select";
+    });
+
+    // Update the routing control to show the selected route using public API
+    if (routingControl) {
+        // Leaflet Routing Machine exposes _routes and _routeIndex internally
+        // Use public method if available, otherwise fall back to internal property
+        if (typeof routingControl.setRouteIndex === "function") {
+            routingControl.setRouteIndex(routeIndex);
+        } else if (routingControl._routes && typeof routingControl._selectRoute === "function") {
+            routingControl._selectRoute(routeIndex);
+        } else if (routingControl._routeIndex !== undefined) {
+            routingControl._routeIndex = routeIndex;
+            // Trigger re-render of the route lines
+            if (typeof routingControl._updateLines === "function") {
+                routingControl._updateLines();
+            }
+        }
+    }
+
+    // Update the navigation panel
+    updateNavigationPanel(routes[routeIndex], destinationName, routeIndex);
+
+    // Fit map to the selected route
+    if (routingControl && routingControl.fitSelectedRoutes) {
+        try {
+            routingControl.fitBounds(routingControl.getBounds());
+        } catch (e) {
+            // Ignore fit bounds errors
+        }
+    }
+}
                     }
                 } catch (pe) {}
             }

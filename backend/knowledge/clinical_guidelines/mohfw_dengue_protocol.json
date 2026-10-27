@@ -1,0 +1,20 @@
+{
+  "id": "MOHFW-DENGUE-2024",
+  "title": "MoHFW National Clinical Management Protocol for Dengue and Platelet Monitoring",
+  "organization": "Ministry of Health and Family Welfare (MoHFW) / NCVBDC",
+  "year": 2024,
+  "jurisdiction": "India",
+  "category": "Vector-Borne Diseases",
+  "keywords": ["dengue", "platelet", "thrombocytopenia", "retro-orbital pain", "aedes", "bleeding", "mosquito", "rash", "haematocrit"],
+  "chunks": [
+    {
+      "chunk_id": "MOHFW-DEN-01",
+      "topic": "Dengue Warning Signs and Fluid Management",
+      "content": "Dengue clinical course comprises febrile, critical, and recovery phases. Paracetamol is the ONLY safe antipyretic. All NSAIDs (Ibuprofen, Mefenamic acid, Aspirin) and steroids are ABSOLUTELY CONTRAINDICATED as they trigger gastrointestinal mucosal bleeding and aggravate thrombocytopenia. Platelet transfusions are not recommended prophylactically when platelet counts are above 10,000 to 20,000/mcL in the absence of active systemic bleeding. Adequate maintenance oral and IV fluid therapy titrated against hematocrit is the cornerstone of preventing shock.",
+      "contraindications": "Ibuprofen, Aspirin, Diclofenac, Ketorolac, Naproxen, and intramuscular injections.",
+      "warnings": "Red flag danger signs requiring immediate hospital admission: severe abdominal pain, persistent vomiting (>3 episodes in 24 hours), mucosal bleeding from gums or nose, black tarry stools (melena), extreme lethargy, sudden cold clammy extremities, or sharp drop in platelet count accompanied by rising hematocrit.",
+      "home_care": "Intensive hydration with ORS, fresh tender coconut water, diluted fruit juices, and vegetable broths. Complete bed rest and mosquito netting to break transmission cycle.",
+      "citation": "Government of India, MoHFW National Guidelines for Clinical Management of Dengue Fever (2024), Chapter 3, pp. 15-28."
+    }
+  ]
+}

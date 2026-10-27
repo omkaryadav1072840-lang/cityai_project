@@ -5,8 +5,7 @@ const ASSETS_TO_CACHE = [
   "/index.html",
   "/index.css",
   "/script.js",
-  "/favicon.png",
-  "/apple-touch-icon.png"
+  "/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png"
 ];
 
 self.addEventListener("install", (event) => {

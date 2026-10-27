@@ -81,9 +81,6 @@ function initializeEmergencyMap() {
         emergencyMap
     );
 
-
-    addDemoMarkers();
-
 }
 
 
@@ -737,7 +734,7 @@ function updateActiveCount() {
 
 
 /* =====================================================
-   FETCH LIVE AMBULANCES & EMERGENCY DEPARTMENTS
+    FETCH LIVE AMBULANCES, EMERGENCY DEPARTMENTS & INCIDENTS
 ===================================================== */
 
 async function fetchLiveEmergencyData() {
@@ -785,6 +782,32 @@ async function fetchLiveEmergencyData() {
         }
     } catch (err) {
         console.warn("Could not fetch emergency departments:", err);
+    }
+
+    // 3. Emergency Incidents (SOS Alerts) from Map API
+    try {
+        const res = await fetch(`${API_BASE}/api/map/incidents?layers=emergency`);
+        if (res.ok) {
+            const json = await res.json();
+            const features = json.features || [];
+            if (typeof emergencyMap !== "undefined" && emergencyMap) {
+                features.forEach(feature => {
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        const [lng, lat] = feature.geometry.coordinates;
+                        const props = feature.properties || {};
+                        createEmergencyMarker({
+                            lat: Number(lat),
+                            lng: Number(lng),
+                            type: props.subType || "emergency",
+                            title: props.title || "Emergency Incident",
+                            description: props.description || `Status: ${props.status || 'Active'} | Priority: ${props.severity || 'HIGH'}`
+                        });
+                    }
+                });
+            }
+        }
+    } catch (err) {
+        console.warn("Could not fetch emergency incidents:", err);
     }
 }
 

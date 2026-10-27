@@ -7176,6 +7176,71 @@
     window.submitAIWaterReview = submitAIWaterReview;
 
     // -------------------------------------------------------
+    // MISSING FUNCTIONS — UI handlers referenced from water.html
+    // -------------------------------------------------------
+
+    /**
+     * closeWaterAssetDrawer — closes the slide-in water asset details drawer (#waterAssetDrawer).
+     */
+    function closeWaterAssetDrawer() {
+        const drawer = document.getElementById("waterAssetDrawer");
+        if (drawer) {
+            drawer.style.display = "none";
+            drawer.classList.remove("open");
+        }
+    }
+    window.closeWaterAssetDrawer = closeWaterAssetDrawer;
+
+    /**
+     * openCreateBatchModal — opens the treatment batch logging modal (#createBatchModal).
+     */
+    function openCreateBatchModal() {
+        const modal = document.getElementById("createBatchModal");
+        if (modal) {
+            modal.style.display = "flex";
+            // Reset form if present
+            const form = modal.querySelector("form");
+            if (form) form.reset();
+        }
+    }
+    window.openCreateBatchModal = openCreateBatchModal;
+
+    /**
+     * openCreateWorkOrderModal — opens the assign work order modal (#createWorkOrderModal).
+     */
+    function openCreateWorkOrderModal() {
+        const modal = document.getElementById("createWorkOrderModal");
+        if (modal) {
+            modal.style.display = "flex";
+            // Reset form if present
+            const form = modal.querySelector("form");
+            if (form) form.reset();
+        }
+    }
+    window.openCreateWorkOrderModal = openCreateWorkOrderModal;
+
+    /**
+     * toggleTelemetrySimulator — toggles the telemetry badge between SIMULATED SCADA
+     * and DATABASE RECORDS mode. Updates badge text and CSS class.
+     */
+    let _telemetrySimulated = true;
+    function toggleTelemetrySimulator() {
+        _telemetrySimulated = !_telemetrySimulated;
+        const badge = document.getElementById("telemetryModeBadge");
+        if (!badge) return;
+        if (_telemetrySimulated) {
+            badge.className = "telemetry-pill-btn simulated";
+            const strong = badge.querySelector("strong");
+            if (strong) strong.textContent = "SIMULATED SCADA";
+        } else {
+            badge.className = "telemetry-pill-btn live";
+            const strong = badge.querySelector("strong");
+            if (strong) strong.textContent = "DATABASE RECORDS";
+        }
+    }
+    window.toggleTelemetrySimulator = toggleTelemetrySimulator;
+
+    // -------------------------------------------------------
     // 12. INITIALIZATION ON DOM READY
     // -------------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {

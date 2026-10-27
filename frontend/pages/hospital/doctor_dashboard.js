@@ -607,6 +607,17 @@ function renderDossierContent(data) {
 
                     <form id="consultationForm" onsubmit="submitConsultation(event)">
                         <div class="form-group">
+                            <label for="consultSymptoms">Symptoms &amp; Chief Complaints <span class="req">*</span></label>
+                            <input 
+                                type="text" 
+                                id="consultSymptoms" 
+                                class="form-control" 
+                                placeholder="e.g. Fever (102°F) since 3 days, dry cough, severe headache, throat pain" 
+                                required 
+                            />
+                        </div>
+
+                        <div class="form-group">
                             <label for="consultDiagnosis">Clinical Diagnosis <span class="req">*</span></label>
                             <input 
                                 type="text" 
@@ -672,6 +683,7 @@ function renderDossierContent(data) {
 async function submitConsultation(event) {
     event.preventDefault();
 
+    const symptoms = document.getElementById('consultSymptoms') ? document.getElementById('consultSymptoms').value.trim() : '';
     const diagnosis = document.getElementById('consultDiagnosis').value.trim();
     const treatment = document.getElementById('consultTreatment').value.trim();
     const notes = document.getElementById('consultNotes').value.trim();
@@ -691,6 +703,7 @@ async function submitConsultation(event) {
             patientId: activePatientId,
             doctorId: currentDoctor.doctor_id || currentDoctor.doctorId || currentDoctor.id,
             diagnosis,
+            symptoms,
             treatment,
             notes,
             followUpDate: followUpDate || null,
@@ -804,12 +817,16 @@ async function viewOfficialPrescriptionDocument(prescriptionId) {
         const d = doc.doctor || {};
         const rx = doc.prescription || {};
 
-        // Hospital Header
-        const logoUrl = h.logo || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80';
+        // Hospital Header & Branding
+        const logoUrl = h.logo || '/favicon.svg';
         const logoEl = document.getElementById("rxHospLogo");
         if (logoEl) {
             logoEl.src = logoUrl;
-            logoEl.onerror = () => { logoEl.src = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80'; };
+            logoEl.onerror = () => { logoEl.src = '/favicon.svg'; };
+        }
+        const scLogoEl = document.getElementById("rxSmartCityLogo");
+        if (scLogoEl) {
+            scLogoEl.src = doc.smartcity?.logo || '/favicon.svg';
         }
         if (document.getElementById("rxHospName")) document.getElementById("rxHospName").textContent = (h.name || h.hospital_name || "MUNICIPAL HOSPITAL").toUpperCase();
         if (document.getElementById("rxHospAddress")) document.getElementById("rxHospAddress").textContent = h.address || "Gorakhpur, Uttar Pradesh";
@@ -831,9 +848,11 @@ async function viewOfficialPrescriptionDocument(prescriptionId) {
         if (document.getElementById("rxPatientToken")) document.getElementById("rxPatientToken").textContent = p.token_number || "--";
         if (document.getElementById("rxDate")) document.getElementById("rxDate").textContent = rx.date || rx.created_at ? new Date(rx.date || rx.created_at).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN");
 
-        // Diagnosis
+        // Symptoms (Middle) & Clinical Diagnosis
+        if (document.getElementById("rxSymptoms")) {
+            document.getElementById("rxSymptoms").textContent = rx.symptoms || rx.doctor_notes || "Patient presented with acute clinical symptoms and complaints for consultation.";
+        }
         if (document.getElementById("rxDiagnosis")) document.getElementById("rxDiagnosis").textContent = rx.diagnosis || "Clinical OPD Consultation";
-        if (document.getElementById("rxSymptoms")) document.getElementById("rxSymptoms").textContent = rx.doctor_notes || "";
         if (document.getElementById("rxAdvice")) document.getElementById("rxAdvice").textContent = rx.advice || "Continue prescribed medication schedule and rest.";
         if (document.getElementById("rxFollowUpDate")) document.getElementById("rxFollowUpDate").textContent = rx.follow_up_date || "After 5 days or if symptoms worsen";
 

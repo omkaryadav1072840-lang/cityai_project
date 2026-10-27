@@ -10,9 +10,9 @@
         getSchedules: () => client.get("/api/water/schedules"),
         getComplaints: (params) => client.get("/api/water/complaints", params),
         reportComplaint: (payload) => client.post("/api/water/complaints", payload),
-        updateComplaintStatus: (id, payload) => client.put(`/api/water/complaints/${id}/status`, payload),
-        getTankers: () => client.get("/api/water/tankers"),
-        requestTanker: (payload) => client.post("/api/water/tankers/request", payload),
+        updateComplaintStatus: (id, payload) => client.put(`/api/water/reports/${id}/status`, payload),
+        getTankers: () => client.get("/api/water/tanker-bookings"),
+        requestTanker: (payload) => client.post("/api/water/tanker-bookings", payload),
         analyzeAnomalies: (params) => client.get("/api/ai/water/anomalies", params)
     };
 })();

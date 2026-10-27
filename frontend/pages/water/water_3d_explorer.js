@@ -76,6 +76,7 @@
 
     /**
      * Load glTF asset asynchronously with instant procedural fallback
+     * Includes timeout handling and retry logic for robust asset loading
      */
     function loadGLTFAsset(modelType, fallbackGenerator, onLoaded) {
         const relativeMap = {
@@ -102,30 +103,57 @@
 
         const candidatePaths = relativeMap[modelType] || [];
         let didSucceed = false;
+        let attemptCount = 0;
+        const maxRetries = 2;
+        const loadTimeout = 10000; // 10 second timeout per attempt
 
         function attempt(idx) {
             if (idx >= candidatePaths.length) {
                 // All paths failed or blocked, invoke procedural fallback
+                console.warn(`[Water3DExplorer] All paths failed for ${modelType}, using procedural fallback`);
                 const fallbackMesh = fallbackGenerator();
                 onLoaded(fallbackMesh, "PROCEDURAL_FALLBACK");
                 return;
             }
 
-            loader.load(
-                candidatePaths[idx],
-                gltf => {
+            const path = candidatePaths[idx];
+            console.log(`[Water3DExplorer] Attempting to load ${modelType} from: ${path} (attempt ${attemptCount + 1}/${maxRetries + 1})`);
+
+            // Create a promise with timeout
+            const loadPromise = new Promise((resolve, reject) => {
+                loader.load(
+                    path,
+                    gltf => resolve({ gltf, status: "GLTF_LOADED" }),
+                    undefined,
+                    err => reject(err)
+                );
+            });
+
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error(`Load timeout after ${loadTimeout}ms`)), loadTimeout);
+            });
+
+            Promise.race([loadPromise, timeoutPromise])
+                .then(({ gltf, status }) => {
                     if (didSucceed) return;
                     didSucceed = true;
                     modelCache[modelType] = gltf.scene;
                     const cloned = gltf.scene.clone(true);
-                    onLoaded(cloned, "GLTF_LOADED");
-                },
-                undefined,
-                err => {
-                    // Try next candidate URL
-                    attempt(idx + 1);
-                }
-            );
+                    console.log(`[Water3DExplorer] Successfully loaded ${modelType} from ${path}`);
+                    onLoaded(cloned, status);
+                })
+                .catch(err => {
+                    console.warn(`[Water3DExplorer] Failed to load ${modelType} from ${path}:`, err.message);
+                    attemptCount++;
+                    if (attemptCount <= maxRetries) {
+                        // Retry same path
+                        attempt(idx);
+                    } else {
+                        // Move to next path, reset retry counter
+                        attemptCount = 0;
+                        attempt(idx + 1);
+                    }
+                });
         }
 
         attempt(0);

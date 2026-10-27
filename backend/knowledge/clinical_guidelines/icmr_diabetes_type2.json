@@ -1,0 +1,20 @@
+{
+  "id": "ICMR-T2D-2024",
+  "title": "ICMR Guidelines for Management of Type 2 Diabetes Mellitus in India",
+  "organization": "Indian Council of Medical Research (ICMR)",
+  "year": 2024,
+  "jurisdiction": "India",
+  "category": "Metabolic & Endocrine Disorders",
+  "keywords": ["diabetes", "sugar", "sugar level", "metformin", "glimepiride", "insulin", "hba1c", "hypoglycemia", "diabetic foot"],
+  "chunks": [
+    {
+      "chunk_id": "ICMR-DIA-01",
+      "topic": "Glycemic Targets, First-line Pharmacotherapy, and Hypoglycemia Management",
+      "content": "Metformin (500mg-1000mg with or after meals to minimize gastrointestinal discomfort) remains the standard initial pharmacotherapy for Type 2 Diabetes alongside individualized medical nutrition therapy. General glycemic target is HbA1c < 7.0%, fasting blood glucose 80-130 mg/dL, and postprandial glucose < 180 mg/dL. In patients on sulfonylureas (e.g. Glimepiride) or Insulin, recognition of hypoglycemia (blood glucose < 70 mg/dL, manifesting with shakiness, cold sweating, tachycardia, dizziness, or confusion) is essential. The Rule of 15 must be applied: consume 15g fast-acting carbohydrate (3-4 glucose tablets or 1/2 cup fruit juice), wait 15 minutes, and re-test.",
+      "contraindications": "Metformin is contraindicated in severe renal impairment (eGFR < 30 mL/min/1.73 m2), acute metabolic acidosis, severe hypoxemia, or acute hepatic failure due to lactic acidosis risk.",
+      "warnings": "Symptoms of diabetic ketoacidosis (nausea, vomiting, abdominal pain, acetone fruity breath, deep rapid breathing) or severe hyperosmolar state require urgent inpatient hospitalization.",
+      "home_care": "Daily inspection of feet for blisters, cuts, or redness; wearing comfortable non-binding footwear; consuming complex carbohydrates rich in fiber (oats, millets, barley) and eliminating refined sugary beverages and sweets.",
+      "citation": "ICMR Guidelines for Management of Type 2 Diabetes Mellitus (2024 Edition), Chapter 5: Pharmacological Management, pp. 44-58."
+    }
+  ]
+}

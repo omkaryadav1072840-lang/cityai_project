@@ -819,58 +819,6 @@ async function openOfflineBookingModal() {
     modal.classList.add("active");
 }
 
-function updateOfflineTestFee(selectEl) {
-    const opt = selectEl.options[selectEl.selectedIndex];
-    const price = opt ? opt.getAttribute("data-price") : 0;
-    const feeEl = document.getElementById("offlineFeeDisplay");
-    if (feeEl) feeEl.textContent = `Fee Payable at Counter: ₹${price || 0}`;
-}
-
-async function handleOfflineBookingSubmit(e) {
-    e.preventDefault();
-    const name = document.getElementById("offlinePatientName").value.trim();
-    const patientId = document.getElementById("offlinePatientId").value.trim();
-    const mobile = document.getElementById("offlinePatientMobile").value.trim();
-    const testSelect = document.getElementById("offlineTestSelect");
-    const testId = testSelect.value;
-    const timeSlot = document.getElementById("offlineBookingSlot").value;
-    const paymentMethod = document.getElementById("offlinePaymentMethod").value;
-
-    const opt = testSelect.options[testSelect.selectedIndex];
-    const amount = opt ? Number(opt.getAttribute("data-price")) : 0;
-
-    try {
-        const res = await fetch(`${API_BASE}/api/diagnostics/bookings`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                test_id: testId,
-                patient_name: name,
-                patient_id: patientId || null,
-                patient_phone: mobile,
-                booking_date: new Date().toISOString().split("T")[0],
-                time_slot: timeSlot,
-                amount: amount,
-                payment_method: paymentMethod,
-                hospital_id: currentHospitalId
-            })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-            alert(`✅ Diagnostic Test Booked Successfully!\n\nPatient: ${name}\nTest Token: ${data.booking?.token_number || 'A-01'}\nBooking ID: ${data.booking?.booking_id}\nAmount: ₹${amount}`);
-            closeHdModal("modalOfflineBooking");
-            document.getElementById("offlineBookingForm").reset();
-            await loadDiagnosticsModule();
-            await refreshDashboardData();
-        } else {
-            alert("Booking failed: " + (data.message || "Unknown error"));
-        }
-    } catch (err) {
-        alert("Booking failed: " + err.message);
-    }
-}
-
 // ====================================================================
 // 2. DIAGNOSTICS & TESTS (THE DIAGNOSTIC CENTER)
 // ====================================================================
@@ -1230,8 +1178,13 @@ async function viewDiagnosticReport(reportId, patientName, patientId, testName, 
     const modal = document.getElementById("modalViewReport");
     if (!modal) return;
 
-    document.getElementById("rpHospName").textContent = document.getElementById("bannerHospName").textContent;
-    document.getElementById("rpHospAddress").textContent = document.getElementById("bannerHospAddress").textContent;
+    document.getElementById("rpHospName").textContent = document.getElementById("bannerHospName") ? document.getElementById("bannerHospName").textContent : "HOSPITAL CLINICAL LAB";
+    document.getElementById("rpHospAddress").textContent = document.getElementById("bannerHospAddress") ? document.getElementById("bannerHospAddress").textContent : "Gorakhpur, UP • Emergency: 102";
+    const rpLogoEl = document.getElementById("rpHospLogo");
+    if (rpLogoEl) {
+        rpLogoEl.src = document.getElementById("cfgHospLogoPreview")?.src || currentHospitalLogo || "/favicon.svg";
+        rpLogoEl.onerror = () => { rpLogoEl.src = "/favicon.svg"; };
+    }
     document.getElementById("rpReportId").textContent = reportId || "RPT-2026-001";
     document.getElementById("rpPatientName").textContent = patientName || "Admitted Patient";
     document.getElementById("rpPatientId").textContent = patientId || "PAT-5931984821";
@@ -1418,14 +1371,39 @@ async function completeDoctorConsultation() {
         return;
     }
 
-    const diagnosis = document.getElementById("docDiagnosisInput").value;
-    const prescription = document.getElementById("docPrescriptionInput").value;
+    const symptoms = document.getElementById("docSymptomsInput") ? document.getElementById("docSymptomsInput").value.trim() : "";
+    const diagnosis = document.getElementById("docDiagnosisInput") ? document.getElementById("docDiagnosisInput").value.trim() : "";
+    const prescription = document.getElementById("docPrescriptionInput") ? document.getElementById("docPrescriptionInput").value.trim() : "";
+    const notes = document.getElementById("docNotesInput") ? document.getElementById("docNotesInput").value.trim() : "";
 
     try {
+        let rxId = null;
+        try {
+            const consultRes = await authFetch(`${API_BASE}/api/doctor/consultation`, {
+                method: "POST",
+                body: JSON.stringify({
+                    patientId: activeDoctorConsultation.patient_id,
+                    doctorId: activeDoctorConsultation.doctor_id || null,
+                    doctorName: activeDoctorConsultation.doctor,
+                    appointmentId: activeDoctorConsultation.id,
+                    diagnosis: diagnosis || "Clinical Consultation Completed",
+                    symptoms: symptoms || null,
+                    treatment: prescription || "Standard clinical advice and care",
+                    notes: notes || null
+                })
+            });
+            rxId = consultRes?.prescriptionId;
+        } catch (cErr) {
+            console.warn("Consultation EMR endpoint note:", cErr);
+        }
+
         await updateApptStatus(activeDoctorConsultation.id, "Completed");
-        alert(`✅ Consultation completed for ${activeDoctorConsultation.patient_name}.\nDiagnosis: ${diagnosis || "Consultation done"}\nPrescription routed to Pharmacy.`);
+        alert(`✅ Consultation completed for ${activeDoctorConsultation.patient_name}.\nDiagnosis: ${diagnosis || "Consultation done"}\nSymptoms & Prescription saved to patient records.`);
         resetConsultationPad();
         await loadDoctorClinicalDesk();
+        if (rxId) {
+            openOfficialPrescriptionModal(rxId);
+        }
     } catch (err) {
         alert("Error: " + err.message);
     }
@@ -1936,52 +1914,497 @@ function showHdToast(msg, type = "info") {
 // 6. BILLING & CASHIER
 // ====================================================================
 
+// Global Billing & Cashier Desk State
+let allBillingInvoices = [];
+let allUnbilledPatients = [];
+let activeBillingFilter = 'all'; // 'all', 'unpaid', 'paid'
+let currentBillingSearchQuery = '';
+
 async function loadBillingInvoices() {
     const tbody = document.getElementById("billingTableBody");
     if (!tbody) return;
 
     try {
+        // 1. Fetch live invoices
         const data = await authFetch(`${API_BASE}/api/hospitals/${encodeURIComponent(currentHospitalId)}/invoices`);
-        const invoices = data.invoices || [];
+        allBillingInvoices = data.invoices || [];
 
-        if (!invoices.length) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:24px; color:#64748b;">No billing invoices recorded yet.</td></tr>`;
-            return;
+        // 2. Fetch OPD appointments to detect unbilled patients
+        try {
+            const apptsData = await authFetch(`${API_BASE}/api/hospitals/${encodeURIComponent(currentHospitalId)}/appointments`);
+            const appts = apptsData.appointments || [];
+
+            const billedIds = new Set(
+                allBillingInvoices.map(inv => String(inv.patient_id || '').trim().toLowerCase())
+            );
+
+            const unbilledMap = new Map();
+            appts.forEach(apt => {
+                const pid = String(apt.patient_id || apt.token_number || '').trim();
+                const key = pid.toLowerCase();
+                if (!pid) return;
+
+                // Patient does not have an invoice generated yet
+                if (!billedIds.has(key) && !unbilledMap.has(key)) {
+                    unbilledMap.set(key, {
+                        patient_id: apt.patient_id || ('PAT-' + (apt.id || apt.token_number)),
+                        patient_name: apt.patient_name || 'Patient',
+                        age: apt.age || apt.patient_age || '-',
+                        gender: apt.gender || apt.patient_gender || '-',
+                        department: apt.department || apt.doctor_department || 'General OPD',
+                        doctor_name: apt.doctor_name || apt.doctor || 'Attending Doctor',
+                        token_number: apt.token_number || ('#' + (apt.id || '1')),
+                        appointment_date: apt.appointment_date || apt.date || 'Today',
+                        suggested_service: `OPD Consultation (${apt.department || 'General Medicine'})`,
+                        suggested_fee: 300
+                    });
+                }
+            });
+
+            allUnbilledPatients = Array.from(unbilledMap.values());
+        } catch (apptErr) {
+            console.warn("Could not load appointments for unbilled list:", apptErr);
+            allUnbilledPatients = [];
         }
 
-        tbody.innerHTML = invoices.map(inv => {
+        // 3. Update Unbilled Count Badge & Table
+        const unbilledBadge = document.getElementById("unbilledCountBadge");
+        if (unbilledBadge) {
+            unbilledBadge.textContent = allUnbilledPatients.length;
+            unbilledBadge.style.color = allUnbilledPatients.length > 0 ? '#dc2626' : '#166534';
+            unbilledBadge.style.fontWeight = '800';
+        }
+        renderUnbilledPatientsTable();
+
+        // 4. Update Quick Select dropdown in modalCreateInvoice
+        populateInvoicePatientQuickSelect();
+
+        // 5. Render Main Invoices Table
+        renderBillingInvoices();
+
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#ef4444; padding:24px;">Failed to load invoices: ${escapeHtml(err.message)}</td></tr>`;
+    }
+}
+
+function renderUnbilledPatientsTable() {
+    const unbilledBody = document.getElementById("unbilledPatientsTableBody");
+    if (!unbilledBody) return;
+
+    if (!allUnbilledPatients.length) {
+        unbilledBody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center; padding: 24px; color: #16a34a; font-weight: 600;">
+                    🎉 All registered patients currently have invoices generated. No unbilled OPD visits!
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    unbilledBody.innerHTML = allUnbilledPatients.map(p => {
+        const pIdEscaped = escapeHtml(p.patient_id);
+        const pNameEscaped = escapeHtml(p.patient_name);
+        const srvEscaped = escapeHtml(p.suggested_service);
+
+        return `
+            <tr>
+                <td>
+                    <span class="hd-badge green" style="font-weight: 800;">${escapeHtml(p.token_number)}</span>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 2px;">${escapeHtml(p.appointment_date)}</div>
+                </td>
+                <td>
+                    <strong style="color: #0f172a;">${pNameEscaped}</strong>
+                    <div style="font-size: 11.5px; font-family: monospace; color: #2563eb; font-weight: 700;">${pIdEscaped}</div>
+                </td>
+                <td>${escapeHtml(p.age)} / ${escapeHtml(p.gender)}</td>
+                <td>
+                    <strong>${escapeHtml(p.department)}</strong>
+                    <div style="font-size: 11px; color: #64748b;">${escapeHtml(p.doctor_name)}</div>
+                </td>
+                <td>
+                    <span style="font-size: 12px; color: #334155; font-weight: 600;">${srvEscaped}</span>
+                    <div style="font-size: 11px; color: #059669; font-weight: 700;">Standard Fee: ₹${p.suggested_fee}</div>
+                </td>
+                <td>
+                    <span class="hd-badge amber">⏳ Unbilled</span>
+                </td>
+                <td>
+                    <button 
+                        type="button" 
+                        class="hd-btn hd-btn-primary hd-btn-sm" 
+                        style="font-weight: 700; background: #059669; border-color: #059669; display: flex; align-items: center; gap: 4px;"
+                        onclick="openCreateInvoiceForPatient('${pIdEscaped}', '${pNameEscaped}', '${srvEscaped}', ${p.suggested_fee})"
+                    >
+                        ⚡ Create Bill
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function populateInvoicePatientQuickSelect() {
+    const sel = document.getElementById("invPatientQuickSelect");
+    if (!sel) return;
+
+    let opts = `<option value="">-- Choose patient or type manually below --</option>`;
+
+    if (allUnbilledPatients.length > 0) {
+        opts += `<optgroup label="⚡ Unbilled Patients (${allUnbilledPatients.length})">`;
+        allUnbilledPatients.forEach(p => {
+            opts += `<option value="${escapeHtml(p.patient_id)}" data-name="${escapeHtml(p.patient_name)}" data-service="${escapeHtml(p.suggested_service)}" data-fee="${p.suggested_fee}">
+                ⚡ ${escapeHtml(p.patient_name)} (${escapeHtml(p.patient_id)}) - ${escapeHtml(p.department)}
+            </option>`;
+        });
+        opts += `</optgroup>`;
+    }
+
+    const seen = new Set();
+    const existingPatients = [];
+    allBillingInvoices.forEach(inv => {
+        const id = (inv.patient_id || '').trim();
+        if (id && !seen.has(id.toLowerCase())) {
+            seen.add(id.toLowerCase());
+            existingPatients.push({ id, name: inv.patient_name || 'Patient' });
+        }
+    });
+
+    if (existingPatients.length > 0) {
+        opts += `<optgroup label="📋 Previously Billed Patients">`;
+        existingPatients.forEach(p => {
+            opts += `<option value="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name)}">
+                ${escapeHtml(p.name)} (${escapeHtml(p.id)})
+            </option>`;
+        });
+        opts += `</optgroup>`;
+    }
+
+    sel.innerHTML = opts;
+}
+
+function onSelectPatientForInvoice(sel) {
+    if (!sel || !sel.value) return;
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt) return;
+
+    const patientId = opt.value;
+    const patientName = opt.getAttribute("data-name") || "";
+    const service = opt.getAttribute("data-service") || "";
+    const fee = opt.getAttribute("data-fee") || "";
+
+    const nameInput = document.getElementById("invPatientName");
+    const idInput = document.getElementById("invPatientId");
+    const serviceInput = document.getElementById("invServiceType");
+    const feeInput = document.getElementById("invTotalAmount");
+
+    if (nameInput) nameInput.value = patientName;
+    if (idInput) idInput.value = patientId;
+    if (service && serviceInput) serviceInput.value = service;
+    if (fee && feeInput) feeInput.value = fee;
+}
+
+function applyQuickBillingTemplate(service, amount) {
+    const srvInput = document.getElementById("invServiceType");
+    const amtInput = document.getElementById("invTotalAmount");
+    if (srvInput) srvInput.value = service;
+    if (amtInput) amtInput.value = amount;
+}
+
+function openCreateInvoiceForPatient(patientId, patientName, serviceType, amount) {
+    openCreateInvoiceModal();
+    const nameInput = document.getElementById("invPatientName");
+    const idInput = document.getElementById("invPatientId");
+    const srvInput = document.getElementById("invServiceType");
+    const amtInput = document.getElementById("invTotalAmount");
+    const sel = document.getElementById("invPatientQuickSelect");
+
+    if (nameInput) nameInput.value = patientName || '';
+    if (idInput) idInput.value = patientId || '';
+    if (srvInput) srvInput.value = serviceType || 'OPD Consultation';
+    if (amtInput) amtInput.value = amount || 300;
+    if (sel) sel.value = patientId || '';
+}
+
+function renderBillingInvoices() {
+    const tbody = document.getElementById("billingTableBody");
+    if (!tbody) return;
+
+    let filtered = [...allBillingInvoices];
+
+    // Status filter
+    if (activeBillingFilter === 'unpaid') {
+        filtered = filtered.filter(inv => {
             const total = Number(inv.total_amount || 0);
             const paid = Number(inv.paid_amount || 0);
             const disc = Number(inv.discount || 0);
             const remaining = Number(inv.remaining_amount !== undefined ? inv.remaining_amount : Math.max(0, total - disc - paid));
-            const isFullyPaid = remaining <= 0;
-            const isPartiallyPaid = paid > 0 && remaining > 0;
-            const statusBadge = isFullyPaid ? 'green' : (isPartiallyPaid ? 'purple' : 'amber');
-            const statusText = isFullyPaid ? 'Paid' : (isPartiallyPaid ? 'Partially Paid' : 'Unpaid');
-            const escapedInvJson = escapeHtml(JSON.stringify(inv));
-
-            return `
-                <tr>
-                    <td><strong style="font-family:monospace; color:#2563eb;">${inv.invoice_id}</strong></td>
-                    <td><strong>${escapeHtml(inv.patient_name)}</strong><div style="font-size:11px; color:#64748b;">${inv.patient_id}</div></td>
-                    <td>${escapeHtml(inv.service_type)}</td>
-                    <td>₹${total.toFixed(2)}</td>
-                    <td><strong style="color:#047857;">₹${paid.toFixed(2)}</strong></td>
-                    <td><strong style="color:${remaining > 0 ? '#dc2626' : '#16a34a'};">₹${remaining.toFixed(2)}</strong></td>
-                    <td><span class="hd-badge purple">${escapeHtml(inv.payment_method || 'Cash')}</span></td>
-                    <td><span class="hd-badge ${statusBadge}">${statusText}</span></td>
-                    <td>
-                        <div style="display:flex; gap:6px;">
-                            ${!isFullyPaid ? `<button class="hd-btn hd-btn-primary hd-btn-sm" data-inv='${escapedInvJson}' onclick="triggerPaymentModal(this)">💳 Collect</button>` : ''}
-                            <button class="hd-btn hd-btn-outline hd-btn-sm" data-inv='${escapedInvJson}' onclick="triggerReceiptPrint(this)">🧾 Receipt</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }).join("");
-    } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#ef4444;">${err.message}</td></tr>`;
+            return remaining > 0;
+        });
+    } else if (activeBillingFilter === 'paid') {
+        filtered = filtered.filter(inv => {
+            const total = Number(inv.total_amount || 0);
+            const paid = Number(inv.paid_amount || 0);
+            const disc = Number(inv.discount || 0);
+            const remaining = Number(inv.remaining_amount !== undefined ? inv.remaining_amount : Math.max(0, total - disc - paid));
+            return remaining <= 0;
+        });
     }
+
+    // Search query filter
+    if (currentBillingSearchQuery) {
+        const q = currentBillingSearchQuery;
+        filtered = filtered.filter(inv => {
+            const invId = String(inv.invoice_id || '').toLowerCase();
+            const pName = String(inv.patient_name || '').toLowerCase();
+            const pId = String(inv.patient_id || '').toLowerCase();
+            const srv = String(inv.service_type || '').toLowerCase();
+            const method = String(inv.payment_method || '').toLowerCase();
+            return invId.includes(q) || pName.includes(q) || pId.includes(q) || srv.includes(q) || method.includes(q);
+        });
+    }
+
+    // Update Status Bar
+    const statusBar = document.getElementById("billingSearchStatusBar");
+    const statusText = document.getElementById("billingSearchStatusText");
+    if (statusBar && statusText) {
+        if (currentBillingSearchQuery || activeBillingFilter !== 'all') {
+            statusBar.style.display = 'flex';
+            let msg = `Showing ${filtered.length} of ${allBillingInvoices.length} invoices`;
+            if (currentBillingSearchQuery) msg += ` matching "${escapeHtml(currentBillingSearchQuery)}"`;
+            if (activeBillingFilter === 'unpaid') msg += ` [Filtered: Unpaid / Due]`;
+            if (activeBillingFilter === 'paid') msg += ` [Filtered: Paid in Full]`;
+            statusText.textContent = msg;
+        } else {
+            statusBar.style.display = 'none';
+        }
+    }
+
+    if (!filtered.length) {
+        let emptyMsg = "No billing invoices found matching your criteria.";
+        if (!allBillingInvoices.length) {
+            emptyMsg = "No billing invoices recorded yet. Click <strong>+ Create New Invoice</strong> or bill unbilled OPD patients.";
+        } else if (activeBillingFilter === 'unpaid') {
+            emptyMsg = "✅ Excellent! There are no unpaid invoices with an outstanding balance.";
+        }
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:32px; color:#64748b;">${emptyMsg}</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(inv => {
+        const total = Number(inv.total_amount || 0);
+        const paid = Number(inv.paid_amount || 0);
+        const disc = Number(inv.discount || 0);
+        const remaining = Number(inv.remaining_amount !== undefined ? inv.remaining_amount : Math.max(0, total - disc - paid));
+        const isFullyPaid = remaining <= 0;
+        const isPartiallyPaid = paid > 0 && remaining > 0;
+        const statusBadge = isFullyPaid ? 'green' : (isPartiallyPaid ? 'purple' : 'amber');
+        const statusText = isFullyPaid ? 'Paid' : (isPartiallyPaid ? 'Partially Paid' : 'Unpaid');
+        const escapedInvJson = escapeHtml(JSON.stringify(inv));
+
+        return `
+            <tr>
+                <td><strong style="font-family:monospace; color:#2563eb; font-size: 13px;">${escapeHtml(inv.invoice_id)}</strong></td>
+                <td>
+                    <strong style="color: #0f172a;">${escapeHtml(inv.patient_name)}</strong>
+                    <div style="font-size:11px; font-family: monospace; color:#64748b; font-weight: 600;">${escapeHtml(inv.patient_id)}</div>
+                </td>
+                <td style="max-width: 240px;">
+                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(inv.service_type)}">
+                        ${escapeHtml(inv.service_type)}
+                    </div>
+                </td>
+                <td>₹${total.toFixed(2)}</td>
+                <td><strong style="color:#047857;">₹${paid.toFixed(2)}</strong></td>
+                <td><strong style="color:${remaining > 0 ? '#dc2626' : '#16a34a'}; font-size: 13.5px;">₹${remaining.toFixed(2)}</strong></td>
+                <td><span class="hd-badge purple">${escapeHtml(inv.payment_method || 'Cash')}</span></td>
+                <td><span class="hd-badge ${statusBadge}">${statusText}</span></td>
+                <td>
+                    <div style="display:flex; gap:6px;">
+                        ${!isFullyPaid ? `<button class="hd-btn hd-btn-primary hd-btn-sm" data-inv='${escapedInvJson}' onclick="triggerPaymentModal(this)">💳 Collect</button>` : ''}
+                        <button class="hd-btn hd-btn-outline hd-btn-sm" data-inv='${escapedInvJson}' onclick="triggerReceiptPrint(this)">🧾 Receipt</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function onBillingSearchInput(val) {
+    currentBillingSearchQuery = (val || '').trim().toLowerCase();
+    
+    // Clear button toggle
+    const clearBtn = document.getElementById("billingSearchClearBtn");
+    if (clearBtn) clearBtn.style.display = currentBillingSearchQuery ? 'flex' : 'none';
+
+    // Dropdown suggestions
+    const dropdown = document.getElementById("billingPatientSearchDropdown");
+    if (dropdown) {
+        if (!currentBillingSearchQuery || currentBillingSearchQuery.length < 2) {
+            dropdown.style.display = 'none';
+            dropdown.innerHTML = '';
+        } else {
+            renderBillingSearchDropdown(currentBillingSearchQuery, dropdown);
+        }
+    }
+
+    renderBillingInvoices();
+}
+
+function renderBillingSearchDropdown(query, dropdown) {
+    const q = query.toLowerCase();
+
+    // Match unbilled patients
+    const matchedUnbilled = allUnbilledPatients.filter(p => 
+        String(p.patient_name || '').toLowerCase().includes(q) ||
+        String(p.patient_id || '').toLowerCase().includes(q) ||
+        String(p.token_number || '').toLowerCase().includes(q)
+    ).slice(0, 4);
+
+    // Match existing invoices
+    const matchedInvoices = allBillingInvoices.filter(inv =>
+        String(inv.patient_name || '').toLowerCase().includes(q) ||
+        String(inv.patient_id || '').toLowerCase().includes(q) ||
+        String(inv.invoice_id || '').toLowerCase().includes(q)
+    ).slice(0, 4);
+
+    if (!matchedUnbilled.length && !matchedInvoices.length) {
+        dropdown.innerHTML = `
+            <div style="padding: 10px; font-size: 12px; color: #64748b; text-align: center;">
+                No matching patients or invoices found for "<strong>${escapeHtml(query)}</strong>".
+                <div style="margin-top: 6px;">
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="openCreateInvoiceForPatient('', '${escapeHtml(query)}', 'General Consultation', 300); closeBillingSearchDropdown();">
+                        ➕ Create New Bill For This Patient
+                    </button>
+                </div>
+            </div>
+        `;
+        dropdown.style.display = 'block';
+        return;
+    }
+
+    let html = '';
+
+    if (matchedUnbilled.length > 0) {
+        html += `<div style="font-size: 11px; font-weight: 800; color: #15803d; text-transform: uppercase; padding: 4px 8px; background: #f0fdf4; border-radius: 4px; margin-bottom: 4px;">⚡ Unbilled OPD Patients (Click to Bill)</div>`;
+        matchedUnbilled.forEach(p => {
+            html += `
+                <div style="padding: 8px 10px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" 
+                     onclick="openCreateInvoiceForPatient('${escapeHtml(p.patient_id)}', '${escapeHtml(p.patient_name)}', '${escapeHtml(p.suggested_service)}', ${p.suggested_fee}); closeBillingSearchDropdown();">
+                    <div>
+                        <strong style="font-size: 13px; color: #0f172a;">${escapeHtml(p.patient_name)}</strong>
+                        <span style="font-size: 11px; color: #2563eb; font-family: monospace; margin-left: 6px;">${escapeHtml(p.patient_id)}</span>
+                        <div style="font-size: 11px; color: #64748b;">${escapeHtml(p.department)} • ${escapeHtml(p.token_number)}</div>
+                    </div>
+                    <span class="hd-btn hd-btn-primary hd-btn-sm" style="font-size: 11px; padding: 3px 8px; background: #059669; border-color: #059669;">⚡ Bill Now</span>
+                </div>
+            `;
+        });
+    }
+
+    if (matchedInvoices.length > 0) {
+        html += `<div style="font-size: 11px; font-weight: 800; color: #1d4ed8; text-transform: uppercase; padding: 4px 8px; background: #eff6ff; border-radius: 4px; margin: 4px 0;">💳 Existing Invoices</div>`;
+        matchedInvoices.forEach(inv => {
+            const total = Number(inv.total_amount || 0);
+            const paid = Number(inv.paid_amount || 0);
+            const disc = Number(inv.discount || 0);
+            const rem = Number(inv.remaining_amount !== undefined ? inv.remaining_amount : Math.max(0, total - disc - paid));
+            const statusLabel = rem <= 0 ? '✅ Paid' : `⚠️ Due ₹${rem.toFixed(2)}`;
+
+            html += `
+                <div style="padding: 8px 10px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                     onclick="selectSearchInvoice('${escapeHtml(inv.invoice_id)}'); closeBillingSearchDropdown();">
+                    <div>
+                        <strong style="font-size: 13px; color: #0f172a;">${escapeHtml(inv.patient_name)}</strong>
+                        <span style="font-size: 11px; color: #64748b; margin-left: 6px;">${escapeHtml(inv.invoice_id)}</span>
+                        <div style="font-size: 11px; color: #64748b;">${escapeHtml(inv.service_type)}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 12px; font-weight: 700; color: ${rem > 0 ? '#dc2626' : '#16a34a'};">${statusLabel}</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    dropdown.innerHTML = html;
+    dropdown.style.display = 'block';
+}
+
+function closeBillingSearchDropdown() {
+    const dropdown = document.getElementById("billingPatientSearchDropdown");
+    if (dropdown) dropdown.style.display = 'none';
+}
+
+function selectSearchInvoice(invoiceId) {
+    const input = document.getElementById("billingSearchInput");
+    if (input) input.value = invoiceId;
+    currentBillingSearchQuery = invoiceId.toLowerCase();
+    renderBillingInvoices();
+}
+
+function clearBillingSearch() {
+    const input = document.getElementById("billingSearchInput");
+    if (input) input.value = '';
+    currentBillingSearchQuery = '';
+    activeBillingFilter = 'all';
+
+    const clearBtn = document.getElementById("billingSearchClearBtn");
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    closeBillingSearchDropdown();
+    updateFilterButtonStyles();
+    renderBillingInvoices();
+}
+
+function filterBillingStatus(status) {
+    activeBillingFilter = status;
+    updateFilterButtonStyles();
+    renderBillingInvoices();
+}
+
+function updateFilterButtonStyles() {
+    const btnAll = document.getElementById("btnFilterAllInv");
+    const btnUnpaid = document.getElementById("btnFilterUnpaidInv");
+    const btnPaid = document.getElementById("btnFilterPaidInv");
+
+    if (btnAll) btnAll.className = `hd-btn hd-btn-sm ${activeBillingFilter === 'all' ? 'hd-btn-primary' : 'hd-btn-outline'}`;
+    if (btnUnpaid) btnUnpaid.className = `hd-btn hd-btn-sm ${activeBillingFilter === 'unpaid' ? 'hd-btn-primary' : 'hd-btn-outline'}`;
+    if (btnPaid) btnPaid.className = `hd-btn hd-btn-sm ${activeBillingFilter === 'paid' ? 'hd-btn-primary' : 'hd-btn-outline'}`;
+}
+
+function toggleUnbilledPatientsView() {
+    const wrap = document.getElementById("unbilledPatientsWrap");
+    const btn = document.getElementById("btnUnbilledToggle");
+    if (!wrap) return;
+
+    if (wrap.style.display === 'none' || !wrap.style.display) {
+        wrap.style.display = 'block';
+        if (btn) {
+            btn.style.background = '#0284c7';
+            btn.style.color = '#ffffff';
+        }
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        wrap.style.display = 'none';
+        if (btn) {
+            btn.style.background = 'transparent';
+            btn.style.color = '#0284c7';
+        }
+    }
+}
+
+// Close search dropdown on click outside
+if (typeof document !== "undefined") {
+    document.addEventListener("click", function (evt) {
+        const dropdown = document.getElementById("billingPatientSearchDropdown");
+        const input = document.getElementById("billingSearchInput");
+        if (dropdown && dropdown.style.display !== 'none') {
+            if (!dropdown.contains(evt.target) && evt.target !== input) {
+                dropdown.style.display = 'none';
+            }
+        }
+    });
 }
 
 function openCreateInvoiceModal() {
@@ -2015,6 +2438,16 @@ async function handleCreateInvoiceSubmit(e) {
 
         showToast(`✓ ${res.message} (Invoice ID: ${res.invoice.invoice_id})`, "success");
         closeHdModal("modalCreateInvoice");
+
+        // If invoice is generated as Paid, offer instant receipt print
+        if (paymentStatus === "Paid" && res.invoice) {
+            setTimeout(() => {
+                if (confirm(`Invoice ${res.invoice.invoice_id} is marked as Paid. Do you want to print the official receipt now?`)) {
+                    printBillingReceipt(res.invoice);
+                }
+            }, 300);
+        }
+
         await loadBillingInvoices();
         await refreshDashboardData();
     } catch (err) {
@@ -2503,6 +2936,26 @@ async function handleProcessPaymentSubmit(e) {
         closeHdModal("modalProcessPayment");
         showToast(res.message || "✓ Payment recorded successfully.", "success");
 
+        // Automatically trigger printable receipt if auto-print is checked
+        const shouldAutoPrint = document.getElementById("payAutoPrintReceipt")?.checked ?? true;
+        if (shouldAutoPrint && activePayingInvoice) {
+            const prevPaid = Number(activePayingInvoice.paid_amount || 0);
+            const newPaid = prevPaid + amount;
+            const total = Number(activePayingInvoice.total_amount || 0);
+            const disc = Number(activePayingInvoice.discount || 0);
+            const remaining = Math.max(0, total - disc - newPaid);
+            const updatedInv = {
+                ...activePayingInvoice,
+                paid_amount: newPaid,
+                remaining_amount: remaining,
+                payment_method: paymentMethod,
+                payment_status: remaining <= 0 ? 'Paid' : 'Partially Paid'
+            };
+            setTimeout(() => {
+                printBillingReceipt(updatedInv);
+            }, 350);
+        }
+
         // Reload billing invoices in-place without page reload!
         await loadBillingInvoices();
         await refreshDashboardData();
@@ -2519,9 +2972,12 @@ async function handleProcessPaymentSubmit(e) {
 function printBillingReceipt(invoice) {
     const total = Number(invoice.total_amount || 0);
     const paid = Number(invoice.paid_amount || 0);
-    const remaining = Number(invoice.remaining_amount !== undefined ? invoice.remaining_amount : Math.max(0, total - paid));
+    const disc = Number(invoice.discount || 0);
+    const remaining = Number(invoice.remaining_amount !== undefined ? invoice.remaining_amount : Math.max(0, total - disc - paid));
+    const hospName = invoice.hospital_name || document.getElementById('brandHospName')?.textContent || 'SmartCity Hospital';
+    const hospLogo = invoice.hospital_logo || currentHospitalLogo || document.getElementById('cfgHospLogoPreview')?.src || '/favicon.svg';
 
-    const printWindow = window.open("", "_blank", "width=600,height=700");
+    const printWindow = window.open("", "_blank", "width=650,height=750");
     if (!printWindow) {
         showToast(`Receipt #${invoice.invoice_id} | Paid: ₹${paid.toFixed(2)} | Remaining: ₹${remaining.toFixed(2)}`, "info");
         return;
@@ -2531,39 +2987,101 @@ function printBillingReceipt(invoice) {
         <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="utf-8">
             <title>Hospital Receipt - ${invoice.invoice_id}</title>
             <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
-                .receipt-box { max-width: 480px; margin: 0 auto; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 24px; }
-                .header { text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 16px; margin-bottom: 16px; }
-                .logo { max-height: 60px; object-fit: contain; margin-bottom: 8px; }
-                .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
-                .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; border-top: 1.5px solid #1e293b; padding-top: 8px; margin-top: 12px; }
-                .footer { text-align: center; margin-top: 24px; font-size: 12px; color: #64748b; }
+                @media print {
+                    body { margin: 0; padding: 10px; }
+                    .no-print { display: none !important; }
+                    .receipt-box { border: 1.5px solid #000 !important; box-shadow: none !important; }
+                }
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #1e293b; background: #f8fafc; line-height: 1.5; }
+                .receipt-box { max-width: 500px; margin: 0 auto; background: white; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 26px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
+                .header { text-align: center; border-bottom: 2px dashed #94a3b8; padding-bottom: 16px; margin-bottom: 18px; }
+                .logo-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+                .hosp-logo { max-height: 54px; max-width: 180px; object-fit: contain; }
+                .city-logo { max-height: 44px; object-fit: contain; }
+                .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13.5px; }
+                .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; border-top: 1.5px solid #0f172a; padding-top: 8px; margin-top: 12px; }
+                .paid-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #047857; margin-top: 4px; }
+                .balance-row { display: flex; justify-content: space-between; font-size: 15.5px; font-weight: 800; color: ${remaining > 0 ? '#dc2626' : '#16a34a'}; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #cbd5e1; }
+                .footer { text-align: center; margin-top: 24px; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+                .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; }
+                .badge-paid { background: #dcfce7; color: #166534; }
+                .badge-due { background: #fee2e2; color: #991b1b; }
             </style>
         </head>
         <body>
             <div class="receipt-box">
                 <div class="header">
-                    <img class="logo" src="${document.getElementById('cfgHospLogoPreview')?.src || '/favicon.svg'}" alt="Hospital Logo" onerror="this.style.display='none'">
-                    <h2 style="margin: 4px 0;">${document.getElementById('brandHospName')?.textContent || 'SmartCity Hospital'}</h2>
-                    <p style="margin: 0; font-size: 12px; color: #64748b;">OFFICIAL PATIENT PAYMENT RECEIPT</p>
+                    <div class="logo-row">
+                        <img class="hosp-logo" src="${hospLogo}" alt="Hospital Logo" onerror="this.src='/favicon.svg'">
+                        <img class="city-logo" src="/favicon.svg" alt="SmartCity Authority">
+                    </div>
+                    <h2 style="margin: 4px 0 2px 0; color: #0284c7; font-size: 18px; font-weight: 800;">${escapeHtml(hospName)}</h2>
+                    <p style="margin: 0; font-size: 11px; color: #475569; font-weight: 700; letter-spacing: 0.05em;">OFFICIAL PATIENT PAYMENT RECEIPT</p>
+                    <p style="margin: 3px 0 0; font-size: 10px; color: #64748b;">SmartCity Municipal Health Network • Verified Cashier Transaction</p>
                 </div>
-                <div class="row"><span>Receipt / Invoice:</span><strong>#${invoice.invoice_id}</strong></div>
-                <div class="row"><span>Patient Name:</span><strong>${escapeHtml(invoice.patient_name)}</strong></div>
-                <div class="row"><span>Patient ID:</span><span>${invoice.patient_id}</span></div>
-                <div class="row"><span>Service:</span><strong style="color: #2563eb;">${escapeHtml(invoice.service_type)}</strong></div>
-                <div class="row"><span>Payment Method:</span><span>${invoice.payment_method}</span></div>
-                <div class="row"><span>Date:</span><span>${new Date().toLocaleString()}</span></div>
-                <div class="total-row"><span>Total Billed:</span><span>₹${total.toFixed(2)}</span></div>
-                <div class="row" style="color: #059669; font-weight: 700;"><span>Amount Paid:</span><span>₹${paid.toFixed(2)}</span></div>
-                <div class="row" style="color: ${remaining > 0 ? '#dc2626' : '#059669'}; font-weight: 800; font-size: 15px;"><span>Remaining Payable:</span><span>₹${remaining.toFixed(2)}</span></div>
-                <div class="row"><span>Status:</span><strong style="text-transform: uppercase;">${remaining <= 0 ? 'PAID IN FULL' : 'PARTIALLY PAID'}</strong></div>
+
+                <div class="row">
+                    <span style="color: #64748b;">Receipt / Invoice #:</span>
+                    <strong style="font-family: monospace; color: #2563eb; font-size: 14px;">${escapeHtml(invoice.invoice_id)}</strong>
+                </div>
+                <div class="row">
+                    <span style="color: #64748b;">Patient Full Name:</span>
+                    <strong style="color: #0f172a;">${escapeHtml(invoice.patient_name)}</strong>
+                </div>
+                <div class="row">
+                    <span style="color: #64748b;">Patient ID:</span>
+                    <span style="font-family: monospace; font-weight: 600;">${escapeHtml(invoice.patient_id)}</span>
+                </div>
+                <div class="row">
+                    <span style="color: #64748b;">Service Description:</span>
+                    <strong style="color: #0369a1; text-align: right; max-width: 60%;">${escapeHtml(invoice.service_type)}</strong>
+                </div>
+                <div class="row">
+                    <span style="color: #64748b;">Payment Method:</span>
+                    <span style="font-weight: 600;">${escapeHtml(invoice.payment_method || 'Cash')}</span>
+                </div>
+                <div class="row">
+                    <span style="color: #64748b;">Transaction Date:</span>
+                    <span>${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                </div>
+
+                <div class="total-row">
+                    <span>Total Billed Amount:</span>
+                    <span>₹${total.toFixed(2)}</span>
+                </div>
+                ${disc > 0 ? `
+                <div class="row" style="color: #64748b; font-size: 12.5px;">
+                    <span>Concession / Discount:</span>
+                    <span>- ₹${disc.toFixed(2)}</span>
+                </div>` : ''}
+                <div class="paid-row">
+                    <span>Amount Paid:</span>
+                    <span>₹${paid.toFixed(2)}</span>
+                </div>
+                <div class="balance-row">
+                    <span>Outstanding Balance:</span>
+                    <span>₹${remaining.toFixed(2)}</span>
+                </div>
+                <div class="row" style="margin-top: 10px; align-items: center;">
+                    <span style="color: #64748b;">Payment Status:</span>
+                    <span class="badge ${remaining <= 0 ? 'badge-paid' : 'badge-due'}">
+                        ${remaining <= 0 ? '✓ Paid In Full' : '⚠️ Outstanding Balance'}
+                    </span>
+                </div>
+
                 <div class="footer">
-                    <p>Thank you. Retain this receipt for hospital billing verification.</p>
+                    <p style="margin: 0 0 4px 0;">This is an authenticated computer-generated receipt from <strong>${escapeHtml(hospName)}</strong>.</p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 10px;">SmartCity Integrated Hospital Information System (HIS)</p>
                 </div>
             </div>
-            <script>window.print();</script>
+            <script>
+                window.addEventListener('load', () => {
+                    setTimeout(() => window.print(), 250);
+                });
+            </script>
         </body>
         </html>
     `);
@@ -2598,7 +3116,13 @@ async function handleHospitalLogoUpload(event) {
         const formData = new FormData();
         formData.append("logo", file);
 
-        const token = getAuthToken();
+        // Resolve JWT token — getAuthToken() was undefined; use authFetch pattern instead
+        let token = null;
+        if (typeof SmartCityAuth !== "undefined" && SmartCityAuth.getToken) {
+            token = SmartCityAuth.getToken();
+        }
+        if (!token) token = localStorage.getItem("smartCityJWT");
+
         const res = await fetch(`${API_BASE}/api/hospitals/${encodeURIComponent(currentHospitalId)}/logo`, {
             method: "POST",
             headers: {
@@ -3896,10 +4420,18 @@ async function openOfficialPrescriptionModal(prescriptionId) {
         const d = doc.doctor || {};
         const rx = doc.prescription || {};
 
-        // Hospital Header
-        const logoUrl = h.logo || PRESET_HOSPITAL_LOGOS[0];
-        if (document.getElementById("rxHospLogo")) document.getElementById("rxHospLogo").src = logoUrl;
-        if (document.getElementById("rxHospName")) document.getElementById("rxHospName").textContent = (h.hospital_name || "MUNICIPAL HOSPITAL").toUpperCase();
+        // Hospital Header & SmartCity Branding
+        const logoUrl = h.logo || currentHospitalLogo || PRESET_HOSPITAL_LOGOS[0];
+        const hospLogoEl = document.getElementById("rxHospLogo");
+        if (hospLogoEl) {
+            hospLogoEl.src = logoUrl;
+            hospLogoEl.onerror = () => { hospLogoEl.src = '/favicon.svg'; };
+        }
+        const scLogoEl = document.getElementById("rxSmartCityLogo");
+        if (scLogoEl) {
+            scLogoEl.src = doc.smartcity?.logo || '/favicon.svg';
+        }
+        if (document.getElementById("rxHospName")) document.getElementById("rxHospName").textContent = (h.hospital_name || h.name || "MUNICIPAL HOSPITAL").toUpperCase();
         if (document.getElementById("rxHospAddress")) document.getElementById("rxHospAddress").textContent = h.address || "Gorakhpur, UP";
         if (document.getElementById("rxHospAccreditation")) document.getElementById("rxHospAccreditation").textContent = h.accreditation || "NABH Accredited • Ayushman Bharat Verified";
         if (document.getElementById("rxHospPhone")) document.getElementById("rxHospPhone").textContent = h.phone || "102";
@@ -3919,9 +4451,11 @@ async function openOfficialPrescriptionModal(prescriptionId) {
         if (document.getElementById("rxPatientToken")) document.getElementById("rxPatientToken").textContent = doc.appointment?.token_number || "--";
         if (document.getElementById("rxDate")) document.getElementById("rxDate").textContent = rx.created_at ? new Date(rx.created_at).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN");
 
-        // Diagnosis
+        // In the Middle: Symptoms & Complaints & Diagnosis
+        if (document.getElementById("rxSymptoms")) {
+            document.getElementById("rxSymptoms").textContent = rx.symptoms || rx.doctor_notes || "Patient presented for clinical OPD examination and evaluation.";
+        }
         if (document.getElementById("rxDiagnosis")) document.getElementById("rxDiagnosis").textContent = rx.diagnosis || "Clinical Consultation Completed";
-        if (document.getElementById("rxSymptoms")) document.getElementById("rxSymptoms").textContent = rx.doctor_notes || "";
         if (document.getElementById("rxAdvice")) document.getElementById("rxAdvice").textContent = rx.advice || "Continue prescribed medication schedule and rest.";
         if (document.getElementById("rxFollowUpDate")) document.getElementById("rxFollowUpDate").textContent = rx.follow_up_date || "After 5 days or if symptoms worsen";
 

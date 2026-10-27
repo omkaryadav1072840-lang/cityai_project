@@ -42,7 +42,7 @@ body {
 
     top: 0;
 
-    z-index: 100;
+    z-index: 10000;
 
 }
 
@@ -7466,8 +7466,8 @@ body {
     gap: 10px;
     overflow-x: auto;
     position: sticky;
-    top: 70px;
-    z-index: 990;
+    top: 74px;
+    z-index: 800;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 

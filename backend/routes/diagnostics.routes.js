@@ -948,6 +948,7 @@ router.get("/api/diagnostics/reports/:reportId", optionalToken, async (req, res)
                 dt.laboratory_name,
                 dt.department,
                 h.hospital_name,
+                h.logo AS hospital_logo,
                 h.address AS hospital_address,
                 h.phone AS hospital_phone,
                 h.email AS hospital_email,

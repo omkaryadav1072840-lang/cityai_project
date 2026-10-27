@@ -401,3 +401,167 @@
         right: 16px;
     }
 }
+
+/* History Panel */
+.sc-ai-history-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--sc-ai-bg);
+    backdrop-filter: blur(16px);
+    border-left: 1px solid var(--sc-ai-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sc-ai-history-panel.sc-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+.sc-ai-history-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--sc-ai-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sc-ai-history-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sc-ai-text);
+}
+
+.sc-ai-history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sc-ai-history-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sc-ai-history-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.sc-ai-history-item.sc-user {
+    border-left: 3px solid #3b82f6;
+}
+
+.sc-ai-history-item.sc-bot {
+    border-left: 3px solid #8b5cf6;
+}
+
+.sc-ai-history-role {
+    font-size: 11px;
+    font-weight: 700;
+    color: #93c5fd;
+}
+
+.sc-ai-history-text {
+    font-size: 12px;
+    color: #e2e8f0;
+    line-height: 1.4;
+}
+
+.sc-ai-history-time {
+    font-size: 10px;
+    color: #64748b;
+    align-self: flex-end;
+}
+
+.sc-ai-history-empty {
+    padding: 24px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.sc-ai-history-actions {
+    padding: 12px 16px;
+    border-top: 1px solid var(--sc-ai-border);
+}
+
+.sc-ai-history-btn {
+    width: 100%;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sc-ai-history-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+/* Feedback Bar */
+.sc-feedback-bar {
+    padding-top: 4px;
+}
+
+.sc-feedback-btn {
+    transition: all 0.2s !important;
+}
+
+.sc-feedback-btn:hover {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-color: #3b82f6 !important;
+    color: #93c5fd !important;
+}
+
+.sc-feedback-btn[data-feedback="up"]:hover {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: #10b981 !important;
+    color: #34d399 !important;
+}
+
+.sc-feedback-btn[data-feedback="down"]:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: #ef4444 !important;
+    color: #f87171 !important;
+}
+
+.sc-feedback-thanks {
+    animation: scFadeIn 0.3s ease-out;
+}
+
+/* Retry Button */
+.sc-retry-btn {
+    transition: all 0.2s !important;
+}
+
+.sc-retry-btn:hover {
+    background: #dc2626 !important;
+    transform: scale(1.05);
+}

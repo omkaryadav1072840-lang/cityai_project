@@ -26,6 +26,9 @@ body {
     background: white;
 
     border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10000;
 }
 
 .logo {
@@ -3506,7 +3509,7 @@ body {
     overflow-x: auto;
     position: sticky;
     top: 70px;
-    z-index: 990;
+    z-index: 800;
     box-shadow: 0 2px 10px rgba(217, 119, 6, 0.05);
 }
 

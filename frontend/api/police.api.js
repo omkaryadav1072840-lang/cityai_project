@@ -31,7 +31,7 @@
         getStations: () => client.get("/api/police/stations"),
         getStats: () => client.get("/api/police/stats"),
         getComplaints: (params) => client.get("/api/police/complaints", params),
-        trackComplaint: (ref) => client.get("/api/police/complaints/track/" + encodeURIComponent(ref)),
+        trackComplaint: (ref) => client.get(`/api/police/complaints/track/${encodeURIComponent(ref)}`),
         fileComplaint: (payload) => client.post("/api/police/complaint", payload),
         updateComplaintStatus: (id, payload) => client.put(`/api/police/complaints/${id}/status`, payload),
         getEmergencyContacts: () => client.get("/api/police/emergency-contacts"),

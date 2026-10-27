@@ -2164,12 +2164,32 @@ router.get("/api/prescriptions/:id/document", optionalToken, async (req, res) =>
             opd_room_no: "OPD-101"
         };
 
+        let symptoms = rx.symptoms || "";
+        if (!symptoms) {
+            try {
+                const [recRows] = await pool.query(
+                    "SELECT symptoms FROM patient_records WHERE prescription_id = ? OR (patient_id = ? AND doctor_id = ?) ORDER BY id DESC LIMIT 1",
+                    [rx.id, rx.patient_id, rx.doctor_id || ""]
+                );
+                if (recRows.length && recRows[0].symptoms) {
+                    symptoms = recRows[0].symptoms;
+                }
+            } catch (e) {}
+        }
+        if (!symptoms && rx.medications_json) {
+            try {
+                const parsed = typeof rx.medications_json === 'string' ? JSON.parse(rx.medications_json) : rx.medications_json;
+                if (parsed.symptoms) symptoms = parsed.symptoms;
+            } catch (e) {}
+        }
+
         const docPayload = {
             prescription: {
                 id: rx.id,
                 date: rx.created_at,
                 created_at: rx.created_at,
                 diagnosis: rx.diagnosis || "Clinical Consultation",
+                symptoms: symptoms || rx.doctor_notes || "Patient presented for clinical consultation and evaluation.",
                 medications: rx.medications_json || rx.prescription_file,
                 advice: rx.advice || rx.doctor_notes || "Maintain proper rest, stay hydrated, and take medications as scheduled.",
                 doctor_notes: rx.doctor_notes || "",
@@ -2179,12 +2199,18 @@ router.get("/api/prescriptions/:id/document", optionalToken, async (req, res) =>
                 name: hospital.hospital_name,
                 hospital_name: hospital.hospital_name,
                 hospital_id: hospital.hospital_id,
-                logo: rx.hospital_logo || hospital.logo,
+                logo: rx.hospital_logo || hospital.logo || "/favicon.svg",
                 historical_logo_preserved: Boolean(rx.hospital_logo && rx.hospital_logo !== hospital.logo),
                 address: hospital.address,
                 phone: hospital.phone,
                 emergency_number: hospital.emergency_number,
                 accreditation: hospital.accreditation
+            },
+            smartcity: {
+                name: "Gorakhpur Smart City Health Authority",
+                logo: "/favicon.svg",
+                seal: "OFFICIAL DIGITAL HEALTH PORTAL",
+                verified: true
             },
             doctor: {
                 name: doctor.name,
@@ -2212,6 +2238,112 @@ router.get("/api/prescriptions/:id/document", optionalToken, async (req, res) =>
     } catch (err) {
         console.error("Prescription document error:", err);
         res.status(500).json({ success: false, message: "Database error generating prescription document." });
+    }
+});
+
+// =========================================================================
+// 8B. OFFICIAL INVOICE & BILLING DOCUMENT GENERATOR
+// =========================================================================
+
+/**
+ * GET /api/invoices/:id/document
+ * Returns complete printable invoice/billing data with official hospital identity & logo.
+ */
+router.get("/api/invoices/:id/document", optionalToken, async (req, res) => {
+    const { id } = req.params;
+    const pool = db.promise();
+
+    try {
+        const [invRows] = await pool.query(
+            `SELECT i.*, 
+                    h.hospital_name, h.logo AS hospital_logo, h.address AS hospital_address, h.phone AS hospital_phone, 
+                    h.emergency_number, h.accreditation
+             FROM hospital_invoices i
+             LEFT JOIN hospitals h ON (i.hospital_id = h.hospital_id OR i.hospital_id = CAST(h.id AS CHAR))
+             WHERE i.invoice_id = ? OR CAST(i.id AS CHAR) = ?
+             LIMIT 1`,
+            [id, id]
+        );
+
+        if (!invRows.length) {
+            return res.status(404).json({ success: false, message: "Invoice not found." });
+        }
+
+        const invoice = invRows[0];
+
+        // Fetch payment history
+        const [payments] = await pool.query(
+            "SELECT * FROM hospital_billing_payments WHERE invoice_id = ? ORDER BY created_at DESC",
+            [invoice.invoice_id]
+        );
+
+        // Fetch patient
+        const [pRows] = await pool.query(
+            "SELECT * FROM patients WHERE patient_id = ? LIMIT 1",
+            [invoice.patient_id]
+        );
+        const patient = pRows[0] || { patient_id: invoice.patient_id, name: invoice.patient_name };
+
+        // Fetch hospital
+        const [hRows] = await pool.query(
+            "SELECT * FROM hospitals WHERE hospital_id = ? OR CAST(id AS CHAR) = ? LIMIT 1",
+            [invoice.hospital_id, invoice.hospital_id]
+        );
+        const hospital = hRows[0] || {
+            hospital_name: "SmartCity Gorakhpur Hospital",
+            address: "Gorakhpur, Uttar Pradesh",
+            phone: "0551-2200000",
+            emergency_number: "108",
+            accreditation: "Government Health Authority",
+            logo: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&auto=format&fit=crop&q=80"
+        };
+
+        const docPayload = {
+            invoice: {
+                id: invoice.id,
+                invoice_id: invoice.invoice_id,
+                date: invoice.created_at,
+                service_type: invoice.service_type,
+                service_reference_id: invoice.service_reference_id,
+                total_amount: invoice.total_amount,
+                discount: invoice.discount,
+                paid_amount: invoice.paid_amount,
+                remaining_amount: invoice.remaining_amount,
+                payment_status: invoice.payment_status,
+                payment_method: invoice.payment_method,
+                billed_by: invoice.billed_by,
+                created_at: invoice.created_at,
+                updated_at: invoice.updated_at
+            },
+            hospital: {
+                name: hospital.hospital_name,
+                hospital_name: hospital.hospital_name,
+                hospital_id: hospital.hospital_id,
+                logo: hospital.logo,
+                address: hospital.address,
+                phone: hospital.phone,
+                emergency_number: hospital.emergency_number,
+                accreditation: hospital.accreditation
+            },
+            patient: {
+                patient_id: patient.patient_id,
+                name: patient.name,
+                age: patient.age,
+                gender: patient.gender,
+                mobile: patient.mobile
+            },
+            payments: payments,
+            invoice: invoice
+        };
+
+        res.json({
+            success: true,
+            document: docPayload,
+            ...docPayload
+        });
+    } catch (err) {
+        console.error("Invoice document error:", err);
+        res.status(500).json({ success: false, message: "Database error generating invoice document." });
     }
 });
 

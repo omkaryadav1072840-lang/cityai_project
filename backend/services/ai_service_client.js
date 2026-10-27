@@ -256,6 +256,44 @@ async function analyzeHealthcare(params = {}) {
 }
 
 /**
+ * Clinical Care Intent Classification & Triage (ML Classifier with deterministic safety)
+ */
+async function classifyClinicalIntent(params = {}) {
+    const payload = {
+        query: String(params.query || "").slice(0, 1000),
+        language: params.language || "auto"
+    };
+
+    try {
+        const result = await callFastAPI("/api/v1/healthcare/clinical-intent", "POST", payload);
+        return { ...result, fallback_used: false };
+    } catch (err) {
+        // Resilient deterministic client-side fallback
+        const q = payload.query.toLowerCase();
+        const isEmergency = /chest pain|seene me|breathless|saans|stroke|lakwa|bleeding|khoon|unconscious|behosh|zehar|poison/i.test(q);
+        const isDosage = /double|badha lu|badha du|increase my|2 tablet|2 goli|stop taking|band kar/i.test(q);
+
+        let intent = "AMBIGUOUS_CLARIFICATION";
+        if (isEmergency) intent = "EMERGENCY";
+        else if (isDosage) intent = "DOSAGE_ALTERATION";
+        else if (/parcha|parchi|prescription|dawai|medicine/i.test(q)) intent = "PRESCRIPTION_EXPLANATION";
+        else if (/bukhar|fever|dard|pain|dengue|cough|khansi/i.test(q)) intent = "SYMPTOM_REPORT";
+
+        return {
+            query: payload.query,
+            intent,
+            confidence: 0.75,
+            is_emergency: isEmergency,
+            requires_doctor_handoff: isEmergency || isDosage,
+            model_version: "clinical-intent-v1.0-client-fallback",
+            safety_tier_invoked: isEmergency || isDosage ? "TIER_0_DETERMINISTIC_FALLBACK" : "TIER_2_HEURISTIC_FALLBACK",
+            disclaimer: "Decision support only. Clinical advice requires a registered medical practitioner (NMC/ICMR).",
+            fallback_used: true
+        };
+    }
+}
+
+/**
  * Emergency Dispatch Travel-Time Estimation
  */
 async function dispatchEmergency(params = {}) {
@@ -387,6 +425,7 @@ module.exports = {
     predictWaste,
     analyzeWater,
     analyzeHealthcare,
+    classifyClinicalIntent,
     dispatchEmergency,
     forecastParking,
     analyzeEnvironment,

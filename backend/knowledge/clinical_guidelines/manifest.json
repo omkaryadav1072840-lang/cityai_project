@@ -1,0 +1,71 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-10-27T00:00:00Z",
+  "publisher": "SmartCity AI Clinical Governance Board",
+  "guidelines_count": 7,
+  "sources": [
+    {
+      "id": "ICMR-AFI-2024",
+      "file": "icmr_fever_management.json",
+      "organization": "Indian Council of Medical Research (ICMR)",
+      "jurisdiction": "India",
+      "tier": 1,
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "MOHFW-DENGUE-2024",
+      "file": "mohfw_dengue_protocol.json",
+      "organization": "Ministry of Health and Family Welfare (MoHFW), Govt of India",
+      "jurisdiction": "India",
+      "tier": 1,
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "ICMR-IHCI-2024",
+      "file": "icmr_hypertension_ihci.json",
+      "organization": "ICMR - India Hypertension Control Initiative",
+      "jurisdiction": "India",
+      "tier": 1,
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "ICMR-T2D-2024",
+      "file": "icmr_diabetes_type2.json",
+      "organization": "Indian Council of Medical Research (ICMR)",
+      "jurisdiction": "India",
+      "tier": 1,
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "ICMR-AMR-2024",
+      "file": "icmr_antimicrobial_stewardship.json",
+      "organization": "ICMR Antimicrobial Stewardship Network",
+      "jurisdiction": "India",
+      "tier": 1,
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "AIIMS-PATIENT-2024",
+      "file": "aiims_patient_care_home_protocols.json",
+      "organization": "All India Institute of Medical Sciences (AIIMS) New Delhi",
+      "jurisdiction": "India",
+      "tier": 1,
+      "year": 2024,
+      "status": "active"
+    },
+    {
+      "id": "WHO-MATERNAL-2023",
+      "file": "who_maternal_child_safety.json",
+      "organization": "World Health Organization (WHO)",
+      "jurisdiction": "International",
+      "tier": 1,
+      "year": 2023,
+      "status": "active"
+    }
+  ]
+}

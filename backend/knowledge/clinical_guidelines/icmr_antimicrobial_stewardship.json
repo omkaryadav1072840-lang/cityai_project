@@ -1,0 +1,20 @@
+{
+  "id": "ICMR-AMR-2024",
+  "title": "ICMR Antimicrobial Stewardship Treatment Guidelines for Common Syndromes",
+  "organization": "ICMR Antimicrobial Stewardship Network",
+  "year": 2024,
+  "jurisdiction": "India",
+  "category": "Infectious Diseases & Antibiotic Stewardship",
+  "keywords": ["antibiotic", "azithromycin", "amoxicillin", "cough", "cold", "sore throat", "khansi", "gala kharab", "infection", "amr"],
+  "chunks": [
+    {
+      "chunk_id": "ICMR-AMR-01",
+      "topic": "Judicious Antibiotic Use in Upper Respiratory Infections",
+      "content": "Over 85% to 90% of acute upper respiratory tract infections, uncomplicated bronchitis, and sore throat cases in outpatient primary care are etiology-confirmed viral illnesses. Empirical antibiotic therapy (such as Azithromycin, Amoxicillin-Clavulanate, or Cefixime) is strongly discouraged for uncomplicated viral coryza, watery rhinorrhea, and mild sore throats as it provides no clinical acceleration of recovery and accelerates the emergence of multidrug-resistant pathogens across community reservoirs. Symptomatic management with warm saline gargles, honey-ginger demulcent, hydration, and steam inhalation constitutes appropriate standard care.",
+      "contraindications": "Do not take leftover, non-prescribed, or shared antibiotics from previous illnesses or family members.",
+      "warnings": "Antibiotics require a verified physical medical prescription and must be taken for the complete course if prescribed by a registered physician. Seek clinician evaluation if high fever persists >3 days, thick purulent sputum with severe pleuritic chest pain develops, or breathing becomes labored.",
+      "home_care": "Warm water hydration, steam inhalation for nasal congestion relief, warm saline throat gargles twice daily, and adequate sleep.",
+      "citation": "ICMR Treatment Guidelines for Antimicrobial Use in Common Syndromes (2nd Edition, 2024), Respiratory Tract Infections Section, pp. 31-39."
+    }
+  ]
+}

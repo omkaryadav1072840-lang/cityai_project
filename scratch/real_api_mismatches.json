@@ -1,0 +1,5 @@
+{
+  "/api/map/incidents${queryLayer}": [
+    "frontend\\script.js:1000"
+  ]
+}

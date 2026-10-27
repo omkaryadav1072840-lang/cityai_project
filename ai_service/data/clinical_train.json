@@ -1,0 +1,794 @@
+[
+  {
+    "text": "Seene me bahut tez dard ho raha hai aur paseena aa raha hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) After Surgery ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000018",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Gala sooj gaya hai saans atak rahi hai emergency hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can I take 2 tablets of Paracetamol together for fast relief?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Parchi me likhi dawao ke nirdesh aur timing samjhao",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Alzheimer's Disease ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000025",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about Acupuncture",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000007",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Anaphylaxis ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000032",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Maine subah ki BP ki goli kha li hai mark kar do",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Recommended food and fruits for heart patients",
+    "intent": "DIET_NUTRITION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Severe asthma attack inhaler not working suffocating",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Kamar me akdan hai jhukne me bahut dard ho raha hai",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Raat me sukhi khansi aur gale me kharash ho rahi hai",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Peshab me jalan aur pet ke nichle hisse me dard hai",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can I skip my night dosage if I have nausea?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Best diet plan for lowering blood sugar levels naturally",
+    "intent": "DIET_NUTRITION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Telmisartan dawa kis bimari ke liye di gayi hai?",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "HbA1c 7.8 percent aana kya darshata hai?",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Child drank poisonous floor cleaner vomiting profusely",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Anemia ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000034",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Subah ki dawa chhoot gayi abhi le sakta hu kya?",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Burning sensation while urinating and lower abdominal pain",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Mujhe 2 din se tez bukhar aur sardi thand lag rahi hai",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Book an appointment with a cardiologist at AIIMS Gorakhpur",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Explain my prescription and what each medicine is for",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Meri dawai samjhao",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Raat ki goli chhod sakta hu kya ulti ho rahi hai?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Feeling very sick and uneasy please help",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Bahut zyada khoon beh raha hai shareer thanda pad gaya hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Advance Directives",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000016",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about A1C",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000001",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Fasting blood sugar 142 aayi hai kya yeh zyada hai?",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Acute Lymphocytic Leukemia ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000009",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about Antibiotic Resistance",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000044",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Explain the dosage timing for my morning and night pills",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Animal Bites ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000039",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Accident ho gaya hai sir se bahut khoon beh raha hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Kal se bechaini aur bimari jaisa lag raha hai",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Abortion ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000003",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What foods or medicines should I avoid while on Metformin?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Kya dawa band kar du ya aadhi goli lu?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Connect me to a real human doctor for consultation",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Alzheimer's Caregivers ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000024",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Platelet report me 85000 aayi hai kya sankat hai?",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Haddi ke doctor ko dikhana hai appointment kaise milegi?",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Anabolic Steroids",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000029",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Alcoholism and Alcohol Abuse ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000021",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about Alcohol",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000020",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Metformin ke sath kya nahi khana chahiye kya parhez kare?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Anatomy",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000033",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Aneurysms ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000036",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Ankle Injuries and Disorders ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000041",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "My platelet count is 85000 what does this mean in CBC?",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Adhesions ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000012",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Should I increase my blood pressure dose on my own?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Aphasia ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000050",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "I feel better, can I discontinue my medicine course early?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Antioxidants",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000047",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Can I consume citrus or milk with antibiotic medicines?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "I forgot my morning medicine, should I take it now?",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Dil ke marizo ke liye poshtik aahar batao",
+    "intent": "DIET_NUTRITION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Anxiety ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000048",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is the purpose of Telmisartan prescribed to me?",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "My fasting blood sugar report shows 142 mg/dL is it high?",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Choking on food unable to breathe or speak emergency",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Antibiotic goli beech me band kar sakta hu kya?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What should I eat to recover quickly from viral fever?",
+    "intent": "DIET_NUTRITION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Abdominal Pain ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000002",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Patient is breathless, gasping for air and lips turning blue",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Bacche ne galti se floor cleaner zehar pi liya hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Severe throbbing headache on right side with nausea and sensitivity to light",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Crushing chest pain radiating to left arm and heavy sweating",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Adoption",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000013",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Amyotrophic Lateral Sclerosis ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000028",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Dose double kar du kya jaldi aaram ke liye?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What are the instructions written on my hospital prescription?",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Aortic Aneurysm ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000049",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about Antibiotics",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000045",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Kuch theek nahi lag raha hai pareshani ho rahi hai",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Bukhar kam nahi ho raha Paracetamol ki 2 goli ek sath kha lu?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Mujhe real doctor se baat karni hai connect karo",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Kya mai Metformin ki 2 tablet le lu?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Acute Bronchitis ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000008",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Alpha-1 Antitrypsin Deficiency ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000023",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Adrenal Gland Disorders ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000015",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Asthma ka tez attack aaya hai saans phool rahi hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Raat ki dawa le li mark kar lo",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Dopahar ki dawa le li hai",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can I adjust my insulin dose without doctor consultation?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "I have some health problems what should I do?",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Antibiotic ke sath dahi ya doodh le sakte hain kya?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Severe road accident heavy bleeding from head",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Do you have information about Antidepressants",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000046",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "AIIMS Gorakhpur me heart ke doctor ki appointment book karni hai",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Saans lene me bahut takleef ho rahi hai behoshi aa rahi hai",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Aadha sar dard kar raha hai ulti jaisa lag raha hai migraine",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Achanak lakwa maar gaya hai bol nahi pa rahe hain",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Amblyopia ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000026",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Problem ho rahi hai kya karu batao",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Allergy ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000022",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Insulin unit badha du kya sugar zyada aa rahi hai?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can I take Ibuprofen if I have a history of stomach ulcers?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Severe anaphylactic reaction throat swelling cannot breathe",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Animal Diseases and Your Health ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000040",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about Angioplasty",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000038",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "I have high fever with body chills and shivering for 2 days",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Sugar control karne ke liye kya diet khani chahiye?",
+    "intent": "DIET_NUTRITION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Adrenal Gland Cancer ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000014",
+    "license": "CC BY 4.0"
+  }
+]

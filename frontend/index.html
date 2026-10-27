@@ -12,10 +12,10 @@
     <link rel="canonical" href="https://smartcity.gorakhpur.gov.in/">
 
     <!-- Favicon & Touch Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
+    <link rel="apple-touch-icon" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
+    <link rel="shortcut icon" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
     <link rel="manifest" href="manifest.json">
 
     <!-- Open Graph / Social Meta -->
@@ -36,6 +36,8 @@
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="components/ui_components.css">
     <link rel="stylesheet" href="components/cookie_consent.css">
+    <!-- Auth Helpers -->
+    <script src="js/auth-helpers.js"></script>
 </head>
 
 <body>
@@ -54,9 +56,12 @@
 <!-- =====================================================
      NAVBAR
 ===================================================== -->
-<nav class="navbar">
+<nav class="navbar" id="mainNavbar">
     <div class="logo">
-        <a href="/" id="navBrandLogo" style="text-decoration: none; color: inherit;">Smart<span>City AI</span></a>
+        <a href="/" id="navBrandLogo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px;">
+            <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 36px; width: auto; filter: drop-shadow(0 0 8px rgba(56,189,248,0.4));">
+            <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #f8fafc;">Smart<span style="background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">City AI</span></span>
+        </a>
     </div>
 
     <div class="nav-links">
@@ -68,11 +73,11 @@
         <a href="#howItWorks">How It Works</a>
         <a href="#about">About</a>
         <a href="#emergencyHelplines">Emergency</a>
-        <a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #0284c7; font-weight: 700;">
+        <a href="javascript:void(0)" onclick="openGrievanceModal()" style="color: #38bdf8 !important; font-weight: 700;">
             📋 Grievances
         </a>
-        <a href="javascript:void(0)" onclick="openCommandCenterModal()" style="color: #7c3aed; font-weight: 700;">
-            🏛️ Command Center
+        <a href="javascript:void(0)" onclick="openCommandCenterModal()" style="color: #a78bfa !important; font-weight: 700;">
+            🏛️ Command
         </a>
     </div>
 
@@ -1229,6 +1234,28 @@
 <script src="auth.js"></script>
 <script src="realtime.js"></script>
 <script src="script.js"></script>
+
+<!-- Navbar scroll glass effect -->
+<script>
+(function() {
+    var navbar = document.getElementById('mainNavbar');
+    if (!navbar) return;
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            requestAnimationFrame(function() {
+                if (window.scrollY > 60) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+})();
+</script>
 
 </body>
 </html>

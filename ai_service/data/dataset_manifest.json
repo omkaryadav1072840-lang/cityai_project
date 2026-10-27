@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-10-27T10:14:16.504258+00:00",
+  "total_records": 163,
+  "missing_values_dropped": 0,
+  "partitions": {
+    "train": {
+      "count": 108,
+      "path": "data/clinical_train.json",
+      "sha256": "545d59b645ec7fb4a13ce866aeb8ed2c6e3307de5fea8a2279e5ead9aad482c5"
+    },
+    "validation": {
+      "count": 21,
+      "path": "data/clinical_val.json",
+      "sha256": "95121e64ae4950366434fe320a52d2de9b8788a3561133d5666f5a5356cfb6c0"
+    },
+    "test_held_out": {
+      "count": 34,
+      "path": "data/clinical_test.json",
+      "sha256": "ec52cdacc51a6f1ae4bba9f1d1c96ecf7f7b6efb8275e77c370bad5454cad4fa"
+    }
+  },
+  "intent_distribution": {
+    "SYMPTOM_REPORT": 64,
+    "LAB_REPORT_QUERY": 8,
+    "AMBIGUOUS_CLARIFICATION": 8,
+    "PRESCRIPTION_EXPLANATION": 11,
+    "DIET_NUTRITION": 8,
+    "EMERGENCY": 22,
+    "DOSAGE_ALTERATION": 18,
+    "MEDICATION_ADHERENCE": 8,
+    "DOCTOR_APPOINTMENT_REQUEST": 8,
+    "DRUG_INTERACTION_AVOIDANCE": 8
+  },
+  "language_distribution": {
+    "en": 106,
+    "hi": 57
+  },
+  "sources": [
+    {
+      "name": "MedQuAD (Medical Question Answering Dataset)",
+      "organization": "US National Institutes of Health (NIH) / National Library of Medicine",
+      "author": "Dr. Asma Ben Abacha",
+      "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+      "url": "https://github.com/abachaa/MedQuAD"
+    },
+    {
+      "name": "Gorakhpur OPD Clinical Scenarios (De-identified Synthetic)",
+      "organization": "SmartCity AI Clinical Safety Board",
+      "license": "CC0 1.0 Universal Public Domain Dedication",
+      "url": "internal/gorakhpur_opd_scenarios"
+    }
+  ],
+  "privacy_compliance": {
+    "contains_real_patient_pii": false,
+    "dpdp_compliant": true,
+    "hipaa_safe_harbor_verified": true
+  }
+}

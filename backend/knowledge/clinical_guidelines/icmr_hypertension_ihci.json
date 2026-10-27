@@ -1,0 +1,20 @@
+{
+  "id": "ICMR-IHCI-2024",
+  "title": "India Hypertension Control Initiative (IHCI) Standard Clinical Protocol",
+  "organization": "ICMR, MoHFW, WHO Country Office for India",
+  "year": 2024,
+  "jurisdiction": "India",
+  "category": "Cardiovascular Medicine",
+  "keywords": ["hypertension", "bp", "blood pressure", "telmisartan", "amlodipine", "salt", "high bp", "headache", "dizziness"],
+  "chunks": [
+    {
+      "chunk_id": "ICMR-HTN-01",
+      "topic": "Hypertension Pharmacotherapy and Sodium Management",
+      "content": "Hypertension is defined as sustained systolic blood pressure >= 140 mmHg and/or diastolic blood pressure >= 90 mmHg. Standard protocol recommends initiation with Telmisartan (40mg once daily) or Amlodipine (5mg once daily), or fixed-dose combination therapy for Stage 2 hypertension. Daily dietary sodium intake must be limited to less than 2 grams per day (equivalent to under 5 grams / 1 flat teaspoon of table salt). Patients must never abruptly discontinue antihypertensive medications to avoid rebound hypertension crises.",
+      "contraindications": "ACE inhibitors / ARBs (such as Telmisartan, Ramipril) are contraindicated in pregnancy due to fetal renal toxicity. Avoid potassium supplements with ARBs without prior serum potassium monitoring.",
+      "warnings": "Seek emergency medical care immediately if blood pressure exceeds 180/120 mmHg, or if high BP is accompanied by chest pain, shortness of breath, severe blinding headache, blurred vision, or speech difficulty.",
+      "home_care": "Regular daily home BP monitoring recorded at the same time in seated rest; DASH dietary pattern emphasizing fresh green vegetables, pulses, and whole grains; avoid papads, pickles, and packaged salty snacks.",
+      "citation": "India Hypertension Control Initiative (IHCI) Treatment Protocols, ICMR-MoHFW (2024), Protocol Card 1 & 2."
+    }
+  ]
+}

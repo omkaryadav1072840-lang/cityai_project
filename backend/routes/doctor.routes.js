@@ -797,11 +797,11 @@ router.post(["/api/doctor/consultation", "/api/doctor/consultations/complete"], 
             }
         } catch (hErr) {}
 
-        // 2. Insert into `prescriptions` table (with historical hospital_logo snapshot)
+        // 2. Insert into `prescriptions` table (with historical hospital_logo snapshot and symptoms)
         const [rxRes] = await pool.query(`
             INSERT INTO prescriptions
-            (patient_id, hospital_id, hospital_logo, doctor_id, appointment_id, prescription_file, doctor_name, diagnosis, medications_json, doctor_notes, advice, follow_up_date, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', NOW())
+            (patient_id, hospital_id, hospital_logo, doctor_id, appointment_id, prescription_file, doctor_name, diagnosis, symptoms, medications_json, doctor_notes, advice, follow_up_date, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', NOW())
         `, [
             patientId,
             hospitalId,
@@ -811,7 +811,8 @@ router.post(["/api/doctor/consultation", "/api/doctor/consultations/complete"], 
             treatText,
             docTitle,
             diagText,
-            JSON.stringify({ treatment: treatText, diagnosis: diagText, advice: adviceText }),
+            symptoms || null,
+            JSON.stringify({ treatment: treatText, diagnosis: diagText, symptoms: symptoms || null, advice: adviceText }),
             notes || null,
             adviceText,
             followUpDate || null

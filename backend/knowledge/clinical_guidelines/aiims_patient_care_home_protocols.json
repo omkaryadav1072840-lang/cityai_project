@@ -1,0 +1,20 @@
+{
+  "id": "AIIMS-PATIENT-2024",
+  "title": "AIIMS New Delhi Patient Home Care & Chronic Disease Management Manual",
+  "organization": "All India Institute of Medical Sciences (AIIMS) New Delhi",
+  "year": 2024,
+  "jurisdiction": "India",
+  "category": "Patient Education & Home Nursing",
+  "keywords": ["home care", "diet", "lifestyle", "parhez", "hydration", "exercise", "wound care", "post-discharge"],
+  "chunks": [
+    {
+      "chunk_id": "AIIMS-CARE-01",
+      "topic": "Patient Home Care Principles & Nutrition Recovery",
+      "content": "For recovering patients managing acute illness or chronic comorbidities, balanced nutrition comprising easily digestible, freshly prepared home-cooked meals is advised. High biological value protein sources (lentils, paneer, eggs, steamed legumes) support tissue repair. Patients with active gastrointestinal upset or fever should avoid deep-fried, oily, heavily spiced, or street foods that tax digestive capacity. Safe food hygiene, drinking boiled or RO purified water, and maintaining daily medicine adherence schedules in designated pill organizers significantly reduces post-discharge hospital readmission rates.",
+      "contraindications": "Avoid unverified extreme fasting or restrictive fad diets during active infection or post-surgical recovery.",
+      "warnings": "Red flag signs for post-discharge home recovery: sudden spikes in fever (>101°F), surgical wound discharge or foul odor, worsening shortness of breath, sudden swelling in one lower limb (suspected DVT), or persistent vomiting precluding oral hydration.",
+      "home_care": "Keep written log of daily vitals (BP, temperature, pulse, blood glucose); maintain scheduled medicine timings; stay physically ambulatory with gentle indoor walking as tolerated.",
+      "citation": "AIIMS Patient Care & Home Health Guidance Manual (2024 Edition), Department of Hospital Administration & Internal Medicine, pp. 12-19."
+    }
+  ]
+}

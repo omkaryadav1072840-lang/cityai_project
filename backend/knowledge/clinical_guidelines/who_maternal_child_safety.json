@@ -1,0 +1,20 @@
+{
+  "id": "WHO-MATERNAL-2023",
+  "title": "WHO Guidelines on Maternal and Pediatric Clinical Safety & Medication Caution",
+  "organization": "World Health Organization (WHO)",
+  "year": 2023,
+  "jurisdiction": "International",
+  "category": "Maternal and Child Health",
+  "keywords": ["pregnancy", "garbhvati", "child", "pediatric", "lactation", "breastfeeding", "baccha", "shishu", "safe medicine"],
+  "chunks": [
+    {
+      "chunk_id": "WHO-MAT-01",
+      "topic": "Medication Safety in Pregnancy, Lactation, and Pediatric Age Groups",
+      "content": "Any pharmacological intervention during pregnancy, lactation, or early childhood demands heightened safety rigor. Self-medication is strictly prohibited. Teratogenic and embryotoxic agents (including ACE inhibitors, ARBs, Statins, Tetracyclines, Methotrexate, and high-dose NSAIDs in the third trimester due to premature closure of ductus arteriosus) must never be taken without formal obstetrician oversight. Paracetamol represents the preferred safe antipyretic when clinically warranted during pregnancy at the lowest effective dose for the shortest duration. All pediatric dosages must be calculated strictly according to current weight in kilograms rather than age alone.",
+      "contraindications": "Aspirin in children/adolescents with viral syndromes due to fatal Reye's syndrome risk. Quinolones (e.g. Ciprofloxacin) and Tetracyclines in pregnant individuals.",
+      "warnings": "In pregnant individuals, any vaginal bleeding, sudden facial/hand edema, severe epigastric pain, or persistent headache requires immediate emergency obstetric triage. In infants, refusal of feeds, sunken fontanelle, lethargy, or grunting respiration requires immediate pediatric casualty care.",
+      "home_care": "Exclusive breastfeeding for first 6 months; maternal dietary iron and folic acid supplementation as prescribed; age-appropriate immunization schedule adherence.",
+      "citation": "World Health Organization, Model List of Essential Medicines & Pediatric Prescribing Safety Guidelines (2023), Section 8 & Appendix 1."
+    }
+  ]
+}

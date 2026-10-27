@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="hospital_dashboard.css">
     <!-- QRCode JS library for QR rendering -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- Auth Helpers for getAuthToken -->
+    <script src="../../js/auth-helpers.js"></script>
 </head>
 <body>
 
@@ -562,22 +564,109 @@
 
     <!-- PANEL 6: BILLING & INVOICES -->
     <section class="hd-panel" id="panel-billing">
-        <div class="hd-section-header">
+        <div class="hd-section-header" style="margin-bottom: 14px;">
             <div>
-                <h3>💳 Billing, Cashier Desk & Invoices</h3>
+                <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <span>💳</span>
+                    <span>Billing, Cashier Desk &amp; Invoices</span>
+                </h3>
                 <p>Generate patient invoices for OPD consultations, diagnostic tests, procedures, and admissions.</p>
             </div>
-            <div class="hd-actions-row">
-                <button class="hd-btn hd-btn-primary" onclick="openCreateInvoiceModal()">➕ Create New Invoice</button>
+            <div class="hd-actions-row" style="display: flex; gap: 8px;">
+                <button type="button" class="hd-btn hd-btn-outline" onclick="toggleUnbilledPatientsView()" id="btnUnbilledToggle" style="border-color: #0284c7; color: #0284c7; font-weight: 700;">
+                    👥 Unbilled Patients (<span id="unbilledCountBadge">0</span>)
+                </button>
+                <button type="button" class="hd-btn hd-btn-primary" onclick="openCreateInvoiceModal()">
+                    ➕ Create New Invoice
+                </button>
             </div>
         </div>
 
+        <!-- BILLING SEARCH BAR & FILTER CONTROL BAR -->
+        <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <!-- SEARCH INPUT WITH AUTOCOMPLETE -->
+                <div style="flex: 1; min-width: 280px; position: relative;">
+                    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #64748b; pointer-events: none;">🔍</span>
+                    <input 
+                        type="text" 
+                        id="billingSearchInput" 
+                        class="hd-input" 
+                        placeholder="Search patient name, Patient ID (PAT-...), invoice #, or phone..." 
+                        style="padding-left: 38px; padding-right: 32px; height: 42px; font-size: 13.5px; border-radius: 8px; width: 100%; border: 1.5px solid #cbd5e1;"
+                        oninput="onBillingSearchInput(this.value)"
+                    />
+                    <button 
+                        type="button" 
+                        id="billingSearchClearBtn" 
+                        onclick="clearBillingSearch()" 
+                        style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #f1f5f9; border: none; font-size: 13px; color: #64748b; cursor: pointer; border-radius: 50%; width: 22px; height: 22px; align-items: center; justify-content: center;"
+                        title="Clear search"
+                    >✕</button>
+
+                    <!-- PATIENT QUICK SEARCH POPUP RESULTS -->
+                    <div id="billingPatientSearchDropdown" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid #0284c7; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; max-height: 280px; overflow-y: auto; padding: 6px;">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- FILTER CHIPS -->
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="hd-btn hd-btn-sm hd-btn-primary" id="btnFilterAllInv" onclick="filterBillingStatus('all')">All Invoices</button>
+                    <button type="button" class="hd-btn hd-btn-sm hd-btn-outline" id="btnFilterUnpaidInv" onclick="filterBillingStatus('unpaid')">⚠️ Unpaid / Due</button>
+                    <button type="button" class="hd-btn hd-btn-sm hd-btn-outline" id="btnFilterPaidInv" onclick="filterBillingStatus('paid')">✅ Paid In Full</button>
+                </div>
+            </div>
+
+            <!-- SEARCH / FILTER STATUS BAR -->
+            <div id="billingSearchStatusBar" style="display: none; margin-top: 10px; padding: 6px 12px; background: #eff6ff; border-radius: 6px; font-size: 12px; color: #1e40af; display: flex; justify-content: space-between; align-items: center;">
+                <span id="billingSearchStatusText">Showing results...</span>
+                <button type="button" onclick="clearBillingSearch()" style="background: none; border: none; color: #2563eb; font-weight: 700; cursor: pointer; font-size: 11px;">Reset Filter</button>
+            </div>
+        </div>
+
+        <!-- UNBILLED PATIENTS TABLE VIEW (COLLAPSIBLE / TOGGLEABLE) -->
+        <div id="unbilledPatientsWrap" style="display: none; margin-bottom: 20px; background: #ffffff; border: 2px dashed #86efac; border-radius: 10px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #dcfce7; padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">👥</span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 15px; color: #166534; font-weight: 800;">
+                            Unbilled Hospital Patients (Pending Bill Generation)
+                        </h4>
+                        <p style="margin: 0; font-size: 11.5px; color: #475569;">Patients with active OPD consultation or registered visits without an invoice. Click <strong>"Create Bill"</strong> to generate instantly.</p>
+                    </div>
+                </div>
+                <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="toggleUnbilledPatientsView()" style="font-size: 11px;">✕ Hide Panel</button>
+            </div>
+
+            <div class="hd-table-wrap">
+                <table class="hd-table">
+                    <thead>
+                        <tr style="background: #f0fdf4;">
+                            <th>Token / Date</th>
+                            <th>Patient Name &amp; ID</th>
+                            <th>Age / Sex</th>
+                            <th>Doctor / Dept</th>
+                            <th>Service Suggestion</th>
+                            <th>Status</th>
+                            <th>Quick Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unbilledPatientsTableBody">
+                        <!-- Injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- INVOICES TABLE -->
         <div class="hd-table-wrap">
             <table class="hd-table">
                 <thead>
                     <tr>
                         <th>Invoice No</th>
-                        <th>Patient Name & ID</th>
+                        <th>Patient Name &amp; ID</th>
                         <th>Service Description</th>
                         <th>Total Amount</th>
                         <th>Paid Amount</th>
@@ -1179,18 +1268,22 @@
         </div>
 
         <div class="report-paper" id="printableReportArea">
-            <div class="report-header">
+            <div class="report-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 14px; margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                    <div class="report-hosp-logo" id="rpHospLogo">🏥</div>
+                    <img id="rpHospLogo" src="/favicon.svg" alt="Hospital Logo" style="width: 58px; height: 58px; border-radius: 8px; object-fit: cover; border: 1.5px solid #cbd5e1; background: #f8fafc; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
                     <div>
-                        <h2 id="rpHospName" style="font-size: 20px; color: #0284c7;">AIIMS GORAKHPUR</h2>
-                        <p id="rpHospAddress" style="font-size: 11px; color: #64748b;">Kushmi Forest, Gorakhpur, UP 273008 • Emergency: 102</p>
-                        <p style="font-size: 11px; font-weight: 700; color: #0f172a;">CENTRAL CLINICAL DIAGNOSTIC LABORATORY</p>
+                        <h2 id="rpHospName" style="font-size: 20px; color: #0284c7; margin: 0 0 2px;">HOSPITAL NAME</h2>
+                        <p id="rpHospAddress" style="font-size: 11px; color: #64748b; margin: 0;">Gorakhpur, UP • Helpline: 102</p>
+                        <p style="font-size: 11px; font-weight: 700; color: #0f172a; margin: 2px 0 0;">CENTRAL CLINICAL DIAGNOSTIC LABORATORY</p>
                     </div>
                 </div>
-                <div style="text-align: right;">
-                    <span class="hd-badge green" style="font-size: 12px;">OFFICIAL REPORT</span>
-                    <p style="font-size: 11px; color: #64748b; margin-top: 4px;" id="rpReportId">RPT-2026-001</p>
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                    <div>
+                        <span class="hd-badge green" style="font-size: 11px; font-weight: 800;">OFFICIAL REPORT</span>
+                        <div style="font-size: 10px; color: #64748b; margin-top: 2px;">SmartCity Health Verified</div>
+                        <p style="font-size: 10px; color: #94a3b8; font-family: monospace; margin: 2px 0 0;" id="rpReportId">RPT-2026-001</p>
+                    </div>
+                    <img src="/favicon.svg" alt="SmartCity Authority" style="width: 48px; height: 48px; border-radius: 8px; object-fit: contain; border: 1.5px solid #bfdbfe; padding: 2px; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
                 </div>
             </div>
 
@@ -1289,6 +1382,12 @@
 
         <form id="createInvoiceForm" onsubmit="handleCreateInvoiceSubmit(event)">
             <div class="hd-form-group">
+                <label>⚡ Quick Select Registered Patient</label>
+                <select id="invPatientQuickSelect" class="hd-select" onchange="onSelectPatientForInvoice(this)">
+                    <option value="">-- Choose patient or type manually below --</option>
+                </select>
+            </div>
+            <div class="hd-form-group">
                 <label>Patient Name *</label>
                 <input type="text" id="invPatientName" class="hd-input" required placeholder="Patient Full Name">
             </div>
@@ -1299,6 +1398,16 @@
             <div class="hd-form-group">
                 <label>Service Description *</label>
                 <input type="text" id="invServiceType" class="hd-input" required placeholder="e.g. CT Scan Brain + OPD Consultation">
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">⚡ Quick Service Presets</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="applyQuickBillingTemplate('OPD Consultation', 300)">🩺 OPD (₹300)</button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="applyQuickBillingTemplate('Diagnostic: Complete Blood Count (CBC) with ESR', 280)">🧪 CBC Test (₹280)</button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="applyQuickBillingTemplate('General Ward Bed (Per Day)', 600)">🛏️ Ward (₹600)</button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="applyQuickBillingTemplate('ICU Care & Oxygenation', 2500)">🏥 ICU (₹2500)</button>
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="applyQuickBillingTemplate('Emergency Triage & Primary Treatment', 1200)">🚨 Emergency (₹1200)</button>
+                </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                 <div class="hd-form-group">
@@ -1381,8 +1490,8 @@
                 <label>Amount to Collect (₹) *</label>
                 <input type="number" id="payAmountInput" class="hd-input" step="0.01" min="1" required style="font-size: 18px; font-weight: 800; color: #047857;">
                 <div style="display: flex; gap: 6px; margin-top: 6px;">
+                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPay(500)">+ ₹500</button>
                     <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPay(1000)">+ ₹1,000</button>
-                    <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPay(2000)">+ ₹2,000</button>
                     <button type="button" class="hd-btn hd-btn-outline hd-btn-sm" onclick="setQuickPayFull()">Full Balance</button>
                 </div>
             </div>
@@ -1400,6 +1509,13 @@
             <div class="hd-form-group">
                 <label>Transaction Reference / Notes</label>
                 <input type="text" id="payNotesInput" class="hd-input" placeholder="e.g. UPI-TXN-88492 or Cashier Receipt #">
+            </div>
+
+            <div style="margin-top: 12px; margin-bottom: 6px; padding: 10px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" id="payAutoPrintReceipt" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #16a34a;">
+                <label for="payAutoPrintReceipt" style="margin: 0; font-size: 13px; font-weight: 700; color: #166534; cursor: pointer;">
+                    🖨️ Automatically Print Official Hospital Receipt after payment
+                </label>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
@@ -2459,20 +2575,37 @@
         </div>
 
         <div class="prescription-paper" id="printablePrescriptionArea" style="background: white; border: 2px solid #0284c7; border-radius: 8px; padding: 24px; color: #0f172a; font-family: system-ui, -apple-system, sans-serif;">
-            <!-- HOSPITAL LETTERHEAD HEADER -->
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 16px;">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <img id="rxHospLogo" src="" alt="Hospital Logo" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1px solid #cbd5e1;">
+            <!-- HOSPITAL & SMART CITY LETTERHEAD HEADER -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 16px; gap: 16px;">
+                <!-- ONE SIDE (LEFT): HOSPITAL LOGO & HOSPITAL IDENTITY -->
+                <div style="display: flex; align-items: center; gap: 14px; flex: 1;">
+                    <img id="rxHospLogo" src="" alt="Hospital Logo" style="width: 64px; height: 64px; border-radius: 8px; object-fit: cover; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: #f8fafc;">
                     <div>
-                        <h2 id="rxHospName" style="margin: 0 0 4px; font-size: 22px; color: #0369a1; font-weight: 800;">HOSPITAL NAME</h2>
+                        <h2 id="rxHospName" style="margin: 0 0 4px; font-size: 20px; color: #0369a1; font-weight: 800; line-height: 1.2;">HOSPITAL NAME</h2>
                         <div id="rxHospAddress" style="font-size: 11px; color: #64748b;">Gorakhpur, Uttar Pradesh</div>
                         <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-top: 2px;" id="rxHospAccreditation">NABH Accredited • Ayushman Bharat Verified</div>
                     </div>
                 </div>
-                <div style="text-align: right;">
-                    <span class="hd-badge green" style="font-size: 11px;">OFFICIAL OPD DOSSIER</span>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Helpline: <strong id="rxHospPhone">102</strong></div>
-                    <div style="font-size: 10px; color: #94a3b8; font-family: monospace;" id="rxDocId">RX-2026-0001</div>
+
+                <!-- OTHER SIDE (RIGHT): SMART CITY LOGO & AUTHORITY SEAL -->
+                <div style="display: flex; align-items: center; gap: 12px; text-align: right;">
+                    <div>
+                        <span class="hd-badge green" style="font-size: 11px; font-weight: 800;">GORAKHPUR SMART CITY</span>
+                        <div style="font-size: 10px; color: #64748b; font-weight: 600; margin-top: 2px;">Helpline: <strong id="rxHospPhone">102</strong></div>
+                        <div style="font-size: 10px; color: #94a3b8; font-family: monospace;" id="rxDocId">RX-2026-0001</div>
+                    </div>
+                    <img id="rxSmartCityLogo" src="/favicon.svg" alt="SmartCity Logo" style="width: 52px; height: 52px; border-radius: 8px; object-fit: contain; border: 1.5px solid #bfdbfe; padding: 2px; background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.06);">
+                </div>
+            </div>
+
+            <!-- IN THE MIDDLE: DOCTOR'S SYMPTOMS & CHIEF COMPLAINTS -->
+            <div style="margin-bottom: 16px; padding: 12px 16px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%); border: 1.5px solid #86efac; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="font-size: 16px;">🩺</span>
+                    <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #166534;">Patient Symptoms &amp; Chief Complaints (Recorded by Doctor):</strong>
+                </div>
+                <div style="font-size: 13.5px; font-weight: 600; color: #0f172a; padding-left: 24px; line-height: 1.5;" id="rxSymptoms">
+                    --
                 </div>
             </div>
 
@@ -2492,11 +2625,10 @@
                 </div>
             </div>
 
-            <!-- CLINICAL DIAGNOSIS & SYMPTOMS -->
+            <!-- CLINICAL DIAGNOSIS -->
             <div style="margin-bottom: 16px; padding: 10px 14px; background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
-                <div style="font-size: 12px; font-weight: 700; color: #1e40af;">Clinical Diagnosis &amp; Symptoms:</div>
-                <div style="font-size: 13px; color: #1e293b; margin-top: 4px;" id="rxDiagnosis">Normal Consultation</div>
-                <div style="font-size: 11px; color: #475569; margin-top: 2px;" id="rxSymptoms">--</div>
+                <div style="font-size: 12px; font-weight: 700; color: #1e40af;">Clinical Diagnosis:</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin-top: 4px;" id="rxDiagnosis">Normal Consultation</div>
             </div>
 
             <!-- MEDICATIONS TABLE (Rx) -->

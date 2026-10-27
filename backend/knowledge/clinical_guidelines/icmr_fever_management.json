@@ -1,0 +1,20 @@
+{
+  "id": "ICMR-AFI-2024",
+  "title": "ICMR National Guidelines on Acute Febrile Illness and Antipyretic Safety",
+  "organization": "Indian Council of Medical Research (ICMR)",
+  "year": 2024,
+  "jurisdiction": "India",
+  "category": "Infectious & General Clinical Medicine",
+  "keywords": ["fever", "bukhar", "tapman", "pyrexia", "paracetamol", "calpol", "crocin", "shivering", "chills", "febrile"],
+  "chunks": [
+    {
+      "chunk_id": "ICMR-FEV-01",
+      "topic": "First-line Antipyretic and Dosing Principles",
+      "content": "Paracetamol (500mg to 650mg in adults with normal renal and hepatic function, every 4 to 6 hours as needed, maximum 4g per 24 hours; pediatric dose strictly weight-based at 10-15 mg/kg per dose) remains the safest foundational first-line antipyretic. In acute viral fevers and monsoon seasonal fevers across northern and eastern India, Aspirin and non-steroidal anti-inflammatory drugs (NSAIDs) such as Ibuprofen and Diclofenac must be strictly avoided due to potential risks of hemorrhagic manifestations in endemic Dengue and Reye's syndrome in pediatric cohorts.",
+      "contraindications": "Severe active liver disease, chronic heavy alcohol intake, hypersensitivity to paracetamol.",
+      "warnings": "Do not exceed maximum daily dosage. Seek urgent hospital triage if fever exceeds 102°F (38.9°C), persists beyond 72 hours, or presents with altered sensorium, stiff neck, or petechial rash.",
+      "home_care": "Adequate oral fluid hydration (ORS, coconut water, clean boiled water), resting in a well-ventilated room, and tepid sponging using lukewarm water. Never use ice or cold water for sponging as it induces shivering and elevates core temperature.",
+      "citation": "ICMR Acute Febrile Illness Diagnostic and Management Framework (2024), Section 4: Antipyretic Principles, pp. 22-26."
+    }
+  ]
+}

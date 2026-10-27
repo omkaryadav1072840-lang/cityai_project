@@ -1,0 +1,269 @@
+{
+  "model_identifier": "clinical-intent-v1.0",
+  "framework": "scikit-learn (TfidfVectorizer + LogisticRegression)",
+  "training_timestamp": "2026-10-27T10:15:05.998375+00:00",
+  "classes": [
+    "EMERGENCY",
+    "DOSAGE_ALTERATION",
+    "PRESCRIPTION_EXPLANATION",
+    "MEDICATION_ADHERENCE",
+    "SYMPTOM_REPORT",
+    "DRUG_INTERACTION_AVOIDANCE",
+    "LAB_REPORT_QUERY",
+    "DIET_NUTRITION",
+    "DOCTOR_APPOINTMENT_REQUEST",
+    "AMBIGUOUS_CLARIFICATION"
+  ],
+  "parameters": {
+    "ngram_range": [
+      1,
+      3
+    ],
+    "max_features": 8000,
+    "classifier": "LogisticRegression(C=3.0, class_weight='balanced')",
+    "random_seed": 42
+  },
+  "metrics": {
+    "pure_ml_accuracy": 0.5588,
+    "pure_ml_macro_precision": 0.5483,
+    "pure_ml_macro_recall": 0.4811,
+    "pure_ml_macro_f1": 0.4887,
+    "pure_ml_weighted_f1": 0.5816,
+    "hybrid_system_accuracy": 0.6471,
+    "hybrid_system_weighted_f1": 0.6384,
+    "emergency_false_negative_rate": 0.0,
+    "dosage_alteration_false_negative_rate": 0.0,
+    "confusion_matrix": [
+      [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        3,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        8
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "AMBIGUOUS_CLARIFICATION",
+      "DIET_NUTRITION",
+      "DOCTOR_APPOINTMENT_REQUEST",
+      "DOSAGE_ALTERATION",
+      "DRUG_INTERACTION_AVOIDANCE",
+      "EMERGENCY",
+      "LAB_REPORT_QUERY",
+      "MEDICATION_ADHERENCE",
+      "PRESCRIPTION_EXPLANATION",
+      "SYMPTOM_REPORT"
+    ],
+    "per_class_report": {
+      "AMBIGUOUS_CLARIFICATION": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 2.0
+      },
+      "DIET_NUTRITION": {
+        "precision": 0.25,
+        "recall": 0.5,
+        "f1-score": 0.3333333333333333,
+        "support": 2.0
+      },
+      "DOCTOR_APPOINTMENT_REQUEST": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1-score": 0.6666666666666666,
+        "support": 2.0
+      },
+      "DOSAGE_ALTERATION": {
+        "precision": 0.5,
+        "recall": 0.75,
+        "f1-score": 0.6,
+        "support": 4.0
+      },
+      "DRUG_INTERACTION_AVOIDANCE": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 2.0
+      },
+      "EMERGENCY": {
+        "precision": 0.4,
+        "recall": 0.5,
+        "f1-score": 0.4444444444444444,
+        "support": 4.0
+      },
+      "LAB_REPORT_QUERY": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1-score": 0.6666666666666666,
+        "support": 2.0
+      },
+      "MEDICATION_ADHERENCE": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 2.0
+      },
+      "PRESCRIPTION_EXPLANATION": {
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1-score": 0.3333333333333333,
+        "support": 3.0
+      },
+      "SYMPTOM_REPORT": {
+        "precision": 1.0,
+        "recall": 0.7272727272727273,
+        "f1-score": 0.8421052631578947,
+        "support": 11.0
+      },
+      "accuracy": 0.5588235294117647,
+      "macro avg": {
+        "precision": 0.5483333333333333,
+        "recall": 0.4810606060606061,
+        "f1-score": 0.4886549707602339,
+        "support": 34.0
+      },
+      "weighted avg": {
+        "precision": 0.65,
+        "recall": 0.5588235294117647,
+        "f1-score": 0.5815961472308222,
+        "support": 34.0
+      }
+    }
+  },
+  "subgroup_metrics": {
+    "en": {
+      "sample_count": 23,
+      "accuracy": 0.5652,
+      "precision": 0.6261,
+      "recall": 0.5652,
+      "f1_score": 0.5894
+    },
+    "hi": {
+      "sample_count": 11,
+      "accuracy": 0.5455,
+      "precision": 0.7727,
+      "recall": 0.5455,
+      "f1_score": 0.5909
+    }
+  },
+  "clinical_safety_invariants": {
+    "tier_0_deterministic_override_mandatory": true,
+    "emergency_escalation_protocol": "108 / 112 immediate emergency triage",
+    "dosage_alteration_handling": "BLOCK alteration; doctor handoff mandatory",
+    "regulatory_compliance": "ICMR Guidelines 2023, India DPDP Act 2023"
+  },
+  "intended_use": "Clinical triage classification and semantic intent routing for Gorakhpur Hospital Assistant."
+}

@@ -1,0 +1,248 @@
+[
+  {
+    "text": "Log my afternoon medicine dose",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Bukhar me kya khana chahiye takat aane ke liye?",
+    "intent": "DIET_NUTRITION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Anthrax ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000043",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Amyloidosis ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000027",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Can I double my Metformin dosage from 500mg to 1000mg?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Mera parcha samjhao aur dawai kis liye di hai batao",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Kal general OPD me doctor kab baithenge slot dikhao",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Acne ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000005",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Anesthesia ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000035",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Aaj tabiyat theek nahi lag rahi hai",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Acoustic Neuroma ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000006",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Massive blood loss and cold clammy skin in shock",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Doctor ne Metformin goli kyu likhi hai?",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What are the food restrictions for high blood pressure patients?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Dengue me platelet badhane ke liye kya khana chahiye?",
+    "intent": "DIET_NUTRITION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Patient collapsed on floor unconscious and unresponsive",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Subah aur raat ki dawai ka schedule batao",
+    "intent": "PRESCRIPTION_EXPLANATION",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Pet me ulcer hai to konsi dard ki dawa se parhez karna hai?",
+    "intent": "DRUG_INTERACTION_AVOIDANCE",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Explain my HbA1c test result of 7.8 percent",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Loose motions and watery stools 4 times since morning with weakness",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "What is (are) Anal Cancer ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000030",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Do you have information about African American Health",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000017",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "What is (are) Ankylosing Spondylitis ?",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "MedQuAD/NIH",
+    "doc_id": "0000042",
+    "license": "CC BY 4.0"
+  },
+  {
+    "text": "Show available OPD slots for general physician tomorrow",
+    "intent": "DOCTOR_APPOINTMENT_REQUEST",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Gale me phans gaya hai dam ghut raha hai bacha lo",
+    "intent": "EMERGENCY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can I take double dosage in the morning for missed dose?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "I am not feeling well today doctor",
+    "intent": "AMBIGUOUS_CLARIFICATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Should I cut this tablet in half or take two?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Severe lower back stiffness and difficulty bending down",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "I took my evening insulin dose of 10 units",
+    "intent": "MEDICATION_ADHERENCE",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Coughing up bright red blood continuously from lungs",
+    "intent": "EMERGENCY",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Urine report me pus cells aaye hain kya infection hai?",
+    "intent": "LAB_REPORT_QUERY",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Dengue ke lakshan lag rahe hain jodo me tez dard hai",
+    "intent": "SYMPTOM_REPORT",
+    "lang": "hi",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  },
+  {
+    "text": "Can I stop taking my antibiotics early if I feel better?",
+    "intent": "DOSAGE_ALTERATION",
+    "lang": "en",
+    "source": "Gorakhpur-OPD-Synthetic-Bilingual",
+    "license": "CC0-OpenPublicData"
+  }
+]

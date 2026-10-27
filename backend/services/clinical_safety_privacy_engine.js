@@ -25,11 +25,11 @@ class ClinicalSafetyPrivacyEngine {
         ];
 
         this.dosageAlterationPatterns = [
-            /\b(\d+)\s*(tablet|tablets|goli|dose)\s*(kar\s*du|kar\s*du\?|badha\s*du|double\s*kar\s*du|le\s*lu|le\s*lu\?)\b/i,
-            /\b(can\s*i\s*take|should\s*i\s*take)\s*(\d+)\s*(tablets?|doses?|pills?)\b/i,
-            /\b(increase|double|change)\s*(my\s*)?(dose|dosage|tablets?)\b/i,
-            /\bdose\s*badha\s*(lu|du|sakta\s*hu)\b/i,
-            /\b2\s*tablet\s*kar\s*du\b/i
+            /\b(\d+|do|dono)\s*(tablet|tablets|goli|dose|medicine|dawa)(\s+ek\s*saath|\s+ek\s*sath)?\s*(kar\s*du|kar\s*du\?|badha\s*du|double\s*kar\s*du|le\s*lu|le\s*lu\?|kha\s*lu)\b/i,
+            /\b(can\s*i\s*take|should\s*i\s*take|can\s*i\s*have)\s*(\d+|two|double)\s*(tablets?|doses?|pills?|goli)\b/i,
+            /\b(increase|double|change|adjust)\s*(my\s*)?([a-zA-Z0-9\s]{0,35})?(dose|dosage|tablets?|mg)\b/i,
+            /\bdose\s*badha\s*(lu|du|sakta\s*hu)?\b/i,
+            /\b2\s*(tablet|goli|medicine)\s*(ek\s*sath|ek\s*saath)?\s*(kar\s*du|kha\s*lu|le\s*lu)\b/i
         ];
     }
 

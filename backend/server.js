@@ -379,8 +379,9 @@ app.use(generalErrorHandler);
 // =========================================================
 
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
     console.log(`🚀 SmartCity AI Backend running at http://localhost:${PORT}`);
     console.log(`📡 Socket.IO real-time server running`);
     trafficEngine.setSocketIO(io);
