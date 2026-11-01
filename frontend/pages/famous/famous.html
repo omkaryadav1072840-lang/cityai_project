@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="../../components/ui_components.css">
     <!-- Auth Helpers -->
     <script src="../../js/auth-helpers.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -28,7 +30,7 @@
     <nav class="navbar">
         <div class="nav-left">
             <a href="../../index.html" class="logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
-                <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+                <img src="/logo.png" alt="SmartCity AI" style="height: 40px; width: auto;">
                 <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
             </a>
             <div class="breadcrumb">
@@ -460,7 +462,7 @@
 
         <!-- AI TOURIST ASSISTANT PROMO CARD -->
         <section class="ai-section">
-            <div class="ai-icon">🤖</div>
+            <div class="ai-icon" style="overflow: hidden; width: 48px; height: 48px; border-radius: 50%; padding: 2px; display: flex; align-items: center; justify-content: center; background: rgba(37, 99, 235, 0.2);"><img src="/logo.png" alt="SmartCity AI Logo" style="max-width: 42px; max-height: 42px; width: auto; height: auto; object-fit: contain;"></div>
             <div>
                 <span>SMARTCITY AI HERITAGE & TOURISM GUIDE</span>
                 <h2>Ask SmartCity AI About Gorakhpur</h2>
@@ -1162,6 +1164,8 @@
     <!-- Famous Places Client Script -->
     <script src="famous.js"></script>
 
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
 </body>
 
 </html>

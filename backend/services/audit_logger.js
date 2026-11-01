@@ -6,6 +6,10 @@
 
 const pool = require("../config/db").promise();
 
+// Resilient in-memory audit log store for offline/development survivability
+const memoryAuditLogs = [];
+const MAX_MEMORY_LOGS = 200;
+
 /**
  * Log an audit event.
  * @param {Object} req - Express request object (optional, extracts user & IP)
@@ -40,17 +44,41 @@ async function logAudit(req, entry) {
         const recordId = entry.recordId ? String(entry.recordId) : null;
         const metadata = entry.metadata ? JSON.stringify(entry.metadata) : null;
 
+        const logRecord = {
+            id: memoryAuditLogs.length + 1,
+            user_id: userId,
+            user_name: userName || "Officer",
+            role: role || "staff",
+            department: department || "general",
+            action,
+            module: moduleName,
+            record_id: recordId,
+            ip_address: ipAddress || "127.0.0.1",
+            metadata: entry.metadata || {},
+            created_at: new Date().toISOString()
+        };
+
+        // Always store in in-memory ring buffer
+        memoryAuditLogs.unshift(logRecord);
+        if (memoryAuditLogs.length > MAX_MEMORY_LOGS) memoryAuditLogs.pop();
+
         await pool.query(
             `INSERT INTO audit_logs (user_id, user_name, role, department, action, module, record_id, ip_address, metadata)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [userId, userName, role, department, action, moduleName, recordId, ipAddress, metadata]
         );
     } catch (err) {
-        // Log locally but never crash primary operation
-        console.error("⚠️ [AuditLogger Error]:", err.message);
+        if (process.env.NODE_ENV === "production") {
+            console.error("⚠️ [AuditLogger Error]:", err.message);
+        }
     }
 }
 
+function getMemoryAuditLogs() {
+    return memoryAuditLogs;
+}
+
 module.exports = {
-    logAudit
+    logAudit,
+    getMemoryAuditLogs
 };

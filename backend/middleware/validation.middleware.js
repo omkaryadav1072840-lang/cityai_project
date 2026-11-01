@@ -33,12 +33,16 @@ const SENSITIVE_FIELD_NAMES = new Set([
 ]);
 
 /**
- * Strips dangerous HTML and script tags to prevent XSS
+ * Strips dangerous HTML, inline event handlers, and pseudo-protocols to prevent XSS
  */
 function sanitizeString(str) {
     if (typeof str !== "string") return str;
     return str
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replace(/javascript\s*:/gi, "blocked-proto:")
+        .replace(/vbscript\s*:/gi, "blocked-proto:")
+        .replace(/data\s*:\s*text\/html/gi, "blocked-data:")
+        .replace(/on\w+\s*=/gi, "blocked-handler=")
         .replace(/[<>]/g, (tag) => (tag === "<" ? "&lt;" : "&gt;"))
         .trim();
 }

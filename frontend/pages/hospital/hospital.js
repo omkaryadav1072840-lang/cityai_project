@@ -9444,3 +9444,17 @@ window.closeOfficialPrescriptionModal = closeOfficialPrescriptionModal;
 window.printPrescriptionDocument = printPrescriptionDocument;
 
 console.log("✅ hospital.js loaded successfully.");
+
+// ====================================================================
+// BLOOD BANK & VOLUNTARY DONOR ROUTING HANDLERS
+// ====================================================================
+function openBloodBankPage() {
+    window.location.href = "blood_bank.html";
+}
+
+function openDonorRegistrationModal() {
+    window.location.href = "blood_bank.html#donor-register";
+}
+
+window.openBloodBankPage = openBloodBankPage;
+window.openDonorRegistrationModal = openDonorRegistrationModal;

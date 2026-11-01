@@ -10,19 +10,29 @@ const SmartCityAuth = (() => {
     const TOKEN_KEY = "smartCityJWT";
     const USER_KEY  = "smartCityCurrentUser";
 
-    // Dynamic API Base URL resolution
+    // Dynamic API Base URL resolution (Desktop, LAN Mobile Wi-Fi, and Android WebView)
     function _getApiBase() {
-        if (typeof window !== "undefined" && window.API_BASE_URL) return window.API_BASE_URL;
-        if (typeof window !== "undefined" && window.location) {
-            const loc = window.location;
-            if (loc.protocol === "file:") return "http://localhost:5000";
-            if (loc.port === "5000") return loc.origin;
-            if (loc.port === "3000") return loc.origin; // Proxied by serve_frontend.js
-            // If running on a local development server (e.g. Live Server on port 5500, 5501, 8080, etc.), route to backend port 5000
-            if (loc.hostname === "localhost" || loc.hostname === "127.0.0.1") {
-                return `http://${loc.hostname}:5000`;
+        if (typeof window !== "undefined") {
+            if (window.API_BASE_URL) return window.API_BASE_URL;
+            try {
+                const savedServer = localStorage.getItem("smartcity_api_server");
+                if (savedServer) return savedServer;
+            } catch (e) {}
+
+            if (window.location) {
+                const loc = window.location;
+                if (loc.protocol === "file:") return "http://localhost:5000";
+                if (loc.port === "5000") return loc.origin;
+                if (loc.port === "3000") return loc.origin; // Proxied by serve_frontend.js
+                // If running on local dev server or via phone over LAN (ports 5500, 8080, etc.), route to port 5000
+                if (loc.port && loc.port !== "5000" && loc.port !== "3000") {
+                    return `${loc.protocol}//${loc.hostname}:5000`;
+                }
+                if (loc.hostname === "localhost" || loc.hostname === "127.0.0.1") {
+                    return `http://${loc.hostname}:5000`;
+                }
+                return loc.origin ? loc.origin : "";
             }
-            return loc.origin ? loc.origin : "";
         }
         return "http://localhost:5000";
     }
@@ -278,7 +288,19 @@ const SmartCityAuth = (() => {
                 color: #94a3b8;
             }
             .sc-persona-bar {
-                padding: 4px 24px 14px 24px;
+                padding: 6px 20px 16px 20px;
+                max-height: 330px;
+                overflow-y: auto;
+            }
+
+            .sc-persona-bar::-webkit-scrollbar,
+            .sc-staff-presets::-webkit-scrollbar {
+                width: 5px;
+            }
+            .sc-persona-bar::-webkit-scrollbar-thumb,
+            .sc-staff-presets::-webkit-scrollbar-thumb {
+                background: rgba(56, 189, 248, 0.35);
+                border-radius: 4px;
             }
 
             .sc-persona-label {
@@ -1063,11 +1085,25 @@ const SmartCityAuth = (() => {
     }
 
     function logout() {
+        const currentToken = getToken();
+        if (currentToken) {
+            try {
+                fetch(`${_getApiBase()}/api/logout`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentToken}`
+                    }
+                }).catch(() => {});
+            } catch (_) {}
+        }
+
         _clearUserDataCache();
         const authKeys = [
             TOKEN_KEY, USER_KEY,
             "smartcity_auth_token", "token", "smartCityJWT",
-            "smartcity_user", "currentUser", "smartCityCurrentUser"
+            "smartcity_user", "currentUser", "smartCityCurrentUser",
+            "activeDustbinTerminal"
         ];
         authKeys.forEach(k => {
             localStorage.removeItem(k);
@@ -1277,6 +1313,37 @@ const SmartCityAuth = (() => {
     }
 
     // -------------------------------------------------------
+    // QUICK STAFF PRESET FILL HELPER
+    // -------------------------------------------------------
+
+    function fillStaffPreset(staffId, password, autoSubmit = false) {
+        const idInput = document.getElementById("scStaffId");
+        const passInput = document.getElementById("scStaffPassword");
+        const msgEl = document.getElementById("scModalMsg");
+        if (idInput) {
+            idInput.value = staffId;
+            idInput.focus();
+        }
+        if (passInput) {
+            passInput.value = password;
+        }
+        if (msgEl) {
+            msgEl.style.color = "#38bdf8";
+            msgEl.textContent = `⚡ Selected: ${staffId} • Credentials filled. Click 'Sign In to Command Department' or press Enter.`;
+        }
+        if (autoSubmit) {
+            const staffForm = document.getElementById("scStaffForm");
+            if (staffForm) {
+                if (typeof staffForm.requestSubmit === "function") {
+                    staffForm.requestSubmit();
+                } else {
+                    staffForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                }
+            }
+        }
+    }
+
+    // -------------------------------------------------------
     // UNIVERSAL CITIZEN & STAFF PROFILE MODAL
     // -------------------------------------------------------
 
@@ -1315,7 +1382,7 @@ const SmartCityAuth = (() => {
                 <!-- Header -->
                 <div class="sc-dialog-header">
 <div class="sc-header-title-wrap">
-                        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 44px; width: auto; border-radius: 14px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px;">
+                        <img src="/logo.png" alt="SmartCity AI" style="height: 44px; width: auto; max-width: 54px; object-fit: contain; border-radius: 10px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px;">
                         <div>
                             <h2 class="sc-header-title">
                                 <span>Official Digital Identity Dossier</span>
@@ -1916,7 +1983,7 @@ const SmartCityAuth = (() => {
                 <!-- Header -->
                 <div class="sc-dialog-header">
 <div class="sc-header-title-wrap">
-                        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 44px; width: auto; border-radius: 14px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px;">
+                        <img src="/logo.png" alt="SmartCity AI" style="height: 44px; width: auto; max-width: 54px; object-fit: contain; border-radius: 10px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px;">
                         <div>
                             <h2 class="sc-header-title">SmartCity AI Portal Access</h2>
                             <p class="sc-header-subtitle">Unified Digital Municipal Identity & Command Services</p>
@@ -1926,40 +1993,208 @@ const SmartCityAuth = (() => {
                 </div>
 
                 <!-- 1-Click Instant Persona Sign-In Bar (Collapsible) -->
-                <details class="sc-persona-details">
+                <details class="sc-persona-details" open>
                     <summary class="sc-persona-summary">
-                        <span>⚡ Quick Persona Sign-In (Demo / Testing Shortcuts)</span>
+                        <span>⚡ Quick Persona Sign-In (All Departments &amp; Modules)</span>
                         <span class="sc-persona-chevron">▾</span>
                     </summary>
                     <div class="sc-persona-bar">
-                        <div class="sc-persona-chips">
-                            <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
-                                <span>🚗</span> Citizen (Verified)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-traffic" onclick="SmartCityAuth.quickLoginPersona('traffic')">
-                                <span>👮</span> Insp. Verma (Traffic)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('pharmacy')">
-                                <span>💊</span> HOSP-PHARM (Pharmacy)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('hospital')">
-                                <span>🏥</span> HOSP-REC (Desk)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-hospital" onclick="SmartCityAuth.quickLoginPersona('doctor')">
-                                <span>🩺</span> DOC-101 (Doctor)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')">
-                                <span>👑</span> HOSP-ADMIN (AIIMS)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_admin')" style="background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); color: #38bdf8;">
-                                <span>💧</span> Water Admin (WTR-ADMIN)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-water" onclick="SmartCityAuth.quickLoginPersona('water_staff')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">
-                                <span>🔧</span> Water Staff (WTR-ENG-01)
-                            </button>
-                            <button type="button" class="sc-persona-btn sc-p-admin" onclick="SmartCityAuth.quickLoginPersona('super_admin')" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24; font-weight: 800;">
-                                <span>👑</span> GKP Super Admin (All Modules)
-                            </button>
+                        <!-- Department Badges & All Module Shortcuts -->
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            
+                            <!-- 1. Central Command / ICCC -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">👑 Central Command &amp; Municipal Admin</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('super_admin')" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fbbf24; font-weight: 800;">
+                                        <span>👑</span> GKP Super Admin (STAFF-001)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('admin')" style="background: rgba(217, 119, 6, 0.2); border: 1px solid rgba(217, 119, 6, 0.5); color: #fde68a;">
+                                        <span>🛡️</span> ICCC Admin (STAFF-002)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 2. Waste Management & Sanitation -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">🗑️ Waste Management &amp; Sanitation</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_control_center')" style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.5); color: #60a5fa; font-weight: 800;">
+                                        <span>🎧</span> Control Center (WST-CC-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_cc_2')" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(37, 99, 235, 0.4); color: #93c5fd;">
+                                        <span>📋</span> Triage Dispatch (WST-CC-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_worker')" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; font-weight: 800;">
+                                        <span>👷</span> Field Crew (WRK-001)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_worker_2')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7;">
+                                        <span>🚛</span> Truck Driver (WRK-002)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_worker_3')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0;">
+                                        <span>☣️</span> Hazard Crew (WRK-003)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_bin_staff')" style="background: rgba(5, 150, 105, 0.2); border: 1px solid rgba(5, 150, 105, 0.5); color: #6ee7b7; font-weight: 800;">
+                                        <span>🗑️</span> Bin Golghar (BIN-GOL-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_bin_staff_2')" style="background: rgba(5, 150, 105, 0.15); border: 1px solid rgba(5, 150, 105, 0.4); color: #a7f3d0;">
+                                        <span>🏪</span> Bin Market (BIN-CMK-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_bin_staff_5')" style="background: rgba(5, 150, 105, 0.15); border: 1px solid rgba(5, 150, 105, 0.4); color: #6ee7b7;">
+                                        <span>🏥</span> Bin Medical (BIN-MED-05)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('waste_admin')" style="background: rgba(234, 88, 12, 0.2); border: 1px solid rgba(234, 88, 12, 0.5); color: #fb923c; font-weight: 800;">
+                                        <span>👑</span> Waste Chief (WST-ADMIN)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 3. Healthcare & AIIMS Gorakhpur -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#c084fc; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">🏥 Healthcare &amp; AIIMS Gorakhpur</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('hospital_admin')" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.5); color: #c084fc; font-weight: 800;">
+                                        <span>👑</span> HOSP-ADMIN (AIIMS Sup.)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('doctor')" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #93c5fd; font-weight: 800;">
+                                        <span>🩺</span> DOC-101 (Cardiologist)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('doctor_2')" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #bfdbfe;">
+                                        <span>🩺</span> DOC-102 (Physician)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('doctor_3')" style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #bfdbfe;">
+                                        <span>🩺</span> DOC-103 (Pediatrician)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('pharmacy')" style="background: rgba(236, 72, 153, 0.2); border: 1px solid rgba(236, 72, 153, 0.5); color: #f472b6;">
+                                        <span>💊</span> HOSP-PHARM (Pharmacy)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('hospital')" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc;">
+                                        <span>🏥</span> HOSP-REC (Desk)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('hospital_nurse')" style="background: rgba(147, 51, 234, 0.2); border: 1px solid rgba(147, 51, 234, 0.5); color: #d8b4fe;">
+                                        <span>👩‍⚕️</span> HOSP-NURSE (Ward Lead)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 4. Water Supply & Sewerage -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">💧 Water Supply &amp; Sewerage</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('water_admin')" style="background: rgba(14, 165, 233, 0.2); border: 1px solid rgba(14, 165, 233, 0.5); color: #38bdf8; font-weight: 800;">
+                                        <span>💧</span> Water Admin (WTR-ADMIN)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('water_staff')" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399;">
+                                        <span>🔧</span> Water Staff (WTR-ENG-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('water_staff_2')" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7;">
+                                        <span>⚙️</span> Pumping Staff (WTR-ENG-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('sewage_staff')" style="background: rgba(20, 184, 166, 0.2); border: 1px solid rgba(20, 184, 166, 0.5); color: #2dd4bf;">
+                                        <span>🌊</span> Sewage Staff (SEW-ENG-01)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 5. Traffic & Mobility -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#fb923c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">🚦 Traffic &amp; Mobility</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('traffic')" style="background: rgba(249, 115, 22, 0.2); border: 1px solid rgba(249, 115, 22, 0.5); color: #fb923c; font-weight: 800;">
+                                        <span>👮</span> Insp. Verma (TR-VERMA)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('traffic_pandey')" style="background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.4); color: #fdba74;">
+                                        <span>👮</span> Insp. Pandey (TR-PANDEY)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('traffic_admin')" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5); color: #fde047; font-weight: 800;">
+                                        <span>🚦</span> Traffic Chief (TRF-ADMIN)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 6. Police & Law Enforcement -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#93c5fd; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">👮 Police &amp; Law Enforcement</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('police')" style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); color: #93c5fd; font-weight: 800;">
+                                        <span>👮</span> Police SHO (POL-SHO-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('police_si')" style="background: rgba(30, 58, 138, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #bfdbfe;">
+                                        <span>⭐</span> Police SI (POL-SI-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('police_admin')" style="background: rgba(67, 56, 202, 0.3); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; font-weight: 800;">
+                                        <span>🚓</span> Police Chief (POL-ADMIN)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 7. Smart Parking -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#6ee7b7; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">🅿️ Smart Parking</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('parking_staff')" style="background: rgba(6, 95, 70, 0.25); border: 1px solid rgba(16, 185, 129, 0.5); color: #6ee7b7; font-weight: 800;">
+                                        <span>🅿️</span> Parking Staff (PRK-STAFF-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('parking_staff_2')" style="background: rgba(6, 95, 70, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0;">
+                                        <span>🅿️</span> Railway Lot (PRK-STAFF-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('parking_admin')" style="background: rgba(15, 118, 110, 0.25); border: 1px solid rgba(20, 184, 166, 0.5); color: #5eead4; font-weight: 800;">
+                                        <span>👑</span> Parking Admin (PRK-ADMIN)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 8. Emergency & SOS -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#fca5a5; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">🚨 Emergency &amp; SOS Dispatch</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('emergency')" style="background: rgba(220, 38, 38, 0.25); border: 1px solid rgba(239, 68, 68, 0.6); color: #fca5a5; font-weight: 800;">
+                                        <span>🚨</span> Emergency Lead (EMG-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('emergency_2')" style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fecaca;">
+                                        <span>⚡</span> SOS Response (EMG-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('ambulance')" style="background: rgba(185, 28, 28, 0.25); border: 1px solid rgba(248, 113, 113, 0.6); color: #fecaca; font-weight: 800;">
+                                        <span>🚑</span> Ambulance Lead (AMB-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('ambulance_2')" style="background: rgba(185, 28, 28, 0.15); border: 1px solid rgba(248, 113, 113, 0.4); color: #fee2e2;">
+                                        <span>🚑</span> Mobile Unit (AMB-02)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 9. Electricity & Environment -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#fef08a; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">💡 Power, Streetlights &amp; Environment</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('electricity')" style="background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.5); color: #fef08a; font-weight: 800;">
+                                        <span>💡</span> Streetlights (ELE-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('electricity_2')" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); color: #fef9c3;">
+                                        <span>⚡</span> Substation (ELE-02)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('environment')" style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); color: #86efac; font-weight: 800;">
+                                        <span>🍃</span> AQI Lead (ENV-01)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn" onclick="SmartCityAuth.quickLoginPersona('environment_2')" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #bbf7d0;">
+                                        <span>🌳</span> Green Belt (ENV-02)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 10. Citizen Personas -->
+                            <div>
+                                <div style="font-size:10px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">👥 Public Citizen Personas</div>
+                                <div class="sc-persona-chips">
+                                    <button type="button" class="sc-persona-btn sc-p-citizen" onclick="SmartCityAuth.quickLoginPersona('citizen')">
+                                        <span>🚗</span> Citizen (Rahul Sharma)
+                                    </button>
+                                    <button type="button" class="sc-persona-btn sc-p-citizen2" onclick="SmartCityAuth.quickLoginPersona('citizen2')">
+                                        <span>👤</span> Citizen (Pooja Verma)
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </details>
@@ -2003,25 +2238,119 @@ const SmartCityAuth = (() => {
 
                     <!-- Staff Form -->
                     <form id="scStaffForm" class="sc-form" style="display: none;">
-                        <div class="sc-staff-presets" style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; background: rgba(15, 23, 42, 0.6); border: 1px dashed rgba(56, 189, 248, 0.25); border-radius: 8px; margin-bottom: 4px;">
-                            <div style="font-size: 11px; font-weight: 600; color: #94a3b8; display: flex; align-items: center; gap: 4px;">
-                                <span>⚡</span> Quick Fill Credentials:
+                        <div class="sc-staff-presets" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: rgba(15, 23, 42, 0.65); border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 10px; margin-bottom: 8px; max-height: 230px; overflow-y: auto;">
+                            <div style="font-size: 11px; font-weight: 700; color: #94a3b8; display: flex; align-items: center; justify-content: space-between;">
+                                <span>⚡ Quick Fill Staff Credentials (All Departments):</span>
+                                <span style="font-size: 10px; color: #38bdf8;">1-Click: Auto-fill • 2-Click: Instant Login</span>
                             </div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-PHARM'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">💊 HOSP-PHARM</button>
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-REC'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🏥 HOSP-REC</button>
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='HOSP-ADMIN'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fcd34d; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">👑 HOSP-ADMIN</button>
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='WTR-ADMIN'; document.getElementById('scStaffPassword').value='smartcity2026';" style="background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.35); color: #38bdf8; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">💧 WTR-ADMIN</button>
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='WTR-ENG-01'; document.getElementById('scStaffPassword').value='smartcity2026';" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🔧 WTR-ENG-01</button>
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='DOC-101'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #6ee7b7; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🩺 DOC-101</button>
-                                <button type="button" class="sc-preset-pill" onclick="document.getElementById('scStaffId').value='STAFF-001'; document.getElementById('scStaffPassword').value='admin';" style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.35); color: #f472b6; border-radius: 999px; padding: 3px 8px; font-size: 11px; cursor: pointer;">🛡️ STAFF-001</button>
+                            
+                            <!-- Central Command -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #fde047;">👑 Central Command:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('STAFF-001','admin123')" ondblclick="SmartCityAuth.fillStaffPreset('STAFF-001','admin123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(245, 158, 11, 0.25); border: 1px solid rgba(245, 158, 11, 0.6); color: #fde047; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👑 STAFF-001 (Super Admin)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('STAFF-002','admin123')" ondblclick="SmartCityAuth.fillStaffPreset('STAFF-002','admin123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(217, 119, 6, 0.25); border: 1px solid rgba(217, 119, 6, 0.6); color: #fde68a; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🛡️ STAFF-002 (ICCC Ops)</button>
+                                </div>
+                            </div>
+
+                            <!-- Waste Management -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #60a5fa;">🗑️ Waste Management &amp; Sanitation:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WST-CC-01','control123')" ondblclick="SmartCityAuth.fillStaffPreset('WST-CC-01','control123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(37, 99, 235, 0.25); border: 1px solid rgba(37, 99, 235, 0.6); color: #93c5fd; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🎧 WST-CC-01 (Control)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WST-CC-02','control123')" ondblclick="SmartCityAuth.fillStaffPreset('WST-CC-02','control123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(37, 99, 235, 0.2); border: 1px solid rgba(37, 99, 235, 0.5); color: #bfdbfe; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">📋 WST-CC-02 (Triage)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WRK-001','worker123')" ondblclick="SmartCityAuth.fillStaffPreset('WRK-001','worker123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(16, 185, 129, 0.6); color: #6ee7b7; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👷 WRK-001 (Worker)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WRK-002','worker123')" ondblclick="SmartCityAuth.fillStaffPreset('WRK-002','worker123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #a7f3d0; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🚛 WRK-002 (Driver)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WRK-003','worker123')" ondblclick="SmartCityAuth.fillStaffPreset('WRK-003','worker123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #6ee7b7; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">☣️ WRK-003 (Hazard)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('BIN-GOL-01','BIN@2026')" ondblclick="SmartCityAuth.fillStaffPreset('BIN-GOL-01','BIN@2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(5, 150, 105, 0.25); border: 1px solid rgba(5, 150, 105, 0.6); color: #a7f3d0; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🗑️ BIN-GOL-01 (Dustbin)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('BIN-CMK-02','BIN@2026')" ondblclick="SmartCityAuth.fillStaffPreset('BIN-CMK-02','BIN@2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(5, 150, 105, 0.2); border: 1px solid rgba(5, 150, 105, 0.5); color: #6ee7b7; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🏪 BIN-CMK-02</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('BIN-MED-05','BIN@2026')" ondblclick="SmartCityAuth.fillStaffPreset('BIN-MED-05','BIN@2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(5, 150, 105, 0.2); border: 1px solid rgba(5, 150, 105, 0.5); color: #a7f3d0; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🏥 BIN-MED-05</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WST-ADMIN','admin123')" ondblclick="SmartCityAuth.fillStaffPreset('WST-ADMIN','admin123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(234, 88, 12, 0.25); border: 1px solid rgba(234, 88, 12, 0.6); color: #fdba74; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👑 WST-ADMIN (Chief)</button>
+                                </div>
+                            </div>
+
+                            <!-- Healthcare & AIIMS -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #c084fc;">🏥 Healthcare &amp; AIIMS:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('HOSP-ADMIN','admin')" ondblclick="SmartCityAuth.fillStaffPreset('HOSP-ADMIN','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👑 HOSP-ADMIN (AIIMS)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('DOC-101','admin')" ondblclick="SmartCityAuth.fillStaffPreset('DOC-101','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.6); color: #93c5fd; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🩺 DOC-101 (Cardio)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('DOC-102','admin')" ondblclick="SmartCityAuth.fillStaffPreset('DOC-102','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #bfdbfe; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🩺 DOC-102 (ER)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('DOC-103','admin')" ondblclick="SmartCityAuth.fillStaffPreset('DOC-103','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #bfdbfe; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🩺 DOC-103 (Pediatric)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('HOSP-PHARM','admin')" ondblclick="SmartCityAuth.fillStaffPreset('HOSP-PHARM','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(236, 72, 153, 0.25); border: 1px solid rgba(236, 72, 153, 0.6); color: #fbcfe8; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">💊 HOSP-PHARM (Pharmacy)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('HOSP-REC','admin')" ondblclick="SmartCityAuth.fillStaffPreset('HOSP-REC','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(99, 102, 241, 0.6); color: #c7d2fe; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🏨 HOSP-REC (Desk)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('HOSP-NURSE','admin')" ondblclick="SmartCityAuth.fillStaffPreset('HOSP-NURSE','admin',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(147, 51, 234, 0.25); border: 1px solid rgba(147, 51, 234, 0.6); color: #e9d5ff; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">👩‍⚕️ HOSP-NURSE (Ward)</button>
+                                </div>
+                            </div>
+
+                            <!-- Water Supply & Sewerage -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #38bdf8;">💧 Water Supply &amp; Sewerage:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WTR-ADMIN','smartcity2026')" ondblclick="SmartCityAuth.fillStaffPreset('WTR-ADMIN','smartcity2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(14, 165, 233, 0.25); border: 1px solid rgba(14, 165, 233, 0.6); color: #7dd3fc; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">💧 WTR-ADMIN</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WTR-ENG-01','smartcity2026')" ondblclick="SmartCityAuth.fillStaffPreset('WTR-ENG-01','smartcity2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(16, 185, 129, 0.6); color: #6ee7b7; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🔧 WTR-ENG-01</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('WTR-ENG-02','smartcity2026')" ondblclick="SmartCityAuth.fillStaffPreset('WTR-ENG-02','smartcity2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #a7f3d0; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🔧 WTR-ENG-02</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('SEW-ENG-01','smartcity2026')" ondblclick="SmartCityAuth.fillStaffPreset('SEW-ENG-01','smartcity2026',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(20, 184, 166, 0.25); border: 1px solid rgba(20, 184, 166, 0.6); color: #5eead4; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🚰 SEW-ENG-01</button>
+                                </div>
+                            </div>
+
+                            <!-- Traffic & Mobility -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #fb923c;">🚦 Traffic &amp; Mobility:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('TR-VERMA','traffic123')" ondblclick="SmartCityAuth.fillStaffPreset('TR-VERMA','traffic123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(249, 115, 22, 0.25); border: 1px solid rgba(249, 115, 22, 0.6); color: #fdba74; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👮 TR-VERMA (Golghar)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('TR-PANDEY','traffic123')" ondblclick="SmartCityAuth.fillStaffPreset('TR-PANDEY','traffic123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(249, 115, 22, 0.2); border: 1px solid rgba(249, 115, 22, 0.5); color: #fed7aa; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">👮 TR-PANDEY (Mohaddipur)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('TRF-ADMIN','traffic123')" ondblclick="SmartCityAuth.fillStaffPreset('TRF-ADMIN','traffic123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(245, 158, 11, 0.25); border: 1px solid rgba(245, 158, 11, 0.6); color: #fde047; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👑 TRF-ADMIN</button>
+                                </div>
+                            </div>
+
+                            <!-- Police -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #93c5fd;">👮 Police &amp; Law Enforcement:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('POL-SHO-01','police123')" ondblclick="SmartCityAuth.fillStaffPreset('POL-SHO-01','police123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.6); color: #93c5fd; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🚓 POL-SHO-01 (Cantt)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('POL-SI-02','police123')" ondblclick="SmartCityAuth.fillStaffPreset('POL-SI-02','police123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(30, 58, 138, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #bfdbfe; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">👮 POL-SI-02 (Kotwali)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('POL-ADMIN','police123')" ondblclick="SmartCityAuth.fillStaffPreset('POL-ADMIN','police123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(67, 56, 202, 0.3); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👑 POL-ADMIN</button>
+                                </div>
+                            </div>
+
+                            <!-- Parking -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #5eead4;">🅿️ Smart Parking:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('PRK-STAFF-01','parking123')" ondblclick="SmartCityAuth.fillStaffPreset('PRK-STAFF-01','parking123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(6, 95, 70, 0.25); border: 1px solid rgba(16, 185, 129, 0.5); color: #6ee7b7; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🅿️ PRK-STAFF-01 (Golghar)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('PRK-STAFF-02','parking123')" ondblclick="SmartCityAuth.fillStaffPreset('PRK-STAFF-02','parking123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(6, 95, 70, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🅿️ PRK-STAFF-02 (Station)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('PRK-ADMIN','parking123')" ondblclick="SmartCityAuth.fillStaffPreset('PRK-ADMIN','parking123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(15, 118, 110, 0.25); border: 1px solid rgba(20, 184, 166, 0.5); color: #5eead4; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">👑 PRK-ADMIN</button>
+                                </div>
+                            </div>
+
+                            <!-- Emergency -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #fca5a5;">🚨 Emergency &amp; Ambulance:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('EMG-01','emergency123')" ondblclick="SmartCityAuth.fillStaffPreset('EMG-01','emergency123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(220, 38, 38, 0.25); border: 1px solid rgba(239, 68, 68, 0.6); color: #fca5a5; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🚨 EMG-01 (SOS Lead)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('EMG-02','emergency123')" ondblclick="SmartCityAuth.fillStaffPreset('EMG-02','emergency123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fecaca; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">⚡ EMG-02 (Rapid)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('AMB-01','ambulance123')" ondblclick="SmartCityAuth.fillStaffPreset('AMB-01','ambulance123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(185, 28, 28, 0.25); border: 1px solid rgba(248, 113, 113, 0.6); color: #fecaca; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🚑 AMB-01 (Ambulance Lead)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('AMB-02','ambulance123')" ondblclick="SmartCityAuth.fillStaffPreset('AMB-02','ambulance123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(185, 28, 28, 0.2); border: 1px solid rgba(248, 113, 113, 0.4); color: #fee2e2; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🚑 AMB-02 (Mobile Unit)</button>
+                                </div>
+                            </div>
+
+                            <!-- Power & Environment -->
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 10px; font-weight: 700; color: #fde047;">💡 Power Grid &amp; Environment:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('ELE-01','electric123')" ondblclick="SmartCityAuth.fillStaffPreset('ELE-01','electric123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(234, 179, 8, 0.25); border: 1px solid rgba(234, 179, 8, 0.5); color: #fef08a; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">💡 ELE-01 (Lights)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('ELE-02','electric123')" ondblclick="SmartCityAuth.fillStaffPreset('ELE-02','electric123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.4); color: #fef9c3; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">⚡ ELE-02 (Substation)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('ENV-01','enviro123')" ondblclick="SmartCityAuth.fillStaffPreset('ENV-01','enviro123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(34, 197, 94, 0.25); border: 1px solid rgba(34, 197, 94, 0.5); color: #86efac; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer; font-weight: 800;">🍃 ENV-01 (AQI Lead)</button>
+                                    <button type="button" class="sc-preset-pill" onclick="SmartCityAuth.fillStaffPreset('ENV-02','enviro123')" ondblclick="SmartCityAuth.fillStaffPreset('ENV-02','enviro123',true)" title="1-Click: Fill, 2-Click: Login" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4); color: #bbf7d0; border-radius: 999px; padding: 3px 9px; font-size: 11px; cursor: pointer;">🌳 ENV-02 (Green Belt)</button>
+                                </div>
                             </div>
                         </div>
                         <div class="sc-field-group">
                             <label class="sc-field-label">Official Staff / Officer ID <span class="req">*</span></label>
                             <div class="sc-input-wrapper">
                                 <span class="sc-input-icon">🪪</span>
-                                <input type="text" id="scStaffId" class="sc-input-control" required placeholder="e.g. HOSP-PHARM, HOSP-REC, HOSP-ADMIN, DOC-101" />
+                                <input type="text" id="scStaffId" class="sc-input-control" required placeholder="e.g. WST-CC-01, WRK-001, BIN-GOL-01, HOSP-ADMIN" />
                             </div>
                         </div>
                         <div class="sc-field-group">
@@ -2031,6 +2360,7 @@ const SmartCityAuth = (() => {
                                 <input type="password" id="scStaffPassword" class="sc-input-control" required placeholder="••••••••" />
                                 <button type="button" class="sc-eye-btn" onclick="const p=document.getElementById('scStaffPassword'); p.type = p.type==='password'?'text':'password';">👁️</button>
                             </div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.5;">Default Passwords: <code>control123</code> (Waste CC), <code>worker123</code> (Worker), <code>BIN@2026</code> (Dustbin), <code>admin</code> (Health/Doctor), <code>smartcity2026</code> (Water), <code>traffic123</code> (Traffic), <code>police123</code> (Police), <code>parking123</code> (Parking), <code>emergency123</code> (SOS), <code>admin123</code> (Chiefs/Admins)</div>
                         </div>
                         <button type="submit" class="sc-submit-btn sc-btn-staff">
                             <span>🛡️</span> Sign In to Command Department
@@ -2324,7 +2654,7 @@ const SmartCityAuth = (() => {
                 <!-- Header -->
                 <div class="sc-dialog-header">
 <div class="sc-header-title-wrap">
-                        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 44px; width: auto; border-radius: 14px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px;">
+                        <img src="/logo.png" alt="SmartCity AI" style="height: 44px; width: auto; max-width: 54px; object-fit: contain; border-radius: 10px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px;">
                         <div>
                             <h2 class="sc-header-title">Citizen Activity & Live Service History</h2>
                             <p class="sc-header-subtitle">Real-time status of service requests, healthcare appointments, and parking passes</p>
@@ -3014,6 +3344,27 @@ const SmartCityAuth = (() => {
         });
     }
 
+    function enforceRoleIsolation() {
+        if (typeof window === "undefined" || !window.location) return false;
+        const user = getUser();
+        if (!user) return false;
+
+        const role = (user.role || user.accountType || "").toLowerCase();
+        const staffId = String(user.staffId || "").toUpperCase();
+        const pathname = (window.location.pathname || "").toLowerCase();
+
+        // 1. Bin Staff Isolation ("uska bass usak deshbord dikhe")
+        if (role === "bin_staff" || staffId.startsWith("BIN-")) {
+            if (!pathname.includes("bin_dashboard.html")) {
+                const assignedBin = user.assigned_bin_code || (staffId.startsWith("BIN-") ? staffId : "BIN-GOL-01");
+                const targetUrl = _resolveDashboardUrl(`pages/waste/bin_dashboard.html?binCode=${encodeURIComponent(assignedBin)}`);
+                window.location.replace(targetUrl);
+                return true;
+            }
+        }
+        return false;
+    }
+
     return {
         setSession,
         getToken,
@@ -3030,14 +3381,17 @@ const SmartCityAuth = (() => {
         canEdit,
         hasPermission,
         logout,
+        getApiBase: _getApiBase,
         fetch: authFetch,
         renderUserHeader,
         showLoginModal,
         showProfileModal,
         openActivityCenter,
         quickLoginPersona,
+        fillStaffPreset,
         refreshNotificationCount,
-        showToast
+        showToast,
+        enforceRoleIsolation
     };
 })();
 
@@ -3050,13 +3404,18 @@ if (typeof window !== "undefined") {
     window.openUserProfileModal = SmartCityAuth.showProfileModal;
     window.openActivityCenter = SmartCityAuth.openActivityCenter;
     window.quickLoginPersona = SmartCityAuth.quickLoginPersona;
+    window.fillStaffPreset = SmartCityAuth.fillStaffPreset;
     window.showToast = SmartCityAuth.showToast;
+    window.enforceRoleIsolation = SmartCityAuth.enforceRoleIsolation;
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
+            if (SmartCityAuth.enforceRoleIsolation()) return;
             SmartCityAuth.renderUserHeader();
         });
     } else {
-        SmartCityAuth.renderUserHeader();
+        if (!SmartCityAuth.enforceRoleIsolation()) {
+            SmartCityAuth.renderUserHeader();
+        }
     }
 }

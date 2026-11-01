@@ -22,11 +22,18 @@ const pool = mysql.createPool({
     database: process.env.DB_NAME || process.env.MYSQL_DATABASE || "smartcity",
     port: Number(process.env.DB_PORT || process.env.MYSQL_PORT) || 3306,
     waitForConnections: true,
-    connectionLimit: DB_CONNECTION_LIMIT || 25,
-    queueLimit: DB_QUEUE_LIMIT !== undefined ? DB_QUEUE_LIMIT : 50,
+    connectionLimit: DB_CONNECTION_LIMIT || 50,
+    queueLimit: DB_QUEUE_LIMIT !== undefined ? DB_QUEUE_LIMIT : 0,
     connectTimeout: DB_CONNECT_TIMEOUT_MS || 10000,
     enableKeepAlive: true,
-    keepAliveInitialDelay: 10000
+    keepAliveInitialDelay: 10000,
+    // Encrypted TLS connection support for Cloud MySQL (AWS RDS / Aiven / TiDB)
+    ssl: (process.env.DB_SSL === "true" || process.env.MYSQL_SSL === "true")
+        ? {
+            rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false",
+            ca: process.env.DB_CA_CERT ? fs.readFileSync(process.env.DB_CA_CERT, "utf8") : undefined
+          }
+        : undefined
 });
 
 // Test connection on startup

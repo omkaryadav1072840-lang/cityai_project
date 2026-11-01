@@ -12,10 +12,10 @@
     <link rel="canonical" href="https://smartcity.gorakhpur.gov.in/">
 
     <!-- Favicon & Touch Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
-    <link rel="apple-touch-icon" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
-    <link rel="shortcut icon" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="shortcut icon" href="/logo.png">
     <link rel="manifest" href="manifest.json">
 
     <!-- Open Graph / Social Meta -->
@@ -27,15 +27,25 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="675">
 
+    <!-- Performance & Preload Hints -->
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.socket.io">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
+    <link rel="preload" href="/logo.png" as="image" fetchpriority="high">
+
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
-    <link rel="stylesheet" href="components/ui_components.css">
+    <link rel="stylesheet" href="index.css?v=3.5">
+    <link rel="stylesheet" href="components/ui_components.css?v=3.5">
     <link rel="stylesheet" href="components/cookie_consent.css">
+    <link rel="stylesheet" href="components/ai_widget.css?v=3.5">
     <!-- Auth Helpers -->
     <script src="js/auth-helpers.js"></script>
 </head>
@@ -59,7 +69,7 @@
 <nav class="navbar" id="mainNavbar">
     <div class="logo">
         <a href="/" id="navBrandLogo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px;">
-            <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 36px; width: auto; filter: drop-shadow(0 0 8px rgba(56,189,248,0.4));">
+            <img src="/logo.png" alt="SmartCity AI" decoding="async" fetchpriority="high" style="height: 42px; width: auto; max-width: 52px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(56,189,248,0.4));">
             <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #f8fafc;">Smart<span style="background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">City AI</span></span>
         </a>
     </div>
@@ -67,7 +77,7 @@
     <div class="nav-links">
         <a href="#hero">Home</a>
         <a href="#services">Services</a>
-        <a href="#aiAssistant">AI Assistant</a>
+        <a href="#aiAssistant" onclick="if(window.openAiAssistant){openAiAssistant();return false;}">AI Assistant</a>
         <a href="#map">Live Map</a>
         <a href="#cityReports">Reports</a>
         <a href="#howItWorks">How It Works</a>
@@ -112,7 +122,7 @@
                 <button type="button" onclick="openGrievanceModal()" class="sc-btn-hero-secondary">
                     <span>📋</span> Lodge Grievance
                 </button>
-                <a href="#aiAssistant" class="sc-btn-hero-secondary" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                <a href="#aiAssistant" onclick="if(window.openAiAssistant){openAiAssistant();return false;}" class="sc-btn-hero-secondary" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
                     <span>🤖</span> Ask Civic AI
                 </a>
             </div>
@@ -212,7 +222,7 @@
     <!-- Grounded AI Municipal Assistant Card -->
     <div class="ai-card" id="smartCityAICard">
         <div class="ai-head">
-            <div class="ai-avatar">🤖</div>
+            <div class="ai-avatar" style="overflow: hidden; width: 44px; height: 44px; border-radius: 50%; padding: 2px; display: flex; align-items: center; justify-content: center; background: rgba(37, 99, 235, 0.2); border: 2px solid rgba(56, 189, 248, 0.4);"><img src="/logo.png" alt="SmartCity AI" decoding="async" style="max-width: 38px; max-height: 38px; width: auto; height: auto; object-fit: contain; display: block;"></div>
             <div>
                 <h1>Smart <span>City AI</span></h1>
                 <p>Live Municipal & Emergency Assistant</p>
@@ -253,6 +263,66 @@
             <button id="aiVoiceBtn" class="ai-voice-btn" type="button" title="Voice Input (Hindi / English)">🎤</button>
             <button id="aiSpeakerBtn" class="ai-speaker-btn" type="button" title="Toggle Voice Response">🔊</button>
             <button id="sendButton">Send ➔</button>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     LIVE CITY OPERATIONS & TELEMETRY COUNTER (Animated)
+===================================================== -->
+<section class="sc-telemetry-banner" id="liveCityTelemetry" style="max-width: 1320px; margin: 30px auto; padding: 24px 28px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15); color: #ffffff;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">📡</span>
+            <div>
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: #38bdf8; font-weight: 800;">INTEGRATED COMMAND & CONTROL CENTER (ICCC)</div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #f8fafc;">Live Gorakhpur Municipal Telemetry</h3>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 4px 12px; border-radius: 9999px; font-size: 11.5px; font-weight: 700;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399; animation: pulse 1.5s infinite;"></span>
+                70 Wards Live Telemetry Stream
+            </span>
+            <span style="font-size: 11.5px; color: #94a3b8;" id="telemetryLastUpdated">Refreshed: Just now</span>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px;">
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Wards Monitored</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #38bdf8; margin: 4px 0;" class="sc-counter" data-target="70">70</div>
+            <div style="font-size: 11px; color: #64748b;">100% City Coverage</div>
+        </div>
+
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Citizens Served</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #34d399; margin: 4px 0;" class="sc-counter" data-target="1280000" data-format="compact">1.28M+</div>
+            <div style="font-size: 11px; color: #64748b;">Gorakhpur Metropolitan</div>
+        </div>
+
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Avg Ambulance ETA</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #f43f5e; margin: 4px 0;" class="sc-counter-decimal" data-target="6.2">6.2m</div>
+            <div style="font-size: 11px; color: #64748b;">Green Wave Preempted</div>
+        </div>
+
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Signal Uptime</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #fbbf24; margin: 4px 0;" class="sc-counter-decimal" data-target="99.4">99.4%</div>
+            <div style="font-size: 11px; color: #64748b;">42 ATCS Crossings</div>
+        </div>
+
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Active IoT Sensors</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #a78bfa; margin: 4px 0;" class="sc-counter" data-target="342">342</div>
+            <div style="font-size: 11px; color: #64748b;">Water, Waste & Traffic</div>
+        </div>
+
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
+            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">SLA Resolution Rate</div>
+            <div style="font-size: 2rem; font-weight: 900; color: #38bdf8; margin: 4px 0;" class="sc-counter-decimal" data-target="98.2">98.2%</div>
+            <div style="font-size: 11px; color: #64748b;">Guaranteed Grievance SLA</div>
         </div>
     </div>
 </section>
@@ -1213,27 +1283,28 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script src="components/cookie_consent.js"></script>
-<script src="components/analytics.js"></script>
-<script src="components/ui_components.js"></script>
-<script src="components/smartcity_map.js"></script>
-<script src="js/mobile-app.js"></script>
-<script src="api/client.js"></script>
-<script src="api/auth.api.js"></script>
-<script src="api/traffic.api.js"></script>
-<script src="api/parking.api.js"></script>
-<script src="api/hospital.api.js"></script>
-<script src="api/waste.api.js"></script>
-<script src="api/water.api.js"></script>
-<script src="api/emergency.api.js"></script>
-<script src="api/police.api.js"></script>
-<script src="api/ai.api.js"></script>
-<script src="api/index.js"></script>
-<script src="components/ai_widget.js"></script>
-<script src="auth.js"></script>
-<script src="realtime.js"></script>
-<script src="script.js"></script>
+<script defer src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script defer src="components/cookie_consent.js"></script>
+<script defer src="components/analytics.js"></script>
+<script defer src="components/ui_components.js"></script>
+<script defer src="components/smartcity_map.js"></script>
+<script defer src="js/mobile-app.js"></script>
+<script defer src="api/client.js"></script>
+<script defer src="api/auth.api.js"></script>
+<script defer src="api/traffic.api.js"></script>
+<script defer src="api/parking.api.js"></script>
+<script defer src="api/hospital.api.js"></script>
+<script defer src="api/waste.api.js"></script>
+<script defer src="api/water.api.js"></script>
+<script defer src="api/emergency.api.js"></script>
+<script defer src="api/police.api.js"></script>
+<script defer src="api/ai.api.js"></script>
+<script defer src="api/index.js"></script>
+<script defer src="components/ai_widget.js?v=3.5"></script>
+<script defer src="auth.js?v=3.5"></script>
+<script defer src="realtime.js?v=3.5"></script>
+<script defer src="components/pwa_manager.js?v=3.5"></script>
+<script defer src="script.js?v=3.5"></script>
 
 <!-- Navbar scroll glass effect -->
 <script>

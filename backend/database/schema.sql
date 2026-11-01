@@ -1296,6 +1296,7 @@ CREATE TABLE IF NOT EXISTS `waste_bins` (
   `status` enum('Empty','Normal','Nearly Full','Full','Overflowing','Under Maintenance','Inactive') DEFAULT 'Normal',
   `collection_schedule` varchar(100) DEFAULT 'Daily 07:00 AM',
   `route_id` int DEFAULT NULL,
+  `access_passcode` varchar(100) DEFAULT 'BIN@2026',
   `last_emptied_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -1303,6 +1304,24 @@ CREATE TABLE IF NOT EXISTS `waste_bins` (
   UNIQUE KEY `bin_code` (`bin_code`),
   KEY `idx_bin_code` (`bin_code`),
   KEY `idx_bin_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Table: waste_bin_telemetry
+CREATE TABLE IF NOT EXISTS `waste_bin_telemetry` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bin_code` varchar(50) NOT NULL,
+  `fill_level` int NOT NULL DEFAULT '0',
+  `distance_cm` decimal(5,2) DEFAULT NULL,
+  `weight_kg` decimal(6,2) DEFAULT NULL,
+  `people_count_delta` int DEFAULT '0',
+  `cumulative_people_count` int DEFAULT '0',
+  `temperature_c` decimal(4,1) DEFAULT NULL,
+  `gas_ppm` decimal(6,2) DEFAULT NULL,
+  `battery_pct` int DEFAULT '100',
+  `lid_status` enum('Closed','Open') DEFAULT 'Closed',
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_bin_telemetry` (`bin_code`,`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Table: waste_routes

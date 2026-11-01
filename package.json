@@ -16,6 +16,7 @@
     "docker:down": "docker compose down",
     "docker:test": "docker compose exec backend npm test",
     "init-db": "node backend/database/init_db.js",
+    "mobile:connect": "node scripts/mobile_connect.js",
     "mobile:sync": "cap sync android",
     "mobile:copy": "cap copy android",
     "mobile:open": "cap open android",

@@ -31,6 +31,8 @@
 
 <!-- Scoped pharmacy enhancements are managed cleanly via hospital.css -->
 
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -909,25 +911,30 @@
                 </div>
             </div>
 
-            <!-- 12. UPLOAD PRESCRIPTION -->
-            <div class="service-card" data-service-cat="pharmacy" onclick="openPrescriptionUpload()">
+            <!-- 12. BLOOD BANK & DONATION -->
+            <div class="service-card blood-bank-card" data-service-cat="emergency" onclick="openBloodBankPage()" tabindex="0" role="region" aria-label="Blood Bank and Voluntary Donation Services">
                 <div class="service-card-header">
-                    <div class="service-icon-wrap orange-icon">
-                        📄
+                    <div class="service-icon-wrap red-icon" aria-hidden="true">
+                        🩸
                     </div>
-                    <span class="service-status-chip chip-orange">AI Rx Scan</span>
+                    <span class="service-status-chip chip-red">BLOOD BANK</span>
                 </div>
                 <div class="service-card-body">
-                    <h3>Upload Prescription</h3>
+                    <h3>Blood Bank &amp; Donation</h3>
                     <p>
-                        Upload doctor's prescription slip for automated medicine extraction, dosage reminders, and pharmacist fulfillment.
+                        Find available blood, request blood during emergencies, and register as a voluntary donor.
                     </p>
                 </div>
                 <div class="service-card-footer">
-                    <button type="button" class="service-action-btn" onclick="event.stopPropagation(); openPrescriptionUpload()">
-                        <span>Upload Slip</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
+                    <div class="dual-action-row">
+                        <button type="button" class="service-action-btn" style="padding: 10px 10px; font-size: 12px;" onclick="event.stopPropagation(); openBloodBankPage()" aria-label="Find Available Blood">
+                            <span>Find Blood</span>
+                            <span class="btn-arrow">→</span>
+                        </button>
+                        <button type="button" class="service-sub-btn" style="border-color: rgba(220, 38, 38, 0.3); color: #dc2626;" onclick="event.stopPropagation(); openDonorRegistrationModal()" aria-label="Register as Voluntary Blood Donor">
+                            <span>❤️ Become a Donor</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -4053,5 +4060,7 @@
     });
 </script>
 
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
 </body>
 </html>

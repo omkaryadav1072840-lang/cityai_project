@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Control Center & Dispatch | SmartCity AI Gorakhpur</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet GIS Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" href="waste.css">
+    <link rel="stylesheet" href="../../components/ui_components.css">
+    <link rel="stylesheet" href="control_center.css">
+
+    <script src="../../js/auth-helpers.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
+</head>
+
+<body class="control-center-body">
+
+<!-- ================= NAVBAR ================= -->
+<header class="navbar cc-navbar">
+    <a href="../../index.html" class="logo" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
+        <img src="/logo.png" alt="SmartCity AI" style="height: 38px; width: auto;">
+        <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
+        <small class="cc-badge">CONTROL CENTER</small>
+    </a>
+
+    <div class="cc-header-status">
+        <span class="live-pulse"></span>
+        <span style="font-size: 12px; font-weight: 700; color: #047857;">MUNICIPAL ICCC DISPATCH DESK • LIVE</span>
+    </div>
+
+    <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
+        <div id="ccOperatorBadge" class="cc-operator-pill">
+            <span style="font-size: 16px;">🎧</span>
+            <div>
+                <strong id="ccOperatorName" style="display:block; font-size:12px; line-height:1.2;">Amitabh Sen</strong>
+                <small id="ccOperatorId" style="font-size:10px; color:#64748b;">WST-CC-01 (Supervisor)</small>
+            </div>
+        </div>
+        <button class="btn btn-sm outline-btn" onclick="logoutControlCenter()" style="font-size: 11px; padding: 6px 12px;">
+            🚪 Sign Out
+        </button>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTAINER ================= -->
+<main class="cc-container">
+
+    <!-- KPI STATS STRIP -->
+    <section class="cc-kpi-grid">
+        <div class="cc-kpi-card">
+            <div class="kpi-icon" style="background: #ecfdf5; color: #059669;">🗑️</div>
+            <div>
+                <span class="kpi-label">Monitored Smart Bins</span>
+                <strong class="kpi-val" id="kpiBinsCount">7 Units</strong>
+            </div>
+        </div>
+        <div class="cc-kpi-card">
+            <div class="kpi-icon" style="background: #eff6ff; color: #2563eb;">👷</div>
+            <div>
+                <span class="kpi-label">Active Field Workers</span>
+                <strong class="kpi-val" id="kpiWorkersCount">3 On Duty</strong>
+            </div>
+        </div>
+        <div class="cc-kpi-card">
+            <div class="kpi-icon" style="background: #fff7ed; color: #ea580c;">🚨</div>
+            <div>
+                <span class="kpi-label">Pending Complaints</span>
+                <strong class="kpi-val" id="kpiComplaintsCount">3 Pending</strong>
+            </div>
+        </div>
+        <div class="cc-kpi-card">
+            <div class="kpi-icon" style="background: #f5f3ff; color: #7c3aed;">⚖️</div>
+            <div>
+                <span class="kpi-label">Daily Waste Handled</span>
+                <strong class="kpi-val" id="kpiWasteTons">115.8 Tons</strong>
+            </div>
+        </div>
+        <div class="cc-kpi-card">
+            <div class="kpi-icon" style="background: #fdf2f8; color: #db2777;">📈</div>
+            <div>
+                <span class="kpi-label">Collection Efficiency</span>
+                <strong class="kpi-val" id="kpiEfficiency">92.5%</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION A: CITY GIS INTERACTIVE TELEMETRY MAP -->
+    <section class="card cc-map-card">
+        <div class="section-head" style="margin-bottom: 12px;">
+            <div>
+                <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px;">
+                    <span>🗺️</span> City Waste GIS Command Map
+                </h2>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">
+                    Live telemetry tracking of smart bins, active collection workers (with working-hour privacy safeguards), citizen complaints &amp; collection corridors.
+                </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="badge" style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 700;">● OSRM Real Road Network</span>
+                <button class="btn btn-sm outline-btn" onclick="refreshMapData()">↻ Refresh Map</button>
+            </div>
+        </div>
+
+        <div id="ccGisMap" style="height: 480px; width: 100%; border-radius: 12px; border: 1px solid #cbd5e1;"></div>
+
+        <div class="cc-map-legend">
+            <div><span class="dot-legend" style="background: #10b981;"></span> Normal Bin (&lt;70%)</div>
+            <div><span class="dot-legend" style="background: #f59e0b;"></span> Nearly Full (70-85%)</div>
+            <div><span class="dot-legend" style="background: #ef4444;"></span> Overflowing (&gt;85%)</div>
+            <div><span style="font-size: 14px;">👷</span> Active Worker (Live Route)</div>
+            <div><span style="font-size: 14px;">📍</span> Citizen Complaint</div>
+            <div><span style="font-size: 14px;">🚛</span> Collection Corridor</div>
+        </div>
+    </section>
+
+    <!-- TWO-COLUMN WORKFLOW: AREA ANALYTICS & AI COMPLAINT ASSIGNMENT -->
+    <div class="cc-two-columns">
+
+        <!-- SECTION B: GORAKHPUR WARD AREA ANALYTICS -->
+        <section class="card">
+            <div class="section-head" style="margin-bottom: 14px;">
+                <div>
+                    <h2 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span>📊</span> Gorakhpur Ward Population &amp; Waste Analytics
+                    </h2>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">
+                        Verified census demographics, daily generation models &amp; measured weighbridge totals.
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                <table class="styled-table cc-table" style="width: 100%; font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th>Ward</th>
+                            <th>Population</th>
+                            <th>Est. Gen (Tons)</th>
+                            <th>Collected (Tons)</th>
+                            <th>Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ccWardAnalyticsTbody">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 10px; font-size: 11px; color: #64748b; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                ℹ️ <b>Provenance:</b> Population (Gorakhpur Census Records), Daily Waste (Per-Capita Generation Model), Collected (Station Weighbridge Measurements).
+            </div>
+        </section>
+
+        <!-- SECTION C: AI-ASSISTED COMPLAINT ASSIGNMENT & TRIAGE -->
+        <section class="card">
+            <div class="section-head" style="margin-bottom: 14px;">
+                <div>
+                    <h2 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span>🤖</span> AI Complaint Triage &amp; Smart Worker Assignment
+                    </h2>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">
+                        Transparent multi-factor algorithm analyzing Distance (30%), Workload (25%), Availability (20%), Skills (15%), and Priority (10%).
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+                <table class="styled-table cc-table" style="width: 100%; font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Priority</th>
+                            <th>Category</th>
+                            <th>Assigned Worker</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ccComplaintsTbody">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- SECTION D: PROOF VERIFICATION DESK -->
+    <section class="card" style="margin-top: 20px;">
+        <div class="section-head" style="margin-bottom: 14px;">
+            <div>
+                <h2 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>🔍</span> Collection Proof Verification Desk (Audit &amp; Quality Control)
+                </h2>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">
+                    Independent Control Center verification of field collection photos, GPS coordinates, waste weighbridge receipts, and timestamps.
+                </p>
+            </div>
+        </div>
+
+        <div id="ccProofCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+            <!-- Proof cards loaded dynamically -->
+        </div>
+    </section>
+
+</main>
+
+<!-- AI RECOMMENDATION & ASSIGNMENT MODAL -->
+<div class="modal" id="ccAssignmentModal" style="display: none;">
+    <div class="modal-box" style="max-width: 650px; background: #ffffff; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 17px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                <span>🤖</span> AI Workforce Assignment Desk
+            </h3>
+            <button onclick="closeAssignmentModal()" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+
+        <div id="assignmentModalContent">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="control_center.js"></script>
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
+</body>
+</html>
+

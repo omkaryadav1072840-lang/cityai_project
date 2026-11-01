@@ -189,6 +189,17 @@ router.get("/api/admin/audit-logs", authenticateToken, requireAdmin, async (req,
             data: rows
         });
     } catch (err) {
+        if (process.env.NODE_ENV !== "production") {
+            try {
+                const memoryLogs = require("../services/audit_logger").getMemoryAuditLogs();
+                return res.json({
+                    success: true,
+                    total: memoryLogs.length,
+                    page: Number(req.query.page || 1),
+                    data: memoryLogs
+                });
+            } catch (_) {}
+        }
         console.error("Get audit logs error:", err);
         res.status(500).json({ success: false, message: "Internal server error." });
     }

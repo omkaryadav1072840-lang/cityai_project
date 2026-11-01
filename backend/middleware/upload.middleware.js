@@ -17,7 +17,7 @@ const reportUploadDir = path.join(uploadsBaseDir, "reports");
 });
 
 // =========================================================
-// ALLOWED FILE TYPES (PDF, JPG, PNG, WEBP)
+// ALLOWED FILE TYPES (Strict MIME & Extension Whitelist)
 // =========================================================
 
 const allowedMimeTypes = [
@@ -27,11 +27,25 @@ const allowedMimeTypes = [
     "image/webp"
 ];
 
+const allowedExtensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp"];
+
+const mimeToExtension = {
+    "application/pdf": ".pdf",
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp"
+};
+
 function commonFileFilter(req, file, cb) {
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    const rawExt = path.extname(file.originalname || "").toLowerCase();
+    const isMimeValid = allowedMimeTypes.includes(file.mimetype);
+    const isExtValid = allowedExtensions.includes(rawExt);
+
+    // Block dangerous extension spoofing or executable MIME bypass
+    if (isMimeValid && isExtValid) {
         cb(null, true);
     } else {
-        cb(new Error("Only PDF, JPG, PNG and WEBP files are allowed."));
+        cb(new Error("Security violation: Only authentic PDF, JPG, PNG and WEBP documents are allowed."));
     }
 }
 
@@ -44,13 +58,14 @@ const prescriptionStorage = multer.diskStorage({
         cb(null, prescriptionUploadDir);
     },
     filename: function (req, file, cb) {
-        const extension = path.extname(file.originalname);
+        // Enforce safe canonical extension derived strictly from verified MIME-type
+        const safeExt = mimeToExtension[file.mimetype] || ".png";
         const uniqueName =
             "prescription-" +
             Date.now() +
             "-" +
             Math.round(Math.random() * 1000000) +
-            extension;
+            safeExt;
         cb(null, uniqueName);
     }
 });
@@ -70,13 +85,14 @@ const reportStorage = multer.diskStorage({
         cb(null, reportUploadDir);
     },
     filename: function (req, file, cb) {
-        const extension = path.extname(file.originalname);
+        // Enforce safe canonical extension derived strictly from verified MIME-type
+        const safeExt = mimeToExtension[file.mimetype] || ".png";
         const uniqueName =
             "report-" +
             Date.now() +
             "-" +
             Math.round(Math.random() * 1000000) +
-            extension;
+            safeExt;
         cb(null, uniqueName);
     }
 });

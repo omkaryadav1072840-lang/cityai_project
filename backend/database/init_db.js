@@ -111,13 +111,17 @@ async function initDatabase() {
             'sewage_planner_migration.js',
             'water_digital_twin_migration.js',
             'water_intelligence_migration.js',
-            'water_command_center_migration.js'
+            'water_command_center_migration.js',
+            'waste_workforce_migration.js'
         ];
 
         console.log('\n📦 Running Automated Modular Migrations Pipeline:');
         const { execSync } = require('child_process');
         for (const file of migrationFiles) {
-            const filePath = path.join(__dirname, file);
+            let filePath = path.join(__dirname, file);
+            if (!fs.existsSync(filePath)) {
+                filePath = path.join(__dirname, '..', 'migrations', file);
+            }
             if (!fs.existsSync(filePath)) continue;
 
             const [alreadyApplied] = await connection.query(

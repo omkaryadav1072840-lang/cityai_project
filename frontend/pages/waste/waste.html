@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,1113 +9,2162 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
     <link rel="stylesheet" href="waste.css">
     <link rel="stylesheet" href="../../components/ui_components.css">
     <!-- Auth Helpers -->
     <script src="../../js/auth-helpers.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
+    <!-- ================= NAVBAR ================= -->
 
-<header class="navbar">
+    <header class="navbar">
 
-    <a href="../../index.html" class="logo" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
-        <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
-        <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
-    </a>
-
-    <div class="page-title">
-        ♻️ Waste Management
-    </div>
-
-    <div class="nav-actions">
-        <a href="../../index.html" style="text-decoration:none; color:#172033; font-size:13px; font-weight:700; padding:8px 14px; background:#f1f5f9; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
-            ← Main Dashboard
+        <a href="../../index.html" class="logo"
+            style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
+            <img src="/logo.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+            <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span
+                    style="color: #2563eb;">City AI</span></span>
+            <small
+                style="font-size:12px; font-weight:700; color:#166534; background:#dcfce7; padding:2px 8px; border-radius:12px; margin-left:8px; border: 1px solid #bbf7d0;">WASTE</small>
         </a>
-    </div>
 
-</header>
-
-<!-- ================= 3-LAYER NAVIGATION TABS ================= -->
-<div class="layer-tabs-container">
-    <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchWasteLayer('citizen')">
-        <span>👤</span> 1. Citizen Services
-    </button>
-    <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchWasteLayer('staff')">
-        <span>⚡</span> 2. Waste Staff Operations
-    </button>
-    <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchWasteLayer('admin')">
-        <span>⚙️</span> 3. Admin & Assets
-    </button>
-</div>
-
-<!-- ================= MAIN ================= -->
-<main class="container">
-
-    <!-- ================= ROLE BANNER ================= -->
-    <div class="role-banner" id="roleBanner">
-        <div>
-            <strong id="roleTitle">Waste Management Dashboard</strong>
-            <span id="roleSubtitle">Choose your waste services and manage city cleanliness.</span>
+        <div class="page-title">
+            ♻️ Waste Management
         </div>
-        <span class="role-pill" id="rolePill">CITIZEN</span>
+
+        <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
+            <a href="../../index.html"
+                style="text-decoration:none; color:#172033; font-size:13px; font-weight:700; padding:8px 14px; background:#f1f5f9; border-radius:8px; display:inline-flex; align-items:center; gap:6px; transition: background 0.2s ease;">
+                ← Main Dashboard
+            </a>
+            <div id="userBadgeContainer"></div>
+        </div>
+
+    </header>
+
+    <!-- ================= 3-LAYER NAVIGATION TABS ================= -->
+    <div class="layer-tabs-container">
+        <button id="tab-btn-citizen" class="layer-tab-btn active" onclick="switchWasteLayer('citizen')">
+            <span>👤</span> 1. Citizen Services
+        </button>
+        <button id="tab-btn-staff" class="layer-tab-btn" onclick="switchWasteLayer('staff')">
+            <span>⚡</span> 2. Waste Staff Operations
+        </button>
+        <button id="tab-btn-admin" class="layer-tab-btn" onclick="switchWasteLayer('admin')">
+            <span>⚙️</span> 3. Admin & Assets
+        </button>
     </div>
 
-    <!-- ================= SHARED LIVE MAP ================= -->
-    <section class="card map-card">
-        <div class="section-head">
+    <!-- ================= MAIN ================= -->
+    <main class="container">
+
+        <!-- ================= ROLE BANNER ================= -->
+        <div class="role-banner" id="roleBanner">
             <div>
-                <h2>🗺️ Live Waste Map</h2>
-                <p>Interactive telemetry of city dustbins, fill-levels, collection vehicles, and waste hotspots.</p>
+                <strong id="roleTitle">Waste Management Dashboard</strong>
+                <span id="roleSubtitle">Choose your waste services and manage city cleanliness.</span>
             </div>
-            <div class="live">
-                <span></span>
-                LIVE
-            </div>
+            <span class="role-pill" id="rolePill">CITIZEN</span>
         </div>
 
-        <div id="wasteMap"></div>
+        <!-- ================= SHARED LIVE MAP ================= -->
+        <section class="card map-card" id="sharedMapSection">
+            <div class="section-head">
+                <div>
+                    <h2>🗺️ Live Waste Map</h2>
+                    <p>Interactive telemetry of city dustbins, fill-levels, collection vehicles, and waste hotspots.</p>
+                </div>
+                <div class="live">
+                    <span></span>
+                    LIVE
+                </div>
+            </div>
 
-        <div class="map-legend">
-            <div><i class="dot empty-dot"></i> Empty (&lt;60%)</div>
-            <div><i class="dot half-dot"></i> Half Full (60-85%)</div>
-            <div><i class="dot full-dot"></i> Full / Overflow (&gt;85%)</div>
-            <div>🚛 Collection Vehicle</div>
-            <div>🔥 Waste Hotspot</div>
-        </div>
-    </section>
+            <div id="wasteMap"></div>
 
-    <!-- =========================================================
+            <div class="map-legend">
+                <div><i class="dot empty-dot"></i> Empty (&lt;60%)</div>
+                <div><i class="dot half-dot"></i> Half Full (60-85%)</div>
+                <div><i class="dot full-dot"></i> Full / Overflow (&gt;85%)</div>
+                <div>🚛 Collection Vehicle</div>
+                <div>🔥 Waste Hotspot</div>
+            </div>
+        </section>
+
+        <!-- =========================================================
          LAYER 1: CITIZEN WASTE SERVICES
     ========================================================= -->
-    <div id="layer-citizen-content">
-        <section class="citizen-dashboard" id="citizenDashboard">
-            <div class="citizen-hero">
-                <div>
-                    <div class="eyebrow">CITIZEN WASTE SERVICES</div>
-                    <h2>Keep Your Area Clean & Smart 🌱</h2>
-                    <p>Report garbage problems with photo evidence, request doorstep waste collection, view nearby smart bins, and track complaints live.</p>
-                </div>
-                <div class="citizen-actions">
-                    <button class="btn green-btn" onclick="openReportModal()">📍 Report Waste</button>
-                    <button class="btn outline-btn" onclick="openPickupModal()">🚛 Request Pickup</button>
-                    <button class="btn white-btn" onclick="openCitizenBinRequestModal()">🗑️ Request New Dustbin</button>
-                </div>
-            </div>
-
-            <div class="citizen-stats">
-                <div class="citizen-stat"><span>My Reports</span><strong id="citizenReportCount">0</strong></div>
-                <div class="citizen-stat"><span>Pickup Requests</span><strong id="citizenPickupCount">0</strong></div>
-                <div class="citizen-stat"><span>Dustbin Requests</span><strong id="citizenBinRequestCount">0</strong></div>
-                <div class="citizen-stat"><span>Clean Score</span><strong id="citizenScore">0</strong></div>
-            </div>
-
-            <div class="two-columns citizen-columns">
-                <section class="card">
-                    <div class="section-head"><div><h2>🗑️ Nearby Smart Bins</h2><p>Find available bins around the city.</p></div></div>
-                    <div id="citizenNearbyBins" class="citizen-list"></div>
-                </section>
-                <section class="card">
-                    <div class="section-head"><div><h2>📅 Collection Schedule</h2><p>Upcoming waste collection requests.</p></div></div>
-                    <div id="citizenCollectionList" class="citizen-list"></div>
-                </section>
-            </div>
-
-            <section class="card" style="margin-top: 20px;">
-                <div class="section-head"><div><h2>🆕 My Dustbin Requests</h2><p>Track your requests for installing a new dustbin.</p></div><button class="small-btn" onclick="openCitizenBinRequestModal()">+ New Request</button></div>
-                <div id="citizenBinRequestList" class="request-list"></div>
-            </section>
-
-            <!-- CITIZEN MY COMPLAINTS & REQUESTS TRACKING -->
-            <section class="card" style="margin-top: 20px;">
-                <div class="section-head">
+        <div id="layer-citizen-content">
+            <section class="citizen-dashboard" id="citizenDashboard">
+                <div class="citizen-hero">
                     <div>
-                        <h2>📋 My Waste Complaints & Requests</h2>
-                        <p>Track the real-time resolution progress of your submitted waste reports and pickups.</p>
+                        <div class="eyebrow">CITIZEN WASTE SERVICES</div>
+                        <h2>Keep Your Area Clean & Smart 🌱</h2>
+                        <p>Report garbage problems with photo evidence, request doorstep waste collection, view nearby
+                            smart bins, and track complaints live.</p>
                     </div>
-                    <button class="small-btn" onclick="loadCitizenRequests(true)">↻ Refresh</button>
+                    <div class="citizen-actions">
+                        <button class="btn green-btn" onclick="openReportModal()">📍 Report Waste</button>
+                        <button class="btn outline-btn" onclick="openPickupModal()">🚛 Request Pickup</button>
+                        <button class="btn white-btn" onclick="openCitizenBinRequestModal()">🗑️ Request New
+                            Dustbin</button>
+                    </div>
                 </div>
-                <div id="citizenComplaintsList" class="request-list"></div>
-            </section>
-        </section>
-    </div>
 
-    <!-- =========================================================
+                <div class="citizen-stats">
+                    <div class="citizen-stat"><span>My Reports</span><strong id="citizenReportCount">0</strong></div>
+                    <div class="citizen-stat"><span>Pickup Requests</span><strong id="citizenPickupCount">0</strong>
+                    </div>
+                    <div class="citizen-stat"><span>Dustbin Requests</span><strong
+                            id="citizenBinRequestCount">0</strong></div>
+                    <div class="citizen-stat"><span>Clean Score</span><strong id="citizenScore">0</strong></div>
+                </div>
+
+                <div class="two-columns citizen-columns">
+                    <section class="card">
+                        <div class="section-head">
+                            <div>
+                                <h2>🗑️ Nearby Smart Bins</h2>
+                                <p>Find available bins around the city.</p>
+                            </div>
+                        </div>
+                        <div id="citizenNearbyBins" class="citizen-list"></div>
+                    </section>
+                    <section class="card">
+                        <div class="section-head">
+                            <div>
+                                <h2>📅 Collection Schedule</h2>
+                                <p>Upcoming waste collection requests.</p>
+                            </div>
+                        </div>
+                        <div id="citizenCollectionList" class="citizen-list"></div>
+                    </section>
+                </div>
+
+                <section class="card" style="margin-top: 20px;">
+                    <div class="section-head">
+                        <div>
+                            <h2>🆕 My Dustbin Requests</h2>
+                            <p>Track your requests for installing a new dustbin.</p>
+                        </div><button class="small-btn" onclick="openCitizenBinRequestModal()">+ New Request</button>
+                    </div>
+                    <div id="citizenBinRequestList" class="request-list"></div>
+                </section>
+
+                <!-- CITIZEN MY COMPLAINTS & REQUESTS TRACKING -->
+                <section class="card" style="margin-top: 20px;">
+                    <div class="section-head">
+                        <div>
+                            <h2>📋 My Waste Complaints & Requests</h2>
+                            <p>Track the real-time resolution progress of your submitted waste reports and pickups.</p>
+                        </div>
+                        <button class="small-btn" onclick="loadCitizenRequests(true)">↻ Refresh</button>
+                    </div>
+                    <div id="citizenComplaintsList" class="request-list"></div>
+                </section>
+            </section>
+        </div>
+
+        <!-- =========================================================
          LAYER 2: WASTE STAFF OPERATIONS & DISPATCH
     ========================================================= -->
-    <div id="layer-staff-content" style="display: none;">
-        <!-- Gatekeeper if not staff -->
-        <div class="layer-gatekeeper-card" id="staffGatekeeper" style="display: none;">
-            <div style="font-size: 44px; margin-bottom: 12px;">🔒</div>
-            <h2 style="font-size: 20px; color: #1e293b; margin-bottom: 8px;">Municipal Staff Access Restricted</h2>
-            <p style="font-size: 14px; color: #64748b; max-width: 520px; margin: 0 auto 20px;">
-                This layer is restricted to Gorakhpur Municipal Corporation waste management personnel and staff officers.
-            </p>
-            <button class="btn green-btn" onclick="SmartCityAuth.showLoginModal('staff')" style="padding: 10px 22px; font-size: 14px;">
-                🔑 Sign In as Staff (e.g. WST001)
-            </button>
-        </div>
-
-        <!-- Staff Operations Main Content -->
-        <div id="staffOperationsMain">
-            <div class="staff-ops-hero">
-                <div>
-                    <div class="eyebrow" style="color: #15803d; font-weight: 800; font-size: 11px; letter-spacing: 0.8px;">MUNICIPAL OPERATIONS COMMAND</div>
-                    <h2 style="font-size: 22px; margin: 4px 0 6px; color: #1e293b;">⚡ Waste Operations & Dispatch Center</h2>
-                    <p style="margin: 0; font-size: 13px; color: #64748b;">Review live complaints, adjust priorities, assign workers and vehicles, and manage city bin infrastructure.</p>
-                </div>
-                <div class="staff-actions-bar">
-                    <button class="btn white-btn" onclick="openBinModal()">+ Add Bin</button>
-                    <button class="btn green-btn" onclick="openVehicleModal()">+ Add Vehicle</button>
-                    <button class="btn outline-btn" onclick="openWorkerModal()">+ Add Worker</button>
-                    <button class="btn outline-btn" onclick="openRouteModal()">+ Create Route</button>
-                    <button class="btn outline-btn" onclick="refreshAllData()">↻ Refresh</button>
-                </div>
-            <!-- ================= AI WASTE PREDICTOR & COLLECTION PRIORITY SUITE ================= -->
-            <div class="card" style="margin-bottom: 24px; border-left: 4px solid #16a34a; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <h3 style="margin: 0; color: #0f172a; font-size: 16px;">🌱 AI Waste Overflow Predictor & Collection Dispatch</h3>
-                            <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">GRADIENT BOOSTING ML ACTIVE</span>
-                        </div>
-                        <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">
-                            Scikit-Learn Classifier (<code>waste-priority-v2.0</code>) • <strong>Precision: 92.4%</strong> • <strong>F1-Score: 92.1%</strong> • Stratified Holdout Validated
-                        </p>
-                    </div>
-                    <div>
-                        <button class="btn white-btn btn-sm" onclick="loadAIWastePredictionsTable()" style="font-size: 12px;">
-                            ↻ Refresh AI Log
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Interactive Predictor Inputs -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
-                    <div>
-                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">SELECT SMART BIN / WARD:</label>
-                        <select id="ai-waste-bin-select" class="form-control" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                            <option value="BIN-GKP-001">BIN-001 • Golghar Market Crossing (Ward 14)</option>
-                            <option value="BIN-GKP-002">BIN-002 • Gorakhnath Temple East Gate</option>
-                            <option value="BIN-GKP-003">BIN-003 • Mohaddipur Commercial Hub</option>
-                            <option value="BIN-GKP-004">BIN-004 • Railway Station North Circle</option>
-                            <option value="BIN-GKP-005">BIN-005 • Asuran Medical Enclave</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">DAYS SINCE LAST CLEARANCE:</label>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <input type="range" id="ai-waste-days" min="0.5" max="6.0" step="0.5" value="2.5" style="flex: 1;" oninput="document.getElementById('ai-waste-days-val').innerText = this.value + ' days'">
-                            <span id="ai-waste-days-val" style="font-weight: 800; font-size: 14px; color: #16a34a; width: 65px;">2.5 days</span>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: flex-end;">
-                        <button class="btn green-btn" style="width: 100%; height: 40px; font-weight: 700;" onclick="runAIWasteInference()">
-                            ⚡ Calculate AI Collection Priority
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Result Card -->
-                <div id="ai-waste-result-box" style="margin-bottom: 16px;"></div>
-
-                <!-- Human-in-the-Loop Operator Review Stream -->
-                <div style="margin-top: 10px;">
-                    <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">
-                        📋 Recent Waste AI Inferences & Dispatch Approvals (Human-in-the-Loop)
-                    </h4>
-                    <div class="table-responsive" style="max-height: 240px; overflow-y: auto;">
-                        <table class="data-table" style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
-                                    <th style="padding: 8px;">ID</th>
-                                    <th style="padding: 8px;">Bin / Entity</th>
-                                    <th style="padding: 8px;">Priority Rank</th>
-                                    <th style="padding: 8px;">Est. Fill %</th>
-                                    <th style="padding: 8px;">Timestamp</th>
-                                    <th style="padding: 8px;">Status</th>
-                                    <th style="padding: 8px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ai-waste-predictions-tbody">
-                                <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">Loading AI waste logs...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+        <div id="layer-staff-content" style="display: none;">
+            <!-- Gatekeeper if not staff -->
+            <div class="layer-gatekeeper-card" id="staffGatekeeper" style="display: none;">
+                <div style="font-size: 44px; margin-bottom: 12px;">🔒</div>
+                <h2 style="font-size: 20px; color: #1e293b; margin-bottom: 8px;">Municipal Staff Access Restricted</h2>
+                <p style="font-size: 14px; color: #64748b; max-width: 520px; margin: 0 auto 20px;">
+                    This layer is restricted to Gorakhpur Municipal Corporation waste management personnel and staff
+                    officers.
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn green-btn" onclick="directWasteStaffLogin()"
+                        style="padding: 10px 24px; font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);">
+                        ⚡ 1-Click Access as Waste Staff
+                    </button>
+                    <button class="btn outline-btn" onclick="SmartCityAuth.showLoginModal('staff')"
+                        style="padding: 10px 22px; font-size: 14px;">
+                        🔑 Sign In with Credentials
+                    </button>
                 </div>
             </div>
 
-            <!-- Operational Metrics Grid -->
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon yellow">⚡</div>
+            <!-- Staff Operations Main Content -->
+            <div id="staffOperationsMain">
+                <div class="staff-ops-hero">
                     <div>
-                        <h3 id="activeOperationsCount">0</h3>
-                        <p>Active Operations</p>
+                        <div class="eyebrow"
+                            style="color: #15803d; font-weight: 800; font-size: 11px; letter-spacing: 0.8px;">MUNICIPAL
+                            OPERATIONS COMMAND</div>
+                        <h2 style="font-size: 22px; margin: 4px 0 6px; color: #1e293b;">⚡ Waste Operations & Dispatch
+                            Center</h2>
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">Review live complaints, adjust
+                            priorities, assign workers and vehicles, and manage city bin infrastructure.</p>
+                    </div>
+                    <div class="staff-actions-bar">
+                        <button class="btn green-btn" onclick="scrollToDustbinTerminal()"
+                            style="background: linear-gradient(135deg, #059669 0%, #047857 100%); font-weight: 800; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);">
+                            🗑️ Smart Dustbin Dashboard (ID &amp; Pass)
+                        </button>
+                        <button class="btn outline-btn" id="btnStaffToggleMap" onclick="toggleStaffCityMap()">
+                            🗺️ Show City GIS Map
+                        </button>
+                        <button class="btn white-btn" onclick="openBinModal()">+ Add Bin</button>
+                        <button class="btn green-btn" onclick="openVehicleModal()">+ Add Vehicle</button>
+                        <button class="btn outline-btn" onclick="openWorkerModal()">+ Add Worker</button>
+                        <button class="btn outline-btn" onclick="openRouteModal()">+ Create Route</button>
+                        <button class="btn outline-btn" onclick="refreshAllData()">↻ Refresh</button>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon red">⏳</div>
-                    <div>
-                        <h3 id="pendingRequestsCount">0</h3>
-                        <p>Pending Complaints</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon green">✅</div>
-                    <div>
-                        <h3 id="resolvedTodayCount">0</h3>
-                        <p>Resolved Today</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon light-green">📊</div>
-                    <div>
-                        <h3 id="collectionEfficiencyVal">100%</h3>
-                        <p>Collection Efficiency</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon green">🗑️</div>
-                    <div>
-                        <h3 id="totalBins">0</h3>
-                        <p>Total Bins</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon light-green">🟢</div>
-                    <div>
-                        <h3 id="emptyBins">0</h3>
-                        <p>Empty Bins</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon yellow">🟡</div>
-                    <div>
-                        <h3 id="halfBins">0</h3>
-                        <p>Half Full</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon red">🔴</div>
-                    <div>
-                        <h3 id="fullBins">0</h3>
-                        <p>Full Bins</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Operational Filter Bar -->
-            <div class="op-filter-bar" style="margin-top: 25px;">
-                <input id="reqSearchInput" type="text" placeholder="🔍 Search requests by code, area, citizen, category..." oninput="filterStaffRequests()">
-                <select id="reqStatusFilter" onchange="filterStaffRequests()">
-                    <option value="all">All Statuses</option>
-                    <option value="Submitted">Submitted</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-                <select id="reqPriorityFilter" onchange="filterStaffRequests()">
-                    <option value="all">All Priorities</option>
-                    <option value="CRITICAL">🔴 Critical</option>
-                    <option value="HIGH">🟠 High</option>
-                    <option value="MEDIUM">🟡 Medium</option>
-                    <option value="LOW">🟢 Low</option>
-                </select>
-                <select id="reqWorkerFilter" onchange="filterStaffRequests()">
-                    <option value="all">All Workers</option>
-                </select>
-                <select id="reqVehicleFilter" onchange="filterStaffRequests()">
-                    <option value="all">All Vehicles</option>
-                </select>
-            </div>
-
-            <!-- Reports + Pickups Dispatch Queues -->
-            <div class="two-columns">
-                <section class="card">
-                    <div class="section-head">
+                <!-- ==============================================================================
+                 NEW: SMART DUSTBIN COMMAND TERMINAL & IOT SENSOR AI DASHBOARD (STAFF LAYER)
+            ============================================================================== -->
+                <section class="card dustbin-terminal-card" id="dustbinTerminalSection"
+                    style="margin-bottom: 25px; border: 2px solid #10b981; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
+                    <!-- Terminal Header Banner -->
+                    <div class="section-head"
+                        style="margin-bottom: 16px; border-bottom: 1px solid #d1fae5; padding-bottom: 14px;">
                         <div>
-                            <h2>📋 Waste Reports & Complaints</h2>
-                            <p>Manage citizen complaints with operational assignment.</p>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 24px;">🗑️</span>
+                                <h2 style="font-size: 20px; color: #064e3b; margin: 0;">Smart Dustbin IoT &amp; AI
+                                    Telemetry Dashboard</h2>
+                                <span class="badge"
+                                    style="background: #10b981; color: white; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px;">STAFF
+                                    UNIT ACCESS</span>
+                                <span class="live" style="margin-left: 6px;"><span></span> SENSOR ACTIVE</span>
+                            </div>
+                            <p style="margin: 4px 0 0; color: #475569; font-size: 13px;">
+                                Enter Dustbin ID and Security Passcode to inspect real-time sensor levels, track visitor
+                                footfall frequency, monitor AI time-to-full predictions, and dispatch automated
+                                communication staff alerts.
+                            </p>
                         </div>
-                        <button class="small-btn" onclick="openReportModal()">+ Report</button>
                     </div>
-                    <div id="reportList"></div>
+
+                    <!-- 1. DUSTBIN EMPLOYEE LOGIN / AUTHENTICATION CARD -->
+                    <div id="dustbinAuthCard"
+                        style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 22px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                            <span style="font-size: 22px;">🔐</span>
+                            <div>
+                                <h3 style="margin: 0; font-size: 16px; color: #1e293b;">Dustbin Employee Access &amp;
+                                    Authentication</h3>
+                                <p style="margin: 0; font-size: 12px; color: #64748b;">Enter the unique Dustbin ID and
+                                    its assigned security passcode to access unit dashboard.</p>
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 6px;">DUSTBIN
+                                    ID / CODE *</label>
+                                <input type="text" id="dtBinCodeInput" class="form-control"
+                                    placeholder="e.g. BIN-GOL-01" value="BIN-GOL-01"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; letter-spacing: 0.5px;">
+                                <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+                                    Quick Select:
+                                    <a href="javascript:void(0)" onclick="setQuickDustbin('BIN-GOL-01')"
+                                        style="color:#059669; font-weight:700;">BIN-GOL-01</a> •
+                                    <a href="javascript:void(0)" onclick="setQuickDustbin('BIN-CMK-02')"
+                                        style="color:#059669; font-weight:700;">BIN-CMK-02</a> •
+                                    <a href="javascript:void(0)" onclick="setQuickDustbin('BIN-RLY-03')"
+                                        style="color:#059669; font-weight:700;">BIN-RLY-03</a> •
+                                    <a href="javascript:void(0)" onclick="setQuickDustbin('BIN-MED-05')"
+                                        style="color:#059669; font-weight:700;">BIN-MED-05</a>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 6px;">SECURITY
+                                    PASSCODE / PIN *</label>
+                                <div style="position: relative;">
+                                    <input type="password" id="dtPasscodeInput" class="form-control"
+                                        placeholder="Enter Dustbin Passcode" value="BIN@2026"
+                                        style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                                    <button type="button" onclick="togglePasscodeVisibility()"
+                                        style="position: absolute; right: 8px; top: 8px; background: none; border: none; cursor: pointer; font-size: 14px;">👁️</button>
+                                </div>
+                                <div style="font-size: 11px; color: #16a34a; font-weight: 600; margin-top: 4px;">
+                                    🔑 Default Passcode: <code>BIN@2026</code> (or <code>123456</code>)
+                                </div>
+                            </div>
+
+                            <div>
+                                <label
+                                    style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 6px;">STAFF
+                                    EMPLOYEE ID</label>
+                                <input type="text" id="dtStaffIdInput" class="form-control" placeholder="e.g. WST001"
+                                    value="WST001"
+                                    style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                                <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Municipal Waste Clearance
+                                    Badge</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn green-btn" onclick="authenticateDustbinTerminal()"
+                                style="padding: 10px 24px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px;">
+                                <span>🔓</span> Unlock Dustbin Dashboard
+                            </button>
+                            <button class="btn outline-btn" onclick="quickFillAndOpenDustbin('BIN-GOL-01')"
+                                style="padding: 10px 18px; font-size: 13px;">
+                                ⚡ Demo Unlock (Golghar Bin)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. DEDICATED LIVE DUSTBIN DASHBOARD (UNLOCKED STATE) -->
+                    <div id="dustbinActiveDashboard" style="display: none;">
+                        <!-- Sub-Navbar for Active Bin -->
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; background: #064e3b; color: white; padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 24px;">🗑️</span>
+                                    <div>
+                                        <h3 id="dtHeaderBinTitle"
+                                            style="margin: 0; font-size: 17px; font-weight: 800; color: #ffffff;">
+                                            BIN-GOL-01 • Golghar Market Square</h3>
+                                        <p id="dtHeaderBinSubtitle"
+                                            style="margin: 2px 0 0; font-size: 12px; color: #a7f3d0;">Ward 14 • Mixed
+                                            Commercial Waste • Sensor Telemetry Streaming Live</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="live"
+                                    style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                                    <span></span> LIVE TELEMETRY
+                                </span>
+                                <button class="small-btn" onclick="refreshDustbinTerminal(true)"
+                                    style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                                    ↻ Refresh Telemetry
+                                </button>
+                                <button class="small-btn" onclick="toggleSensorTester()"
+                                    style="background: #eab308; color: #172033; font-weight: 800; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                                    🧪 Hardware Tester
+                                </button>
+                                <a href="bin_dashboard.html?binCode=BIN-GOL-01" id="dtBtnOpenDedicated"
+                                    class="small-btn"
+                                    style="background: #10b981; color: white; text-decoration: none; font-weight: 700; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">🖥️
+                                    Dedicated Operator Terminal</a>
+                                <button class="small-btn" onclick="lockDustbinTerminal()"
+                                    style="background: rgba(239, 68, 68, 0.8); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                                    🔒 Lock Bin
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Critical Alert Banner (Auto-dispacthed by AI) -->
+                        <div id="dtAlertBanner"
+                            style="display: none; background: #fee2e2; border: 2px solid #ef4444; border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 28px;">🚨</span>
+                                    <div>
+                                        <strong id="dtAlertTitle"
+                                            style="font-size: 15px; color: #991b1b; display: block;">AUTOMATED
+                                            NOTIFICATION SENT TO COMMUNICATION STAFF</strong>
+                                        <span id="dtAlertDesc" style="font-size: 13px; color: #7f1d1d;">Dustbin is
+                                            predicted to reach capacity shortly. Automated dispatch alert delivered to
+                                            Control Room and Sanitation Driver.</span>
+                                    </div>
+                                </div>
+                                <button class="btn red-btn" onclick="dispatchCollectionNow()"
+                                    style="padding: 8px 16px; font-size: 13px; font-weight: 800;">
+                                    🚛 Dispatch Vehicle Now
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Top 4 Key Metrics Overview -->
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                            <!-- Metric 1: Current Fill Level -->
+                            <div class="stat-card" style="border-left: 4px solid #10b981; background: #ffffff;">
+                                <div class="stat-icon green">📊</div>
+                                <div>
+                                    <h3 id="dtMetricFill" style="font-size: 24px; margin: 0;">78%</h3>
+                                    <p style="margin: 0; font-size: 12px; color: #64748b;">Current Waste Fill</p>
+                                    <span id="dtMetricFillStatus" class="status"
+                                        style="background: #fef08a; color: #854d0e; font-size: 11px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">Nearly
+                                        Full</span>
+                                </div>
+                            </div>
+
+                            <!-- Metric 2: AI Predicted Time to Full -->
+                            <div class="stat-card" style="border-left: 4px solid #f59e0b; background: #ffffff;">
+                                <div class="stat-icon yellow">⏳</div>
+                                <div>
+                                    <h3 id="dtMetricTimeToFull" style="font-size: 22px; margin: 0; color: #d97706;">1h
+                                        35m</h3>
+                                    <p style="margin: 0; font-size: 12px; color: #64748b;">AI Time Until 100% Full</p>
+                                    <span id="dtMetricOverflowClock"
+                                        style="font-size: 11px; color: #b45309; font-weight: 700; display: block; margin-top: 4px;">Full
+                                        at ~01:45 PM</span>
+                                </div>
+                            </div>
+
+                            <!-- Metric 3: Footfall / People Inflow Rate -->
+                            <div class="stat-card" style="border-left: 4px solid #3b82f6; background: #ffffff;">
+                                <div class="stat-icon light-green">👥</div>
+                                <div>
+                                    <h3 id="dtMetricFootfall" style="font-size: 22px; margin: 0; color: #1d4ed8;">2.8
+                                        min</h3>
+                                    <p style="margin: 0; font-size: 12px; color: #64748b;">Footfall Frequency (1 person)
+                                    </p>
+                                    <span id="dtMetricVisitorsHour"
+                                        style="font-size: 11px; color: #2563eb; font-weight: 700; display: block; margin-top: 4px;">24
+                                        visitors in past hour</span>
+                                </div>
+                            </div>
+
+                            <!-- Metric 4: Weight & Sensor Clearance -->
+                            <div class="stat-card" style="border-left: 4px solid #8b5cf6; background: #ffffff;">
+                                <div class="stat-icon green">⚖️</div>
+                                <div>
+                                    <h3 id="dtMetricWeight" style="font-size: 22px; margin: 0; color: #6d28d9;">114.2 kg
+                                    </h3>
+                                    <p style="margin: 0; font-size: 12px; color: #64748b;">Measured Waste Weight</p>
+                                    <span id="dtMetricDistance"
+                                        style="font-size: 11px; color: #7c3aed; font-weight: 700; display: block; margin-top: 4px;">Sensor
+                                        Distance: 26.4 cm</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2-COLUMN MAIN CONTENT: (LEFT: Location & Visual Level, RIGHT: AI Predictions & Footfall) -->
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;">
+
+                            <!-- LEFT COLUMN: Location Micro-Map & Physical Bin Visualizer -->
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+
+                                <!-- Card: Dustbin Location & GPS Coordinates -->
+                                <div
+                                    style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <h4
+                                            style="margin: 0; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                                            <span>📍</span> Dustbin Geo-Location &amp; Coordinates
+                                        </h4>
+                                        <span id="dtLocationWardBadge"
+                                            style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">Ward
+                                            14</span>
+                                    </div>
+
+                                    <div
+                                        style="font-size: 13px; color: #475569; margin-bottom: 12px; line-height: 1.6;">
+                                        <div><strong>Address:</strong> <span id="dtLocationAddress">Golghar Central
+                                                Market Square</span></div>
+                                        <div><strong>Coordinates:</strong> <code
+                                                id="dtLocationCoords">26.7606° N, 83.3732° E</code></div>
+                                        <div><strong>Assigned Route:</strong> <span id="dtAssignedRoute">RT-GOL-01
+                                                (Golghar Commercial Loop)</span></div>
+                                    </div>
+
+                                    <!-- Leaflet Micro-Map -->
+                                    <div id="dustbinMiniMap"
+                                        style="height: 220px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; z-index: 10;">
+                                    </div>
+                                </div>
+
+                                <!-- Card: Physical Bin Visualizer & Sensor Telemetry -->
+                                <div
+                                    style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                    <h4
+                                        style="margin: 0 0 12px; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                                        <span>🗑️</span> Waste Level &amp; IoT Sensor Diagnostics
+                                    </h4>
+
+                                    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                                        <!-- 3D Cylinder Fill Graphic -->
+                                        <div
+                                            style="width: 90px; height: 160px; border: 3px solid #334155; border-radius: 16px; position: relative; background: #f1f5f9; overflow: hidden; display: flex; flex-direction: column-reverse; box-shadow: inset 0 2px 8px rgba(0,0,0,0.15);">
+                                            <div id="dtCylinderFill"
+                                                style="width: 100%; height: 78%; background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); transition: height 0.6s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 15px; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                                78%
+                                            </div>
+                                            <div
+                                                style="position: absolute; top: 6px; width: 100%; text-align: center; font-size: 9px; font-weight: 800; color: #64748b;">
+                                                ULTRASONIC
+                                            </div>
+                                        </div>
+
+                                        <!-- Hardware Specs List -->
+                                        <div style="flex: 1; font-size: 13px; line-height: 1.8; color: #334155;">
+                                            <div
+                                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px;">
+                                                <span>Capacity:</span>
+                                                <strong id="dtDetailCapacity">500 Liters</strong>
+                                            </div>
+                                            <div
+                                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 4px 0;">
+                                                <span>Ultrasonic Distance:</span>
+                                                <strong id="dtDetailDistance">26.4 cm to garbage</strong>
+                                            </div>
+                                            <div
+                                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 4px 0;">
+                                                <span>Current Weight:</span>
+                                                <strong id="dtDetailWeight">114.2 kg (Load Cell)</strong>
+                                            </div>
+                                            <div
+                                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 4px 0;">
+                                                <span>Lid Status:</span>
+                                                <strong id="dtDetailLid" style="color: #15803d;">Closed
+                                                    (Intact)</strong>
+                                            </div>
+                                            <div
+                                                style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0; padding: 4px 0;">
+                                                <span>Battery / Solar:</span>
+                                                <strong id="dtDetailBattery" style="color: #16a34a;">94% • Solar
+                                                    Active</strong>
+                                            </div>
+                                            <div
+                                                style="display: flex; justify-content: space-between; padding-top: 4px;">
+                                                <span>Ambient Temp:</span>
+                                                <strong id="dtDetailTemp">29.8 °C</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- RIGHT COLUMN: AI Footfall Analytics & Time-To-Full Prediction -->
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+
+                                <!-- Card: AI Footfall & Usage Rate ("Kitne time me kitne log aate hain") -->
+                                <div
+                                    style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <h4
+                                            style="margin: 0; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                                            <span>👥</span> AI Footfall &amp; Visitor Deposit Analysis
+                                        </h4>
+                                        <span
+                                            style="background: #e0e7ff; color: #4338ca; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">PIR
+                                            SENSOR DATA</span>
+                                    </div>
+
+                                    <p style="font-size: 12px; color: #64748b; margin-bottom: 14px;">
+                                        Tracks how frequently citizens visit this dustbin and correlates footfall
+                                        velocity to garbage fill rate.
+                                    </p>
+
+                                    <div
+                                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                                        <div style="font-size: 14px; font-weight: 800; color: #1e293b;"
+                                            id="dtFootfallFrequencyText">
+                                            ⚡ Avg 1 person deposits waste every 2.8 minutes
+                                        </div>
+                                        <div style="font-size: 12px; color: #059669; font-weight: 700; margin-top: 2px;"
+                                            id="dtFootfallDensityText">
+                                            High Density (Peak Market Rush Window)
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 14px;">
+                                        <div
+                                            style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;">
+                                            <div style="color: #64748b;">Visitors (Past 1 Hr):</div>
+                                            <strong id="dtFootfall1Hr" style="font-size: 16px; color: #1e293b;">24
+                                                people</strong>
+                                        </div>
+                                        <div
+                                            style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px;">
+                                            <div style="color: #64748b;">Total Footfall (Today):</div>
+                                            <strong id="dtFootfallToday" style="font-size: 16px; color: #1e293b;">142
+                                                people</strong>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hourly Footfall Distribution Visual -->
+                                    <div>
+                                        <div
+                                            style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px;">
+                                            HOURLY FOOTFALL &amp; INFLOW SURGE:
+                                        </div>
+                                        <div id="dtHourlyChart"
+                                            style="display: flex; align-items: flex-end; gap: 6px; height: 70px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px;">
+                                            <!-- Bars rendered by JS -->
+                                        </div>
+                                        <div
+                                            style="display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 4px;">
+                                            <span>08:00 AM</span>
+                                            <span>12:00 PM</span>
+                                            <span>04:00 PM</span>
+                                            <span>08:00 PM</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card: AI Time-To-Full Prediction Engine ("Kitne time me full ho jayega") -->
+                                <div
+                                    style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-top: 4px solid #f59e0b;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <h4
+                                            style="margin: 0; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                                            <span>🧠</span> AI Time-To-Full Prediction Engine
+                                        </h4>
+                                        <span
+                                            style="background: #fef3c7; color: #b45309; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">ML
+                                            ACTIVE (94.6%)</span>
+                                    </div>
+
+                                    <div
+                                        style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                                        <div
+                                            style="font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            ESTIMATED TIME UNTIL 100% CAPACITY:</div>
+                                        <div style="display: flex; align-items: baseline; gap: 8px; margin: 4px 0;">
+                                            <span id="dtAITimeToFullBig"
+                                                style="font-size: 28px; font-weight: 800; color: #b45309;">1 Hour 35
+                                                Minutes</span>
+                                        </div>
+                                        <div id="dtAIOverflowExact"
+                                            style="font-size: 13px; font-weight: 700; color: #78350f;">
+                                            Predicted Overflow: Today at ~01:45 PM
+                                        </div>
+                                    </div>
+
+                                    <div style="font-size: 12px; color: #475569; line-height: 1.8;">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Current Fill Rate:</span>
+                                            <strong id="dtAIFillVelocity" style="color: #b45309;">+14.2% / hour</strong>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Remaining Headroom:</span>
+                                            <strong id="dtAIRemainingPct">22% (approx 110 Liters)</strong>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>Recommended Dispatch:</span>
+                                            <strong id="dtAIAction" style="color: #dc2626;">Immediate Vehicle Routing
+                                                Required</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- 3. AUTOMATED COMMUNICATION & NOTIFICATION DISPATCH LOG -->
+                        <div
+                            style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h4
+                                        style="margin: 0; font-size: 15px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                                        <span>📢</span> Automated Staff Communication &amp; Dispatch Feed
+                                    </h4>
+                                    <p style="margin: 2px 0 0; font-size: 12px; color: #64748b;">
+                                        When AI detects imminent capacity overflow (&lt; 2 hrs or &gt; 80%),
+                                        notifications are automatically sent to communication and sanitation staff.
+                                    </p>
+                                </div>
+
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn green-btn btn-sm"
+                                        onclick="sendCommunicationAlertManual('EMERGENCY_CLEARANCE')"
+                                        style="font-size: 12px; padding: 6px 12px;">
+                                        🚨 Send Urgent Staff Alert
+                                    </button>
+                                    <button class="btn outline-btn btn-sm" onclick="dispatchCollectionNow()"
+                                        style="font-size: 12px; padding: 6px 12px;">
+                                        🚛 Dispatch Vehicle
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Notification Log Table -->
+                            <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                                <table class="data-table"
+                                    style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                                    <thead>
+                                        <tr
+                                            style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                                            <th style="padding: 8px;">Time</th>
+                                            <th style="padding: 8px;">Urgency</th>
+                                            <th style="padding: 8px;">Message &amp; Reason</th>
+                                            <th style="padding: 8px;">Channels</th>
+                                            <th style="padding: 8px;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dtNotificationsTbody">
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; color: #64748b; padding: 12px;">
+                                                Loading communication notifications...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 4. IOT HARDWARE SENSOR SIMULATOR & EMBEDDED CODE VIEWER -->
+                        <div id="dtHardwareSuite"
+                            style="background: #0f172a; color: #f8fafc; border-radius: 12px; padding: 20px; margin-bottom: 10px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h4
+                                        style="margin: 0; font-size: 16px; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+                                        <span>🔌</span> IoT Sensor Integration &amp; Hardware Code Suite
+                                    </h4>
+                                    <p style="margin: 2px 0 0; font-size: 12px; color: #94a3b8;">
+                                        Collect data from real hardware (ESP32, HC-SR04, PIR, HX711) or simulate sensor
+                                        packets right here in the browser.
+                                    </p>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="small-btn" onclick="switchSensorTab('tab-sim')" id="btnTabSim"
+                                        style="background: #0284c7; color: white;">⚡ Live Simulator</button>
+                                    <button class="small-btn" onclick="switchSensorTab('tab-esp32')" id="btnTabEsp32"
+                                        style="background: #1e293b; color: #94a3b8;">📟 ESP32 Code</button>
+                                    <button class="small-btn" onclick="switchSensorTab('tab-python')" id="btnTabPython"
+                                        style="background: #1e293b; color: #94a3b8;">🐍 Python Script</button>
+                                    <button class="small-btn" onclick="switchSensorTab('tab-curl')" id="btnTabCurl"
+                                        style="background: #1e293b; color: #94a3b8;">💻 cURL API</button>
+                                </div>
+                            </div>
+
+                            <!-- TAB 1: SENSOR SIMULATOR -->
+                            <div id="sensorTab-sim" style="background: #1e293b; border-radius: 8px; padding: 16px;">
+                                <div style="font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 10px;">
+                                    🕹️ INTERACTIVE SENSOR TELEMETRY SIMULATOR
+                                </div>
+                                <div
+                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                                    <div>
+                                        <label
+                                            style="font-size: 11px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">
+                                            ULTRASONIC DISTANCE TO TRASH (CM):
+                                        </label>
+                                        <input type="range" id="simDistanceRange" min="5" max="115" step="1" value="26"
+                                            style="width: 100%;" oninput="updateSimDistanceLabel(this.value)">
+                                        <div
+                                            style="display: flex; justify-content: space-between; font-size: 11px; color: #38bdf8; font-weight: 700;">
+                                            <span id="simDistanceVal">26 cm (78% Full)</span>
+                                            <span>Empty: 120cm | Full: 10cm</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            style="font-size: 11px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">
+                                            PIR FOOTFALL DETECTED (PEOPLE):
+                                        </label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button class="btn white-btn btn-sm" onclick="addSimPeople(1)"
+                                                style="flex: 1; font-size: 12px; color: #0f172a;">+1 Person</button>
+                                            <button class="btn white-btn btn-sm" onclick="addSimPeople(5)"
+                                                style="flex: 1; font-size: 12px; color: #0f172a;">+5 Rush</button>
+                                            <span id="simPeopleCountVal"
+                                                style="background: #0f172a; color: #38bdf8; font-weight: 800; padding: 6px 12px; border-radius: 6px; font-size: 13px; display: inline-flex; align-items: center;">3</span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            style="font-size: 11px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">
+                                            QUICK PRESETS:
+                                        </label>
+                                        <div style="display: flex; gap: 6px;">
+                                            <button class="btn btn-sm" onclick="setSimPreset(15)"
+                                                style="background: #ef4444; color: white; font-size: 11px; padding: 4px 8px;">🔴
+                                                88% Overflow</button>
+                                            <button class="btn btn-sm" onclick="setSimPreset(45)"
+                                                style="background: #f59e0b; color: white; font-size: 11px; padding: 4px 8px;">🟡
+                                                62% Half</button>
+                                            <button class="btn btn-sm" onclick="setSimPreset(105)"
+                                                style="background: #10b981; color: white; font-size: 11px; padding: 4px 8px;">🟢
+                                                12% Empty</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                    <button class="btn green-btn" onclick="sendSimulatedTelemetryPacket()"
+                                        style="font-weight: 800; font-size: 13px;">
+                                        📡 Send Real-Time Sensor Telemetry Packet
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- TAB 2: ESP32 CODE -->
+                            <div id="sensorTab-esp32"
+                                style="display: none; background: #020617; border-radius: 8px; padding: 14px; position: relative;">
+                                <button onclick="copyCodeBlock('esp32CodeText')"
+                                    style="position: absolute; right: 14px; top: 14px; background: #38bdf8; color: #0f172a; border: none; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer;">📋
+                                    Copy Code</button>
+                                <pre id="esp32CodeText"
+                                    style="font-size: 11px; color: #94a3b8; max-height: 220px; overflow-y: auto; font-family: monospace;">// ESP32 Smart Dustbin IoT Telemetry Code
+#include &lt;WiFi.h&gt;
+#include &lt;HTTPClient.h&gt;
+#include &lt;ArduinoJson.h&gt;
+
+const char* SERVER_URL = "http://YOUR_SERVER_IP:5000/api/waste/dustbin-terminal/sensor-data";
+const char* DUSTBIN_CODE = "BIN-GOL-01";
+const char* API_KEY = "BIN@2026";
+
+#define PIN_TRIG 5   // Ultrasonic HC-SR04 Trig
+#define PIN_ECHO 18  // Ultrasonic HC-SR04 Echo
+#define PIN_PIR  19  // PIR Motion Footfall Sensor
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
+  pinMode(PIN_PIR, INPUT);
+  WiFi.begin("WIFI_SSID", "WIFI_PASSWORD");
+}
+
+void loop() {
+  digitalWrite(PIN_TRIG, LOW); delayMicroseconds(2);
+  digitalWrite(PIN_TRIG, HIGH); delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+  long dur = pulseIn(PIN_ECHO, HIGH, 30000);
+  float dist = (dur * 0.0343) / 2.0;
+  int people = digitalRead(PIN_PIR);
+
+  HTTPClient http;
+  http.begin(SERVER_URL);
+  http.addHeader("Content-Type", "application/json");
+  String payload = "{"bin_code":"" + String(DUSTBIN_CODE) + "","api_key":"" + String(API_KEY) + "","distance_cm":" + String(dist) + ","people_count_delta":" + String(people) + "}";
+  http.POST(payload);
+  http.end();
+  delay(15000);
+}</pre>
+                            </div>
+
+                            <!-- TAB 3: PYTHON SCRIPT -->
+                            <div id="sensorTab-python"
+                                style="display: none; background: #020617; border-radius: 8px; padding: 14px; position: relative;">
+                                <button onclick="copyCodeBlock('pythonCodeText')"
+                                    style="position: absolute; right: 14px; top: 14px; background: #38bdf8; color: #0f172a; border: none; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer;">📋
+                                    Copy Script</button>
+                                <pre id="pythonCodeText"
+                                    style="font-size: 11px; color: #94a3b8; max-height: 220px; overflow-y: auto; font-family: monospace;"># Run from terminal: python scripts/simulate_dustbin_sensor.py
+import urllib.request, json
+
+url = "http://localhost:5000/api/waste/dustbin-terminal/sensor-data"
+payload = {
+    "bin_code": "BIN-GOL-01",
+    "api_key": "BIN@2026",
+    "distance_cm": 15.0, # 15cm from top = ~88% full
+    "weight_kg": 132.0,
+    "people_count_delta": 3,
+    "temperature_c": 30.5,
+    "battery_pct": 95
+}
+req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers={'Content-Type': 'application/json'})
+with urllib.request.urlopen(req) as resp:
+    print(resp.read().decode())</pre>
+                            </div>
+
+                            <!-- TAB 4: CURL -->
+                            <div id="sensorTab-curl"
+                                style="display: none; background: #020617; border-radius: 8px; padding: 14px; position: relative;">
+                                <button onclick="copyCodeBlock('curlCodeText')"
+                                    style="position: absolute; right: 14px; top: 14px; background: #38bdf8; color: #0f172a; border: none; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer;">📋
+                                    Copy cURL</button>
+                                <pre id="curlCodeText"
+                                    style="font-size: 11px; color: #38bdf8; max-height: 220px; overflow-y: auto; font-family: monospace;">curl -X POST http://localhost:5000/api/waste/dustbin-terminal/sensor-data \
+  -H "Content-Type: application/json" \
+  -d '{"bin_code":"BIN-GOL-01","api_key":"BIN@2026","distance_cm":18.5,"weight_kg":124.0,"people_count_delta":4}'</pre>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+                <!-- ================= END SMART DUSTBIN COMMAND TERMINAL ================= -->
+
+                <!-- ================= AI WASTE PREDICTOR & COLLECTION PRIORITY SUITE ================= -->
+                <div class="card"
+                    style="margin-bottom: 24px; border-left: 4px solid #16a34a; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <h3 style="margin: 0; color: #0f172a; font-size: 16px;">🌱 AI Waste Overflow Predictor &
+                                    Collection Dispatch</h3>
+                                <span
+                                    style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">GRADIENT
+                                    BOOSTING ML ACTIVE</span>
+                            </div>
+                            <p style="font-size: 13px; color: #64748b; margin: 4px 0 0;">
+                                Scikit-Learn Classifier (<code>waste-priority-v2.0</code>) • <strong>Precision:
+                                    92.4%</strong> • <strong>F1-Score: 92.1%</strong> • Stratified Holdout Validated
+                            </p>
+                        </div>
+                        <div>
+                            <button class="btn white-btn btn-sm" onclick="loadAIWastePredictionsTable()"
+                                style="font-size: 12px;">
+                                ↻ Refresh AI Log
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Predictor Inputs -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">SELECT
+                                SMART BIN / WARD:</label>
+                            <select id="ai-waste-bin-select" class="form-control"
+                                style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <option value="BIN-GKP-001">BIN-001 • Golghar Market Crossing (Ward 14)</option>
+                                <option value="BIN-GKP-002">BIN-002 • Gorakhnath Temple East Gate</option>
+                                <option value="BIN-GKP-003">BIN-003 • Mohaddipur Commercial Hub</option>
+                                <option value="BIN-GKP-004">BIN-004 • Railway Station North Circle</option>
+                                <option value="BIN-GKP-005">BIN-005 • Asuran Medical Enclave</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">DAYS
+                                SINCE LAST CLEARANCE:</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="range" id="ai-waste-days" min="0.5" max="6.0" step="0.5" value="2.5"
+                                    style="flex: 1;"
+                                    oninput="document.getElementById('ai-waste-days-val').innerText = this.value + ' days'">
+                                <span id="ai-waste-days-val"
+                                    style="font-weight: 800; font-size: 14px; color: #16a34a; width: 65px;">2.5
+                                    days</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button class="btn green-btn" style="width: 100%; height: 40px; font-weight: 700;"
+                                onclick="runAIWasteInference()">
+                                ⚡ Calculate AI Collection Priority
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Card -->
+                    <div id="ai-waste-result-box" style="margin-bottom: 16px;"></div>
+
+                    <!-- Human-in-the-Loop Operator Review Stream -->
+                    <div style="margin-top: 10px;">
+                        <h4 style="font-size: 13px; font-weight: 800; color: #334155; margin-bottom: 8px;">
+                            📋 Recent Waste AI Inferences & Dispatch Approvals (Human-in-the-Loop)
+                        </h4>
+                        <div class="table-responsive" style="max-height: 240px; overflow-y: auto;">
+                            <table class="data-table" style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                                <thead>
+                                    <tr
+                                        style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+                                        <th style="padding: 8px;">ID</th>
+                                        <th style="padding: 8px;">Bin / Entity</th>
+                                        <th style="padding: 8px;">Priority Rank</th>
+                                        <th style="padding: 8px;">Est. Fill %</th>
+                                        <th style="padding: 8px;">Timestamp</th>
+                                        <th style="padding: 8px;">Status</th>
+                                        <th style="padding: 8px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ai-waste-predictions-tbody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; color: #64748b; padding: 14px;">
+                                            Loading AI waste logs...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operational Metrics Grid -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon yellow">⚡</div>
+                        <div>
+                            <h3 id="activeOperationsCount">0</h3>
+                            <p>Active Operations</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon red">⏳</div>
+                        <div>
+                            <h3 id="pendingRequestsCount">0</h3>
+                            <p>Pending Complaints</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div>
+                            <h3 id="resolvedTodayCount">0</h3>
+                            <p>Resolved Today</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon light-green">📊</div>
+                        <div>
+                            <h3 id="collectionEfficiencyVal">100%</h3>
+                            <p>Collection Efficiency</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green">🗑️</div>
+                        <div>
+                            <h3 id="totalBins">0</h3>
+                            <p>Total Bins</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon light-green">🟢</div>
+                        <div>
+                            <h3 id="emptyBins">0</h3>
+                            <p>Empty Bins</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon yellow">🟡</div>
+                        <div>
+                            <h3 id="halfBins">0</h3>
+                            <p>Half Full</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon red">🔴</div>
+                        <div>
+                            <h3 id="fullBins">0</h3>
+                            <p>Full Bins</p>
+                        </div>
+                    </div>
                 </section>
 
-                <section class="card">
-                    <div class="section-head">
-                        <div>
-                            <h2>🚛 Pickup Requests</h2>
-                            <p>Manage scheduled garbage collection.</p>
-                        </div>
-                        <button class="small-btn" onclick="openPickupModal()">+ Pickup</button>
-                    </div>
-                    <div id="pickupList"></div>
-                </section>
-            </div>
-
-            <!-- Smart Bin Management -->
-            <section class="card" style="margin-top: 25px;">
-                <div class="section-head">
-                    <div>
-                        <h2>🗑️ Waste Bin Management</h2>
-                        <p>Manage all smart bins in the city.</p>
-                    </div>
-                    <button class="small-btn" onclick="openBinModal()">+ Add Bin</button>
-                </div>
-                <div class="filter-row">
-                    <input id="binSearch" type="text" placeholder="🔍 Search bin or location..." oninput="renderBins()">
-                    <select id="binFilter" onchange="renderBins()">
-                        <option value="all">All Status</option>
-                        <option value="empty">🟢 Empty</option>
-                        <option value="half">🟡 Half Full</option>
-                        <option value="full">🔴 Full</option>
+                <!-- Operational Filter Bar -->
+                <div class="op-filter-bar" style="margin-top: 25px;">
+                    <input id="reqSearchInput" type="text"
+                        placeholder="🔍 Search requests by code, area, citizen, category..."
+                        oninput="filterStaffRequests()">
+                    <select id="reqStatusFilter" onchange="filterStaffRequests()">
+                        <option value="all">All Statuses</option>
+                        <option value="Submitted">Submitted</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                    <select id="reqPriorityFilter" onchange="filterStaffRequests()">
+                        <option value="all">All Priorities</option>
+                        <option value="CRITICAL">🔴 Critical</option>
+                        <option value="HIGH">🟠 High</option>
+                        <option value="MEDIUM">🟡 Medium</option>
+                        <option value="LOW">🟢 Low</option>
+                    </select>
+                    <select id="reqWorkerFilter" onchange="filterStaffRequests()">
+                        <option value="all">All Workers</option>
+                    </select>
+                    <select id="reqVehicleFilter" onchange="filterStaffRequests()">
+                        <option value="all">All Vehicles</option>
                     </select>
                 </div>
-                <div id="binList" class="bin-list"></div>
-            </section>
 
-            <!-- Citizen Dustbin Requests for Staff Review -->
-            <section class="card" id="staffDustbinRequestsSection" style="margin-top: 25px;">
-                <div class="section-head">
-                    <div><h2>🆕 Citizen Dustbin Requests</h2><p>Review and schedule requests submitted by citizens.</p></div>
-                    <button class="small-btn" onclick="loadCitizenBinRequests(true)">↻ Refresh</button>
-                </div>
-                <div id="staffBinRequestList" class="request-list"></div>
-            </section>
+                <!-- Reports + Pickups Dispatch Queues -->
+                <div class="two-columns">
+                    <section class="card">
+                        <div class="section-head">
+                            <div>
+                                <h2>📋 Waste Reports & Complaints</h2>
+                                <p>Manage citizen complaints with operational assignment.</p>
+                            </div>
+                            <button class="small-btn" onclick="openReportModal()">+ Report</button>
+                        </div>
+                        <div id="reportList"></div>
+                    </section>
 
-            <!-- Clean City Score -->
-            <section class="card score-card" style="margin-top: 25px;">
-                <div>
-                    <h2>🏆 Clean City Score</h2>
-                    <p>Gorakhpur Municipal Corporation cleanliness performance index.</p>
+                    <section class="card">
+                        <div class="section-head">
+                            <div>
+                                <h2>🚛 Pickup Requests</h2>
+                                <p>Manage scheduled garbage collection.</p>
+                            </div>
+                            <button class="small-btn" onclick="openPickupModal()">+ Pickup</button>
+                        </div>
+                        <div id="pickupList"></div>
+                    </section>
                 </div>
-                <div class="score-number">
-                    <strong id="scoreValue">780</strong>
-                    <span>points</span>
-                </div>
-                <div class="score-progress">
-                    <div id="scoreBar"></div>
-                </div>
-                <div class="score-level" id="scoreLevel">🥇 Gold</div>
-            </section>
+
+                <!-- Smart Bin Management -->
+                <section class="card" style="margin-top: 25px;">
+                    <div class="section-head">
+                        <div>
+                            <h2>🗑️ Waste Bin Management</h2>
+                            <p>Manage all smart bins in the city.</p>
+                        </div>
+                        <button class="small-btn" onclick="openBinModal()">+ Add Bin</button>
+                    </div>
+                    <div class="filter-row">
+                        <input id="binSearch" type="text" placeholder="🔍 Search bin or location..."
+                            oninput="renderBins()">
+                        <select id="binFilter" onchange="renderBins()">
+                            <option value="all">All Status</option>
+                            <option value="empty">🟢 Empty</option>
+                            <option value="half">🟡 Half Full</option>
+                            <option value="full">🔴 Full</option>
+                        </select>
+                    </div>
+                    <div id="binList" class="bin-list"></div>
+                </section>
+
+                <!-- Citizen Dustbin Requests for Staff Review -->
+                <section class="card" id="staffDustbinRequestsSection" style="margin-top: 25px;">
+                    <div class="section-head">
+                        <div>
+                            <h2>🆕 Citizen Dustbin Requests</h2>
+                            <p>Review and schedule requests submitted by citizens.</p>
+                        </div>
+                        <button class="small-btn" onclick="loadCitizenBinRequests(true)">↻ Refresh</button>
+                    </div>
+                    <div id="staffBinRequestList" class="request-list"></div>
+                </section>
+
+                <!-- Clean City Score -->
+                <section class="card score-card" style="margin-top: 25px;">
+                    <div>
+                        <h2>🏆 Clean City Score</h2>
+                        <p>Gorakhpur Municipal Corporation cleanliness performance index.</p>
+                    </div>
+                    <div class="score-number">
+                        <strong id="scoreValue">780</strong>
+                        <span>points</span>
+                    </div>
+                    <div class="score-progress">
+                        <div id="scoreBar"></div>
+                    </div>
+                    <div class="score-level" id="scoreLevel">🥇 Gold</div>
+                </section>
+            </div>
         </div>
-    </div>
 
-    <!-- =========================================================
+        <!-- =========================================================
          LAYER 3: WASTE ADMIN & FLEET ASSETS
     ========================================================= -->
-    <div id="layer-admin-content" style="display: none;">
-        <!-- Gatekeeper if not staff/admin -->
-        <div class="layer-gatekeeper-card" id="adminGatekeeper" style="display: none;">
-            <div style="font-size: 44px; margin-bottom: 12px;">🔒</div>
-            <h2 style="font-size: 20px; color: #1e293b; margin-bottom: 8px;">Municipal Admin Access Restricted</h2>
-            <p style="font-size: 14px; color: #64748b; max-width: 520px; margin: 0 auto 20px;">
-                Asset management, fleet configuration, personnel directories, and routes are restricted to Municipal Administrators.
-            </p>
-            <button class="btn green-btn" onclick="SmartCityAuth.showLoginModal('staff')" style="padding: 10px 22px; font-size: 14px;">
-                🔑 Sign In as Staff (e.g. WST001)
-            </button>
-        </div>
+        <div id="layer-admin-content" style="display: none;">
+            <!-- Gatekeeper if not staff/admin -->
+            <div class="layer-gatekeeper-card" id="adminGatekeeper" style="display: none;">
+                <div style="font-size: 44px; margin-bottom: 12px;">🔒</div>
+                <h2 style="font-size: 20px; color: #1e293b; margin-bottom: 8px;">Municipal Admin Access Restricted</h2>
+                <p style="font-size: 14px; color: #64748b; max-width: 520px; margin: 0 auto 20px;">
+                    Asset management, fleet configuration, personnel directories, and routes are restricted to Municipal
+                    Administrators.
+                </p>
+                <button class="btn green-btn" onclick="SmartCityAuth.showLoginModal('staff')"
+                    style="padding: 10px 22px; font-size: 14px;">
+                    🔑 Sign In as Staff (e.g. WST001)
+                </button>
+            </div>
 
-        <!-- Admin Assets Main Content -->
-        <div id="adminAssetsMain">
-            <section class="card" id="wasteManagementSection">
-                <div class="section-head">
-                    <div>
-                        <h2>⚙️ Waste Operations & Asset Management</h2>
-                        <p>Full control over collection vehicles, sanitation workers, routes, and smart analytics.</p>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="small-btn" id="btnAddAssetBtn" onclick="openActiveAssetModal()">+ Add Asset</button>
-                        <button class="small-btn" onclick="refreshStaffAssets()">↻ Refresh</button>
-                    </div>
-                </div>
-
-                <!-- TABS -->
-                <div class="waste-tabs-container">
-                    <button class="waste-tab-btn active" data-tab="tab-vehicles" onclick="switchWasteTab('tab-vehicles')">🚛 Collection Vehicles</button>
-                    <button class="waste-tab-btn" data-tab="tab-workers" onclick="switchWasteTab('tab-workers')">👷 Sanitation Workers</button>
-                    <button class="waste-tab-btn" data-tab="tab-routes" onclick="switchWasteTab('tab-routes')">🗺️ Collection Routes</button>
-                    <button class="waste-tab-btn" data-tab="tab-analytics" onclick="switchWasteTab('tab-analytics')">📊 Analytics & Hotspots</button>
-                </div>
-
-                <!-- TAB CONTENT: VEHICLES -->
-                <div id="tab-vehicles" class="waste-tab-content">
-                    <div style="overflow-x: auto;">
-                        <table class="waste-data-table" id="vehiclesTable">
-                            <thead>
-                                <tr>
-                                    <th>Vehicle No</th>
-                                    <th>Type</th>
-                                    <th>Capacity</th>
-                                    <th>Driver</th>
-                                    <th>Phone</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vehiclesTableBody">
-                                <tr><td colspan="7" style="text-align:center; padding: 20px;">Loading collection vehicles...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TAB CONTENT: WORKERS -->
-                <div id="tab-workers" class="waste-tab-content" style="display: none;">
-                    <div style="overflow-x: auto;">
-                        <table class="waste-data-table" id="workersTable">
-                            <thead>
-                                <tr>
-                                    <th>Worker Code</th>
-                                    <th>Name</th>
-                                    <th>Phone</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="workersTableBody">
-                                <tr><td colspan="6" style="text-align:center; padding: 20px;">Loading sanitation workers...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TAB CONTENT: ROUTES -->
-                <div id="tab-routes" class="waste-tab-content" style="display: none;">
-                    <div style="overflow-x: auto;">
-                        <table class="waste-data-table" id="routesTable">
-                            <thead>
-                                <tr>
-                                    <th>Route Code</th>
-                                    <th>Route Name</th>
-                                    <th>Area</th>
-                                    <th>Schedule</th>
-                                    <th>Assigned Vehicle</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="routesTableBody">
-                                <tr><td colspan="7" style="text-align:center; padding: 20px;">Loading collection routes...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TAB CONTENT: ANALYTICS & HOTSPOTS -->
-                <div id="tab-analytics" class="waste-tab-content" style="display: none;">
-                    <div class="two-columns" style="margin-bottom: 20px;">
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
-                            <h3 style="font-size: 15px; margin-bottom: 12px;">📊 Requests by Waste Type</h3>
-                            <div id="wasteTypeBreakdownList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            <!-- Admin Assets Main Content -->
+            <div id="adminAssetsMain">
+                <section class="card" id="wasteManagementSection">
+                    <div class="section-head">
+                        <div>
+                            <h2>⚙️ Waste Operations & Asset Management</h2>
+                            <p>Full control over collection vehicles, sanitation workers, routes, and smart analytics.
+                            </p>
                         </div>
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
-                            <h3 style="font-size: 15px; margin-bottom: 12px;">📈 Top Complaint Locations</h3>
-                            <div id="wasteTopAreasList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="small-btn" id="btnAddAssetBtn" onclick="openActiveAssetModal()">+ Add
+                                Asset</button>
+                            <button class="small-btn" onclick="refreshStaffAssets()">↻ Refresh</button>
                         </div>
                     </div>
 
-                    <h3 style="font-size: 16px; margin: 15px 0 10px;">🔥 Recurring Waste Hotspots</h3>
-                    <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Locations with repeated garbage dumping or overflowing bins identified for priority intervention.</p>
-                    <div style="overflow-x: auto;">
-                        <table class="waste-data-table" id="hotspotsTable">
-                            <thead>
-                                <tr>
-                                    <th>Hotspot Location</th>
-                                    <th>Repeat Complaints</th>
-                                    <th>Severity Score</th>
-                                    <th>Risk Level</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="hotspotsTableBody">
-                                <tr><td colspan="5" style="text-align:center; padding: 20px;">Analyzing waste hotspots...</td></tr>
-                            </tbody>
-                        </table>
+                    <!-- TABS -->
+                    <div class="waste-tabs-container">
+                        <button class="waste-tab-btn active" data-tab="tab-vehicles"
+                            onclick="switchWasteTab('tab-vehicles')">🚛 Collection Vehicles</button>
+                        <button class="waste-tab-btn" data-tab="tab-workers" onclick="switchWasteTab('tab-workers')">👷
+                            Sanitation Workers</button>
+                        <button class="waste-tab-btn" data-tab="tab-routes" onclick="switchWasteTab('tab-routes')">🗺️
+                            Collection Routes</button>
+                        <button class="waste-tab-btn" data-tab="tab-analytics"
+                            onclick="switchWasteTab('tab-analytics')">📊 Analytics & Hotspots</button>
+                        <button class="waste-tab-btn" data-tab="tab-workforce"
+                            onclick="switchWasteTab('tab-workforce')">👥 Workforce Management & Roles</button>
                     </div>
-                </div>
-            </section>
-        </div>
-    </div>
-</main>
 
-<!-- =====================================================
+                    <!-- TAB CONTENT: VEHICLES -->
+                    <div id="tab-vehicles" class="waste-tab-content">
+                        <div style="overflow-x: auto;">
+                            <table class="waste-data-table" id="vehiclesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Vehicle No</th>
+                                        <th>Type</th>
+                                        <th>Capacity</th>
+                                        <th>Driver</th>
+                                        <th>Phone</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vehiclesTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center; padding: 20px;">Loading collection
+                                            vehicles...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: WORKERS -->
+                    <div id="tab-workers" class="waste-tab-content" style="display: none;">
+                        <div style="overflow-x: auto;">
+                            <table class="waste-data-table" id="workersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Worker Code</th>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workersTableBody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center; padding: 20px;">Loading sanitation
+                                            workers...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: ROUTES -->
+                    <div id="tab-routes" class="waste-tab-content" style="display: none;">
+                        <div style="overflow-x: auto;">
+                            <table class="waste-data-table" id="routesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Route Code</th>
+                                        <th>Route Name</th>
+                                        <th>Area</th>
+                                        <th>Schedule</th>
+                                        <th>Assigned Vehicle</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="routesTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align:center; padding: 20px;">Loading collection
+                                            routes...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: ANALYTICS & HOTSPOTS -->
+                    <div id="tab-analytics" class="waste-tab-content" style="display: none;">
+                        <div class="two-columns" style="margin-bottom: 20px;">
+                            <div
+                                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                                <h3 style="font-size: 15px; margin-bottom: 12px;">📊 Requests by Waste Type</h3>
+                                <div id="wasteTypeBreakdownList"
+                                    style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            </div>
+                            <div
+                                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+                                <h3 style="font-size: 15px; margin-bottom: 12px;">📈 Top Complaint Locations</h3>
+                                <div id="wasteTopAreasList" style="display: flex; flex-direction: column; gap: 8px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 style="font-size: 16px; margin: 15px 0 10px;">🔥 Recurring Waste Hotspots</h3>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Locations with repeated garbage
+                            dumping or overflowing bins identified for priority intervention.</p>
+                        <div style="overflow-x: auto;">
+                            <table class="waste-data-table" id="hotspotsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Hotspot Location</th>
+                                        <th>Repeat Complaints</th>
+                                        <th>Severity Score</th>
+                                        <th>Risk Level</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hotspotsTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; padding: 20px;">Analyzing waste
+                                            hotspots...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: WORKFORCE MANAGEMENT & ROLES (PHASE 2) -->
+                    <div id="tab-workforce" class="waste-tab-content" style="display: none;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                            <div>
+                                <h3
+                                    style="font-size: 16px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px;">
+                                    <span>👥</span> Municipal Sanitation Workforce Directory & Governance
+                                </h3>
+                                <p style="font-size: 12px; color: #64748b; margin: 0;">
+                                    Admin RBAC governance across Control Center, Field Collection Crews, and Smart Bin
+                                    Operators.
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn green-btn" onclick="openAddStaffModal()"
+                                    style="padding: 8px 16px; font-size: 12px; font-weight: 700;">
+                                    + Add Staff Account
+                                </button>
+                                <button class="btn outline-btn" onclick="openAuditLogModal()"
+                                    style="padding: 8px 14px; font-size: 12px;">
+                                    📜 View Audit History
+                                </button>
+                                <button class="btn outline-btn" onclick="loadAdminStaffTable(true)"
+                                    style="padding: 8px 12px; font-size: 12px;">
+                                    🔄 Refresh
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="waste-data-table" id="workforceStaffTable">
+                                <thead>
+                                    <tr>
+                                        <th>Staff ID</th>
+                                        <th>Officer / Employee Name</th>
+                                        <th>Role Classification</th>
+                                        <th>Assigned Operations</th>
+                                        <th>Account Status</th>
+                                        <th>Security & Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workforceStaffTableBody">
+                                    <tr>
+                                        <td colspan="6" style="text-align:center; padding: 20px;">Loading municipal
+                                            workforce accounts...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- =====================================================
      MUNICIPAL FOOTER (Universal City AI Footer)
 ===================================================== -->
-<footer class="sc-main-footer" role="contentinfo" style="background: #0f172a; color: #94a3b8; padding: 48px 5% 32px; border-top: 1px solid #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 40px;">
-    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px; text-align: left;">
-        <div>
-            <div style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <span>🏙️</span> SmartCity <span style="color: #38bdf8;">AI</span>
+    <footer class="sc-main-footer" role="contentinfo"
+        style="background: #0f172a; color: #94a3b8; padding: 48px 5% 32px; border-top: 1px solid #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 40px;">
+        <div
+            style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-bottom: 36px; text-align: left;">
+            <div>
+                <div
+                    style="font-size: 20px; font-weight: 800; color: #ffffff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <span>🏙️</span> SmartCity <span style="color: #38bdf8;">AI</span>
+                </div>
+                <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                    Gorakhpur Smart City Mission. Integrated Command and Control Center (ICCC) platform delivering smart
+                    bin telemetry, vehicle collection routes, and civic sanitation.
+                </p>
             </div>
-            <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
-                Gorakhpur Smart City Mission. Integrated Command and Control Center (ICCC) platform delivering smart bin telemetry, vehicle collection routes, and civic sanitation.
-            </p>
+            <div>
+                <h4
+                    style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">
+                    Civic Portals</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                    <li><a href="../../index.html" style="color: #94a3b8; text-decoration: none;">🏛️ Main City
+                            Dashboard</a></li>
+                    <li><a href="waste.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🗑️ Waste
+                            Management</a></li>
+                    <li><a href="../hospital/hospital.html" style="color: #94a3b8; text-decoration: none;">🏥 Hospital
+                            &amp; Healthcare</a></li>
+                    <li><a href="../traffic/traffic.html" style="color: #94a3b8; text-decoration: none;">🚦 Live Traffic
+                            Grid</a></li>
+                    <li><a href="../parking/parking.html" style="color: #94a3b8; text-decoration: none;">🅿️ Smart
+                            Parking</a></li>
+                    <li><a href="../emergency/emergency.html" style="color: #94a3b8; text-decoration: none;">🚨
+                            Emergency SOS</a></li>
+                    <li><a href="../water/water.html" style="color: #94a3b8; text-decoration: none;">💧 Water Management
+                            &amp; SCADA</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4
+                    style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">
+                    Transparency &amp; Legal</h4>
+                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
+                    <li><a href="../privacy-policy.html"
+                            style="color: #38bdf8; text-decoration: none; font-weight: 600;">🔒 Privacy Policy</a></li>
+                    <li><a href="../terms-and-conditions.html"
+                            style="color: #38bdf8; text-decoration: none; font-weight: 600;">📜 Terms &amp;
+                            Conditions</a></li>
+                    <li><a href="../../index.html#services" style="color: #94a3b8; text-decoration: none;">📋 Citizen
+                            Grievances</a></li>
+                    <li><a href="/sitemap.xml" style="color: #94a3b8; text-decoration: none;">🗺️ Site Directory</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h4
+                    style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">
+                    Emergency Helplines</h4>
+                <p style="font-size: 13px; line-height: 1.8; color: #cbd5e1; margin: 0;">
+                    🚨 <strong>National Emergency:</strong> 112<br>
+                    🚑 <strong>State Ambulance:</strong> 108<br>
+                    🚒 <strong>Fire Service:</strong> 101<br>
+                    📞 <strong>Municipal Toll-Free:</strong> 1800-180-2026
+                </p>
+            </div>
         </div>
-        <div>
-            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Civic Portals</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
-                <li><a href="../../index.html" style="color: #94a3b8; text-decoration: none;">🏛️ Main City Dashboard</a></li>
-                <li><a href="waste.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🗑️ Waste Management</a></li>
-                <li><a href="../hospital/hospital.html" style="color: #94a3b8; text-decoration: none;">🏥 Hospital &amp; Healthcare</a></li>
-                <li><a href="../traffic/traffic.html" style="color: #94a3b8; text-decoration: none;">🚦 Live Traffic Grid</a></li>
-                <li><a href="../parking/parking.html" style="color: #94a3b8; text-decoration: none;">🅿️ Smart Parking</a></li>
-                <li><a href="../emergency/emergency.html" style="color: #94a3b8; text-decoration: none;">🚨 Emergency SOS</a></li>
-                <li><a href="../water/water.html" style="color: #94a3b8; text-decoration: none;">💧 Water Management &amp; SCADA</a></li>
-            </ul>
+        <div
+            style="border-top: 1px solid #1e293b; padding-top: 24px; text-align: center; font-size: 12px; color: #64748b;">
+            © 2026 SmartCity AI Municipal Directorate. Grounded AI urban telemetry and civic management system. All
+            rights reserved.
         </div>
-        <div>
-            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Transparency &amp; Legal</h4>
-            <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; line-height: 2;">
-                <li><a href="../privacy-policy.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">🔒 Privacy Policy</a></li>
-                <li><a href="../terms-and-conditions.html" style="color: #38bdf8; text-decoration: none; font-weight: 600;">📜 Terms &amp; Conditions</a></li>
-                <li><a href="../../index.html#services" style="color: #94a3b8; text-decoration: none;">📋 Citizen Grievances</a></li>
-                <li><a href="/sitemap.xml" style="color: #94a3b8; text-decoration: none;">🗺️ Site Directory</a></li>
-            </ul>
-        </div>
-        <div>
-            <h4 style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px;">Emergency Helplines</h4>
-            <p style="font-size: 13px; line-height: 1.8; color: #cbd5e1; margin: 0;">
-                🚨 <strong>National Emergency:</strong> 112<br>
-                🚑 <strong>State Ambulance:</strong> 108<br>
-                🚒 <strong>Fire Service:</strong> 101<br>
-                📞 <strong>Municipal Toll-Free:</strong> 1800-180-2026
-            </p>
-        </div>
-    </div>
-    <div style="border-top: 1px solid #1e293b; padding-top: 24px; text-align: center; font-size: 12px; color: #64748b;">
-        © 2026 SmartCity AI Municipal Directorate. Grounded AI urban telemetry and civic management system. All rights reserved.
-    </div>
-</footer>
+    </footer>
 
 
-<!-- =====================================================
+    <!-- =====================================================
      BIN MODAL
 ===================================================== -->
 
-<div class="modal" id="binModal">
+    <div class="modal" id="binModal">
 
-    <div class="modal-box">
+        <div class="modal-box">
 
-        <button class="close"
-                onclick="closeModal('binModal')">
-            ×
-        </button>
+            <button class="close" onclick="closeModal('binModal')">
+                ×
+            </button>
 
-        <h2 id="binModalTitle">
-            Add Smart Bin
-        </h2>
+            <h2 id="binModalTitle">
+                Add Smart Bin
+            </h2>
 
-        <p class="modal-subtitle">
-            Enter bin information.
-        </p>
-
-
-        <input type="hidden" id="binId">
+            <p class="modal-subtitle">
+                Enter bin information.
+            </p>
 
 
-        <label>Bin Name</label>
-
-        <input
-            id="binName"
-            type="text"
-            placeholder="Example: Bin - City Market">
+            <input type="hidden" id="binId">
 
 
-        <label>Location</label>
+            <label>Bin Name</label>
 
-        <input
-            id="binLocation"
-            type="text"
-            placeholder="Example: Golghar">
+            <input id="binName" type="text" placeholder="Example: Bin - City Market">
 
 
-        <label>Latitude</label>
+            <label>Location</label>
 
-        <input
-            id="binLat"
-            type="number"
-            step="any"
-            placeholder="26.7606">
+            <input id="binLocation" type="text" placeholder="Example: Golghar">
 
 
-        <label>Longitude</label>
+            <label>Latitude</label>
 
-        <input
-            id="binLng"
-            type="number"
-            step="any"
-            placeholder="83.3732">
+            <input id="binLat" type="number" step="any" placeholder="26.7606">
 
 
-        <label>Fill Percentage</label>
+            <label>Longitude</label>
 
-        <input
-            id="binFill"
-            type="number"
-            min="0"
-            max="100"
-            value="0"
-            oninput="updateModalStatus()">
+            <input id="binLng" type="number" step="any" placeholder="83.3732">
 
 
-        <div class="fill-preview">
+            <label>Fill Percentage</label>
 
-            Status:
-            <strong id="modalBinStatus">
-                Empty
-            </strong>
+            <input id="binFill" type="number" min="0" max="100" value="0" oninput="updateModalStatus()">
+
+
+            <div class="fill-preview">
+
+                Status:
+                <strong id="modalBinStatus">
+                    Empty
+                </strong>
+
+            </div>
+
+
+            <button class="submit-btn" onclick="saveBin()">
+
+                Save Bin
+
+            </button>
 
         </div>
 
-
-        <button class="submit-btn"
-                onclick="saveBin()">
-
-            Save Bin
-
-        </button>
-
     </div>
 
-</div>
 
-
-<!-- =====================================================
+    <!-- =====================================================
      REPORT MODAL
 ===================================================== -->
 
-<div class="modal" id="reportModal">
+    <div class="modal" id="reportModal">
 
-    <div class="modal-box" style="max-width: 550px;">
+        <div class="modal-box" style="max-width: 550px;">
 
-        <button class="close"
-                onclick="closeModal('reportModal')">
-            ×
-        </button>
+            <button class="close" onclick="closeModal('reportModal')">
+                ×
+            </button>
 
-        <h2 id="reportModalTitle">
-            📍 Report Waste Problem
-        </h2>
+            <h2 id="reportModalTitle">
+                📍 Report Waste Problem
+            </h2>
 
-        <p class="modal-subtitle">
-            Report garbage dumping, overflowing bins, or street waste.
-        </p>
+            <p class="modal-subtitle">
+                Report garbage dumping, overflowing bins, or street waste.
+            </p>
 
-        <input type="hidden" id="reportId">
+            <input type="hidden" id="reportId">
 
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Complaint Category *</label>
-            <select id="reportCategory" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="Garbage not collected">Garbage not collected</option>
-                <option value="Overflowing dustbin">Overflowing dustbin</option>
-                <option value="Illegal dumping">Illegal dumping</option>
-                <option value="Street/public-area waste">Street / public-area waste</option>
-                <option value="Hazardous/medical waste">Hazardous / medical waste</option>
-                <option value="Garbage Dump">Garbage Dump</option>
-                <option value="Other civic waste">Other civic waste</option>
-            </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Waste Type *</label>
-            <select id="reportType" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="Mixed Waste">Mixed Waste</option>
-                <option value="Organic/Wet Waste">Organic / Wet Waste</option>
-                <option value="Dry/Recyclable Waste">Dry / Recyclable Waste</option>
-                <option value="Plastic Waste">Plastic Waste</option>
-                <option value="Hazardous Waste">Hazardous / Biohazard Waste</option>
-                <option value="Construction Debris">Construction Debris</option>
-            </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Location / Landmark *</label>
-            <div style="display: flex; gap: 8px;">
-                <input id="reportLocation" type="text" placeholder="e.g. Golghar Market Square" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <button type="button" class="small-btn" onclick="useCurrentLocationForReport()" style="white-space: nowrap;">📍 Use GPS</button>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Complaint Category *</label>
+                <select id="reportCategory"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="Garbage not collected">Garbage not collected</option>
+                    <option value="Overflowing dustbin">Overflowing dustbin</option>
+                    <option value="Illegal dumping">Illegal dumping</option>
+                    <option value="Street/public-area waste">Street / public-area waste</option>
+                    <option value="Hazardous/medical waste">Hazardous / medical waste</option>
+                    <option value="Garbage Dump">Garbage Dump</option>
+                    <option value="Other civic waste">Other civic waste</option>
+                </select>
             </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-            <div>
-                <label style="font-size: 11px; color: #64748b;">Latitude</label>
-                <input id="reportLat" type="number" step="any" placeholder="26.7606" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Waste Type *</label>
+                <select id="reportType"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="Mixed Waste">Mixed Waste</option>
+                    <option value="Organic/Wet Waste">Organic / Wet Waste</option>
+                    <option value="Dry/Recyclable Waste">Dry / Recyclable Waste</option>
+                    <option value="Plastic Waste">Plastic Waste</option>
+                    <option value="Hazardous Waste">Hazardous / Biohazard Waste</option>
+                    <option value="Construction Debris">Construction Debris</option>
+                </select>
             </div>
-            <div>
-                <label style="font-size: 11px; color: #64748b;">Longitude</label>
-                <input id="reportLng" type="number" step="any" placeholder="83.3732" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Location / Landmark *</label>
+                <div style="display: flex; gap: 8px;">
+                    <input id="reportLocation" type="text" placeholder="e.g. Golghar Market Square"
+                        style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <button type="button" class="small-btn" onclick="useCurrentLocationForReport()"
+                        style="white-space: nowrap;">📍 Use GPS</button>
+                </div>
             </div>
-        </div>
 
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Upload Photo Evidence (Optional)</label>
-            <input id="reportEvidenceFile" type="file" accept="image/*" onchange="handleEvidencePreview(event)" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px;">
-            <div id="reportPhotoPreview" style="margin-top: 8px; display: none;">
-                <img id="reportPhotoPreviewImg" src="" alt="Citizen uploaded waste evidence preview" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 11px; color: #64748b;">Latitude</label>
+                    <input id="reportLat" type="number" step="any" placeholder="26.7606"
+                        style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: #64748b;">Longitude</label>
+                    <input id="reportLng" type="number" step="any" placeholder="83.3732"
+                        style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                </div>
             </div>
-        </div>
 
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Description *</label>
-            <textarea id="reportDescription" rows="3" placeholder="Describe the problem, severity, exact spot..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
-        </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Upload Photo Evidence
+                    (Optional)</label>
+                <input id="reportEvidenceFile" type="file" accept="image/*" onchange="handleEvidencePreview(event)"
+                    style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px;">
+                <div id="reportPhotoPreview" style="margin-top: 8px; display: none;">
+                    <img id="reportPhotoPreviewImg" src="" alt="Citizen uploaded waste evidence preview"
+                        style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+            </div>
 
-        <button class="submit-btn" onclick="saveReport()">
-            Submit Waste Report
-        </button>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Description *</label>
+                <textarea id="reportDescription" rows="3" placeholder="Describe the problem, severity, exact spot..."
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
+            </div>
+
+            <button class="submit-btn" onclick="saveReport()">
+                Submit Waste Report
+            </button>
+
+        </div>
 
     </div>
 
-</div>
 
-
-<!-- =====================================================
+    <!-- =====================================================
      PICKUP MODAL
 ===================================================== -->
 
-<div class="modal" id="pickupModal">
+    <div class="modal" id="pickupModal">
 
-    <div class="modal-box" style="max-width: 550px;">
+        <div class="modal-box" style="max-width: 550px;">
 
-        <button class="close" onclick="closeModal('pickupModal')">×</button>
+            <button class="close" onclick="closeModal('pickupModal')">×</button>
 
-        <h2 id="pickupModalTitle">🚛 Request Doorstep Pickup</h2>
-        <p class="modal-subtitle">Schedule waste collection by municipal vehicles.</p>
+            <h2 id="pickupModalTitle">🚛 Request Doorstep Pickup</h2>
+            <p class="modal-subtitle">Schedule waste collection by municipal vehicles.</p>
 
-        <input type="hidden" id="pickupId">
+            <input type="hidden" id="pickupId">
 
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Waste Type</label>
-            <select id="pickupType" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="General Waste">General Waste</option>
-                <option value="Wet Waste">Wet / Kitchen Waste</option>
-                <option value="Dry Waste">Dry / Recyclable Waste</option>
-                <option value="Plastic Waste">Plastic Waste</option>
-                <option value="E-Waste">Electronic / Appliance Waste</option>
-            </select>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Pickup Date *</label>
-                <input id="pickupDate" type="date" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-            </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Pickup Time *</label>
-                <select id="pickupTime" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                    <option value="8:00 AM - 10:00 AM">8:00 AM - 10:00 AM</option>
-                    <option value="10:00 AM - 12:00 PM">10:00 AM - 12:00 PM</option>
-                    <option value="2:00 PM - 4:00 PM">2:00 PM - 4:00 PM</option>
-                    <option value="5:00 PM - 7:00 PM">5:00 PM - 7:00 PM</option>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Waste Type</label>
+                <select id="pickupType"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="General Waste">General Waste</option>
+                    <option value="Wet Waste">Wet / Kitchen Waste</option>
+                    <option value="Dry Waste">Dry / Recyclable Waste</option>
+                    <option value="Plastic Waste">Plastic Waste</option>
+                    <option value="E-Waste">Electronic / Appliance Waste</option>
                 </select>
             </div>
-        </div>
 
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Pickup Location *</label>
-            <div style="display: flex; gap: 8px;">
-                <input id="pickupLocation" type="text" placeholder="Address / Landmark" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <button type="button" class="small-btn" onclick="useCurrentLocationForPickup()" style="white-space: nowrap;">📍 Use GPS</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Pickup Date *</label>
+                    <input id="pickupDate" type="date"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Pickup Time *</label>
+                    <select id="pickupTime"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="8:00 AM - 10:00 AM">8:00 AM - 10:00 AM</option>
+                        <option value="10:00 AM - 12:00 PM">10:00 AM - 12:00 PM</option>
+                        <option value="2:00 PM - 4:00 PM">2:00 PM - 4:00 PM</option>
+                        <option value="5:00 PM - 7:00 PM">5:00 PM - 7:00 PM</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-            <div>
-                <label style="font-size: 11px; color: #64748b;">Latitude</label>
-                <input id="pickupLat" type="number" step="any" placeholder="26.7606" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Pickup Location *</label>
+                <div style="display: flex; gap: 8px;">
+                    <input id="pickupLocation" type="text" placeholder="Address / Landmark"
+                        style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <button type="button" class="small-btn" onclick="useCurrentLocationForPickup()"
+                        style="white-space: nowrap;">📍 Use GPS</button>
+                </div>
             </div>
-            <div>
-                <label style="font-size: 11px; color: #64748b;">Longitude</label>
-                <input id="pickupLng" type="number" step="any" placeholder="83.3732" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
-            </div>
-        </div>
 
-        <button class="submit-btn" onclick="savePickup()">Save Pickup Request</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                <div>
+                    <label style="font-size: 11px; color: #64748b;">Latitude</label>
+                    <input id="pickupLat" type="number" step="any" placeholder="26.7606"
+                        style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                </div>
+                <div>
+                    <label style="font-size: 11px; color: #64748b;">Longitude</label>
+                    <input id="pickupLng" type="number" step="any" placeholder="83.3732"
+                        style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px;">
+                </div>
+            </div>
+
+            <button class="submit-btn" onclick="savePickup()">Save Pickup Request</button>
+
+        </div>
 
     </div>
 
-</div>
 
-
-<!-- ================= NEW DUSTBIN REQUEST MODAL ================= -->
-<div class="modal" id="citizenBinRequestModal">
-    <div class="modal-content request-modal-content">
-        <button class="modal-close" onclick="closeCitizenBinRequestModal()">×</button>
-        <h2>🗑️ Request New Dustbin</h2>
-        <p class="modal-subtitle">Tell the city team where a new dustbin is needed.</p>
-        <div class="form-grid">
-            <div class="form-group"><label>Reason *</label><input id="binReqReason" placeholder="e.g. No dustbin in this area"></div>
-            <div class="form-group"><label>Waste Type *</label><select id="binReqWasteType"><option>Mixed Waste</option><option>Wet Waste</option><option>Dry Waste</option><option>Plastic Waste</option><option>E-Waste</option><option>Other</option></select></div>
-            <div class="form-group full"><label>Location / Landmark *</label><input id="binReqLocation" placeholder="Area, road, landmark"></div>
-            <div class="form-group"><label>Latitude *</label><input id="binReqLat" type="number" step="any" placeholder="26.7606"></div>
-            <div class="form-group"><label>Longitude *</label><input id="binReqLng" type="number" step="any" placeholder="83.3732"></div>
-            <div class="form-group full"><label>Description</label><textarea id="binReqDescription" rows="4" placeholder="Explain why a dustbin is needed here..."></textarea></div>
+    <!-- ================= NEW DUSTBIN REQUEST MODAL ================= -->
+    <div class="modal" id="citizenBinRequestModal">
+        <div class="modal-content request-modal-content">
+            <button class="modal-close" onclick="closeCitizenBinRequestModal()">×</button>
+            <h2>🗑️ Request New Dustbin</h2>
+            <p class="modal-subtitle">Tell the city team where a new dustbin is needed.</p>
+            <div class="form-grid">
+                <div class="form-group"><label>Reason *</label><input id="binReqReason"
+                        placeholder="e.g. No dustbin in this area"></div>
+                <div class="form-group"><label>Waste Type *</label><select id="binReqWasteType">
+                        <option>Mixed Waste</option>
+                        <option>Wet Waste</option>
+                        <option>Dry Waste</option>
+                        <option>Plastic Waste</option>
+                        <option>E-Waste</option>
+                        <option>Other</option>
+                    </select></div>
+                <div class="form-group full"><label>Location / Landmark *</label><input id="binReqLocation"
+                        placeholder="Area, road, landmark"></div>
+                <div class="form-group"><label>Latitude *</label><input id="binReqLat" type="number" step="any"
+                        placeholder="26.7606"></div>
+                <div class="form-group"><label>Longitude *</label><input id="binReqLng" type="number" step="any"
+                        placeholder="83.3732"></div>
+                <div class="form-group full"><label>Description</label><textarea id="binReqDescription" rows="4"
+                        placeholder="Explain why a dustbin is needed here..."></textarea></div>
+            </div>
+            <div class="request-location-actions"><button class="small-btn"
+                    onclick="useCurrentLocationForBinRequest()">📍 Use My Location</button></div>
+            <button class="submit-btn" onclick="submitCitizenBinRequest()">Submit Dustbin Request</button>
         </div>
-        <div class="request-location-actions"><button class="small-btn" onclick="useCurrentLocationForBinRequest()">📍 Use My Location</button></div>
-        <button class="submit-btn" onclick="submitCitizenBinRequest()">Submit Dustbin Request</button>
     </div>
-</div>
 
 
-<!-- =====================================================
+    <!-- =====================================================
      STAFF OPERATIONAL REQUEST MODAL (Assign / Status)
 ===================================================== -->
-<div class="modal" id="staffRequestModal">
-    <div class="modal-box" style="max-width: 650px;">
-        <button class="close" onclick="closeModal('staffRequestModal')">×</button>
-        <h2>⚡ Waste Staff Operational Control</h2>
-        <p class="modal-subtitle" id="staffModalSubtitle">Update request status, assign field team, vehicle and route.</p>
+    <div class="modal" id="staffRequestModal">
+        <div class="modal-box" style="max-width: 650px;">
+            <button class="close" onclick="closeModal('staffRequestModal')">×</button>
+            <h2>⚡ Waste Staff Operational Control</h2>
+            <p class="modal-subtitle" id="staffModalSubtitle">Update request status, assign field team, vehicle and
+                route.</p>
 
-        <input type="hidden" id="staffReqId">
+            <input type="hidden" id="staffReqId">
 
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 13px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                <strong id="staffReqCodeDisplay">REQ-WAS-0000</strong>
-                <span id="staffReqCitizenDisplay" style="color: #64748b;">Citizen</span>
+            <div
+                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                    <strong id="staffReqCodeDisplay">REQ-WAS-0000</strong>
+                    <span id="staffReqCitizenDisplay" style="color: #64748b;">Citizen</span>
+                </div>
+                <div id="staffReqLocationDisplay" style="color: #334155; margin-bottom: 4px;">📍 Location</div>
+                <div id="staffReqDescDisplay" style="color: #64748b; font-style: italic;">Description</div>
+                <div id="staffReqEvidenceContainer" style="margin-top: 8px; display: none;">
+                    <span style="font-size: 11px; font-weight: 700; color: #475569;">Evidence Photo:</span><br>
+                    <img id="staffReqEvidenceImg" src="" alt="Staff review photo evidence"
+                        style="max-width: 120px; border-radius: 6px; margin-top: 4px; border: 1px solid #cbd5e1; cursor: pointer;"
+                        onclick="window.open(this.src, '_blank')">
+                </div>
             </div>
-            <div id="staffReqLocationDisplay" style="color: #334155; margin-bottom: 4px;">📍 Location</div>
-            <div id="staffReqDescDisplay" style="color: #64748b; font-style: italic;">Description</div>
-            <div id="staffReqEvidenceContainer" style="margin-top: 8px; display: none;">
-                <span style="font-size: 11px; font-weight: 700; color: #475569;">Evidence Photo:</span><br>
-                <img id="staffReqEvidenceImg" src="" alt="Staff review photo evidence" style="max-width: 120px; border-radius: 6px; margin-top: 4px; border: 1px solid #cbd5e1; cursor: pointer;" onclick="window.open(this.src, '_blank')">
-            </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Operational Status *</label>
-                <select id="staffReqStatus" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                    <option value="Submitted">Submitted</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Rejected">Rejected</option>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Operational Status *</label>
+                    <select id="staffReqStatus"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="Submitted">Submitted</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Priority Level *</label>
+                    <select id="staffReqPriority"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="CRITICAL">🔴 CRITICAL (2h SLA)</option>
+                        <option value="HIGH">🟠 HIGH (6h SLA)</option>
+                        <option value="MEDIUM">🟡 MEDIUM (24h SLA)</option>
+                        <option value="LOW">🟢 LOW (48h SLA)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Assign Worker / Team</label>
+                    <select id="staffReqWorkerSelect"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="">-- Select Worker --</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700; color: #475569;">Assign Vehicle</label>
+                    <select id="staffReqVehicleSelect"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="">-- Select Vehicle --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Assign Collection Route</label>
+                <select id="staffReqRouteSelect"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="">-- Select Route --</option>
                 </select>
             </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Priority Level *</label>
-                <select id="staffReqPriority" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                    <option value="CRITICAL">🔴 CRITICAL (2h SLA)</option>
-                    <option value="HIGH">🟠 HIGH (6h SLA)</option>
-                    <option value="MEDIUM">🟡 MEDIUM (24h SLA)</option>
-                    <option value="LOW">🟢 LOW (48h SLA)</option>
-                </select>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Internal Staff Remarks</label>
+                <textarea id="staffReqRemarks" rows="2" placeholder="Notes for field crew or operational dispatch..."
+                    style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
             </div>
-        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Assign Worker / Team</label>
-                <select id="staffReqWorkerSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                    <option value="">-- Select Worker --</option>
-                </select>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 700; color: #475569;">Resolution Details (Visible to Citizen
+                    upon Resolution)</label>
+                <textarea id="staffReqResolutionNotes" rows="2"
+                    placeholder="Describe actions taken (e.g. cleared 2 tons waste, sanitized site)..."
+                    style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
             </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700; color: #475569;">Assign Vehicle</label>
-                <select id="staffReqVehicleSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                    <option value="">-- Select Vehicle --</option>
-                </select>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="submit-btn" style="flex: 1;" onclick="submitStaffRequestUpdate()">Save Operational
+                    Updates</button>
+                <button type="button" class="btn outline-btn" onclick="closeModal('staffRequestModal')">Cancel</button>
             </div>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Assign Collection Route</label>
-            <select id="staffReqRouteSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="">-- Select Route --</option>
-            </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Internal Staff Remarks</label>
-            <textarea id="staffReqRemarks" rows="2" placeholder="Notes for field crew or operational dispatch..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 12px; font-weight: 700; color: #475569;">Resolution Details (Visible to Citizen upon Resolution)</label>
-            <textarea id="staffReqResolutionNotes" rows="2" placeholder="Describe actions taken (e.g. cleared 2 tons waste, sanitized site)..." style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1;"></textarea>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <button class="submit-btn" style="flex: 1;" onclick="submitStaffRequestUpdate()">Save Operational Updates</button>
-            <button type="button" class="btn outline-btn" onclick="closeModal('staffRequestModal')">Cancel</button>
         </div>
     </div>
-</div>
 
 
-<!-- =====================================================
+    <!-- =====================================================
      VEHICLE MODAL (Add / Edit)
 ===================================================== -->
-<div class="modal" id="vehicleModal">
-    <div class="modal-box" style="max-width: 500px;">
-        <button class="close" onclick="closeModal('vehicleModal')">×</button>
-        <h2 id="vehicleModalTitle">🚛 Add Waste Collection Vehicle</h2>
-        <p class="modal-subtitle">Register a municipal compactor or tipper truck.</p>
+    <div class="modal" id="vehicleModal">
+        <div class="modal-box" style="max-width: 500px;">
+            <button class="close" onclick="closeModal('vehicleModal')">×</button>
+            <h2 id="vehicleModalTitle">🚛 Add Waste Collection Vehicle</h2>
+            <p class="modal-subtitle">Register a municipal compactor or tipper truck.</p>
 
-        <input type="hidden" id="vehicleId">
+            <input type="hidden" id="vehicleId">
 
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Vehicle Number *</label>
-            <input id="vNumber" placeholder="e.g. UP-53-WM-1005" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Vehicle Type</label>
-            <select id="vType" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="Hydraulic Compactor">Hydraulic Compactor</option>
-                <option value="Tipper Truck">Tipper Truck</option>
-                <option value="Electric Mini-Van">Electric Mini-Van</option>
-                <option value="Open Dumper Truck">Open Dumper Truck</option>
-            </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Capacity (Tons)</label>
-            <input id="vCapacity" type="number" step="0.5" value="5.0" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-            <div>
-                <label style="font-size: 12px; font-weight: 700;">Driver Name *</label>
-                <input id="vDriverName" placeholder="Driver Full Name" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Vehicle Number *</label>
+                <input id="vNumber" placeholder="e.g. UP-53-WM-1005"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
             </div>
-            <div>
-                <label style="font-size: 12px; font-weight: 700;">Driver Phone *</label>
-                <input id="vDriverPhone" placeholder="Mobile Number" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Vehicle Type</label>
+                <select id="vType" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="Hydraulic Compactor">Hydraulic Compactor</option>
+                    <option value="Tipper Truck">Tipper Truck</option>
+                    <option value="Electric Mini-Van">Electric Mini-Van</option>
+                    <option value="Open Dumper Truck">Open Dumper Truck</option>
+                </select>
             </div>
-        </div>
 
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 12px; font-weight: 700;">Operational Status</label>
-            <select id="vStatus" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="Available">Available</option>
-                <option value="On Route">On Route</option>
-                <option value="Maintenance">Maintenance</option>
-            </select>
-        </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Capacity (Tons)</label>
+                <input id="vCapacity" type="number" step="0.5" value="5.0"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            </div>
 
-        <button class="submit-btn" onclick="saveVehicle()">Save Vehicle</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div>
+                    <label style="font-size: 12px; font-weight: 700;">Driver Name *</label>
+                    <input id="vDriverName" placeholder="Driver Full Name"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; font-weight: 700;">Driver Phone *</label>
+                    <input id="vDriverPhone" placeholder="Mobile Number"
+                        style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 700;">Operational Status</label>
+                <select id="vStatus" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="Available">Available</option>
+                    <option value="On Route">On Route</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+            </div>
+
+            <button class="submit-btn" onclick="saveVehicle()">Save Vehicle</button>
+        </div>
     </div>
-</div>
 
 
-<!-- =====================================================
+    <!-- =====================================================
      WORKER MODAL (Add / Edit)
 ===================================================== -->
-<div class="modal" id="workerModal">
-    <div class="modal-box" style="max-width: 500px;">
-        <button class="close" onclick="closeModal('workerModal')">×</button>
-        <h2 id="workerModalTitle">👷 Add Sanitation Worker</h2>
-        <p class="modal-subtitle">Register a field crew member or route supervisor.</p>
+    <div class="modal" id="workerModal">
+        <div class="modal-box" style="max-width: 500px;">
+            <button class="close" onclick="closeModal('workerModal')">×</button>
+            <h2 id="workerModalTitle">👷 Add Sanitation Worker</h2>
+            <p class="modal-subtitle">Register a field crew member or route supervisor.</p>
 
-        <input type="hidden" id="workerId">
+            <input type="hidden" id="workerId">
 
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Full Name *</label>
-            <input id="wName" placeholder="Worker Full Name" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Full Name *</label>
+                <input id="wName" placeholder="Worker Full Name"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Phone Number *</label>
+                <input id="wPhone" placeholder="Mobile Number"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Role</label>
+                <select id="wRole" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="Sanitation Worker">Sanitation Worker</option>
+                    <option value="Route Supervisor">Route Supervisor</option>
+                    <option value="Heavy Vehicle Driver">Heavy Vehicle Driver</option>
+                    <option value="Waste Inspector">Waste Inspector</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 700;">Status</label>
+                <select id="wStatus" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="Active">Active</option>
+                    <option value="On Duty">On Duty</option>
+                    <option value="On Leave">On Leave</option>
+                </select>
+            </div>
+
+            <button class="submit-btn" onclick="saveWorker()">Save Worker</button>
         </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Phone Number *</label>
-            <input id="wPhone" placeholder="Mobile Number" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Role</label>
-            <select id="wRole" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="Sanitation Worker">Sanitation Worker</option>
-                <option value="Route Supervisor">Route Supervisor</option>
-                <option value="Heavy Vehicle Driver">Heavy Vehicle Driver</option>
-                <option value="Waste Inspector">Waste Inspector</option>
-            </select>
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 12px; font-weight: 700;">Status</label>
-            <select id="wStatus" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="Active">Active</option>
-                <option value="On Duty">On Duty</option>
-                <option value="On Leave">On Leave</option>
-            </select>
-        </div>
-
-        <button class="submit-btn" onclick="saveWorker()">Save Worker</button>
     </div>
-</div>
 
 
-<!-- =====================================================
+    <!-- =====================================================
      ROUTE MODAL (Add / Edit)
 ===================================================== -->
-<div class="modal" id="routeModal">
-    <div class="modal-box" style="max-width: 500px;">
-        <button class="close" onclick="closeModal('routeModal')">×</button>
-        <h2 id="routeModalTitle">🗺️ Add Collection Route</h2>
-        <p class="modal-subtitle">Define a waste collection corridor and schedule.</p>
+    <div class="modal" id="routeModal">
+        <div class="modal-box" style="max-width: 500px;">
+            <button class="close" onclick="closeModal('routeModal')">×</button>
+            <h2 id="routeModalTitle">🗺️ Add Collection Route</h2>
+            <p class="modal-subtitle">Define a waste collection corridor and schedule.</p>
 
-        <input type="hidden" id="routeId">
+            <input type="hidden" id="routeId">
 
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Route Name *</label>
-            <input id="rName" placeholder="e.g. Golghar Commercial Loop" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Route Name *</label>
+                <input id="rName" placeholder="e.g. Golghar Commercial Loop"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Area / Ward *</label>
+                <input id="rArea" placeholder="e.g. Central Gorakhpur"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: 700;">Collection Schedule</label>
+                <input id="rSchedule" placeholder="e.g. Daily 06:00 AM - 10:00 AM" value="Daily 06:00 AM - 10:00 AM"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 700;">Assigned Vehicle</label>
+                <select id="rVehicleSelect"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <option value="">-- None --</option>
+                </select>
+            </div>
+
+            <button class="submit-btn" onclick="saveRoute()">Save Collection Route</button>
         </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Area / Ward *</label>
-            <input id="rArea" placeholder="e.g. Central Gorakhpur" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 700;">Collection Schedule</label>
-            <input id="rSchedule" placeholder="e.g. Daily 06:00 AM - 10:00 AM" value="Daily 06:00 AM - 10:00 AM" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-size: 12px; font-weight: 700;">Assigned Vehicle</label>
-            <select id="rVehicleSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <option value="">-- None --</option>
-            </select>
-        </div>
-
-        <button class="submit-btn" onclick="saveRoute()">Save Collection Route</button>
     </div>
-</div>
 
-<!-- LEAFLET -->
 
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-</script>
+    <!-- ================= WORKFORCE MANAGEMENT MODALS ================= -->
 
-<script src="../../components/ui_components.js"></script>
-<script src="../../components/smartcity_map.js"></script>
-<script src="../../api/client.js"></script>
-<script src="../../api/waste.api.js"></script>
-<script src="../../auth.js"></script>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="../../realtime.js"></script>
-<script src="waste.js"></script>
-<script src="../../components/ai_widget.js"></script>
+    <!-- 1. ADD STAFF EMPLOYEE MODAL -->
+    <div class="modal" id="addStaffModal" style="display: none;">
+        <div class="modal-content" style="max-width: 520px;">
+            <span class="close" onclick="closeAddStaffModal()">&times;</span>
+            <h2 style="font-size: 18px; margin-bottom: 4px;">👤 Add Sanitation Employee Account</h2>
+            <p class="modal-subtitle" style="margin-bottom: 16px;">Create credentials and allocate role-based
+                operational permissions.</p>
 
+            <form id="addStaffForm" onsubmit="handleCreateStaffSubmit(event)">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Official Staff ID <span
+                            style="color: #ef4444;">*</span></label>
+                    <input type="text" id="newStaffId" class="form-control" required
+                        placeholder="e.g. WST-CC-02, WRK-004, BIN-CIV-03">
+                    <small style="color: #64748b; font-size: 10px;">Unique municipal badge identifier</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Full Name <span
+                            style="color: #ef4444;">*</span></label>
+                    <input type="text" id="newStaffName" class="form-control" required placeholder="e.g. Anand Prakash">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Official Email <span
+                            style="color: #ef4444;">*</span></label>
+                    <input type="email" id="newStaffEmail" class="form-control" required
+                        placeholder="e.g. anand@smartcity.gorakhpur.gov.in">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Department Role Classification
+                        <span style="color: #ef4444;">*</span></label>
+                    <select id="newStaffRole" class="form-control" required
+                        onchange="handleStaffRoleChange(this.value)">
+                        <option value="CONTROL_CENTER">🎧 Control Center Staff (City GIS, Triage, AI Assignment)
+                        </option>
+                        <option value="WORKING_STAFF">👷 Working Staff / Field Crew (Tasks, Navigation, Proof)</option>
+                        <option value="BIN_STAFF">🗑️ Bin Staff / Smart Bin Operator (Dedicated to single bin)</option>
+                    </select>
+                </div>
+
+                <!-- Dynamic role assignment inputs -->
+                <div id="assignRouteGroup" class="form-group" style="margin-bottom: 12px; display: none;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Assigned Route & Area</label>
+                    <input type="text" id="newStaffArea" class="form-control" placeholder="e.g. Golghar & Ward 14">
+                </div>
+
+                <div id="assignBinGroup" class="form-group" style="margin-bottom: 12px; display: none;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Assigned Smart Bin Code</label>
+                    <input type="text" id="newStaffBinCode" class="form-control"
+                        placeholder="e.g. BIN-GOL-01, BIN-CMK-02">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Initial Account Password <span
+                            style="color: #ef4444;">*</span></label>
+                    <input type="password" id="newStaffPassword" class="form-control" required
+                        placeholder="Min 6 characters">
+                </div>
+
+                <button type="submit" id="btnSubmitAddStaff" class="submit-btn" style="width: 100%;">
+                    ✨ Create & Provision Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. EDIT ASSIGNMENT MODAL -->
+    <div class="modal" id="editAssignmentModal" style="display: none;">
+        <div class="modal-content" style="max-width: 480px;">
+            <span class="close" onclick="closeEditAssignmentModal()">&times;</span>
+            <h2 style="font-size: 18px; margin-bottom: 4px;">🔄 Change Employee Operational Assignment</h2>
+            <p class="modal-subtitle" id="editAssignSubtitle" style="margin-bottom: 14px;">Update sector, route, or
+                smart bin assignment.</p>
+
+            <form id="editAssignmentForm" onsubmit="handleUpdateAssignmentSubmit(event)">
+                <input type="hidden" id="editAssignStaffId" value="">
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Assigned Area / Route</label>
+                    <input type="text" id="editAssignArea" class="form-control"
+                        placeholder="e.g. Medical College & Ward 22">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Assigned Bin Code (for Bin
+                        Staff)</label>
+                    <input type="text" id="editAssignBinCode" class="form-control" placeholder="e.g. BIN-MED-05">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Audit Reason for Change <span
+                            style="color: #ef4444;">*</span></label>
+                    <textarea id="editAssignReason" class="form-control" required rows="2"
+                        placeholder="e.g. Routine sector rotation / Ward reallocation"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" style="width: 100%;">
+                    💾 Save Updated Assignment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. RESET PASSWORD MODAL -->
+    <div class="modal" id="resetPasswordModal" style="display: none;">
+        <div class="modal-content" style="max-width: 440px;">
+            <span class="close" onclick="closeResetPasswordModal()">&times;</span>
+            <h2 style="font-size: 18px; margin-bottom: 4px;">🔑 Secure Password Reset</h2>
+            <p class="modal-subtitle" id="resetPassSubtitle" style="margin-bottom: 14px;">Reset staff login credentials
+                using secure scrypt cryptographic hashing.</p>
+
+            <form id="resetPasswordForm" onsubmit="handleResetPasswordSubmit(event)">
+                <input type="hidden" id="resetPassStaffId" value="">
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">New Official Password <span
+                            style="color: #ef4444;">*</span></label>
+                    <input type="password" id="resetNewPassword" class="form-control" required
+                        placeholder="Minimum 6 characters">
+                </div>
+
+                <button type="submit" class="submit-btn" style="width: 100%; background: #ea580c;">
+                    🔒 Confirm Password Reset
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. AUDIT LOG MODAL -->
+    <div class="modal" id="auditLogModal" style="display: none;">
+        <div class="modal-content" style="max-width: 760px; max-height: 85vh; overflow-y: auto;">
+            <span class="close" onclick="closeAuditLogModal()">&times;</span>
+            <h2 style="font-size: 18px; margin-bottom: 4px;">📜 Workforce Administration Audit Trail</h2>
+            <p class="modal-subtitle" style="margin-bottom: 16px;">Cryptographically secured immutable history of staff
+                assignments, credential changes, and role modifications.</p>
+
+            <div style="overflow-x: auto;">
+                <table class="waste-data-table" id="auditLogTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action Performed</th>
+                            <th>Target Employee</th>
+                            <th>Performed By</th>
+                            <th>Audit Reason & Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditLogTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding: 20px;">Loading audit logs...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- LEAFLET -->
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <script src="../../components/ui_components.js"></script>
+    <script src="../../components/smartcity_map.js"></script>
+    <script src="../../api/client.js"></script>
+    <script src="../../api/waste.api.js"></script>
+    <script src="../../auth.js?v=2.9"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../../realtime.js"></script>
+    <script src="waste.js"></script>
+    <script src="../../components/ai_widget.js?v=2.9"></script>
+
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
 </body>
+
 </html>

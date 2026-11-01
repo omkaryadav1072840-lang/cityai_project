@@ -1,25 +1,67 @@
 {
-  "name": "SmartCity AI - Gorakhpur",
+  "name": "SmartCity AI — Gorakhpur",
   "short_name": "SmartCity AI",
-  "description": "Integrated Urban Operations & Citizen Platform",
+  "description": "Official Smart City platform for Gorakhpur. Real-time traffic, emergency SOS, hospital beds, smart parking, water & waste management powered by AI.",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
+  "categories": ["utilities", "government", "productivity"],
+  "lang": "en-IN",
+  "dir": "ltr",
   "icons": [
     {
-      "src": "/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Emergency SOS",
+      "short_name": "SOS",
+      "description": "Report emergency instantly",
+      "url": "/pages/emergency/emergency.html",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Live Traffic",
+      "short_name": "Traffic",
+      "description": "Check live Gorakhpur traffic",
+      "url": "/pages/traffic/traffic.html",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Hospital & OPD",
+      "short_name": "Hospital",
+      "description": "Book OPD appointment",
+      "url": "/pages/hospital/hospital.html",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Police Services",
+      "short_name": "Police",
+      "description": "File complaint or track FIR",
+      "url": "/pages/police/police.html",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "share_target": {
+    "action": "/index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

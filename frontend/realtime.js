@@ -6,11 +6,29 @@
 (function (window) {
     "use strict";
 
-    const SERVER_URL = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
-        ? window.API_BASE_URL
-        : (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
-            ? (window.location.port === "5000" || window.location.protocol === "file:" ? (window.location.port === "5000" ? window.location.origin : "http://localhost:5000") : "")
-            : "http://localhost:5000";
+    function _resolveSocketUrl() {
+        if (typeof window !== "undefined") {
+            if (window.API_BASE_URL) return window.API_BASE_URL;
+            if (window.SmartCityAuth && typeof window.SmartCityAuth.getApiBase === "function") {
+                return window.SmartCityAuth.getApiBase();
+            }
+            try {
+                const saved = localStorage.getItem("smartcity_api_server");
+                if (saved) return saved;
+            } catch (e) {}
+            if (window.location && window.location.origin && window.location.origin.startsWith("http")) {
+                const loc = window.location;
+                if (loc.port === "5000" || loc.port === "3000") return loc.origin;
+                if (loc.port && loc.port !== "5000" && loc.port !== "3000") {
+                    return `${loc.protocol}//${loc.hostname}:5000`;
+                }
+                return loc.origin;
+            }
+        }
+        return "http://localhost:5000";
+    }
+
+    const SERVER_URL = _resolveSocketUrl();
     let socket = null;
     let audioCtx = null;
     const listeners = {};
@@ -369,7 +387,7 @@
          */
         mountAIWidget: function (options = {}) {
             if (typeof document === "undefined") return;
-            if (document.getElementById("scGlobalAIFloatingBtn")) return;
+            if (document.getElementById("scGlobalAIFloatingBtn") || document.getElementById("scUniversalAIFab") || window.SmartCityAIWidget) return;
 
             // Don't mount floating widget if the page already has the full-page embedded chat
             const hasEmbeddedChat = document.getElementById("aiChatMessages") || (document.getElementById("userInput") && document.getElementById("chatMessages"));
@@ -381,33 +399,76 @@
             const style = document.createElement("style");
             style.textContent = `
                 .sc-ai-float-btn {
-                    position: fixed;
-                    bottom: 24px;
-                    right: 24px;
-                    width: 58px;
-                    height: 58px;
-                    border-radius: 50%;
+                    position: fixed !important;
+                    bottom: 24px !important;
+                    right: 24px !important;
+                    width: 58px !important;
+                    height: 58px !important;
+                    min-width: 58px !important;
+                    min-height: 58px !important;
+                    max-width: 58px !important;
+                    max-height: 58px !important;
+                    border-radius: 50% !important;
                     background: linear-gradient(135deg, #2563eb, #7c3aed);
                     box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4), 0 0 15px rgba(124, 58, 237, 0.3);
                     border: 2px solid rgba(255, 255, 255, 0.2);
                     color: #fff;
                     font-size: 26px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    z-index: 99990;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    cursor: pointer !important;
+                    z-index: 99990 !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    box-sizing: border-box !important;
                     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
                     user-select: none;
+                }
+                .sc-ai-float-icon-wrap {
+                    width: 100% !important;
+                    height: 100% !important;
+                    max-width: 100% !important;
+                    max-height: 100% !important;
+                    border-radius: 50% !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                }
+                .sc-ai-float-btn img.sc-ai-float-logo-img {
+                    width: 38px !important;
+                    height: 38px !important;
+                    max-width: 38px !important;
+                    max-height: 38px !important;
+                    min-width: 38px !important;
+                    min-height: 38px !important;
+                    object-fit: contain !important;
+                    display: block !important;
+                    margin: auto !important;
+                    border-radius: 50% !important;
+                    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+                    pointer-events: none !important;
                 }
                 .sc-ai-float-btn:hover {
                     transform: scale(1.08) translateY(-2px);
                     box-shadow: 0 14px 30px rgba(37, 99, 235, 0.5), 0 0 20px rgba(124, 58, 237, 0.4);
                 }
                 .sc-ai-float-badge {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
+                    position: absolute !important;
+                    top: -2px !important;
+                    right: -2px !important;
+                    width: 14px !important;
+                    height: 14px !important;
+                    background: #10b981 !important;
+                    border-radius: 50% !important;
+                    border: 2px solid #0f172a !important;
+                    box-shadow: 0 0 6px #10b981 !important;
+                    z-index: 2 !important;
+                    pointer-events: none !important;
+                }
                     width: 14px;
                     height: 14px;
                     background: #10b981;
@@ -673,9 +734,14 @@
             floatBtn.id = "scGlobalAIFloatingBtn";
             floatBtn.className = "sc-ai-float-btn";
             floatBtn.title = "Gorakhpur Smart City AI Assistant";
+            floatBtn.style.cssText = "position: fixed !important; bottom: 24px !important; right: 24px !important; width: 58px !important; height: 58px !important; min-width: 58px !important; min-height: 58px !important; max-width: 58px !important; max-height: 58px !important; border-radius: 50% !important; z-index: 99990 !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;";
+            const isSub = window.location.pathname.includes("/pages/");
+            const logoPath = isSub ? "../../logo.png" : "./logo.png";
             floatBtn.innerHTML = `
-                🤖
-                <span class="sc-ai-float-badge"></span>
+                <div class="sc-ai-float-icon-wrap" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 50% !important; overflow: hidden !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; margin: 0 !important;">
+                    <img src="${logoPath}?v=3.5" alt="SmartCity AI Logo" class="sc-ai-float-logo-img" width="38" height="38" style="width: 38px !important; height: 38px !important; max-width: 38px !important; max-height: 38px !important; min-width: 38px !important; min-height: 38px !important; object-fit: contain !important; border-radius: 50% !important; display: block !important; margin: auto !important; pointer-events: none !important;" />
+                </div>
+                <span class="sc-ai-float-badge" style="position: absolute !important; top: -2px !important; right: -2px !important; width: 14px !important; height: 14px !important; background: #10b981 !important; border-radius: 50% !important; border: 2px solid #0f172a !important; box-shadow: 0 0 6px #10b981 !important; z-index: 2 !important; pointer-events: none !important;"></span>
             `;
 
             // Create Popup Box
@@ -685,7 +751,7 @@
             popup.innerHTML = `
                 <div class="sc-ai-header">
                     <div class="sc-ai-header-left">
-                        <div class="sc-ai-header-avatar">🤖</div>
+                        <div class="sc-ai-header-avatar"><img src="${logoPath}" alt="SmartCity AI Logo" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;" /></div>
                         <div>
                             <div class="sc-ai-header-title">SmartCity AI Assistant</div>
                             <div class="sc-ai-header-sub">

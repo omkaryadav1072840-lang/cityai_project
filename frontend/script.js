@@ -5830,4 +5830,113 @@ if (document.readyState === "loading") {
 } else {
     setupWaterNavigationGate();
 }
-
+
+/* =========================================================
+   PWA OFFLINE RESILIENCE & CIVIC EMERGENCY BANNER
+========================================================= */
+(function setupOfflineResilience() {
+    function createOfflineBanner() {
+        if (document.getElementById("scOfflineBanner")) return;
+        const banner = document.createElement("div");
+        banner.id = "scOfflineBanner";
+        banner.style.cssText = "display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #b91c1c, #991b1b); color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; text-align: center; z-index: 9999999; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); border-bottom: 1px solid rgba(255, 255, 255, 0.2);";
+        banner.innerHTML = "<span>📡 <b>Offline Mode Active:</b> Network disconnected. <b>24/7 Civic Emergency Helplines:</b> Police: <b>112</b> | Ambulance: <b>108</b> | Fire: <b>101</b> | Women: <b>1090</b> | Disaster: <b>1077</b></span>";
+        document.body.appendChild(banner);
+    }
+
+    function updateNetworkStatus() {
+        createOfflineBanner();
+        const banner = document.getElementById("scOfflineBanner");
+        if (!banner) return;
+        banner.style.display = navigator.onLine ? "none" : "block";
+    }
+
+    window.addEventListener("offline", updateNetworkStatus);
+    window.addEventListener("online", updateNetworkStatus);
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", updateNetworkStatus);
+    } else {
+        updateNetworkStatus();
+    }
+})();
+
+/* =========================================================
+   LIVE TELEMETRY ANIMATED METRICS COUNTER
+========================================================= */
+(function setupLiveTelemetryCounters() {
+    function animateCounters() {
+        const counters = document.querySelectorAll(".sc-counter, .sc-counter-decimal");
+        if (!counters.length) return;
+
+        counters.forEach(counter => {
+            const isDecimal = counter.classList.contains("sc-counter-decimal");
+            const target = parseFloat(counter.getAttribute("data-target")) || 0;
+            const isCompact = counter.getAttribute("data-format") === "compact";
+            const duration = 1800; // ms
+            const startTime = performance.now();
+
+            function updateCount(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease-out cubic
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentVal = target * easeOut;
+
+                if (isCompact) {
+                    if (currentVal >= 1000000) {
+                        counter.textContent = (currentVal / 1000000).toFixed(2) + "M+";
+                    } else if (currentVal >= 1000) {
+                        counter.textContent = (currentVal / 1000).toFixed(1) + "k+";
+                    } else {
+                        counter.textContent = Math.floor(currentVal).toLocaleString();
+                    }
+                } else if (isDecimal) {
+                    const suffix = counter.getAttribute("data-target").includes("%") ? "%" : 
+                                  (counter.textContent.includes("m") ? "m" : (counter.textContent.includes("%") ? "%" : ""));
+                    counter.textContent = currentVal.toFixed(1) + suffix;
+                } else {
+                    counter.textContent = Math.floor(currentVal).toLocaleString();
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCount);
+                } else {
+                    // Final formatting
+                    if (isCompact) {
+                        counter.textContent = (target >= 1000000 ? (target / 1000000).toFixed(2) + "M+" : target.toLocaleString());
+                    } else if (isDecimal) {
+                        const originalText = counter.getAttribute("data-target");
+                        const hasPercent = counter.getAttribute("data-target") > 90;
+                        const hasMinute = counter.getAttribute("data-target") < 10;
+                        counter.textContent = target.toFixed(1) + (hasPercent ? "%" : (hasMinute ? "m" : ""));
+                    } else {
+                        counter.textContent = target.toLocaleString();
+                    }
+                }
+            }
+
+            requestAnimationFrame(updateCount);
+        });
+    }
+
+    // Trigger when scrolled into view
+    const banner = document.getElementById("liveCityTelemetry");
+    if (!banner) return;
+
+    if ("IntersectionObserver" in window) {
+        let hasAnimated = false;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !hasAnimated) {
+                    hasAnimated = true;
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.25 });
+        observer.observe(banner);
+    } else {
+        animateCounters();
+    }
+})();
+

@@ -78,8 +78,8 @@ module.exports = {
     CORS_ORIGIN: process.env.CORS_ORIGIN || null,
     CORS_ORIGINS: process.env.CORS_ORIGINS || null,
     TRUST_PROXY: trustProxySetting,
-    // Database Pool Configuration (grounded in MySQL server metrics: max_connections=151, connect_timeout=10s)
-    DB_CONNECTION_LIMIT: Number(process.env.DB_CONNECTION_LIMIT || process.env.MYSQL_CONNECTION_LIMIT) || 25,
+    // Database Pool Configuration tuned for 1,000 concurrent visitors
+    DB_CONNECTION_LIMIT: Number(process.env.DB_CONNECTION_LIMIT || process.env.MYSQL_CONNECTION_LIMIT) || 50,
     DB_CONNECT_TIMEOUT_MS: Number(process.env.DB_CONNECT_TIMEOUT_MS) || 10000,
-    DB_QUEUE_LIMIT: Number(process.env.DB_QUEUE_LIMIT) || 50
+    DB_QUEUE_LIMIT: process.env.DB_QUEUE_LIMIT !== undefined ? Number(process.env.DB_QUEUE_LIMIT) : 0
 };

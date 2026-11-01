@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Worker Operations Desk | SmartCity AI Gorakhpur</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet GIS Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" href="waste.css">
+    <link rel="stylesheet" href="../../components/ui_components.css">
+    <link rel="stylesheet" href="worker_dashboard.css">
+
+    <script src="../../js/auth-helpers.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
+</head>
+
+<body class="worker-body">
+
+<!-- ================= NAVBAR ================= -->
+<header class="navbar worker-navbar">
+    <a href="../../index.html" class="logo" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
+        <img src="/logo.png" alt="SmartCity AI" style="height: 38px; width: auto;">
+        <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #059669;">City AI</span></span>
+        <small class="worker-badge">FIELD CREW</small>
+    </a>
+
+    <div class="worker-status-banner">
+        <span class="live-pulse"></span>
+        <span style="font-size: 12px; font-weight: 700; color: #065f46;">FIELD OPERATIONS ACTIVE • ON DUTY</span>
+    </div>
+
+    <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
+        <div id="workerProfilePill" class="worker-profile-pill">
+            <span style="font-size: 18px;">👷</span>
+            <div>
+                <strong id="workerNameEl" style="display:block; font-size:12px; line-height:1.2;">Ramesh Chandra</strong>
+                <small id="workerIdEl" style="font-size:10px; color:#64748b;">WRK-001 • Golghar & Ward 14</small>
+            </div>
+        </div>
+        <button class="btn btn-sm outline-btn" onclick="logoutWorker()" style="font-size: 11px; padding: 6px 12px;">
+            🚪 Sign Out
+        </button>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTAINER ================= -->
+<main class="worker-container">
+
+    <!-- KPI STATS STRIP -->
+    <section class="worker-kpi-grid">
+        <div class="worker-kpi-card">
+            <div class="kpi-icon" style="background: #eff6ff; color: #2563eb;">📋</div>
+            <div>
+                <span class="kpi-label">Active Assigned Tasks</span>
+                <strong class="kpi-val" id="kpiWorkerAssigned">0 Tasks</strong>
+            </div>
+        </div>
+        <div class="worker-kpi-card">
+            <div class="kpi-icon" style="background: #fff7ed; color: #ea580c;">⏳</div>
+            <div>
+                <span class="kpi-label">In Progress Work</span>
+                <strong class="kpi-val" id="kpiWorkerInProgress">0 Running</strong>
+            </div>
+        </div>
+        <div class="worker-kpi-card">
+            <div class="kpi-icon" style="background: #fef3c7; color: #d97706;">🔍</div>
+            <div>
+                <span class="kpi-label">Under Verification</span>
+                <strong class="kpi-val" id="kpiWorkerUnderReview">0 In Review</strong>
+            </div>
+        </div>
+        <div class="worker-kpi-card">
+            <div class="kpi-icon" style="background: #ecfdf5; color: #059669;">✅</div>
+            <div>
+                <span class="kpi-label">Completed Today</span>
+                <strong class="kpi-val" id="kpiWorkerCompleted">0 Done</strong>
+            </div>
+        </div>
+        <div class="worker-kpi-card">
+            <div class="kpi-icon" style="background: #f5f3ff; color: #7c3aed;">⚖️</div>
+            <div>
+                <span class="kpi-label">Collected Waste</span>
+                <strong class="kpi-val" id="kpiWorkerWasteWeight">0.0 kg</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- WORKER WORKSPACE GRID: LEFT MAP & NAVIGATION, RIGHT TASKS -->
+    <div class="worker-grid">
+
+        <!-- COLUMN 1: FIELD MAP & NAVIGATION -->
+        <section class="card worker-map-section">
+            <div class="section-head" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px;">
+                        <span>🗺️</span> Field GIS & Route Navigation
+                    </h2>
+                    <small style="color: #64748b;">Turn-by-turn road routes to assigned complaints and smart collection bins</small>
+                </div>
+                <button class="btn btn-sm outline-btn" onclick="locateWorkerGPS()" style="font-size: 11px; padding: 5px 10px;">
+                    📍 Recenter GPS
+                </button>
+            </div>
+
+            <!-- Route Info Banner (visible during active navigation) -->
+            <div id="routeBanner" class="route-banner" style="display: none;">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 22px;">🧭</span>
+                        <div>
+                            <strong id="navTaskTitle" style="font-size: 13px; color: #0f172a;">Navigating to Task #...</strong>
+                            <div style="font-size: 11px; color: #475569;" id="navTaskDetails">Distance: -- km • ETA: -- min</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm outline-btn" onclick="clearNavigation()" style="font-size: 10px; padding: 4px 8px; color: #ef4444; border-color: #fca5a5;">
+                        ✕ Clear Route
+                    </button>
+                </div>
+            </div>
+
+            <div id="workerFieldMap" class="worker-map-frame"></div>
+
+            <div class="worker-map-legend">
+                <span class="legend-item"><span class="dot dot-blue"></span> Your Location</span>
+                <span class="legend-item"><span class="dot dot-red"></span> Emergency / High Priority</span>
+                <span class="legend-item"><span class="dot dot-orange"></span> In Progress Task</span>
+                <span class="legend-item"><span class="dot dot-green"></span> Monitored Bin</span>
+                <span class="legend-item"><span class="dot dot-gray"></span> Completed</span>
+            </div>
+        </section>
+
+        <!-- COLUMN 2: ASSIGNED OPERATIONS & TASK QUEUE -->
+        <section class="card worker-tasks-section">
+            <div class="section-head" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 17px;">
+                        <span>📋</span> My Field Tasks
+                    </h2>
+                    <small style="color: #64748b;">Direct work orders dispatched by Control Center</small>
+                </div>
+                <button class="btn btn-sm outline-btn" onclick="loadWorkerTasks(true)" style="font-size: 11px; padding: 5px 10px;">
+                    🔄 Refresh
+                </button>
+            </div>
+
+            <!-- Filter tabs -->
+            <div class="worker-filter-tabs">
+                <button class="filter-pill active" onclick="filterTasks('ALL', this)">All (<span id="countAll">0</span>)</button>
+                <button class="filter-pill" onclick="filterTasks('ASSIGNED', this)">Assigned (<span id="countAssigned">0</span>)</button>
+                <button class="filter-pill" onclick="filterTasks('IN_PROGRESS', this)">In Progress (<span id="countInProgress">0</span>)</button>
+                <button class="filter-pill" onclick="filterTasks('UNDER_VERIFICATION', this)">Verification (<span id="countReview">0</span>)</button>
+                <button class="filter-pill" onclick="filterTasks('COMPLETED', this)">Completed (<span id="countCompleted">0</span>)</button>
+            </div>
+
+            <div id="workerTaskList" class="worker-task-list">
+                <div class="empty-state">Loading assigned field tasks...</div>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+<!-- ================= COLLECTION PROOF SUBMISSION MODAL ================= -->
+<div id="proofModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">📸</span>
+                <h3 style="margin: 0; font-size: 16px;">Submit Field Cleanup Proof</h3>
+            </div>
+            <button class="modal-close-btn" onclick="closeProofModal()">&times;</button>
+        </div>
+
+        <form id="proofForm" onsubmit="handleProofSubmit(event)">
+            <input type="hidden" id="proofTaskId" value="">
+
+            <div class="alert-info-box" style="margin-bottom: 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #166534;">
+                🛡️ <strong>Verification Protocol:</strong> Submitted proof will be strictly reviewed by the Municipal Control Center. Workers cannot self-approve.
+            </div>
+
+            <div class="task-summary-box" id="proofTaskSummary" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 12px;">
+                <strong>Task ID:</strong> <span id="proofTaskDisplayId">#--</span> | <strong>Area:</strong> <span id="proofTaskLocation">--</span>
+            </div>
+
+            <!-- Before & After Photo inputs -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Before Image (Optional)</label>
+                    <input type="file" id="proofBeforeImg" accept="image/*" class="form-control" onchange="previewImage(this, 'previewBefore')">
+                    <div id="previewBefore" class="img-preview-box">
+                        <small style="color: #94a3b8;">No photo selected</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">After Cleanup Photo <span style="color: #ef4444;">*</span></label>
+                    <input type="file" id="proofAfterImg" accept="image/*" class="form-control" required onchange="previewImage(this, 'previewAfter')">
+                    <div id="previewAfter" class="img-preview-box">
+                        <small style="color: #94a3b8;">Required proof photo</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPS and Waste Metrics -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">GPS Coordinates <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="proofCoordinates" class="form-control" required readonly style="background: #f1f5f9; font-family: monospace; font-size: 11px;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700;">Collected Waste Weight (kg)</label>
+                    <input type="number" step="0.1" id="proofWeight" class="form-control" placeholder="e.g. 45.5" min="0">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 700;">Field Cleanup Remarks <span style="color: #ef4444;">*</span></label>
+                <textarea id="proofRemarks" class="form-control" rows="3" required placeholder="Describe completion details, segregated waste bins emptied, and site sanitation state..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn outline-btn" onclick="closeProofModal()">Cancel</button>
+                <button type="submit" id="btnSubmitProof" class="btn green-btn">
+                    🚀 Submit Proof to Control Center
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="worker_dashboard.js"></script>
+
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
+</body>
+</html>
+

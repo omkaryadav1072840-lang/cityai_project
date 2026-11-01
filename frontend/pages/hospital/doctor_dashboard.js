@@ -683,11 +683,11 @@ function renderDossierContent(data) {
 async function submitConsultation(event) {
     event.preventDefault();
 
-    const symptoms = document.getElementById('consultSymptoms') ? document.getElementById('consultSymptoms').value.trim() : '';
-    const diagnosis = document.getElementById('consultDiagnosis').value.trim();
-    const treatment = document.getElementById('consultTreatment').value.trim();
-    const notes = document.getElementById('consultNotes').value.trim();
-    const followUpDate = document.getElementById('consultFollowUp').value;
+    const symptoms = document.getElementById('consultSymptoms')?.value?.trim() || '';
+    const diagnosis = document.getElementById('consultDiagnosis')?.value?.trim() || '';
+    const treatment = document.getElementById('consultTreatment')?.value?.trim() || '';
+    const notes = document.getElementById('consultNotes')?.value?.trim() || '';
+    const followUpDate = document.getElementById('consultFollowUp')?.value || '';
 
     if (!diagnosis || !treatment) {
         showToast('Please fill in both Diagnosis and Treatment fields.', 'error');
@@ -695,8 +695,10 @@ async function submitConsultation(event) {
     }
 
     const btn = document.getElementById('btnSubmitConsultation');
-    btn.disabled = true;
-    btn.textContent = 'Saving Consultation...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Saving Consultation...';
+    }
 
     try {
         const payload = {
@@ -735,8 +737,10 @@ async function submitConsultation(event) {
     } catch (err) {
         console.error('Error saving consultation:', err);
         showToast(err.message, 'error');
-        btn.disabled = false;
-        btn.textContent = '💾 Save Consultation & Complete OPD Visit';
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '💾 Save Consultation & Complete OPD Visit';
+        }
     }
 }
 

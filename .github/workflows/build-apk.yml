@@ -2,7 +2,7 @@ name: Build Android APK (Cloud Auto-Builder)
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master, main, '**' ]
   workflow_dispatch:
 
 jobs:

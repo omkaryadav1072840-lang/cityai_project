@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 - Server Error | SmartCity AI</title>
     <meta name="description" content="A temporary server error occurred. Municipal systems have logged the incident and automatic recovery is underway.">
-    <link rel="icon" type="image/png" href="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png">
+    <link rel="icon" type="image/png" href="/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -113,12 +113,14 @@
             .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
         }
     </style>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
     <header class="navbar" role="banner">
         <div class="logo">
             <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
-                <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+                <img src="/logo.png" alt="SmartCity AI" style="height: 40px; width: auto;">
                 <span style="font-size: 26px;">SmartCity <strong style="color: #2563eb;">AI</strong></span>
             </a>
         </div>
@@ -149,5 +151,7 @@
             </div>
         </article>
     </main>
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="components/pwa_manager.js"></script>
 </body>
 </html>

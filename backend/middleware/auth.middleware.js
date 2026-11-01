@@ -1,7 +1,25 @@
 const crypto = require("crypto");
 const util = require("util");
+const fs = require("fs");
+const path = require("path");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/env.config");
+
+const DATA_DIR = path.join(__dirname, "..", "data");
+const REVOKED_TOKENS_FILE = path.join(DATA_DIR, "revoked_tokens.json");
+
+let employeeStatusChecker = null;
+function registerEmployeeStatusChecker(fn) {
+    employeeStatusChecker = fn;
+}
+
+function isEmployeeSuspended(staffId) {
+    if (!staffId) return false;
+    if (typeof employeeStatusChecker === "function") {
+        return Boolean(employeeStatusChecker(staffId));
+    }
+    return false;
+}
 
 const scryptAsync = util.promisify(crypto.scrypt);
 
@@ -80,6 +98,9 @@ function generateToken(user, role = "citizen") {
         mobile: user.mobile || null,
         staffId: user.staffId || user.staff_id || null,
         department: user.department || null,
+        worker_id: user.worker_id || (user.staffId === "WRK-001" ? 1 : (user.staffId === "WRK-002" ? 2 : (user.staffId === "WRK-003" ? 3 : null))),
+        assigned_bin_code: user.assigned_bin_code || null,
+        assigned_route_id: user.assigned_route_id || null,
         hospitalId: user.hospitalId || user.hospital_id || null,
         hospitalRole: user.hospitalRole || user.hospital_role || null,
         editable: user.editable || [],
@@ -88,7 +109,9 @@ function generateToken(user, role = "citizen") {
     };
 
     return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: JWT_EXPIRES_IN
+        expiresIn: JWT_EXPIRES_IN,
+        issuer: "smartcity.gorakhpur.gov.in",
+        audience: "smartcity-portal"
     });
 }
 
@@ -96,10 +119,50 @@ function generateToken(user, role = "citizen") {
 // JWT AUTHENTICATION MIDDLEWARE
 // =========================================================
 // =========================================================
-// TOKEN REVOCATION & BLACKLIST (Server-side Invalidation with TTL)
+// TOKEN REVOCATION & BLACKLIST (Server-side Invalidation with TTL & Cross-Restart Persistence)
 // =========================================================
-const revokedTokens = new Map(); // token -> expiresAtMs
+const revokedTokens = new Map(); // token or sha256(token) -> expiresAtMs
 const userRevocationTime = new Map(); // userId -> revokedAtMs
+
+function ensureDataDir() {
+    if (!fs.existsSync(DATA_DIR)) {
+        try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (_) {}
+    }
+}
+
+function loadPersistedRevocations() {
+    try {
+        if (fs.existsSync(REVOKED_TOKENS_FILE)) {
+            const raw = fs.readFileSync(REVOKED_TOKENS_FILE, "utf8");
+            const data = JSON.parse(raw);
+            const now = Date.now();
+            if (Array.isArray(data)) {
+                for (const item of data) {
+                    if (item && item.hash && item.expMs > now) {
+                        revokedTokens.set(item.hash, item.expMs);
+                    }
+                }
+            }
+        }
+    } catch (_) {}
+}
+
+function savePersistedRevocations() {
+    try {
+        ensureDataDir();
+        const now = Date.now();
+        const list = [];
+        for (const [key, expMs] of revokedTokens.entries()) {
+            if (expMs > now && key.length === 64) {
+                list.push({ hash: key, expMs });
+            }
+        }
+        fs.writeFileSync(REVOKED_TOKENS_FILE, JSON.stringify(list, null, 2), "utf8");
+    } catch (_) {}
+}
+
+// Initial load of active revocations from disk
+loadPersistedRevocations();
 
 // Periodic prune every 10 minutes to prevent unbounded memory growth
 const PRUNE_INTERVAL_MS = 10 * 60 * 1000;
@@ -107,11 +170,15 @@ const MAX_SESSION_RECORD_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days (JWT_EXPIRE
 
 const pruneInterval = setInterval(() => {
     const now = Date.now();
+    let changed = false;
     for (const [token, expMs] of revokedTokens.entries()) {
         if (now > expMs) {
             revokedTokens.delete(token);
+            changed = true;
         }
     }
+    if (changed) savePersistedRevocations();
+
     for (const [userId, revokedAt] of userRevocationTime.entries()) {
         if (now - revokedAt > MAX_SESSION_RECORD_AGE_MS) {
             userRevocationTime.delete(userId);
@@ -129,15 +196,49 @@ function revokeToken(token) {
                 expMs = decoded.exp * 1000;
             }
         } catch (_) {}
+
+        const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
         revokedTokens.set(token, expMs);
+        revokedTokens.set(tokenHash, expMs);
+        savePersistedRevocations();
+
+        try {
+            const { pool } = require("../config/db");
+            if (pool) {
+                pool.query(
+                    "INSERT IGNORE INTO revoked_tokens (token_hash, expires_at) VALUES (?, FROM_UNIXTIME(?))",
+                    [tokenHash, Math.floor(expMs / 1000)]
+                ).catch(() => {});
+            }
+        } catch (_) {}
     }
 }
 
 function isTokenRevoked(token) {
-    if (!token || !revokedTokens.has(token)) return false;
-    const expMs = revokedTokens.get(token);
+    if (!token) return false;
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    let expMs = revokedTokens.get(token) || revokedTokens.get(tokenHash);
+
+    // Multi-instance check: check file if not present in current memory
+    if (!expMs) {
+        try {
+            if (fs.existsSync(REVOKED_TOKENS_FILE)) {
+                const raw = fs.readFileSync(REVOKED_TOKENS_FILE, "utf8");
+                const data = JSON.parse(raw);
+                const found = data.find(x => x.hash === tokenHash);
+                if (found && found.expMs > Date.now()) {
+                    revokedTokens.set(tokenHash, found.expMs);
+                    return true;
+                }
+            }
+        } catch (_) {}
+        return false;
+    }
+
     if (Date.now() > expMs) {
         revokedTokens.delete(token);
+        revokedTokens.delete(tokenHash);
+        savePersistedRevocations();
         return false;
     }
     return true;
@@ -196,6 +297,30 @@ function authenticateToken(req, res, next) {
             return res.status(401).json({
                 success: false,
                 message: "Authentication session has been revoked following a password change. Please sign in again."
+            });
+        }
+
+        // Strict Issuer & Audience validation (reject forged/tampered tokens)
+        if (decoded) {
+            if (decoded.iss && decoded.iss !== "smartcity.gorakhpur.gov.in") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Invalid token issuer."
+                });
+            }
+            if (decoded.aud && decoded.aud !== "smartcity-portal") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Invalid token audience."
+                });
+            }
+        }
+
+        // Check if employee account is suspended or inactive
+        if (decoded && decoded.staffId && isEmployeeSuspended(decoded.staffId)) {
+            return res.status(403).json({
+                success: false,
+                message: "Staff account is suspended or inactive. Please contact the administrator."
             });
         }
 
@@ -452,6 +577,8 @@ module.exports = {
     requireDoctorOrStaff,
     requireOwnership,
     requireResourceDepartment,
+    registerEmployeeStatusChecker,
+    isEmployeeSuspended,
     JWT_SECRET,
     JWT_EXPIRES_IN
 };

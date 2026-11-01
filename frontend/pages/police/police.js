@@ -2536,3 +2536,338 @@ async function loadStaffSosAlerts() {
 }
 window.loadStaffSosAlerts = loadStaffSosAlerts;
 
+
+
+/* =====================================================
+   MISSING PERSON ALERT SYSTEM
+   New Feature: Citizens can report missing persons,
+   creating a complaint + broadcasting to all police units
+===================================================== */
+
+async function submitMissingPersonAlert(event) {
+    event.preventDefault();
+    const name = document.getElementById('mpName')&&document.getElementById('mpName').value.trim();
+    const age = document.getElementById('mpAge')&&document.getElementById('mpAge').value.trim();
+    const location = document.getElementById('mpLocation')&&document.getElementById('mpLocation').value.trim();
+    const description = document.getElementById('mpDescription')&&document.getElementById('mpDescription').value.trim();
+    const reporter = document.getElementById('mpReporter')&&document.getElementById('mpReporter').value.trim();
+    const mobile = document.getElementById('mpMobile')&&document.getElementById('mpMobile').value.trim();
+    const resultEl = document.getElementById('mpResult');
+
+    if (!name || !age || !location || !reporter || !mobile) {
+        if (resultEl) { resultEl.style.display='block'; resultEl.innerHTML='<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;color:#dc2626;font-size:13px;">Please fill all required fields.</div>'; }
+        return;
+    }
+
+    const subject = 'MISSING PERSON: ' + name + ' (' + age + ')';
+    const desc = 'MISSING PERSON ALERT\nName: ' + name + '\nAge/Gender: ' + age + '\nLast Seen: ' + location + '\nPhysical Description: ' + (description || 'Not specified') + '\nReported By: ' + reporter + ' | Mobile: ' + mobile;
+
+    if (resultEl) { resultEl.style.display='block'; resultEl.innerHTML='<div style="color:#f59e0b;padding:8px;">Submitting missing person alert...</div>'; }
+
+    try {
+        const res = await fetch(API_BASE + '/api/police/complaint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                citizenName: reporter,
+                mobile: mobile,
+                category: 'Missing Person',
+                subject: subject,
+                description: desc,
+                stationId: 1
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            if (resultEl) {
+                resultEl.innerHTML = '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px;">' +
+                    '<div style="font-weight:800;color:#16a34a;font-size:14px;margin-bottom:6px;">Alert Filed Successfully!</div>' +
+                    '<div style="font-size:12px;color:#166534;">Reference: <strong>' + ((data.complaint&&data.complaint.complaintId)||'MP-ACTIVE') + '</strong><br>' +
+                    'All Gorakhpur Police stations have been notified. Keep this reference number safe.<br>' +
+                    '<strong>Also call: <a href="tel:112" style="color:#1e40af;">112</a> for immediate assistance.</strong></div>' +
+                    '</div>';
+            }
+            document.getElementById('missingPersonForm').reset();
+            setTimeout(loadMissingPersons, 1000);
+            if (typeof showToast === 'function') showToast('Missing Person Alert filed. Police notified.');
+        } else {
+            throw new Error(data.message || 'Submission failed');
+        }
+    } catch(err) {
+        if (resultEl) {
+            resultEl.innerHTML = '<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px;">' +
+                '<div style="font-weight:800;color:#dc2626;margin-bottom:6px;">Error submitting alert</div>' +
+                '<div style="font-size:12px;color:#991b1b;">Please call <a href="tel:112" style="color:#1e40af;font-weight:700;">112</a> directly or visit nearest police station.</div>' +
+                '</div>';
+        }
+    }
+}
+
+async function loadMissingPersons() {
+    const listEl = document.getElementById('missingPersonList');
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="text-align:center;color:#78716c;padding:20px;">Loading...</div>';
+
+    try {
+        const res = await fetch(API_BASE + '/api/police/complaints?limit=10');
+        if (res.ok) {
+            const data = await res.json();
+            const missingAlerts = (data.complaints || []).filter(c => (c.category || '').toLowerCase().includes('missing'));
+            if (missingAlerts.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center;color:#78716c;padding:20px;font-size:13px;">No active missing person alerts in database.</div>';
+                return;
+            }
+            listEl.innerHTML = missingAlerts.map(c => {
+                const timeStr = c.created_at ? new Date(c.created_at).toLocaleString() : 'Recent';
+                const statusColor = c.status === 'Resolved' ? '#16a34a' : '#f59e0b';
+                return '<div style="border:1px solid #fde68a;border-radius:10px;padding:12px;margin-bottom:10px;background:#fffbeb;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">' +
+                    '<strong style="font-size:13px;color:#92400e;">' + escapeHtml(c.subject || 'Missing Person') + '</strong>' +
+                    '<span style="font-size:11px;font-weight:700;color:' + statusColor + ';">' + (c.status||'Under Review') + '</span>' +
+                    '</div>' +
+                    '<div style="font-size:11px;color:#78716c;">ID: ' + escapeHtml(c.complaint_id||c.id) + ' | Filed: ' + timeStr + '</div>' +
+                    '<div style="font-size:11px;color:#78716c;margin-top:4px;">Reporter Mobile: ' + (c.mobile ? '<a href="tel:' + c.mobile + '">' + c.mobile + '</a>' : 'Confidential') + '</div>' +
+                    '</div>';
+            }).join('');
+        } else {
+            listEl.innerHTML = '<div style="text-align:center;color:#78716c;padding:20px;font-size:13px;">Could not load from server. Login required for full data.</div>';
+        }
+    } catch(err) {
+        listEl.innerHTML = '<div style="text-align:center;color:#78716c;padding:20px;font-size:13px;">Backend unavailable. Please call 112 directly.</div>';
+    }
+}
+
+window.submitMissingPersonAlert = submitMissingPersonAlert;
+window.loadMissingPersons = loadMissingPersons;
+
+// Auto-load missing persons on page load
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof loadMissingPersons === 'function') loadMissingPersons();
+});
+
+
+/* =====================================================
+   FIR / COMPLAINT PDF DOWNLOAD
+   New Feature: Generates a printable HTML receipt/
+   acknowledgment after complaint is filed
+===================================================== */
+
+function downloadComplaintPDF(complaintData) {
+    const {
+        complaintId = 'CMP-' + Date.now(),
+        citizenName = 'Citizen',
+        mobile = 'N/A',
+        category = 'General',
+        subject = 'Police Complaint',
+        status = 'Under Review',
+        stationName = 'Gorakhpur Police Station',
+        createdAt = new Date().toLocaleString()
+    } = complaintData || {};
+
+    const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Complaint Receipt - ' + complaintId + '</title>' +
+        '<style>body{font-family:Arial,sans-serif;max-width:800px;margin:20px auto;padding:20px;color:#111;}' +
+        '.header{text-align:center;border-bottom:3px solid #1e40af;padding-bottom:16px;margin-bottom:24px;}' +
+        '.logo{font-size:22px;font-weight:900;color:#1e40af;margin-bottom:4px;}' +
+        '.badge{font-size:11px;font-weight:700;background:#1e40af;color:#fff;padding:3px 10px;border-radius:12px;display:inline-block;margin-bottom:8px;}' +
+        'h1{font-size:20px;margin:0;color:#0f172a;}' +
+        '.receipt-box{border:2px solid #1e40af;border-radius:12px;padding:20px;margin-bottom:20px;}' +
+        '.row{display:flex;border-bottom:1px solid #e2e8f0;padding:10px 0;}' +
+        '.label{font-size:12px;font-weight:700;color:#475569;width:200px;flex-shrink:0;}' +
+        '.value{font-size:13px;color:#0f172a;font-weight:600;}' +
+        '.status-badge{display:inline-block;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:700;background:#fef3c7;color:#92400e;}' +
+        '.footer{text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:20px;}' +
+        '.important{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#1e40af;}' +
+        '@media print{button{display:none!important;}}</style></head><body>' +
+        '<div class="header">' +
+        '<div class="logo">SmartCity AI — Gorakhpur Police</div>' +
+        '<div class="badge">CCTNS COMPLAINT ACKNOWLEDGMENT RECEIPT</div>' +
+        '<h1>e-Complaint Registration Certificate</h1>' +
+        '<p style="font-size:12px;color:#475569;margin:4px 0;">Gorakhpur Police Commissionerate | UP Police CCTNS</p>' +
+        '</div>' +
+        '<div class="important">This is a system-generated acknowledgment. Keep this reference for follow-up. Carry this document if visiting the police station.</div>' +
+        '<div class="receipt-box">' +
+        '<div class="row"><div class="label">Complaint Reference ID</div><div class="value" style="color:#1e40af;font-size:15px;font-weight:900;">' + complaintId + '</div></div>' +
+        '<div class="row"><div class="label">Complainant Name</div><div class="value">' + citizenName + '</div></div>' +
+        '<div class="row"><div class="label">Mobile Number</div><div class="value">' + mobile + '</div></div>' +
+        '<div class="row"><div class="label">Complaint Category</div><div class="value">' + category + '</div></div>' +
+        '<div class="row"><div class="label">Subject / Matter</div><div class="value">' + subject + '</div></div>' +
+        '<div class="row"><div class="label">Assigned Police Station</div><div class="value">' + stationName + '</div></div>' +
+        '<div class="row"><div class="label">Current Status</div><div class="value"><span class="status-badge">' + status + '</span></div></div>' +
+        '<div class="row"><div class="label">Filing Date & Time</div><div class="value">' + createdAt + '</div></div>' +
+        '</div>' +
+        '<p style="font-size:12px;color:#475569;line-height:1.6;"><strong>Next Steps:</strong> Your complaint has been registered and forwarded to the concerned police station. Expected response within 24-48 hours. Track status at: <strong>SmartCity AI Portal → Police → Complaint Tracker</strong></p>' +
+        '<p style="font-size:12px;color:#475569;"><strong>Emergency Helplines:</strong> 112 (Police) | 108 (Ambulance) | 1930 (Cyber Crime) | 1090 (Women Safety)</p>' +
+        '<div class="footer">Generated by SmartCity AI | Gorakhpur Smart City Mission | ' + new Date().toLocaleString() + '</div>' +
+        '<div style="text-align:center;margin-top:16px;">' +
+        '<button onclick="window.print()" style="background:#1e40af;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-right:8px;">Print Receipt</button>' +
+        '<button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Close</button>' +
+        '</div>' +
+        '</body></html>';
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (win) {
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 500);
+    } else {
+        alert('Popup blocked. Please allow popups for this site to download the receipt.');
+    }
+}
+
+window.downloadComplaintPDF = downloadComplaintPDF;
+
+
+/* =====================================================
+   ENHANCED CITIZEN COMPLAINT SUBMISSION WITH PDF DOWNLOAD
+   Overrides the existing submitCitizenComplaint to also
+   offer PDF download after successful submission
+===================================================== */
+
+const _origSubmitComplaint = window.submitCitizenComplaint;
+window.submitCitizenComplaint = async function(event) {
+    if (event) event.preventDefault();
+
+    const name = document.getElementById('cmpCitizenName')&&document.getElementById('cmpCitizenName').value.trim();
+    const mobile = document.getElementById('cmpMobile')&&document.getElementById('cmpMobile').value.trim();
+    const category = document.getElementById('cmpCategory')&&document.getElementById('cmpCategory').value;
+    const stationId = document.getElementById('cmpStation')&&document.getElementById('cmpStation').value;
+    const subject = document.getElementById('cmpSubject')&&document.getElementById('cmpSubject').value.trim();
+    const description = document.getElementById('cmpDescription')&&document.getElementById('cmpDescription').value.trim();
+
+    if (!name || !mobile || !subject || !description) {
+        if (typeof showToast === 'function') showToast('Please fill all required fields.');
+        return;
+    }
+
+    try {
+        const res = await fetch(API_BASE + '/api/police/complaint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ citizenName: name, mobile, category, subject, description, stationId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const c = data.complaint || {};
+            if (typeof closeModal === 'function') closeModal('complaintModal');
+            if (typeof showToast === 'function') showToast('Complaint filed! Reference: ' + (c.complaintId || 'CMP-NEW'));
+
+            // Offer PDF download
+            setTimeout(() => {
+                const stationNames = { 1:'Kotwali Police Station', 2:'Civil Lines Police Station', 3:'Cantt Police Station', 4:'Sahjanwa Police Station', 5:'Gorakhpur Junction Post', 6:'Medical College Outpost', 7:'Gola Bazar Police Station', 8:'AIIMS Security Post' };
+                downloadComplaintPDF({
+                    complaintId: c.complaintId || 'CMP-' + Date.now(),
+                    citizenName: name,
+                    mobile: mobile,
+                    category: category,
+                    subject: subject,
+                    status: 'Under Review',
+                    stationName: stationNames[parseInt(stationId)] || 'Gorakhpur Police Station',
+                    createdAt: new Date().toLocaleString()
+                });
+            }, 500);
+
+            if (document.getElementById('cmpCitizenName')) document.getElementById('cmpCitizenName').value = '';
+            if (document.getElementById('cmpMobile')) document.getElementById('cmpMobile').value = '';
+            if (document.getElementById('cmpSubject')) document.getElementById('cmpSubject').value = '';
+            if (document.getElementById('cmpDescription')) document.getElementById('cmpDescription').value = '';
+        } else {
+            throw new Error(data.message || 'Failed');
+        }
+    } catch(err) {
+        if (typeof showToast === 'function') showToast('Error: ' + err.message + '. Please try again.');
+    }
+};
+
+/* =====================================================
+   LIVE CITIZEN COMPLAINT / FIR TRACKER
+===================================================== */
+async function trackCitizenComplaint() {
+    const input = document.getElementById('citizenComplaintInput');
+    const container = document.getElementById('complaintResultContainer');
+    if (!input || !container) return;
+
+    const ref = input.value.trim();
+    if (!ref) {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:12px;color:#dc2626;font-size:13px;font-weight:700;">Please enter your Complaint ID (e.g. CMP-...) or 10-digit mobile number.</div>';
+        return;
+    }
+
+    container.style.display = 'block';
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;font-size:13px;"><i class="fa-solid fa-spinner fa-spin"></i> Searching Gorakhpur Police CCTNS database...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/police/complaints/track/${encodeURIComponent(ref)}`);
+        const data = await res.json();
+
+        if (data.success && data.complaint) {
+            const c = data.complaint;
+            const statusColor = (c.status || '').toLowerCase() === 'resolved' ? '#16a34a' : ((c.status || '').toLowerCase().includes('reject') ? '#dc2626' : '#d97706');
+            const createdStr = c.created_at ? new Date(c.created_at).toLocaleString('en-IN') : 'Recent';
+
+            container.innerHTML = `
+                <div style="background:#f8fafc; border:1.5px solid #3b82f6; border-radius:14px; padding:20px; box-shadow:0 4px 16px rgba(0,0,0,0.06); text-align:left;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <span style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px;">CCTNS VERIFIED RECORD</span>
+                            <h4 style="margin:6px 0 2px; font-size:16px; font-weight:800; color:#0f172a;">${escapeHtml(c.subject || 'Citizen Police Complaint')}</h4>
+                            <div style="font-size:12px; color:#64748b;">Ref ID: <strong style="color:#1e40af;">${escapeHtml(c.complaint_id || c.id)}</strong></div>
+                        </div>
+                        <span style="background:${statusColor}15; color:${statusColor}; border:1px solid ${statusColor}40; padding:4px 12px; border-radius:9999px; font-size:12px; font-weight:800;">
+                            ● ${escapeHtml(c.status || 'Under Investigation')}
+                        </span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:14px; font-size:12.5px;">
+                        <div><strong style="color:#475569;">Complainant:</strong> <span style="color:#0f172a; font-weight:600;">${escapeHtml(c.citizen_name || 'Citizen')}</span></div>
+                        <div><strong style="color:#475569;">Registered Mobile:</strong> <span style="color:#0f172a; font-weight:600;">${escapeHtml(c.mobile || 'Confidential')}</span></div>
+                        <div><strong style="color:#475569;">Police Station:</strong> <span style="color:#0f172a; font-weight:600;">${escapeHtml(c.station_name || 'Gorakhpur Precinct')}</span></div>
+                        <div><strong style="color:#475569;">Station Contact:</strong> <a href="tel:${escapeHtml(c.station_phone || '112')}" style="color:#2563eb; font-weight:700;">${escapeHtml(c.station_phone || '112')}</a></div>
+                        <div><strong style="color:#475569;">Filing Timestamp:</strong> <span style="color:#0f172a;">${createdStr}</span></div>
+                        <div><strong style="color:#475569;">Category:</strong> <span style="color:#0f172a;">${escapeHtml(c.category || 'General')}</span></div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <button type="button" class="primary-btn" id="btnDownloadFIRPDF" style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, #1e40af, #1d4ed8); padding:10px 18px; font-weight:700; border-radius:8px; font-size:13px; color:#ffffff; cursor:pointer;">
+                            📄 Download / Print FIR Receipt (PDF)
+                        </button>
+                        <a href="tel:112" style="font-size:12px; color:#dc2626; font-weight:700; text-decoration:none;">
+                            🚨 Need Urgent Follow-up? Dial 112
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('btnDownloadFIRPDF').addEventListener('click', () => {
+                downloadComplaintPDF({
+                    complaintId: c.complaint_id || c.id,
+                    citizenName: c.citizen_name || 'Citizen',
+                    mobile: c.mobile || 'N/A',
+                    category: c.category || 'Police Complaint',
+                    subject: c.subject || 'Complaint',
+                    status: c.status || 'Under Review',
+                    stationName: c.station_name || 'Gorakhpur Police Station',
+                    createdAt: createdStr
+                });
+            });
+        } else {
+            container.innerHTML = `
+                <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:16px; color:#92400e; font-size:13px;">
+                    <div style="font-weight:800; margin-bottom:4px;">🔍 No Records Found</div>
+                    <div>No complaint found matching <strong>"${escapeHtml(ref)}"</strong>. Please verify the ID or contact your nearest police station or dial <strong>112</strong>.</div>
+                </div>
+            `;
+        }
+    } catch (err) {
+        container.innerHTML = `
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:16px; color:#991b1b; font-size:13px;">
+                <div style="font-weight:800; margin-bottom:4px;">Server Connection Error</div>
+                <div>Unable to query police database. Please call <strong>112</strong> for live helpline assistance.</div>
+            </div>
+        `;
+    }
+}
+window.trackCitizenComplaint = trackCitizenComplaint;
+
+

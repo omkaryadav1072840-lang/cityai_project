@@ -25,6 +25,8 @@
     <link rel="stylesheet" href="../../components/ui_components.css">
     <!-- Auth Helpers -->
     <script src="../../js/auth-helpers.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
 
@@ -32,7 +34,7 @@
 <nav class="navbar">
     <div class="nav-left-group">
         <a href="../../index.html" class="logo" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
-            <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+            <img src="/logo.png" alt="SmartCity AI" style="height: 40px; width: auto;">
             <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
         </a>
     </div>
@@ -534,6 +536,101 @@
                 <!-- Dynamically filled after subscription -->
             </div>
         </div>
+
+        <!-- ================= LIVE ATCS SIGNAL CONTROL & GREEN WAVE SIMULATOR ================= -->
+        <div class="content-card" id="greenWaveSimulatorCard" style="margin-top: 24px; border: 1.5px solid #3b82f6; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="background: #2563eb; color: #fff; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                        🚦
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h3 style="margin: 0; color: #0f172a; font-size: 17px;">Live ATCS Signal Control & Green Wave Corridor</h3>
+                            <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">AI EMULATION ACTIVE</span>
+                        </div>
+                        <p style="font-size: 12.5px; color: #64748b; margin: 3px 0 0;">
+                            Adaptive Traffic Control System (ATCS) linked with Gorakhpur ICCC. Test live phase changes & emergency vehicle preemption.
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-primary" id="btnTriggerGreenWaveSim" onclick="triggerSimulatedGreenWave()" style="background: linear-gradient(135deg, #16a34a, #15803d); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">
+                        🚨 Trigger Emergency Green Wave
+                    </button>
+                </div>
+            </div>
+
+            <!-- Signal Control Interactive Board -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 20px;">
+                <!-- Left: Junction Signal Head Visualizer -->
+                <div style="background: #0f172a; border-radius: 14px; padding: 20px; color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);">
+                    <div style="font-size: 11px; font-weight: 800; letter-spacing: 1px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase;">
+                        SELECTED JUNCTION SIGNAL HEAD
+                    </div>
+
+                    <!-- 3-Light Graphic Housing -->
+                    <div style="background: #1e293b; border: 3px solid #334155; border-radius: 28px; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.6);">
+                        <div id="simLightRed" style="width: 48px; height: 48px; border-radius: 50%; background: #450a0a; border: 2px solid #7f1d1d; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fca5a5;"></div>
+                        <div id="simLightYellow" style="width: 48px; height: 48px; border-radius: 50%; background: #451a03; border: 2px solid #78350f; transition: all 0.3s;"></div>
+                        <div id="simLightGreen" style="width: 48px; height: 48px; border-radius: 50%; background: #052e16; border: 2px solid #14532d; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #86efac;"></div>
+                    </div>
+
+                    <!-- Realtime Timer & Phase State -->
+                    <div style="margin-top: 16px; text-align: center;">
+                        <div id="simSignalPhaseLabel" style="font-size: 15px; font-weight: 800; color: #4ade80;">ACTIVE: GREEN PHASE</div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+                            Remaining Cycle: <strong id="simSignalCountdown" style="color: #ffffff; font-size: 16px;">28s</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Interactive Controls & Corridor Preemption -->
+                <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 14px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">SELECT MONITORED JUNCTION:</label>
+                        <select id="simJunctionSelect" class="form-control" onchange="onSimJunctionChange(this.value)">
+                            <option value="JNC-01">JNC-01: Golghar Central Crossing (Main Arterial)</option>
+                            <option value="JNC-02">JNC-02: Shastri Chowk (Court / Secretariat Corridor)</option>
+                            <option value="JNC-03">JNC-03: Mohaddipur Junction (AIIMS / Kushmi Highway)</option>
+                            <option value="JNC-04">JNC-04: Asuran Chowk (Medical College Arterial)</option>
+                            <option value="JNC-05">JNC-05: Dharamshala Bazar Crossing</option>
+                        </select>
+                    </div>
+
+                    <!-- Signal Overrides -->
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 8px;">MANUAL SIGNAL OVERRIDES:</div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn-sm" onclick="setSimSignalPhase('GREEN')" style="background: #16a34a; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; flex: 1;">
+                                🟢 Force Green (Clear Flow)
+                            </button>
+                            <button type="button" class="btn-sm" onclick="setSimSignalPhase('YELLOW')" style="background: #d97706; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; flex: 1;">
+                                🟡 Amber Phase (Caution)
+                            </button>
+                            <button type="button" class="btn-sm" onclick="setSimSignalPhase('RED')" style="background: #dc2626; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; flex: 1;">
+                                🔴 Force Red (Stop Hold)
+                            </button>
+                            <button type="button" class="btn-sm" onclick="resetSimSignalAuto()" style="background: #0284c7; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                                🤖 Auto ATCS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Green Wave Corridor Telemetry Feed -->
+                    <div id="simGreenWaveStatusBox" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 16px; font-size: 12.5px; color: #334155; line-height: 1.5;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <strong style="color: #0f172a;"><i class="fa-solid fa-satellite-dish" style="color: #2563eb;"></i> Corridor Preemption Link:</strong>
+                            <span id="simGreenWaveBadge" style="background: #e2e8f0; color: #475569; font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px;">STANDBY</span>
+                        </div>
+                        <div id="simGreenWaveMsg">
+                            Corridor JNC-01 to JNC-03 synchronized. AI algorithm dynamically adapts phase split every 120s based on queue length.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div> <!-- ================= END LAYER 1 (CITIZEN) ================= -->
 
     <!-- =========================================================
@@ -2065,5 +2162,7 @@
 <script src="traffic.js"></script>
 <script src="../../components/ai_widget.js"></script>
 
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
 </body>
 </html>

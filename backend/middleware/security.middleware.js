@@ -39,8 +39,8 @@ function securityHeaders(req, res, next) {
     // Referrer policy
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
-    // Device permissions policy
-    res.setHeader("Permissions-Policy", "geolocation=(self), camera=(), microphone=(), payment=()");
+    // Device permissions policy (allows geolocation, camera, and microphone for Civic AI voice search)
+    res.setHeader("Permissions-Policy", "geolocation=(self), camera=(self), microphone=(self), payment=(self)");
 
     // Cross-Origin Isolation headers
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
@@ -57,6 +57,20 @@ function securityHeaders(req, res, next) {
             : "max-age=31536000; includeSubDomains";
         res.setHeader("Strict-Transport-Security", hstsDirective);
     }
+
+    // Content-Security-Policy (CSP): whitelists trusted origins for Leaflet, Google Fonts, OpenStreetMap tiles & WebSockets
+    const cspDirectives = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com",
+        "connect-src 'self' ws: wss: http: https:",
+        "media-src 'self' data: blob:",
+        "object-src 'none'",
+        "base-uri 'self'"
+    ].join("; ");
+    res.setHeader("Content-Security-Policy", cspDirectives);
 
     // Remove server fingerprint
     res.removeHeader("X-Powered-By");

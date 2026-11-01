@@ -5195,3 +5195,185 @@ function startMoveCameraOnMap(presetCamId) {
 }
 window.startMoveCameraOnMap = startMoveCameraOnMap;
 window.openIncidentModal = openReportIncidentModal;
+
+/* =========================================================
+   LIVE ATCS SIGNAL CONTROLLER & GREEN WAVE CORRIDOR ENGINE
+========================================================= */
+let simSignalState = {
+    currentPhase: "GREEN",
+    countdown: 32,
+    isAuto: true,
+    selectedJunction: "JNC-01"
+};
+
+function updateSimSignalUI() {
+    const redLamp = document.getElementById("simLightRed");
+    const yellowLamp = document.getElementById("simLightYellow");
+    const greenLamp = document.getElementById("simLightGreen");
+    const phaseLabel = document.getElementById("simSignalPhaseLabel");
+    const countdownEl = document.getElementById("simSignalCountdown");
+
+    if (!redLamp || !yellowLamp || !greenLamp || !phaseLabel || !countdownEl) return;
+
+    countdownEl.textContent = `${simSignalState.countdown}s`;
+
+    // Reset styles
+    redLamp.style.background = "#450a0a";
+    redLamp.style.boxShadow = "none";
+    redLamp.textContent = "";
+
+    yellowLamp.style.background = "#451a03";
+    yellowLamp.style.boxShadow = "none";
+
+    greenLamp.style.background = "#052e16";
+    greenLamp.style.boxShadow = "none";
+    greenLamp.textContent = "";
+
+    if (simSignalState.currentPhase === "RED") {
+        redLamp.style.background = "#ef4444";
+        redLamp.style.boxShadow = "0 0 24px #ef4444, inset 0 0 8px #fee2e2";
+        redLamp.textContent = simSignalState.countdown;
+        phaseLabel.textContent = "ACTIVE: RED PHASE (STOP / HOLD)";
+        phaseLabel.style.color = "#f87171";
+    } else if (simSignalState.currentPhase === "YELLOW") {
+        yellowLamp.style.background = "#f59e0b";
+        yellowLamp.style.boxShadow = "0 0 24px #f59e0b, inset 0 0 8px #fef3c7";
+        phaseLabel.textContent = "ACTIVE: AMBER (CLEAR INTERSECTION)";
+        phaseLabel.style.color = "#fbbf24";
+    } else {
+        greenLamp.style.background = "#22c55e";
+        greenLamp.style.boxShadow = "0 0 24px #22c55e, inset 0 0 8px #dcfce7";
+        greenLamp.textContent = simSignalState.countdown;
+        phaseLabel.textContent = "ACTIVE: GREEN PHASE (PROCEED)";
+        phaseLabel.style.color = "#4ade80";
+    }
+}
+
+function runSimSignalTick() {
+    if (!simSignalState.isAuto) return;
+
+    simSignalState.countdown--;
+    if (simSignalState.countdown <= 0) {
+        if (simSignalState.currentPhase === "GREEN") {
+            simSignalState.currentPhase = "YELLOW";
+            simSignalState.countdown = 4;
+        } else if (simSignalState.currentPhase === "YELLOW") {
+            simSignalState.currentPhase = "RED";
+            simSignalState.countdown = 35;
+        } else {
+            simSignalState.currentPhase = "GREEN";
+            simSignalState.countdown = 30;
+        }
+    }
+    updateSimSignalUI();
+}
+
+// Start 1-second interval for signal cycle
+setInterval(runSimSignalTick, 1000);
+
+window.onSimJunctionChange = function (jncId) {
+    simSignalState.selectedJunction = jncId;
+    simSignalState.currentPhase = "GREEN";
+    simSignalState.countdown = 30;
+    simSignalState.isAuto = true;
+    updateSimSignalUI();
+
+    const msgBox = document.getElementById("simGreenWaveMsg");
+    if (msgBox) {
+        msgBox.innerHTML = `Switched monitoring to <strong>${jncId}</strong>. Synchronized with central ICCC ATCS loop.`;
+    }
+};
+
+window.setSimSignalPhase = function (phase) {
+    simSignalState.isAuto = false;
+    simSignalState.currentPhase = phase;
+    simSignalState.countdown = 45;
+    updateSimSignalUI();
+
+    const badge = document.getElementById("simGreenWaveBadge");
+    const msg = document.getElementById("simGreenWaveMsg");
+    if (badge) {
+        badge.textContent = "MANUAL OVERRIDE";
+        badge.style.background = "#fee2e2";
+        badge.style.color = "#991b1b";
+    }
+    if (msg) {
+        msg.innerHTML = `<strong>Manual Override Engaged:</strong> ${simSignalState.selectedJunction} locked to <strong>${phase}</strong>. Automatic sensor timing paused.`;
+    }
+    if (typeof showToast === "function") {
+        showToast(`🚦 ${simSignalState.selectedJunction} overridden to ${phase}`, "info");
+    }
+};
+
+window.resetSimSignalAuto = function () {
+    simSignalState.isAuto = true;
+    simSignalState.currentPhase = "GREEN";
+    simSignalState.countdown = 30;
+    updateSimSignalUI();
+
+    const badge = document.getElementById("simGreenWaveBadge");
+    const msg = document.getElementById("simGreenWaveMsg");
+    if (badge) {
+        badge.textContent = "STANDBY / AUTO";
+        badge.style.background = "#e2e8f0";
+        badge.style.color = "#475569";
+    }
+    if (msg) {
+        msg.innerHTML = `Adaptive ATCS mode restored. Loop sensors actively balancing cycle times across corridor.`;
+    }
+    if (typeof showToast === "function") {
+        showToast("🤖 Auto ATCS Signal Algorithm Restored", "success");
+    }
+};
+
+window.triggerSimulatedGreenWave = function () {
+    simSignalState.isAuto = false;
+    simSignalState.currentPhase = "GREEN";
+    simSignalState.countdown = 60;
+    updateSimSignalUI();
+
+    const badge = document.getElementById("simGreenWaveBadge");
+    const msg = document.getElementById("simGreenWaveMsg");
+    if (badge) {
+        badge.textContent = "🚨 GREEN WAVE PREEMPTION ACTIVE";
+        badge.style.background = "#dc2626";
+        badge.style.color = "#ffffff";
+    }
+    if (msg) {
+        msg.innerHTML = `
+            <div style="color: #991b1b; font-weight: 700; margin-bottom: 4px;">
+                🚨 AMBULANCE AUTO GREEN WAVE ENGAGED
+            </div>
+            <div>
+                Corridor: <strong>Golghar (JNC-01) ➔ Shastri Chowk (JNC-02) ➔ Mohaddipur (JNC-03)</strong><br>
+                Ambulance: <strong>UP-53-AZ-1001</strong> bound for <strong>BRD Medical College</strong>.<br>
+                ✨ <strong>Preemption Result:</strong> 4 Crossings cleared. Estimated transit time reduced from <strong>14.5 min to 6.2 min (8.3 min saved)</strong>!
+            </div>
+        `;
+    }
+
+    // Display banner if available
+    const topBanner = document.getElementById("ambulance-green-wave-banner");
+    if (topBanner) {
+        topBanner.style.display = "flex";
+        setTimeout(() => {
+            topBanner.style.display = "none";
+        }, 15000);
+    }
+
+    if (typeof showToast === "function") {
+        showToast("🚨 Green Wave Corridor Preempted for Emergency Ambulance!", "success");
+    }
+
+    // Auto restore after 15 seconds
+    setTimeout(() => {
+        window.resetSimSignalAuto();
+    }, 15000);
+};
+
+// Initial draw on load
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", updateSimSignalUI);
+} else {
+    updateSimSignalUI();
+}

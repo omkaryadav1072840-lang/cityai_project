@@ -13,7 +13,13 @@
         isBusy: false,
 
         init: function () {
-            if (document.getElementById("scUniversalAIWindow")) return;
+            if (document.getElementById("scUniversalAIWindow") || document.getElementById("scUniversalAIFab")) return;
+
+            // Remove legacy floating button if realtime.js created one
+            const oldBtn = document.getElementById("scGlobalAIFloatingBtn");
+            if (oldBtn) oldBtn.remove();
+            const oldPopup = document.getElementById("scGlobalAIPopup");
+            if (oldPopup) oldPopup.remove();
 
             this.sessionId = localStorage.getItem("sc_ai_session_id") || `SESS-${Date.now().toString(36).toUpperCase()}`;
             localStorage.setItem("sc_ai_session_id", this.sessionId);
@@ -30,18 +36,24 @@
             link.rel = "stylesheet";
             // Resolve relative path to root or subpages
             const isSubpage = window.location.pathname.includes("/pages/");
-            link.href = isSubpage ? "../../components/ai_widget.css" : "./components/ai_widget.css";
+            link.href = isSubpage ? "../../components/ai_widget.css?v=3.5" : "./components/ai_widget.css?v=3.5";
             document.head.appendChild(link);
         },
 
         renderDOM: function () {
-            // 1. Floating Action Button
+            const isSubpage = window.location.pathname.includes("/pages/");
+            const logoPath = isSubpage ? "../../logo.png" : "./logo.png";
+
+            // 1. Floating Action Button (bulletproof inline constraints: 58px circle, 38px contained image)
             const fab = document.createElement("div");
             fab.id = "scUniversalAIFab";
             fab.setAttribute("title", "SmartCity AI Assistant (Gorakhpur)");
+            fab.style.cssText = "position: fixed !important; bottom: 24px !important; right: 24px !important; width: 58px !important; height: 58px !important; min-width: 58px !important; min-height: 58px !important; max-width: 58px !important; max-height: 58px !important; border-radius: 50% !important; z-index: 999999 !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; background: linear-gradient(135deg, #2563eb, #7c3aed) !important; border: 2px solid rgba(255, 255, 255, 0.25) !important; box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45) !important; padding: 0 !important; margin: 0 !important; box-sizing: border-box !important;";
             fab.innerHTML = `
-                <div class="sc-fab-icon">🤖</div>
-                <div class="sc-fab-badge"></div>
+                <div class="sc-fab-icon" style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; border-radius: 50% !important; overflow: hidden !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 !important; margin: 0 !important;">
+                    <img src="${logoPath}?v=3.5" alt="SmartCity AI Logo" class="sc-fab-logo-img" width="38" height="38" style="width: 38px !important; height: 38px !important; max-width: 38px !important; max-height: 38px !important; min-width: 38px !important; min-height: 38px !important; object-fit: contain !important; border-radius: 50% !important; display: block !important; pointer-events: none !important; margin: auto !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)) !important;">
+                </div>
+                <div class="sc-fab-badge" style="position: absolute !important; top: -2px !important; right: -2px !important; width: 14px !important; height: 14px !important; background: #10b981 !important; border: 2px solid #0f172a !important; border-radius: 50% !important; z-index: 2 !important; pointer-events: none !important;"></div>
             `;
             document.body.appendChild(fab);
 
@@ -51,7 +63,7 @@
             win.innerHTML = `
                 <div class="sc-ai-header">
                     <div class="sc-ai-header-info">
-                        <div class="sc-ai-avatar">🏛️</div>
+                        <div class="sc-ai-avatar" style="width: 40px !important; height: 40px !important; min-width: 40px !important; min-height: 40px !important; border-radius: 10px !important; overflow: hidden !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 2px !important; flex-shrink: 0 !important;"><img src="${logoPath}?v=3.5" alt="SmartCity AI Logo" class="sc-ai-avatar-img" style="width: 34px !important; height: 34px !important; max-width: 34px !important; max-height: 34px !important; object-fit: contain !important; display: block !important;" width="34" height="34"></div>
                         <div>
                             <h3 class="sc-ai-title">Gorakhpur AI Assistant</h3>
                             <p class="sc-ai-subtitle">Grounded Municipal Intelligence</p>
@@ -87,8 +99,9 @@
                 </div>
 
                 <div class="sc-ai-input-bar">
-                    <input type="text" class="sc-ai-input" id="scAiInput" placeholder="Ask in Hindi, English or Hinglish..." autocomplete="off">
-                    <button class="sc-ai-send-btn" id="scAiSendBtn" title="Send">➤</button>
+                    <button class="sc-ai-mic-btn" id="scAiMicBtn" title="Speak in Hindi/English (Voice Search)" type="button">🎙️</button>
+                    <input type="text" class="sc-ai-input" id="scAiInput" placeholder="Type or speak in Hindi/English..." autocomplete="off">
+                    <button class="sc-ai-send-btn" id="scAiSendBtn" title="Send" type="button">➤</button>
                 </div>
 
                 <!-- Conversation History Panel -->
@@ -160,6 +173,78 @@
                     }
                 });
             });
+
+            // Global helper to open AI assistant from any button or navbar link
+            window.openAiAssistant = () => this.toggle(true);
+
+            // Bind all elements or links targeting #aiAssistant
+            document.querySelectorAll('a[href="#aiAssistant"], [data-action="open-ai"]').forEach(el => {
+                el.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    this.toggle(true);
+                });
+            });
+
+            this.initVoiceInput();
+        },
+
+        initVoiceInput: function () {
+            const micBtn = document.getElementById("scAiMicBtn");
+            const input = document.getElementById("scAiInput");
+            if (!micBtn || !input) return;
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                micBtn.title = "Voice recognition not supported in this browser";
+                micBtn.style.opacity = "0.5";
+                micBtn.style.cursor = "not-allowed";
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = "hi-IN";
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            let isListening = false;
+
+            micBtn.addEventListener("click", () => {
+                if (isListening) {
+                    recognition.stop();
+                    return;
+                }
+                try {
+                    recognition.start();
+                    isListening = true;
+                    micBtn.classList.add("sc-listening");
+                    micBtn.textContent = "🛑";
+                    input.setAttribute("placeholder", "सुन रहा हूँ... Speak now in Hindi or English...");
+                } catch (err) {
+                    console.warn("Speech recognition error:", err);
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results?.[0]?.[0]?.transcript;
+                if (transcript) {
+                    input.value = transcript;
+                    this.handleSend();
+                }
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove("sc-listening");
+                micBtn.textContent = "🎙️";
+                input.setAttribute("placeholder", "Ask in Hindi, English or Hinglish...");
+            };
+
+            recognition.onerror = () => {
+                isListening = false;
+                micBtn.classList.remove("sc-listening");
+                micBtn.textContent = "🎙️";
+                input.setAttribute("placeholder", "Ask in Hindi, English or Hinglish...");
+            };
         },
 
         toggle: function (forceState) {

@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS emergency_incidents (
 `;
 
 db.query(createIncidentsTableSQL, (err) => {
-    if (err) console.error("Create emergency_incidents table error:", err.message);
+    if (err && process.env.NODE_ENV === "production") {
+        console.error("Create emergency_incidents table error:", err.message);
+    }
 });
 
 // =========================================================

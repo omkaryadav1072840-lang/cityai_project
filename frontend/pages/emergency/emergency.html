@@ -19,6 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="emergency.css">
     <link rel="stylesheet" href="../../components/ui_components.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
 
     <!-- Leaflet -->
     <link
@@ -27,6 +28,8 @@
     >
     <!-- Auth Helpers -->
     <script src="../../js/auth-helpers.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -38,7 +41,7 @@
     <nav class="navbar">
 
         <a href="../../index.html" class="logo" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
-            <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+            <img src="/logo.png" alt="SmartCity AI" style="height: 40px; width: auto;">
             <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
         </a>
 
@@ -645,6 +648,202 @@
          MAP
     ====================================================== -->
 
+    <!-- =====================================================
+         NEARBY HOSPITALS & TRAUMA CENTERS
+    ====================================================== -->
+    <section class="nearby-hospitals-section" id="nearbyHospitals" style="padding: 40px 5%; background: #f8fafc;">
+        <div class="section-heading">
+            <span>NEAREST TRAUMA CARE</span>
+            <h2>Nearby Hospitals & Emergency Departments</h2>
+            <p>Auto-detected nearest trauma centers sorted by distance. Tap to navigate.</p>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+            <button onclick="loadNearbyHospitals()" style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px;">
+                📍 Detect My Location & Find Hospitals
+            </button>
+            <span id="hospitalDetectStatus" style="font-size: 13px; color: #64748b;"></span>
+        </div>
+
+        <div id="nearbyHospitalsList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+            <div style="text-align:center; color:#94a3b8; padding: 30px; grid-column: 1/-1;">
+                Click "Detect My Location" to find nearest hospitals with available beds.
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         BLOOD BANK STOCK AVAILABILITY & URGENT DONOR DESK
+    ====================================================== -->
+    <section class="blood-bank-section" id="bloodBankSection" style="padding: 40px 5%; background: #ffffff; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+        <div class="section-heading">
+            <span style="color: #dc2626; font-weight: 800; letter-spacing: 1px; font-size: 11px;">LIFE SAVING RESOURCE</span>
+            <h2 style="font-size: 24px; font-weight: 900; color: #0f172a; margin: 4px 0 8px;">Gorakhpur Live Blood Bank Stock & Donor Desk</h2>
+            <p style="color: #64748b; font-size: 13.5px; max-width: 650px; margin: 0 auto 24px;">
+                Real-time stock units across BRD Medical College, AIIMS Gorakhpur, and District Blood Banks. Check availability or broadcast an emergency donor request.
+            </p>
+        </div>
+
+        <!-- Live Blood Units Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; max-width: 1100px; margin: 0 auto 30px;">
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">A+</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-A-pos">24 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #16a34a;">● Stock Normal</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">A-</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-A-neg">6 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #ea580c;">⚠️ Critical / Low</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">B+</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-B-pos">38 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #16a34a;">● Stock Normal</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">B-</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-B-neg">4 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #ea580c;">⚠️ Urgent Need</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">O+</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-O-pos">42 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #16a34a;">● Stock Normal</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">O-</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-O-neg">3 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #dc2626;">🚨 Critical Rare</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">AB+</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-AB-pos">15 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #16a34a;">● Stock Normal</div>
+            </div>
+            <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px; text-align: center;">
+                <div style="font-size: 20px; font-weight: 900; color: #dc2626;">AB-</div>
+                <div style="font-size: 26px; font-weight: 900; color: #1e293b; margin: 4px 0;" id="stock-AB-neg">2 <span style="font-size: 12px; font-weight: 600; color: #64748b;">units</span></div>
+                <div style="font-size: 11px; font-weight: 700; color: #dc2626;">🚨 Ultra Critical</div>
+            </div>
+        </div>
+
+        <!-- Urgent Blood Request & Donor Call Card -->
+        <div style="max-width: 900px; margin: 0 auto; background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%); border: 1px solid #bfdbfe; border-radius: 16px; padding: 22px 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="margin: 0; color: #1e3a8a; font-size: 16px; font-weight: 800;">🩸 Emergency Blood Request & Donor Network</h3>
+                    <p style="margin: 3px 0 0; font-size: 12.5px; color: #64748b;">Need blood urgently? Submit patient details to alert certified donors and municipal blood bank coordinators.</p>
+                </div>
+                <a href="tel:0551-2207777" style="background: #dc2626; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    📞 BRD Blood Bank 24/7
+                </a>
+            </div>
+
+            <form id="emergencyBloodForm" onsubmit="handleUrgentBloodSubmit(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: flex-end;">
+                <div>
+                    <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">PATIENT NAME</label>
+                    <input type="text" id="bloodPatientName" required placeholder="e.g. Ramesh Chandra" style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">REQUIRED BLOOD GROUP</label>
+                    <select id="bloodGroupReq" required style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+                        <option value="O+">O Positive (O+)</option>
+                        <option value="O-">O Negative (O-)</option>
+                        <option value="A+">A Positive (A+)</option>
+                        <option value="A-">A Negative (A-)</option>
+                        <option value="B+">B Positive (B+)</option>
+                        <option value="B-">B Negative (B-)</option>
+                        <option value="AB+">AB Positive (AB+)</option>
+                        <option value="AB-">AB Negative (AB-)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">HOSPITAL / LOCATION</label>
+                    <select id="bloodHospital" required style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+                        <option value="BRD Medical College">BRD Medical College</option>
+                        <option value="AIIMS Gorakhpur">AIIMS Gorakhpur</option>
+                        <option value="District Hospital (Nehru Chikitsalaya)">District Hospital (Nehru Chikitsalaya)</option>
+                        <option value="Metro Heart Care">Metro Heart Care</option>
+                        <option value="Other / Home Emergency">Other / Home Emergency</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">CONTACT NUMBER</label>
+                    <input type="tel" id="bloodContact" required placeholder="e.g. 9876543210" pattern="[0-9]{10}" style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+                </div>
+                <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 6px;">
+                    <button type="submit" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13.5px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                        🚨 Broadcast Urgent Blood Request
+                    </button>
+                </div>
+            </form>
+            <div id="bloodRequestResult" style="display: none; margin-top: 14px;"></div>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         SOS PANIC BUTTON WITH 5-SEC COUNTDOWN
+    ====================================================== -->
+    <section class="sos-panic-section" id="panicSection" style="padding: 40px 5%; background: linear-gradient(135deg, #1a0000 0%, #3b0000 100%); position: relative; overflow: hidden;">
+        <div style="max-width: 900px; margin: 0 auto; text-align: center; position: relative; z-index: 2;">
+            <div style="font-size: 12px; font-weight: 800; letter-spacing: 2px; color: #fca5a5; margin-bottom: 12px;">🚨 INSTANT SOS — NO LOGIN REQUIRED</div>
+            <h2 style="font-size: clamp(24px, 4vw, 40px); font-weight: 900; color: #ffffff; margin-bottom: 12px; line-height: 1.2;">
+                One-Tap SOS Emergency Broadcast
+            </h2>
+            <p style="color: #fca5a5; font-size: 15px; margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Your GPS location will be captured and instantly broadcast to the nearest emergency control room and all active response units.
+            </p>
+
+            <!-- PANIC BUTTON -->
+            <div style="position: relative; display: inline-block; margin-bottom: 30px;">
+                <div id="panicRing1" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 180px; height: 180px; border-radius: 50%; border: 3px solid rgba(239,68,68,0.4); animation: panicPulse 1.5s ease-out infinite;"></div>
+                <div id="panicRing2" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 210px; height: 210px; border-radius: 50%; border: 2px solid rgba(239,68,68,0.2); animation: panicPulse 1.5s ease-out infinite 0.5s;"></div>
+                <button id="panicSosBtn" onclick="initiatePanicSos()" style="width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, #dc2626, #991b1b); border: 4px solid #fff; color: #fff; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 0 40px rgba(220,38,38,0.8); letter-spacing: 1px; transition: transform 0.1s; position: relative; z-index: 3;">
+                    <div style="font-size: 32px; margin-bottom: 4px;">🆘</div>
+                    <div>SEND SOS</div>
+                    <div style="font-size: 10px; opacity: 0.8; margin-top: 2px;">TAP & HOLD 3s</div>
+                </button>
+            </div>
+
+            <!-- COUNTDOWN DISPLAY -->
+            <div id="panicCountdownBox" style="display:none; margin: 0 auto 20px; max-width: 400px; background: rgba(255,255,255,0.1); border: 2px solid #ef4444; border-radius: 16px; padding: 20px; backdrop-filter: blur(10px);">
+                <div style="font-size: 14px; color: #fca5a5; font-weight: 700; margin-bottom: 8px;">⚡ SOS DISPATCH INITIATING IN...</div>
+                <div id="panicCountdownNumber" style="font-size: 64px; font-weight: 900; color: #ffffff; line-height: 1;">3</div>
+                <div style="font-size: 12px; color: #fca5a5; margin-top: 8px;">Tap <strong>CANCEL</strong> to abort</div>
+                <button onclick="cancelPanicSos()" style="margin-top: 12px; background: rgba(255,255,255,0.2); border: 1px solid #ef4444; color: #fff; padding: 8px 24px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px;">✕ CANCEL SOS</button>
+            </div>
+
+            <!-- SOS RESULT -->
+            <div id="panicResultBox" style="display:none; margin: 0 auto; max-width: 500px;"></div>
+
+            <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 20px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 24px; font-weight: 900; color: #f87171;">112</div>
+                    <div style="font-size: 12px; color: #fca5a5;">Police / Emergency</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 24px; font-weight: 900; color: #f87171;">108</div>
+                    <div style="font-size: 12px; color: #fca5a5;">Ambulance</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 24px; font-weight: 900; color: #f87171;">101</div>
+                    <div style="font-size: 12px; color: #fca5a5;">Fire Department</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 24px; font-weight: 900; color: #f87171;">1077</div>
+                    <div style="font-size: 12px; color: #fca5a5;">Disaster Management</div>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes panicPulse {
+                0% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+            }
+        </style>
+    </section>
+
     <section
         class="map-section"
         id="map"
@@ -1173,6 +1372,93 @@
          EMERGENCY MODAL
     ====================================================== -->
 
+    
+    <!-- =====================================================
+         HOSPITAL NETWORK AMBULANCE DISPATCH & LIVE TRACKING MODAL
+    ====================================================== -->
+    <div
+        class="modal-overlay"
+        id="ambulanceModal"
+        style="display: none; align-items: center; justify-content: center; z-index: 5000;"
+    >
+        <div class="modal ambulance-modal-box">
+            <button
+                type="button"
+                class="close-btn"
+                onclick="closeAmbulanceModal()"
+                aria-label="Close Ambulance Modal"
+            >
+                ×
+            </button>
+
+            <div class="modal-icon" style="font-size: 32px; margin-bottom: 6px;">
+                🚑
+            </div>
+
+            <h2 style="margin: 0 0 6px;">
+                Ambulance Dispatch &amp; Live Tracking
+            </h2>
+
+            <p class="modal-subtitle" style="color: #94a3b8; font-size: 13px; margin: 0 0 16px;">
+                Connected to Gorakhpur Accredited Hospital Network (AIIMS, BRD Medical College, District Hospital) with real-time GPS telemetry and traffic green-wave priority.
+            </p>
+
+            <!-- Emergency request bar: capture patient location + destination hospital -->
+            <div id="ambulanceRequestBar" class="ambulance-request-bar">
+                <button type="button" class="emergency-request-btn" id="btnEmergencyRequest" onclick="startEmergencyRequest()">
+                    🚨 Request Emergency Ambulance (1-Click Auto Dispatch)
+                </button>
+                <div id="emergencyRequestPanel" class="emergency-request-panel" style="display:none;"></div>
+            </div>
+
+            <div id="ambulanceResult">
+                <!-- Map Container -->
+                <div id="ambulanceMap" class="ambulance-map"></div>
+
+                <!-- Live route / ETA / status panel for the ambulance currently being tracked -->
+                <div id="ambulanceRoutePanel" class="ambulance-route-panel"></div>
+
+                <!-- Active Hospital Fleet Directory -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin: 18px 0 10px;">
+                    <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #f8fafc;">
+                        Active Hospital Fleet Ambulances
+                    </h3>
+                    <span style="font-size: 12px; color: #10b981; font-weight: 600;">
+                        ● Live Telemetry Active
+                    </span>
+                </div>
+                <div id="ambulanceList" class="ambulance-list"></div>
+            </div>
+
+            <div class="ambulance-actions" style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button
+                    type="button"
+                    class="refresh-btn"
+                    onclick="refreshAmbulance()"
+                    style="flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; background: rgba(255, 255, 255, 0.1); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15);"
+                >
+                    🔄 Refresh Ambulances
+                </button>
+
+                <a
+                    href="../hospital/hospital.html"
+                    style="flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; background: #2563eb; color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                >
+                    🏥 View Hospital Beds
+                </a>
+
+                <button
+                    type="button"
+                    onclick="window.location.href='tel:108'"
+                    style="flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; background: #dc2626; color: #fff; border: 0;"
+                >
+                    📞 Call 108 Emergency
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     <div
         class="modal-overlay"
         id="emergencyModal"
@@ -1338,6 +1624,7 @@
     ></script>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
     <script src="../../components/ui_components.js"></script>
     <script src="../../components/smartcity_map.js"></script>
     <script src="../../components/ai_widget.js"></script>
@@ -1347,5 +1634,7 @@
     <script src="../../realtime.js"></script>
     <script src="emergency.js"></script>
 
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
 </body>
 </html>

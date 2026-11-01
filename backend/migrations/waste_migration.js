@@ -25,6 +25,7 @@ async function runWasteMigration() {
                 status ENUM('Empty', 'Normal', 'Nearly Full', 'Full', 'Overflowing', 'Under Maintenance', 'Inactive') DEFAULT 'Normal',
                 collection_schedule VARCHAR(100) DEFAULT 'Daily 07:00 AM',
                 route_id INT DEFAULT NULL,
+                access_passcode VARCHAR(100) DEFAULT 'BIN@2026',
                 last_emptied_at DATETIME DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -33,6 +34,26 @@ async function runWasteMigration() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
         `);
         console.log("✅ Table 'waste_bins' ready.");
+
+        // 1.1 Create waste_bin_telemetry table for IoT sensor data collection
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS waste_bin_telemetry (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                bin_code VARCHAR(50) NOT NULL,
+                fill_level INT NOT NULL DEFAULT 0,
+                distance_cm DECIMAL(5, 2) DEFAULT NULL,
+                weight_kg DECIMAL(6, 2) DEFAULT NULL,
+                people_count_delta INT DEFAULT 0,
+                cumulative_people_count INT DEFAULT 0,
+                temperature_c DECIMAL(4, 1) DEFAULT NULL,
+                gas_ppm DECIMAL(6, 2) DEFAULT NULL,
+                battery_pct INT DEFAULT 100,
+                lid_status ENUM('Closed', 'Open') DEFAULT 'Closed',
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_bin_telemetry (bin_code, timestamp)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+        console.log("✅ Table 'waste_bin_telemetry' ready.");
 
         // 2. Create waste_vehicles table if not exists
         await pool.query(`
@@ -132,6 +153,18 @@ async function runWasteMigration() {
                 await pool.query(col.sql);
                 console.log(`➕ Added column '${col.name}' to waste_bin_requests.`);
             }
+        }
+
+        // 6.1 Additive columns for waste_bins table (access_passcode)
+        try {
+            const [wbCols] = await pool.query("DESCRIBE waste_bins");
+            const existingWbCols = wbCols.map(c => c.Field);
+            if (!existingWbCols.includes("access_passcode")) {
+                await pool.query("ALTER TABLE waste_bins ADD COLUMN access_passcode VARCHAR(100) DEFAULT 'BIN@2026'");
+                console.log("➕ Added column 'access_passcode' to waste_bins.");
+            }
+        } catch (e) {
+            console.warn("Could not check/alter waste_bins access_passcode:", e.message);
         }
 
         // 7. Seed initial Gorakhpur default records if empty

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Bin Operator Terminal | SmartCity AI Gorakhpur</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet GIS Mini Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" href="waste.css">
+    <link rel="stylesheet" href="../../components/ui_components.css">
+    <link rel="stylesheet" href="bin_dashboard.css">
+
+    <script src="../../js/auth-helpers.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
+</head>
+
+<body class="bin-operator-body">
+
+<!-- ================= NAVBAR ================= -->
+<header class="navbar bin-navbar">
+    <a href="javascript:void(0)" class="logo" style="text-decoration:none; color:inherit; display: flex; align-items: center; gap: 8px;">
+        <img src="/logo.png" alt="SmartCity AI" style="height: 38px; width: auto;">
+        <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #059669;">City AI</span></span>
+        <small class="bin-badge">BIN OPERATOR</small>
+    </a>
+
+    <div class="bin-status-banner">
+        <span class="live-pulse"></span>
+        <span style="font-size: 12px; font-weight: 700; color: #065f46;" id="navBinStatusText">IOT SENSOR TELEMETRY LIVE</span>
+    </div>
+
+    <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
+        <div id="binUnitPill" class="bin-unit-pill">
+            <span style="font-size: 18px;">🗑️</span>
+            <div>
+                <strong id="headerBinCode" style="display:block; font-size:12px; line-height:1.2;">BIN-GOL-01</strong>
+                <small id="headerBinLocation" style="font-size:10px; color:#64748b;">Golghar Market Square, Ward 14</small>
+            </div>
+        </div>
+        <button class="btn btn-sm outline-btn" onclick="logoutBinStaff()" style="font-size: 11px; padding: 6px 12px;">
+            🚪 Lock & Sign Out
+        </button>
+    </div>
+</header>
+
+<!-- ================= RESTRICTED SINGLE-BIN WORKSPACE ================= -->
+<main class="bin-container">
+
+    <!-- RESTRICTION GUARD BANNER -->
+    <div class="bin-security-notice">
+        <span>🛡️ <strong>RESTRICTED ACCESS LEVEL:</strong> You are logged into dedicated hardware telemetry for unit <strong id="guardBinCode">BIN-GOL-01</strong>. Cross-bin access, worker dispatch, and city-wide administrative controls are strictly locked.</span>
+    </div>
+
+    <!-- MAIN TELEMETRY GRID -->
+    <div class="bin-telemetry-grid">
+
+        <!-- CARD 1: 3D CYLINDER FILL GAUGE & REAL-TIME CAPACITY -->
+        <section class="card bin-gauge-card">
+            <div class="section-head" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>📊</span> Volumetric Fill Level
+                </h3>
+                <span class="sensor-tag" id="sensorStatusTag">ONLINE • SENSING</span>
+            </div>
+
+            <!-- 3D CYLINDER CONTAINER -->
+            <div class="cylinder-wrapper">
+                <div class="cylinder-container">
+                    <div class="cylinder-body">
+                        <div class="cylinder-liquid" id="fillLiquid" style="height: 78%;">
+                            <div class="liquid-surface"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cylinder-metrics">
+                    <div class="metric-big" id="metricFillPct">78%</div>
+                    <div class="metric-caption">Current Capacity Utilized</div>
+                    <div class="metric-pill" id="thresholdStatusPill">⚠️ Approaching 80% Threshold</div>
+                    <small style="color: #64748b; margin-top: 8px; display: block;">Capacity: <strong id="metricCapacityLiters">500 Liters</strong></small>
+                </div>
+            </div>
+
+            <!-- FIDELITY TAG -->
+            <div class="fidelity-tag">
+                <span>📡 <strong>Sensor Stream:</strong> Calibrated Ultrasonic Depth Sensor (Hardware Seeded)</span>
+            </div>
+        </section>
+
+        <!-- CARD 2: IOT HARDWARE TELEMETRY & HARDWARE HEALTH -->
+        <section class="card bin-hardware-card">
+            <div class="section-head" style="margin-bottom: 14px;">
+                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>⚙️</span> IoT Diagnostics & Telemetry
+                </h3>
+                <small style="color: #64748b;">Sub-second edge microcontroller metrics</small>
+            </div>
+
+            <div class="hardware-metrics-grid">
+                <div class="hw-item">
+                    <span class="hw-icon">⚖️</span>
+                    <div>
+                        <div class="hw-label">Gross Waste Weight</div>
+                        <strong class="hw-val" id="metricWeightKg">114.2 kg</strong>
+                    </div>
+                </div>
+                <div class="hw-item">
+                    <span class="hw-icon">📏</span>
+                    <div>
+                        <div class="hw-label">Ultrasonic Headroom</div>
+                        <strong class="hw-val" id="metricDistanceCm">26.4 cm</strong>
+                    </div>
+                </div>
+                <div class="hw-item">
+                    <span class="hw-icon">🔋</span>
+                    <div>
+                        <div class="hw-label">Battery & Solar Level</div>
+                        <strong class="hw-val" id="metricBatteryPct">94% (Charging)</strong>
+                    </div>
+                </div>
+                <div class="hw-item">
+                    <span class="hw-icon">🌡️</span>
+                    <div>
+                        <div class="hw-label">Internal Temperature</div>
+                        <strong class="hw-val" id="metricTempC">29.8 °C</strong>
+                    </div>
+                </div>
+                <div class="hw-item">
+                    <span class="hw-icon">🚪</span>
+                    <div>
+                        <div class="hw-label">Lid Security Status</div>
+                        <strong class="hw-val" id="metricLidStatus">Closed & Locked</strong>
+                    </div>
+                </div>
+                <div class="hw-item">
+                    <span class="hw-icon">⏱️</span>
+                    <div>
+                        <div class="hw-label">Last Sensor Ping</div>
+                        <strong class="hw-val" id="metricLastPing">Just now</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOCATION MINI MAP -->
+            <div style="margin-top: 14px;">
+                <div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px;">📍 Verified GIS Installation Spot</div>
+                <div id="binMiniMap" class="bin-minimap-frame"></div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- LOWER SECTION: AI PREDICTIVE TIME-TO-FULL & EVACUATION DISPATCH -->
+    <div class="bin-bottom-grid">
+
+        <!-- CARD 3: AI TIME-TO-FULL PREDICTION -->
+        <section class="card bin-ai-card">
+            <div class="section-head" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>🧠</span> AI Predictive Overflow Analytics
+                </h3>
+                <span class="ai-badge">HISTORICAL REGRESSION</span>
+            </div>
+
+            <div class="ai-prediction-box" id="aiPredictionBox">
+                <div class="ai-time-banner">
+                    <span class="ai-icon">⏳</span>
+                    <div>
+                        <div class="ai-label">Estimated Time Until 100% Full</div>
+                        <div class="ai-time-val" id="aiEstimatedTime">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="ai-breakdown-grid">
+                    <div class="ai-sub-item">
+                        <small>Fill Rate</small>
+                        <strong id="aiFillRate">~14.2% / hr</strong>
+                    </div>
+                    <div class="ai-sub-item">
+                        <small>Predicted Overflow</small>
+                        <strong id="aiOverflowTime">Today at ~03:45 PM</strong>
+                    </div>
+                    <div class="ai-sub-item">
+                        <small>Telemetry Data Points</small>
+                        <strong id="aiDataPoints">6 Samples Verified</strong>
+                    </div>
+                </div>
+
+                <div class="ai-note">
+                    <small>🔍 <strong>AI Guard:</strong> If historical sensor data falls below 5 calibrated cycles, calculation automatically switches to <em>"Insufficient data"</em> to prevent fabricated estimates.</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARD 4: AUTOMATED EVACUATION & THRESHOLD DISPATCH -->
+        <section class="card bin-dispatch-card">
+            <div class="section-head" style="margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>🚨</span> Collection Request & Evacuation Dispatch
+                </h3>
+                <small style="color: #64748b;">Instant sync with Municipal Control Center</small>
+            </div>
+
+            <!-- ACTIVE REQUEST BANNER -->
+            <div id="activeRequestBanner" class="active-request-banner" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 24px;">🚛</span>
+                    <div>
+                        <strong id="reqStatusTitle" style="font-size: 13px; color: #0f172a;">Active Collection Request Underway</strong>
+                        <div style="font-size: 11px; color: #475569;" id="reqCycleToken">Cycle Token: CYC-BIN-GOL-01-...</div>
+                    </div>
+                </div>
+                <span class="status-badge status-IN_PROGRESS" id="reqStatusBadge">QUEUED</span>
+            </div>
+
+            <div class="threshold-info-box">
+                <div style="font-size: 12px; color: #334155; line-height: 1.5;">
+                    Threshold configured at <strong style="color: #b45309;">80% Capacity</strong>. Once the bin crosses this limit, the system dispatches an automated collection request to the Control Center.
+                </div>
+            </div>
+
+            <div class="dispatch-actions" style="margin-top: 14px;">
+                <button id="btnTriggerCollection" class="btn green-btn" onclick="triggerCollectionRequest()" style="width: 100%; padding: 12px; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span>🚨</span> Request Immediate Collection From Control Center
+                </button>
+                <div id="dispatchMsg" style="font-size: 11px; margin-top: 8px; text-align: center; color: #64748b;"></div>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="bin_dashboard.js"></script>
+
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
+</body>
+</html>
+

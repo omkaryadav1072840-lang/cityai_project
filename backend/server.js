@@ -37,6 +37,7 @@ const ambulanceRoutes = require("./routes/ambulance.routes");
 const emergencyRoutes = require("./routes/emergency.routes");
 const pharmacyRoutes = require("./routes/pharmacy.routes");
 const wasteRoutes = require("./routes/waste.routes");
+const wasteWorkforceRoutes = require("./routes/waste_workforce.routes");
 const parkingRoutes = require("./routes/parking.routes");
 const waterRoutes = require("./routes/water.routes");
 const policeRoutes = require("./routes/police.routes");
@@ -52,6 +53,7 @@ const searchRoutes = require("./routes/search.routes");
 const mapRoutes = require("./routes/map.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
 const clinicalCareRoutes = require("./routes/clinical_care_assistant.routes");
+const bloodBankRoutes = require("./routes/blood_bank.routes");
 const trafficEngine = require("./services/traffic_engine");
 const slaEngine = require("./services/sla_engine");
 
@@ -80,9 +82,52 @@ const { inputSanitizer } = require("./middleware/validation.middleware");
 // =========================================================
 
 const app = express();
+app.disable("x-powered-by");
 if (TRUST_PROXY !== false) {
     app.set("trust proxy", TRUST_PROXY);
 }
+
+// =========================================================
+// HIGH-PERFORMANCE HTTP COMPRESSION (GZIP / DEFLATE)
+// Slashes HTML, JSON, CSS, and JS transfer payloads by 70-85%
+// =========================================================
+const zlib = require("zlib");
+app.use((req, res, next) => {
+    const accept = req.headers["accept-encoding"] || "";
+    if (!accept.includes("gzip") && !accept.includes("deflate")) return next();
+
+    const oldSend = res.send;
+    res.send = function (body) {
+        if (res.headersSent || !body) return oldSend.call(this, body);
+        if (res.getHeader("Content-Encoding")) return oldSend.call(this, body);
+
+        let buf;
+        if (Buffer.isBuffer(body)) {
+            buf = body;
+        } else if (typeof body === "string") {
+            buf = Buffer.from(body);
+        } else if (typeof body === "object") {
+            buf = Buffer.from(JSON.stringify(body));
+            res.setHeader("Content-Type", "application/json; charset=utf-8");
+        } else {
+            return oldSend.call(this, body);
+        }
+
+        if (buf.length < 1024) return oldSend.call(this, body);
+
+        const useGzip = accept.includes("gzip");
+        try {
+            const compressed = useGzip ? zlib.gzipSync(buf, { level: 6 }) : zlib.deflateSync(buf, { level: 6 });
+            res.setHeader("Content-Encoding", useGzip ? "gzip" : "deflate");
+            res.setHeader("Content-Length", compressed.length);
+            return res.end(compressed);
+        } catch (e) {
+            return oldSend.call(this, body);
+        }
+    };
+    next();
+});
+
 const server = http.createServer(app);
 
 // Explicit CORS Origin Allowlists
@@ -190,11 +235,12 @@ app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
     }
 
     const jwt = require("jsonwebtoken");
+    const { isTokenRevoked, isUserSessionRevoked } = require("./middleware/auth.middleware");
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
-        if (err) {
+        if (err || isTokenRevoked(token) || (decoded && isUserSessionRevoked(decoded.id, decoded.iat))) {
             return res.status(403).json({
                 success: false,
-                message: "Invalid or expired authorization token."
+                message: "Invalid, expired, or revoked authorization token."
             });
         }
         req.user = decoded;
@@ -205,18 +251,40 @@ app.use(["/uploads/prescriptions", "/uploads/reports"], (req, res, next) => {
 // Serve static uploaded files (civic photos, authenticated medical records, etc.)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Serve static frontend files (dashboard, subpages, CSS, JS, media)
+// Serve static frontend files with smart caching tuned for 1,000+ concurrent visitors
 const staticOptions = {
+    maxAge: "1d",
+    etag: true,
     setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+        if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
+            // HTML and Service Worker always validated so users get instant UI updates
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
+            if (filePath.endsWith('sw.js')) {
+                res.setHeader('Service-Worker-Allowed', '/');
+            }
+        } else if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            // CSS/JS cached with ETag revalidation, slashing bandwidth for 1,000 visitors
+            res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+        } else if (filePath.match(/\.(png|jpe?g|gif|svg|ico|webp|woff2?)$/i)) {
+            // Static media assets cached aggressively
+            res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
         }
     }
 };
 app.use(express.static(path.join(__dirname, "..", "frontend"), staticOptions));
 app.use("/frontend", express.static(path.join(__dirname, "..", "frontend"), staticOptions));
+
+// Explicit route to serve canonical SmartCity AI logo
+app.get(["/logo.png", "/logo1.png"], (req, res) => {
+    const rootLogo = path.join(__dirname, "..", "logo1.png");
+    const frontLogo = path.join(__dirname, "..", "frontend", "logo.png");
+    if (fs.existsSync(rootLogo)) return res.sendFile(rootLogo);
+    return res.sendFile(frontLogo);
+});
+
+// Tune HTTP keep-alive timeouts to prevent 502/socket hang-ups during peak concurrency
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
 
 // Modular Socket.io real-time handler
 const { initSockets } = require("./sockets/index");
@@ -349,6 +417,7 @@ app.use(ambulanceRoutes);
 app.use(emergencyRoutes);
 app.use(pharmacyRoutes);
 app.use(wasteRoutes);
+app.use(wasteWorkforceRoutes);
 app.use(parkingRoutes);
 app.use(waterRoutes);
 app.use(policeRoutes);
@@ -364,6 +433,7 @@ app.use(searchRoutes);
 app.use(mapRoutes);
 app.use(analyticsRoutes);
 app.use(clinicalCareRoutes);
+app.use(bloodBankRoutes);
 
 
 // =========================================================
@@ -383,6 +453,25 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 server.listen(PORT, HOST, () => {
     console.log(`🚀 SmartCity AI Backend running at http://localhost:${PORT}`);
+    
+    // Detect LAN IP for instant Mobile / PWA testing on physical devices
+    const os = require('os');
+    const ifaces = os.networkInterfaces();
+    let lanIp = null;
+    for (const dev in ifaces) {
+        for (const details of ifaces[dev]) {
+            if (details.family === 'IPv4' && !details.internal) {
+                lanIp = details.address;
+                break;
+            }
+        }
+        if (lanIp) break;
+    }
+    if (lanIp) {
+        console.log(`📱 [Mobile / PWA Live]: http://${lanIp}:${PORT}`);
+        console.log(`💡 [College Demo]: Connect your phone to Wi-Fi/Hotspot & open the URL above to install & demo the app!`);
+    }
+
     console.log(`📡 Socket.IO real-time server running`);
     trafficEngine.setSocketIO(io);
     trafficEngine.start();
@@ -391,6 +480,14 @@ server.listen(PORT, HOST, () => {
         ambulanceSimulator.startSimulation().catch(err => {
             console.warn("Ambulance simulation init warning:", err.message);
         });
+    }
+    try {
+        const { runWorkforceMigration } = require("./migrations/waste_workforce_migration");
+        runWorkforceMigration().catch(err => {
+            console.warn("Waste workforce auto-migration notice:", err.message);
+        });
+    } catch (migErr) {
+        console.warn("Could not load workforce migration:", migErr.message);
     }
 });
 

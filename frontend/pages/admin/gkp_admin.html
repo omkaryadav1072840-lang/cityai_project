@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="gkp_admin.css">
     <!-- Auth Helpers -->
     <script src="../../js/auth-helpers.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
 
@@ -18,7 +20,7 @@
     <header class="navbar" role="banner">
         <div class="nav-left">
             <a href="../../index.html" class="logo" id="brandLogoLink" title="Return to SmartCity AI Home Portal" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
-                <img src="/ChatGPT_Image_Aug_11__2026__11_27_44_PM-removebg-preview.png" alt="SmartCity AI" style="height: 40px; width: auto;">
+                <img src="/logo.png" alt="SmartCity AI" style="height: 40px; width: auto;">
                 <span style="font-size: 25px; font-weight: 800; letter-spacing: -0.5px; color: #172033;">Smart<span style="color: #2563eb;">City AI</span></span>
             </a>
             <span class="admin-tag">👑 GKP SUPER ADMIN COMMAND</span>
@@ -551,5 +553,7 @@
     <!-- Universal Scripts -->
     <script src="../../auth.js"></script>
     <script src="gkp_admin.js"></script>
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
 </body>
 </html>

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Bank & Emergency Transfusion Services | SmartCity AI Gorakhpur</title>
+    <meta name="description" content="Gorakhpur Municipal Blood Bank and Emergency Blood Management System. Real-time verified blood availability, emergency donor matching, and hospital blood center coordination.">
+    
+    <!-- Design & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../index.css">
+    <link rel="stylesheet" href="hospital.css">
+    <link rel="stylesheet" href="blood_bank.css">
+    <link rel="icon" type="image/png" href="../../logo1.png">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body class="blood-bank-body">
+
+    <!-- Top Enterprise Navigation Bar -->
+    <header class="bb-navbar">
+        <div class="bb-nav-container">
+            <div class="bb-brand">
+                <a href="hospital.html" class="bb-back-link" title="Return to Hospital Portal" aria-label="Return to Hospital Portal">
+                    <svg class="bb-back-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span class="bb-back-text">Hospital Portal</span>
+                </a>
+                <div class="bb-brand-divider"></div>
+                <img src="../../logo1.png" alt="Gorakhpur SmartCity AI Logo" class="bb-logo" onerror="this.src='../../logo.png'">
+                <div class="bb-brand-text">
+                    <div class="bb-brand-title-row">
+                        <h1>Gorakhpur Blood Bank Network</h1>
+                        <span class="bb-network-badge">HEALTHCARE NETWORK</span>
+                    </div>
+                    <span class="bb-tagline">Integrated Emergency Transfusion &amp; Voluntary Donor Registry</span>
+                </div>
+            </div>
+
+            <div class="bb-nav-actions">
+                <div class="bb-live-pill" title="Real-time cold-chain telemetry active across Gorakhpur blood centers">
+                    <span class="bb-pulse-dot"></span>
+                    <span class="bb-live-text">Live Telemetry Active</span>
+                </div>
+                <button type="button" class="bb-btn bb-btn-emergency" onclick="openEmergencyRequestModal()">
+                    <span class="bb-btn-icon">🚨</span>
+                    <span>Request Emergency Blood</span>
+                </button>
+                <button type="button" class="bb-btn bb-btn-donor" onclick="openDonorModal()">
+                    <span class="bb-btn-icon">🩸</span>
+                    <span>Register as Donor</span>
+                </button>
+                <!-- Official Target for SmartCity auth.js Account / Staff Controls -->
+                <div id="navUserHeaderContainer" class="nav-right bb-auth-mount"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="bb-main">
+
+        <!-- Emergency Alert Notification Strip -->
+        <div class="bb-emergency-strip" id="emergencyBanner" role="region" aria-label="Gorakhpur Blood Emergency Hotline">
+            <div class="bb-strip-inner">
+                <div class="bb-strip-left">
+                    <span class="bb-strip-icon-badge">🚨</span>
+                    <div class="bb-strip-text">
+                        <span class="bb-strip-title">Gorakhpur Municipal Blood Emergency Hotline:</span>
+                        <span class="bb-strip-desc">Dial <a href="tel:108" class="bb-phone-link">108</a> or <a href="tel:05512207701" class="bb-phone-link">0551-2207701</a> (AIIMS Regional Transfusion Center) for immediate trauma, obstetric, or surgical emergency cross-matching.</span>
+                    </div>
+                </div>
+                <div class="bb-strip-right">
+                    <button type="button" class="bb-strip-cta-btn" onclick="openEmergencyRequestModal()">
+                        <span>Fast-Track Emergency Request →</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section A: Overview Metrics -->
+        <section class="bb-overview-grid" aria-label="System Overview Metrics">
+            <div class="bb-stat-card">
+                <div class="bb-stat-card-top">
+                    <span class="bb-stat-icon-wrap blue-wrap">🏥</span>
+                    <span class="bb-stat-metric-tag">REGIONAL NETWORK</span>
+                </div>
+                <div class="bb-stat-info">
+                    <div class="bb-stat-num" id="statVerifiedHospitals">3</div>
+                    <div class="bb-stat-label">Verified Blood Bank Facilities</div>
+                    <div class="bb-stat-sub">AIIMS, BRD &amp; Sadar Hospital</div>
+                </div>
+            </div>
+
+            <div class="bb-stat-card">
+                <div class="bb-stat-card-top">
+                    <span class="bb-stat-icon-wrap red-wrap">🩸</span>
+                    <span class="bb-stat-metric-tag">COLD-CHAIN UNITS</span>
+                </div>
+                <div class="bb-stat-info">
+                    <div class="bb-stat-num" id="statAvailableUnits">102</div>
+                    <div class="bb-stat-label">Verified Available Units</div>
+                    <div class="bb-stat-sub">Screened, non-expired cold-chain units</div>
+                </div>
+            </div>
+
+            <div class="bb-stat-card">
+                <div class="bb-stat-card-top">
+                    <span class="bb-stat-icon-wrap purple-wrap">🔬</span>
+                    <span class="bb-stat-metric-tag">TYPING COVERAGE</span>
+                </div>
+                <div class="bb-stat-info">
+                    <div class="bb-stat-num" id="statBloodGroupsAvailable">8 / 8 Active</div>
+                    <!-- Hidden element kept for backwards compatibility with any legacy script checking statUniversalUnits -->
+                    <span id="statUniversalUnits" style="display: none;">--</span>
+                    <div class="bb-stat-label">Blood Groups Available</div>
+                    <div class="bb-stat-sub">ABO &amp; Rh(D) typed inventory ready</div>
+                </div>
+            </div>
+
+            <div class="bb-stat-card">
+                <div class="bb-stat-card-top">
+                    <span class="bb-stat-icon-wrap green-wrap">❤️</span>
+                    <span class="bb-stat-metric-tag">VOLUNTARY DONORS</span>
+                </div>
+                <div class="bb-stat-info">
+                    <div class="bb-stat-num" id="statVoluntaryDonors">24</div>
+                    <div class="bb-stat-label">Registered Voluntary Donors</div>
+                    <div class="bb-stat-sub">Confidential on-call life-savers</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs: Executive Segmented Control -->
+        <div class="bb-tabs-wrapper">
+            <div class="bb-tabs-bar" role="tablist" aria-label="Portal Navigation Tabs">
+                <button type="button" class="bb-tab active" id="tabAvailability" onclick="switchMainTab('availability')" role="tab" aria-selected="true">
+                    <span class="bb-tab-icon">🔍</span>
+                    <span class="bb-tab-title">Live Blood Availability &amp; Search</span>
+                    <span class="bb-tab-badge">Verified Stock</span>
+                </button>
+                <button type="button" class="bb-tab" id="tabMyRequests" onclick="switchMainTab('myRequests')" role="tab" aria-selected="false">
+                    <span class="bb-tab-icon">📋</span>
+                    <span class="bb-tab-title">My Requests &amp; Live Tracking</span>
+                    <span class="bb-badge-counter" id="myReqCounter" style="display:none;">0</span>
+                </button>
+                <button type="button" class="bb-tab" id="tabDonorProfile" onclick="switchMainTab('donorProfile')" role="tab" aria-selected="false">
+                    <span class="bb-tab-icon">❤️</span>
+                    <span class="bb-tab-title">Voluntary Donor Registry</span>
+                </button>
+                <button type="button" class="bb-tab bb-tab-staff" id="tabStaffConsole" onclick="switchMainTab('staffConsole')" role="tab" aria-selected="false" style="display: none;">
+                    <span class="bb-tab-icon">🛡️</span>
+                    <span class="bb-tab-title">Staff Operations Console</span>
+                    <span class="bb-tab-badge bb-staff-tag">STAFF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- =============================================================
+             VIEW 1: LIVE BLOOD AVAILABILITY & SEARCH
+        ============================================================= -->
+        <section id="viewAvailability" class="bb-view-section active">
+            
+            <!-- Filters Card -->
+            <div class="bb-filters-panel">
+                <div class="bb-filters-header">
+                    <div>
+                        <h3>Find Verified Blood Inventory</h3>
+                        <p class="bb-filters-subtext">Search verified blood inventory across participating Gorakhpur blood-bank facilities.</p>
+                    </div>
+                    <button type="button" class="bb-btn-reset-filters" onclick="resetAvailabilityFilters()">
+                        <span>↺</span> Reset Filters
+                    </button>
+                </div>
+                
+                <div class="bb-filters-grid">
+                    <div class="bb-filter-group">
+                        <label for="filterBloodGroup">Blood Group</label>
+                        <select id="filterBloodGroup" onchange="applyAvailabilityFilters()">
+                            <option value="">All Blood Groups (8 Groups)</option>
+                            <option value="A+">A+ (A Positive)</option>
+                            <option value="A-">A- (A Negative)</option>
+                            <option value="B+">B+ (B Positive)</option>
+                            <option value="B-">B- (B Negative)</option>
+                            <option value="AB+">AB+ (AB Positive)</option>
+                            <option value="AB-">AB- (AB Negative)</option>
+                            <option value="O+">O+ (O Positive)</option>
+                            <option value="O-">O- (O Negative)</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-filter-group">
+                        <label for="filterComponent">Component Type</label>
+                        <select id="filterComponent" onchange="applyAvailabilityFilters()">
+                            <option value="">All Standard Components</option>
+                            <option value="PRBC">Packed Red Blood Cells (PRBC)</option>
+                            <option value="Whole Blood">Whole Blood</option>
+                            <option value="Platelets">Platelets (Random / Single Donor)</option>
+                            <option value="FFP">Fresh Frozen Plasma (FFP)</option>
+                            <option value="Cryoprecipitate">Cryoprecipitate</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-filter-group">
+                        <label for="filterHospital">Hospital Blood Bank</label>
+                        <select id="filterHospital" onchange="applyAvailabilityFilters()">
+                            <option value="">All Verified Facilities</option>
+                            <option value="HOSP-001">AIIMS Gorakhpur Regional Blood Center</option>
+                            <option value="HOSP-002">BRD Medical College Blood Bank</option>
+                            <option value="HOSP-003">District Hospital Sadar Blood Center</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-filter-group">
+                        <label for="filterAvailabilityStatus">Stock Status</label>
+                        <select id="filterAvailabilityStatus" onchange="applyAvailabilityFilters()">
+                            <option value="">All Stock States</option>
+                            <option value="available">Available (≥ 5 Units)</option>
+                            <option value="limited">Limited Availability (1–4 Units)</option>
+                            <option value="critical">Critical / Low Stock (&lt; 3 Units)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Blood Group Quick Selector Pills -->
+                <div class="bb-quick-pills-row">
+                    <span class="bb-quick-label">Quick Blood Group:</span>
+                    <div class="bb-quick-pills">
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('A+')">A+</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('A-')">A-</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('B+')">B+</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('B-')">B-</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('AB+')">AB+</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('AB-')">AB-</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('O+')">O+</button>
+                        <button type="button" class="bb-pill" onclick="quickSelectGroup('O-')">O-</button>
+                    </div>
+                </div>
+
+                <!-- Clinical Guidance Note -->
+                <div class="bb-clinical-guidance">
+                    <span class="bb-guidance-icon">ℹ️</span>
+                    <span><strong>Clinical Guidance:</strong> Final transfusion compatibility must be confirmed by qualified blood-bank professionals through appropriate laboratory testing and cross-matching.</span>
+                </div>
+            </div>
+
+            <!-- Inventory Grid Container -->
+            <div class="bb-inventory-header-row">
+                <div>
+                    <h2 id="inventoryResultsTitle">Verified Blood Inventory</h2>
+                    <p class="bb-inventory-subtext">Real-time cold-chain stock verified against active laboratory batch records across Gorakhpur regional centers.</p>
+                </div>
+                <div class="bb-meta-note">
+                    <span class="bb-verified-check">🛡️</span> Stock dynamically verified against active laboratory batch records
+                </div>
+            </div>
+
+            <div id="availabilityLoader" class="bb-loader" style="display: none;">
+                <div class="bb-spinner"></div>
+                <p>Querying verified blood bank databases across Gorakhpur...</p>
+            </div>
+
+            <div id="availabilityEmptyState" class="bb-empty-card" style="display: none;">
+                <div class="bb-empty-icon">🩸</div>
+                <h3>No Matching Blood Inventory Found</h3>
+                <p>Currently no verified available units match your selected filter criteria. Please consider alternative components or submit an Emergency Request for urgent procurement.</p>
+                <button type="button" class="bb-btn bb-btn-emergency" onclick="openEmergencyRequestModal()">Create Emergency Blood Request</button>
+            </div>
+
+            <div id="availabilityGrid" class="bb-cards-grid">
+                <!-- Dynamically populated cards -->
+            </div>
+
+            <!-- Compatibility and Clinical Disclaimer -->
+            <div class="bb-disclaimer-box">
+                <h4>⚠️ Transfusion Safety &amp; Compatibility Protocol</h4>
+                <p>
+                    Blood availability displayed on this portal reflects verified, screened units physically present in authorized hospital cold storage. 
+                    <strong>Compatibility determination:</strong> Transfusion compatibility (including ABO subtyping, Rh phenotype, antibody screening, and cross-matching) must be conducted and validated by certified medical transfusion specialists at the receiving healthcare facility prior to administration. Software queries filter candidate stock but do not authorize transfusion.
+                </p>
+            </div>
+        </section>
+
+        <!-- =============================================================
+             VIEW 2: MY REQUESTS & LIVE REQUEST TRACKING
+        ============================================================= -->
+        <section id="viewMyRequests" class="bb-view-section" style="display: none;">
+            <div class="bb-section-head">
+                <div>
+                    <h2>My Blood Requests &amp; Live Tracking</h2>
+                    <p class="bb-subtext">Track real-time review, verification, unit reservation, and collection status for your patients.</p>
+                </div>
+                <button type="button" class="bb-btn bb-btn-primary" onclick="openEmergencyRequestModal()">
+                    <span>➕ New Blood Request</span>
+                </button>
+            </div>
+
+            <!-- Quick Track By Reference Input -->
+            <div class="bb-tracker-search-box">
+                <input type="text" id="trackReferenceInput" placeholder="Enter Request Reference (e.g. REQ-BLD-2026-9481)" aria-label="Request Reference">
+                <button type="button" class="bb-btn bb-btn-primary" onclick="trackRequestByRef()">Track Status</button>
+            </div>
+
+            <!-- Active Track Modal/Panel -->
+            <div id="activeTrackingContainer" style="display: none;" class="bb-tracking-card">
+                <!-- Populated dynamically with full multi-stage progress timeline -->
+            </div>
+
+            <!-- Requests Table / List -->
+            <div id="myRequestsContainer" class="bb-requests-list">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- =============================================================
+             VIEW 3: VOLUNTARY DONOR PROFILE & CONSENT
+        ============================================================= -->
+        <section id="viewDonorProfile" class="bb-view-section" style="display: none;">
+            <div class="bb-donor-profile-container">
+                <div class="bb-donor-card" id="donorProfileCard">
+                    <!-- Populated dynamically: either Registered Profile or Registration Prompt -->
+                </div>
+                
+                <div class="bb-donor-info-panel">
+                    <h3>Voluntary Blood Donation Guidelines</h3>
+                    <ul class="bb-guide-list">
+                        <li><strong>Age Eligibility:</strong> Donors must be aged between 18 and 65 years.</li>
+                        <li><strong>Weight &amp; Hemoglobin:</strong> Minimum weight of 45 kg and Hb level &ge; 12.5 g/dL.</li>
+                        <li><strong>Donation Intervals:</strong> Minimum 90 days between whole blood donations for males, 120 days for females.</li>
+                        <li><strong>Privacy Guarantee:</strong> Your contact telephone number is stored confidentially and is never made publicly searchable. Authorized hospital phlebotomy staff will contact you only when an exact emergency match arises.</li>
+                        <li><strong>Consent Revocation:</strong> You retain the full legal right to pause availability or withdraw donor consent at any time without penalty.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- =============================================================
+             VIEW 4: STAFF & ADMIN COMMAND CENTER
+        ============================================================= -->
+        <section id="viewStaffConsole" class="bb-view-section" style="display: none;">
+            <div class="bb-staff-header">
+                <div class="bb-staff-title-group">
+                    <span class="bb-badge-staff">HOSPITAL MEDICAL STAFF CONSOLE</span>
+                    <h2 id="staffHospitalNameTitle">Blood Center Operations &amp; Inventory Ledger</h2>
+                </div>
+                <div class="bb-staff-actions">
+                    <button type="button" class="bb-btn bb-btn-secondary" onclick="openAddUnitModal()">➕ Accession New Blood Unit</button>
+                    <button type="button" class="bb-btn bb-btn-secondary" onclick="refreshStaffData()">🔄 Refresh Console</button>
+                </div>
+            </div>
+
+            <!-- Staff Sub-tabs -->
+            <div class="bb-subtabs-row">
+                <button type="button" class="bb-subtab active" onclick="switchStaffSubTab('inventory')">📦 Unit Inventory Ledger</button>
+                <button type="button" class="bb-subtab" onclick="switchStaffSubTab('requests')">🚨 Request Queue &amp; Fulfillment</button>
+                <button type="button" class="bb-subtab" onclick="switchStaffSubTab('expiry')">⚠️ Expiry &amp; Quarantine Alerts</button>
+                <button type="button" class="bb-subtab" onclick="switchStaffSubTab('donors')">👥 Voluntary Donor Roster</button>
+                <button type="button" class="bb-subtab" onclick="switchStaffSubTab('reports')">📊 Analytics &amp; Wastage Audit</button>
+            </div>
+
+            <!-- Subtab A: Inventory Ledger -->
+            <div id="staffSubInventory" class="bb-staff-subpanel active">
+                <div class="bb-table-card">
+                    <div class="bb-table-tools">
+                        <input type="text" id="staffInvSearch" placeholder="Search by Unit Barcode, Blood Group, Batch..." oninput="filterStaffInventoryTable()">
+                        <select id="staffInvGroupFilter" onchange="filterStaffInventoryTable()">
+                            <option value="">All Groups</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                        <select id="staffInvStatusFilter" onchange="filterStaffInventoryTable()">
+                            <option value="">All Statuses</option>
+                            <option value="AVAILABLE">Available</option>
+                            <option value="RESERVED">Reserved</option>
+                            <option value="ISSUED">Issued</option>
+                            <option value="EXPIRED">Expired</option>
+                            <option value="QUARANTINED">Quarantined</option>
+                            <option value="DISCARDED">Discarded</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-table-wrapper">
+                        <table class="bb-data-table" id="staffInventoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Unit Barcode</th>
+                                    <th>Group</th>
+                                    <th>Component</th>
+                                    <th>Volume</th>
+                                    <th>Collection</th>
+                                    <th>Expiry</th>
+                                    <th>Storage Location</th>
+                                    <th>Screening</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffInventoryTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subtab B: Request Queue -->
+            <div id="staffSubRequests" class="bb-staff-subpanel" style="display: none;">
+                <div class="bb-table-card">
+                    <div class="bb-table-tools">
+                        <input type="text" id="staffReqSearch" placeholder="Search Patient, Ref No, Phone..." oninput="filterStaffRequestsTable()">
+                        <select id="staffReqPriorityFilter" onchange="filterStaffRequestsTable()">
+                            <option value="">All Priorities</option>
+                            <option value="Emergency">🚨 Emergency Only</option>
+                            <option value="Urgent">⚡ Urgent</option>
+                            <option value="Routine">Routine</option>
+                        </select>
+                        <select id="staffReqStatusFilter" onchange="filterStaffRequestsTable()">
+                            <option value="">All Statuses</option>
+                            <option value="SUBMITTED">Submitted</option>
+                            <option value="UNDER_REVIEW">Under Review</option>
+                            <option value="VERIFIED">Verified</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="RESERVED">Reserved</option>
+                            <option value="READY_FOR_COLLECTION">Ready For Collection</option>
+                            <option value="FULFILLED">Fulfilled</option>
+                            <option value="REJECTED">Rejected</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-table-wrapper">
+                        <table class="bb-data-table" id="staffRequestsTable">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Priority</th>
+                                    <th>Patient</th>
+                                    <th>Group &amp; Comp</th>
+                                    <th>Units</th>
+                                    <th>Required At</th>
+                                    <th>Contact</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffRequestsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subtab C: Expiry & Safety Alerts -->
+            <div id="staffSubExpiry" class="bb-staff-subpanel" style="display: none;">
+                <div class="bb-expiry-dashboard" id="staffExpiryDashboard">
+                    <!-- Populated dynamically with near-expiry cards and quarantine controls -->
+                </div>
+            </div>
+
+            <!-- Subtab D: Donors -->
+            <div id="staffSubDonors" class="bb-staff-subpanel" style="display: none;">
+                <div class="bb-table-card">
+                    <div class="bb-table-wrapper">
+                        <table class="bb-data-table">
+                            <thead>
+                                <tr>
+                                    <th>Donor Code</th>
+                                    <th>Name</th>
+                                    <th>Age/Gender</th>
+                                    <th>Blood Group</th>
+                                    <th>Locality</th>
+                                    <th>Availability</th>
+                                    <th>Status</th>
+                                    <th>Consent</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffDonorsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subtab E: Reports & Analytics -->
+            <div id="staffSubReports" class="bb-staff-subpanel" style="display: none;">
+                <div class="bb-reports-grid" id="staffReportsContainer">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- =============================================================
+         MODAL 1: EMERGENCY BLOOD REQUEST FORM
+    ============================================================= -->
+    <div id="modalEmergencyRequest" class="bb-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalReqTitle" onclick="handleEmergencyModalOverlayClick(event)">
+        <div class="bb-modal-box bb-modal-request-dialog" onclick="event.stopPropagation()">
+            <!-- Sticky Modal Header -->
+            <div class="bb-modal-header">
+                <div>
+                    <span class="bb-badge-emergency">OFFICIAL BLOOD TRANSFUSION REQUEST</span>
+                    <h2 id="modalReqTitle">Emergency Blood Request</h2>
+                    <p class="bb-modal-subtitle">Submit patient and blood requirements for immediate verification by authorized hospital blood bank officers.</p>
+                </div>
+                <button type="button" class="bb-modal-close" onclick="closeEmergencyRequestModal()" aria-label="Close modal">✕</button>
+            </div>
+
+            <form id="emergencyRequestForm" onsubmit="handleEmergencyRequestSubmit(event)">
+                <!-- Scrollable Body with 5 Structured Sections -->
+                <div class="bb-modal-body">
+                    
+                    <!-- SECTION A: PATIENT INFORMATION -->
+                    <div class="bb-form-section">
+                        <div class="bb-form-section-title">
+                            <span class="bb-section-badge">A</span>
+                            <span>Patient Information</span>
+                        </div>
+                        <div class="bb-form-grid-2col">
+                            <div class="bb-input-field">
+                                <label for="reqPatientName">Patient Full Name <span class="bb-required">*</span></label>
+                                <input type="text" id="reqPatientName" required placeholder="e.g. Ramesh Kumar" autocomplete="name">
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqRelationship">Relationship to Patient <span class="bb-required">*</span></label>
+                                <select id="reqRelationship" required>
+                                    <option value="Self">Self</option>
+                                    <option value="Spouse">Spouse</option>
+                                    <option value="Parent">Parent</option>
+                                    <option value="Child">Child</option>
+                                    <option value="Sibling">Sibling</option>
+                                    <option value="Relative">Relative</option>
+                                    <option value="Attendant">Attendant / Hospital Caregiver</option>
+                                </select>
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqPatientAge">Patient Age (Years)</label>
+                                <input type="number" id="reqPatientAge" min="0" max="120" placeholder="e.g. 42">
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqPatientGender">Gender</label>
+                                <select id="reqPatientGender">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION B: BLOOD REQUIREMENTS -->
+                    <div class="bb-form-section">
+                        <div class="bb-form-section-title">
+                            <span class="bb-section-badge">B</span>
+                            <span>Blood Requirements</span>
+                        </div>
+                        <div class="bb-form-grid-2col">
+                            <div class="bb-input-field">
+                                <label for="reqBloodGroup">Required Blood Group <span class="bb-required">*</span></label>
+                                <select id="reqBloodGroup" required>
+                                    <option value="">Select Blood Group</option>
+                                    <option value="A+">A+ (A Positive)</option>
+                                    <option value="A-">A- (A Negative)</option>
+                                    <option value="B+">B+ (B Positive)</option>
+                                    <option value="B-">B- (B Negative)</option>
+                                    <option value="AB+">AB+ (AB Positive)</option>
+                                    <option value="AB-">AB- (AB Negative)</option>
+                                    <option value="O+">O+ (O Positive)</option>
+                                    <option value="O-">O- (O Negative)</option>
+                                </select>
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqComponent">Required Component <span class="bb-required">*</span></label>
+                                <select id="reqComponent" required>
+                                    <option value="PRBC">Packed Red Blood Cells (PRBC)</option>
+                                    <option value="Whole Blood">Whole Blood</option>
+                                    <option value="Platelets">Platelets</option>
+                                    <option value="FFP">Fresh Frozen Plasma (FFP)</option>
+                                    <option value="Cryoprecipitate">Cryoprecipitate</option>
+                                </select>
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqUnits">Number of Units (1 to 10) <span class="bb-required">*</span></label>
+                                <input type="number" id="reqUnits" min="1" max="10" value="1" required>
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqHospital">Target Hospital Blood Center <span class="bb-required">*</span></label>
+                                <select id="reqHospital" required>
+                                    <option value="HOSP-001">AIIMS Gorakhpur Regional Blood Center</option>
+                                    <option value="HOSP-002">BRD Medical College Blood Bank</option>
+                                    <option value="HOSP-003">District Hospital Sadar Blood Center</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION C: MEDICAL AND REQUEST DETAILS -->
+                    <div class="bb-form-section">
+                        <div class="bb-form-section-title">
+                            <span class="bb-section-badge">C</span>
+                            <span>Medical &amp; Request Details</span>
+                        </div>
+                        <div class="bb-form-grid-2col">
+                            <div class="bb-input-field">
+                                <label for="reqDepartment">Treating Department</label>
+                                <input type="text" id="reqDepartment" placeholder="e.g. ICU / Trauma Surgery / Cardiology">
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqDoctor">Attending Doctor (Optional)</label>
+                                <input type="text" id="reqDoctor" placeholder="e.g. Dr. A. Sharma">
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqPriority">Request Priority <span class="bb-required">*</span></label>
+                                <select id="reqPriority" required>
+                                    <option value="Routine">Routine (Within 24–48 Hours)</option>
+                                    <option value="Urgent">Urgent (Within 6–12 Hours)</option>
+                                    <option value="Emergency" selected>🚨 Emergency (Immediate / Trauma)</option>
+                                </select>
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqRequiredAt">Required Date &amp; Time <span class="bb-required">*</span></label>
+                                <input type="datetime-local" id="reqRequiredAt" required>
+                            </div>
+                            <div class="bb-input-field full-width">
+                                <label for="reqNotes">Additional Clinical Notes or Diagnosis</label>
+                                <textarea id="reqNotes" rows="2" placeholder="e.g. Pre-operative elective bypass surgery or severe trauma hemorrhage"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION D: CONTACT INFORMATION -->
+                    <div class="bb-form-section">
+                        <div class="bb-form-section-title">
+                            <span class="bb-section-badge">D</span>
+                            <span>Contact &amp; Attendant Information</span>
+                        </div>
+                        <div class="bb-form-grid-2col">
+                            <div class="bb-input-field">
+                                <label for="reqContactPerson">Contact Person (Caregiver/Attendant) <span class="bb-required">*</span></label>
+                                <input type="text" id="reqContactPerson" required placeholder="e.g. Sunita Devi" autocomplete="name">
+                            </div>
+                            <div class="bb-input-field">
+                                <label for="reqContactPhone">Contact Phone Number <span class="bb-required">*</span></label>
+                                <input type="tel" id="reqContactPhone" required pattern="[0-9]{10}" placeholder="10-digit mobile number" maxlength="10" autocomplete="tel">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION E: DECLARATION AND CONSENT -->
+                    <div class="bb-form-section bb-consent-section">
+                        <div class="bb-form-section-title">
+                            <span class="bb-section-badge">E</span>
+                            <span>Declaration &amp; Transfusion Consent</span>
+                        </div>
+                        <div class="bb-consent-notice">
+                            <input type="checkbox" id="reqConsentCheck" required>
+                            <label for="reqConsentCheck">
+                                I confirm that the information provided is accurate and understand that the request will be reviewed by authorized blood-bank personnel. Blood availability and compatibility must be verified before issue.
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Sticky Modal Footer -->
+                <div class="bb-modal-footer">
+                    <button type="button" class="bb-btn bb-btn-secondary" onclick="closeEmergencyRequestModal()">Cancel</button>
+                    <button type="submit" class="bb-btn bb-btn-emergency" id="reqSubmitBtn">
+                        <span>🚨 Submit Emergency Request</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =============================================================
+         MODAL 2: VOLUNTARY DONOR REGISTRATION FORM
+    ============================================================= -->
+    <div id="modalDonorRegister" class="bb-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalDonorTitle">
+        <div class="bb-modal-box">
+            <div class="bb-modal-header">
+                <div>
+                    <span class="bb-badge-donor">VOLUNTARY LIFE-SAVER REGISTRY</span>
+                    <h2 id="modalDonorTitle">Register as a Voluntary Blood Donor</h2>
+                </div>
+                <button type="button" class="bb-modal-close" onclick="closeDonorModal()" aria-label="Close modal">✕</button>
+            </div>
+
+            <form id="donorRegisterForm" onsubmit="handleDonorRegisterSubmit(event)">
+                <div class="bb-form-grid">
+                    <!-- Full Name -->
+                    <div class="bb-input-field">
+                        <label for="donorFullName">Full Legal Name <span class="bb-required">*</span></label>
+                        <input type="text" id="donorFullName" required placeholder="e.g. Amit Kumar Singh">
+                    </div>
+
+                    <!-- Age & Gender -->
+                    <div class="bb-input-field-row">
+                        <div class="bb-input-field">
+                            <label for="donorAge">Age (Must be 18–65) <span class="bb-required">*</span></label>
+                            <input type="number" id="donorAge" min="18" max="65" required placeholder="e.g. 26">
+                        </div>
+                        <div class="bb-input-field">
+                            <label for="donorGender">Gender</label>
+                            <select id="donorGender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Blood Group -->
+                    <div class="bb-input-field">
+                        <label for="donorBloodGroup">Blood Group <span class="bb-required">*</span></label>
+                        <select id="donorBloodGroup" required>
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O- (Universal Donor)</option>
+                        </select>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="bb-input-field">
+                        <label for="donorPhone">Mobile Number (Confidential) <span class="bb-required">*</span></label>
+                        <input type="tel" id="donorPhone" required pattern="[0-9]{10}" placeholder="10-digit mobile number">
+                    </div>
+
+                    <!-- City & Locality -->
+                    <div class="bb-input-field">
+                        <label for="donorCity">City</label>
+                        <input type="text" id="donorCity" value="Gorakhpur" readonly>
+                    </div>
+                    <div class="bb-input-field">
+                        <label for="donorLocality">Locality / Ward</label>
+                        <input type="text" id="donorLocality" placeholder="e.g. Golghar, Asuran, Kunraghat, Rapti Nagar">
+                    </div>
+
+                    <!-- Contact Preference -->
+                    <div class="bb-input-field">
+                        <label for="donorContactMethod">Preferred Contact Channel</label>
+                        <select id="donorContactMethod">
+                            <option value="Call">Direct Phone Call</option>
+                            <option value="SMS">SMS Notification</option>
+                            <option value="WhatsApp">WhatsApp Alert</option>
+                        </select>
+                    </div>
+
+                    <!-- Availability Preference -->
+                    <div class="bb-input-field">
+                        <label for="donorAvailability">Availability</label>
+                        <select id="donorAvailability">
+                            <option value="Emergency Only" selected>Emergency Life-Threatening Cases Only</option>
+                            <option value="Weekends Only">Weekends Only</option>
+                            <option value="Anytime">Anytime On Call</option>
+                        </select>
+                    </div>
+
+                    <!-- Last Donation Date -->
+                    <div class="bb-input-field full-width">
+                        <label for="donorLastDate">Last Blood Donation Date (If applicable)</label>
+                        <input type="date" id="donorLastDate">
+                    </div>
+                </div>
+
+                <!-- Legal Privacy & Consent -->
+                <div class="bb-consent-notice">
+                    <input type="checkbox" id="donorConsentCheck" required>
+                    <label for="donorConsentCheck">
+                        <strong>Voluntary Consent:</strong> I voluntarily consent to be registered in the Gorakhpur Municipal Blood Bank Registry and agree to be contacted for emergency blood donation requests. I understand my phone number will remain strictly confidential and will never be published publicly. I reserve the right to withdraw consent at any time.
+                    </label>
+                </div>
+
+                <div class="bb-modal-footer">
+                    <button type="button" class="bb-btn bb-btn-secondary" onclick="closeDonorModal()">Cancel</button>
+                    <button type="submit" class="bb-btn bb-btn-donor" id="donorSubmitBtn">
+                        <span>🩸 Register as Voluntary Donor</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =============================================================
+         MODAL 3: STAFF ACCESSION NEW UNIT
+    ============================================================= -->
+    <div id="modalAddUnit" class="bb-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalAddUnitTitle">
+        <div class="bb-modal-box">
+            <div class="bb-modal-header">
+                <div>
+                    <span class="bb-badge-staff">INVENTORY ACCESSION</span>
+                    <h2 id="modalAddUnitTitle">Accession Screened Blood Unit</h2>
+                </div>
+                <button type="button" class="bb-modal-close" onclick="closeAddUnitModal()" aria-label="Close modal">✕</button>
+            </div>
+
+            <form id="addUnitForm" onsubmit="handleAddUnitSubmit(event)">
+                <div class="bb-form-grid">
+                    <div class="bb-input-field">
+                        <label for="addUnitBloodGroup">Blood Group <span class="bb-required">*</span></label>
+                        <select id="addUnitBloodGroup" required>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitComponent">Component Type <span class="bb-required">*</span></label>
+                        <select id="addUnitComponent" required>
+                            <option value="PRBC">Packed Red Blood Cells (PRBC)</option>
+                            <option value="Whole Blood">Whole Blood</option>
+                            <option value="Platelets">Platelets</option>
+                            <option value="FFP">Fresh Frozen Plasma (FFP)</option>
+                            <option value="Cryoprecipitate">Cryoprecipitate</option>
+                        </select>
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitVolume">Volume (mL)</label>
+                        <input type="number" id="addUnitVolume" value="350" required>
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitCollectionDate">Collection Date <span class="bb-required">*</span></label>
+                        <input type="date" id="addUnitCollectionDate" required>
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitExpiryDate">Expiry Date <span class="bb-required">*</span></label>
+                        <input type="date" id="addUnitExpiryDate" required>
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitStorage">Cold Storage Location</label>
+                        <input type="text" id="addUnitStorage" value="Main Cold Chamber A1 (4°C)">
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitBatch">Laboratory Batch Number</label>
+                        <input type="text" id="addUnitBatch" placeholder="e.g. BATCH-2026-10-A1">
+                    </div>
+
+                    <div class="bb-input-field">
+                        <label for="addUnitScreening">Screening / Testing Status</label>
+                        <select id="addUnitScreening">
+                            <option value="PASSED" selected>PASSED (Negative for HIV, HBV, HCV, Syphilis, Malaria)</option>
+                            <option value="PENDING">PENDING (Quarantined pending lab report)</option>
+                            <option value="FAILED">FAILED (Quarantine / Discard)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bb-modal-footer">
+                    <button type="button" class="bb-btn bb-btn-secondary" onclick="closeAddUnitModal()">Cancel</button>
+                    <button type="submit" class="bb-btn bb-btn-primary">Accession to Ledger</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../auth.js"></script>
+    <script src="blood_bank.js"></script>
+    <!-- PWA Install & Offline Telemetry Engine -->
+    <script defer src="../../components/pwa_manager.js"></script>
+</body>
+</html>
+

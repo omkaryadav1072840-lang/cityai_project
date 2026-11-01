@@ -47,13 +47,17 @@ function initSockets(io) {
         }
     });
 
+    const isVerbose = process.env.DEBUG_SOCKETS === "true" || process.env.NODE_ENV === "development";
+
     io.on("connection", (socket) => {
-        console.log(`🟢 [Socket.IO] Client connected: ${socket.id} (User: ${socket.user ? socket.user.name : "Guest"})`);
+        if (isVerbose) {
+            console.log(`🟢 [Socket.IO] Client connected: ${socket.id} (User: ${socket.user ? socket.user.name : "Guest"})`);
+        }
 
         // Room subscriptions
         socket.on("join-ambulance-tracking", () => {
             socket.join("ambulance-tracking");
-            console.log(`🚑 [Socket.IO] ${socket.id} joined ambulance-tracking`);
+            if (isVerbose) console.log(`🚑 [Socket.IO] ${socket.id} joined ambulance-tracking`);
         });
 
         socket.on("leave-ambulance-tracking", () => {
@@ -62,22 +66,22 @@ function initSockets(io) {
 
         socket.on("join-parking", () => {
             socket.join("parking-updates");
-            console.log(`🅿️ [Socket.IO] ${socket.id} joined parking-updates`);
+            if (isVerbose) console.log(`🅿️ [Socket.IO] ${socket.id} joined parking-updates`);
         });
 
         socket.on("join-emergency", () => {
             socket.join("emergency-alerts");
-            console.log(`🚨 [Socket.IO] ${socket.id} joined emergency-alerts`);
+            if (isVerbose) console.log(`🚨 [Socket.IO] ${socket.id} joined emergency-alerts`);
         });
 
         socket.on("join-water", () => {
             socket.join("water-updates");
-            console.log(`💧 [Socket.IO] ${socket.id} joined water-updates`);
+            if (isVerbose) console.log(`💧 [Socket.IO] ${socket.id} joined water-updates`);
         });
 
         socket.on("join-waste", () => {
             socket.join("waste-updates");
-            console.log(`♻️ [Socket.IO] ${socket.id} joined waste-updates`);
+            if (isVerbose) console.log(`♻️ [Socket.IO] ${socket.id} joined waste-updates`);
         });
 
         socket.on("leave-waste", () => {
@@ -86,11 +90,11 @@ function initSockets(io) {
 
         socket.on("join-city", () => {
             socket.join("city-updates");
-            console.log(`🏙️ [Socket.IO] ${socket.id} joined city-updates`);
+            if (isVerbose) console.log(`🏙️ [Socket.IO] ${socket.id} joined city-updates`);
         });
 
         socket.on("disconnect", (reason) => {
-            console.log(`🔴 [Socket.IO] Client disconnected: ${socket.id} (${reason})`);
+            if (isVerbose) console.log(`🔴 [Socket.IO] Client disconnected: ${socket.id} (${reason})`);
         });
     });
 
