@@ -18,7 +18,7 @@
     <!-- Auth Helpers -->
     <script src="../../js/auth-helpers.js"></script>
     <meta name="theme-color" content="#0f172a">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="../../manifest.json">
 </head>
 
 <body>
@@ -495,8 +495,8 @@
                 <div class="gis-map-overlay-tools">
                     <button type="button" class="overlay-tool-btn" onclick="toggleMapLayerStyle()" title="Toggle Satellite Aerial / Street Map">📑</button>
                     <button type="button" class="overlay-tool-btn" onclick="toggleAllGisLayersVisibility()" title="Toggle Pipelines Visibility">👁️</button>
-                    <button type="button" class="overlay-tool-btn" onclick="waterMap && waterMap.zoomIn()" title="Zoom In">➕</button>
-                    <button type="button" class="overlay-tool-btn" onclick="waterMap && waterMap.zoomOut()" title="Zoom Out">➖</button>
+                    <button type="button" class="overlay-tool-btn" onclick="(window.waterMap || window.waterLeafletMapInstance) && (window.waterMap || window.waterLeafletMapInstance).zoomIn()" title="Zoom In">➕</button>
+                    <button type="button" class="overlay-tool-btn" onclick="(window.waterMap || window.waterLeafletMapInstance) && (window.waterMap || window.waterLeafletMapInstance).zoomOut()" title="Zoom Out">➖</button>
                 </div>
 
                 <!-- Floating Pipeline Card: Main Pipeline (M-001) -->
@@ -4113,12 +4113,12 @@
 <script src="../../api/client.js"></script>
 <script src="../../api/water.api.js"></script>
 <script src="../../auth.js"></script>
-<script src="../../realtime.js"></script>
+<script src="../../realtime.js?v=4.0"></script>
 <script src="water.js"></script>
 <script src="water_3d_explorer.js"></script>
 <script src="water_intelligence_ui.js"></script>
 <script src="sewage_planner_ui.js"></script>
-<script src="../../components/ai_widget.js"></script>
+<script src="../../components/ai_widget.js?v=4.0"></script>
 
     <!-- PWA Install & Offline Telemetry Engine -->
     <script defer src="../../components/pwa_manager.js"></script>

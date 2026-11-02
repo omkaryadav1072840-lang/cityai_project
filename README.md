@@ -287,7 +287,7 @@ To demonstrate the platform's key operational capabilities:
 - **Security & RBAC Audit**: [docs/SECURITY_AUDIT.md](file:///d:/cityai_project%20-%20Copy/docs/SECURITY_AUDIT.md)
 - **Viva Voce & Presentation Package**: [docs/PROJECT_VIVA_AND_PRESENTATION_PACKAGE.md](file:///d:/cityai_project%20-%20Copy/docs/PROJECT_VIVA_AND_PRESENTATION_PACKAGE.md)
 - **Master Test Report & Benchmarks**: [docs/TEST_REPORT.md](file:///d:/cityai_project%20-%20Copy/docs/TEST_REPORT.md)
-- **Implementation Audit & Feature Matrix**: [docs/IMPLEMENTATION_AUDIT.md](file:///d:/cityai_project%20-%20Copy/docs/IMPLEMENTATION_AUDIT.md)
+- **Defect Resolution & Security Archive**: [docs/audit_history/MASTER_SECURITY_AUDIT_ARCHIVE.md](file:///d:/cityai_project%20-%20Copy/docs/audit_history/MASTER_SECURITY_AUDIT_ARCHIVE.md)
 
 ### Technical Guides & Architecture
 - **Engineering Guidelines**: [PROJECT_GUIDELINES.md](file:///d:/cityai_project%20-%20Copy/PROJECT_GUIDELINES.md)

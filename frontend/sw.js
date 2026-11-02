@@ -1,7 +1,7 @@
-// SmartCity AI — Service Worker v12
-// Enhanced: High-Performance Stale-While-Revalidate, Background Sync, 0ms Cache Acceleration
+// SmartCity AI — Service Worker v15 (Clean Cache & Network First)
+// Enhanced: Immediate Cache Purge, Network First for Scripts, 0ms Fallback
 
-const CACHE_NAME = 'smartcity-v12';
+const CACHE_NAME = 'smartcity-v15-clean';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -106,19 +106,17 @@ self.addEventListener('fetch', (event) => {
                 )
         );
     } else {
-        // High-Performance Stale-While-Revalidate: Instant Cache Delivery (0ms) + Background Revalidation
+        // Scripts & Styles: Network First to prevent serving stale JS/CSS with bugs
         event.respondWith(
-            caches.match(request).then((cachedResponse) => {
-                const fetchPromise = fetch(request).then((networkResponse) => {
+            fetch(request)
+                .then((networkResponse) => {
                     if (networkResponse && networkResponse.status === 200) {
                         const clone = networkResponse.clone();
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                     }
                     return networkResponse;
-                }).catch(() => null);
-
-                return cachedResponse || fetchPromise;
-            })
+                })
+                .catch(() => caches.match(request))
         );
     }
 });

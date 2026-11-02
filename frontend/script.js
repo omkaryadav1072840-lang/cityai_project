@@ -24,17 +24,25 @@
    BACKEND
 ========================================================= */
 
-const BACKEND_URL = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
-    ? window.API_BASE_URL
-    : (typeof window !== "undefined" && window.location)
-        ? (window.location.protocol === "file:" 
-            ? "http://localhost:5000" 
-            : (window.location.port === "5000" || window.location.port === "3000" 
-                ? window.location.origin 
-                : ((window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
-                    ? `http://${window.location.hostname}:5000` 
-                    : (window.location.origin || ""))))
-        : "http://localhost:5000";
+const BACKEND_URL = (() => {
+    if (typeof window !== "undefined") {
+        const loc = window.location;
+
+        try {
+            localStorage.removeItem("smartcity_api_server");
+            localStorage.removeItem("smartcity_mobile_server_url");
+        } catch (_) {}
+
+        if (window.API_BASE_URL) return window.API_BASE_URL.replace(/\/+$/, "");
+
+        if (loc) {
+            if (loc.port === "5000" || loc.port === "3000") return loc.origin;
+            if (loc.hostname && loc.port) return `${loc.protocol}//${loc.hostname}:5000`;
+            if (loc.hostname && loc.hostname !== "localhost") return `${loc.protocol}//${loc.hostname}:5000`;
+        }
+    }
+    return "http://127.0.0.1:5000";
+})();
 
 
 /* =========================================================

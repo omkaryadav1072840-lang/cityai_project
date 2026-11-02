@@ -323,5 +323,27 @@
         }
     }
 
+    // Universal Alert-to-Toast Bridge (Modern Non-Blocking Glassmorphic Notifications)
+    if (typeof window !== "undefined" && !window.__scAlertBridged) {
+        window.__scAlertBridged = true;
+        const _nativeAlert = window.alert;
+        window.alert = function (msg) {
+            const str = String(msg || "");
+            let type = "info";
+            if (/fail|error|invalid|denied|unauthorized|blocked|reject|missing|problem|expired/i.test(str)) {
+                type = "error";
+            } else if (/success|verified|confirmed|complete|saved|booked|submitted|updated|restored/i.test(str)) {
+                type = "success";
+            } else if (/warn|caution|alert|attention|notice|required/i.test(str)) {
+                type = "warning";
+            }
+            if (SmartCityUI.toast) {
+                SmartCityUI.toast(str, type, 4500);
+            } else if (_nativeAlert) {
+                _nativeAlert(str);
+            }
+        };
+    }
+
     window.SmartCityUI = SmartCityUI;
 })();

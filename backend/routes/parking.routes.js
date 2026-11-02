@@ -632,114 +632,198 @@ function broadcastLotState(idOrCode) {
 }
 
 // =========================================================
-// BOOK A PARKING SLOT (Decrements available_slots atomically)
+// BOOK A PARKING SLOT (Decrements available_slots atomically & assigns real slot in parking_slots)
 // =========================================================
 
-router.post(["/api/parking/book", "/api/parking/:id/book"], optionalToken, (req, res) => {
-    const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || "LOT-001";
-    const { vehicleNumber, durationHours } = req.body;
+router.post(["/api/parking/book", "/api/parking/:id/book"], optionalToken, async (req, res) => {
+    const id = req.params.id || req.body.lotId || req.body.lot_id || req.body.parkingCode || "PARK-001";
+    const { vehicleNumber, durationHours, customerName, customerPhone, slotNumber } = req.body;
     const resolvedUserId = (req.user && (req.user.id || req.user.userId))
         ? (req.user.id || req.user.userId)
-        : (req.body.userId || "guest");
+        : (req.body.userId || "guest-citizen");
 
     if (!vehicleNumber || !isValidVehicleNumber(vehicleNumber)) {
         return res.status(400).json({ success: false, message: "Please provide a valid vehicle registration number (e.g. UP-53-AB-1234)." });
     }
 
+    const cleanPlate = String(vehicleNumber).trim().toUpperCase();
+    const cleanCustomerName = (req.user && req.user.name) ? req.user.name : (customerName ? String(customerName).trim() : "Citizen Driver");
+    const cleanCustomerPhone = (req.user && req.user.mobile) ? req.user.mobile : (customerPhone ? String(customerPhone).trim() : "N/A");
+    const hours = Math.max(1, Math.min(Number(durationHours || 2), 24));
+    const bookingId = "BKG-" + Date.now().toString(36).toUpperCase();
+
     const { clause, value } = parseLotIdentifier(id);
+    const pool = db.promise();
+    let connection;
 
-    // Atomically decrement only if available_slots > 0
-    const updateSQL = `
-        UPDATE parking_lots
-        SET available_slots = available_slots - 1,
-            occupied_slots  = occupied_slots + 1,
-            status = CASE WHEN available_slots - 1 <= 0 THEN 'FULL' ELSE status END,
-            last_updated = NOW()
-        WHERE ${clause}
-          AND available_slots > 0
-          AND status != 'CLOSED'
-          AND active = 1
-    `;
+    try {
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
 
-    db.query(updateSQL, [value], (err, result) => {
-        if (err) {
-            console.error("Parking book error:", err);
-            return res.status(500).json({ message: "Database error." });
+        // 1. Fetch lot details with row lock
+        const [lots] = await connection.query(
+            `SELECT id, parking_code, name, address, area, hourly_rate, available_slots, occupied_slots, total_slots, status 
+             FROM parking_lots 
+             WHERE ${clause} AND active = 1 
+             LIMIT 1 FOR UPDATE`,
+            [value]
+        );
+
+        if (!lots.length) {
+            await connection.rollback();
+            connection.release();
+            return res.status(404).json({ success: false, message: "Parking facility not found or inactive." });
         }
 
-        if (result.affectedRows === 0) {
+        const lot = lots[0];
+        if (lot.status && lot.status.toUpperCase() === "CLOSED") {
+            await connection.rollback();
+            connection.release();
+            return res.status(409).json({ success: false, message: "This parking facility is currently closed." });
+        }
+
+        // 2. Select slot to assign: either specific requested slot or next available slot
+        let targetSlot = null;
+        if (slotNumber) {
+            const [requestedSlots] = await connection.query(
+                `SELECT id, lot_id, slot_number, slot_type, floor, status 
+                 FROM parking_slots 
+                 WHERE lot_id = ? AND slot_number = ? 
+                 LIMIT 1 FOR UPDATE`,
+                [lot.parking_code, String(slotNumber).trim()]
+            );
+            if (!requestedSlots.length || requestedSlots[0].status !== "Available") {
+                await connection.rollback();
+                connection.release();
+                return res.status(409).json({
+                    success: false,
+                    message: `Requested Bay ${slotNumber} is not currently available.`
+                });
+            }
+            targetSlot = requestedSlots[0];
+        } else {
+            const [availableSlots] = await connection.query(
+                `SELECT id, lot_id, slot_number, slot_type, floor, status 
+                 FROM parking_slots 
+                 WHERE lot_id = ? AND status = 'Available' 
+                 ORDER BY slot_number ASC 
+                 LIMIT 1 FOR UPDATE`,
+                [lot.parking_code]
+            );
+            if (availableSlots.length > 0) {
+                targetSlot = availableSlots[0];
+            }
+        }
+
+        // Verify availability
+        if (!targetSlot && Number(lot.available_slots) <= 0) {
+            await connection.rollback();
+            connection.release();
             return res.status(409).json({
                 success: false,
-                message: "No available slots — this lot may be full or closed."
+                message: "No available slots in this parking facility (Lot Full)."
             });
         }
 
-        const hours = Number(durationHours || 2);
-        const bookingId = "BKG-" + Date.now().toString(36).toUpperCase();
+        const assignedSlotNumber = targetSlot ? targetSlot.slot_number : `Bay-01`;
+        const totalAmount = Number(lot.hourly_rate || 20) * hours;
 
-        // Fetch lot details to compute amount
-        db.query(
-            `SELECT id, parking_code, name, hourly_rate, available_slots, occupied_slots, total_slots, status FROM parking_lots WHERE ${clause} LIMIT 1`,
-            [value],
-            (fetchErr, lots) => {
-                if (fetchErr || lots.length === 0) {
-                    return res.json({ success: true, message: "Slot booked.", bookingId });
-                }
+        // 3. Mark the slot as Booked in parking_slots (if slot row exists)
+        if (targetSlot) {
+            await connection.query(
+                `UPDATE parking_slots 
+                 SET status = 'Booked', current_booking_id = ?, last_updated = NOW() 
+                 WHERE id = ?`,
+                [bookingId, targetSlot.id]
+            );
+        }
 
-                const lot = lots[0];
-                const totalAmount = Number(lot.hourly_rate) * hours;
-
-                // Broadcast real-time slot update
-                emitParkingUpdate({
-                    id: lot.id,
-                    parkingCode: lot.parking_code,
-                    name: lot.name,
-                    totalSlots: lot.total_slots,
-                    availableSlots: lot.available_slots,
-                    occupiedSlots: lot.occupied_slots,
-                    hourlyRate: lot.hourly_rate,
-                    status: (lot.status || "open").toLowerCase(),
-                    updatedAt: new Date().toISOString()
-                });
-
-                // Record booking
-                db.query(
-                    `INSERT INTO parking_bookings
-                     (booking_id, lot_id, user_id, vehicle_number, start_time, duration_hours, total_amount, status)
-                     VALUES (?, ?, ?, ?, NOW(), ?, ?, 'Active')`,
-                    [bookingId, lot.parking_code, resolvedUserId, vehicleNumber, hours, totalAmount],
-                    (bookErr) => {
-                        if (bookErr) {
-                            console.error("Booking record error:", bookErr);
-                            db.query(
-                                `UPDATE parking_lots 
-                                 SET available_slots = available_slots + 1, 
-                                     occupied_slots = GREATEST(occupied_slots - 1, 0),
-                                     status = CASE WHEN status = 'FULL' THEN 'OPEN' ELSE status END
-                                 WHERE ${clause}`,
-                                [value]
-                            );
-                            return res.status(500).json({ success: false, message: "Failed to persist parking booking." });
-                        }
-
-                        res.status(201).json({
-                            success: true,
-                            message: "Parking slot booked successfully.",
-                            booking: {
-                                bookingId,
-                                lotId: lot.parking_code,
-                                lotName: lot.name,
-                                vehicleNumber,
-                                durationHours: hours,
-                                totalAmount,
-                                slotsRemainingAfter: lot.available_slots
-                            }
-                        });
-                    }
-                );
-            }
+        // 4. Atomically decrement lot availability in parking_lots
+        await connection.query(
+            `UPDATE parking_lots 
+             SET available_slots = GREATEST(available_slots - 1, 0),
+                 occupied_slots = occupied_slots + 1,
+                 status = CASE WHEN available_slots - 1 <= 0 THEN 'FULL' ELSE status END,
+                 last_updated = NOW() 
+             WHERE id = ?`,
+            [lot.id]
         );
-    });
+
+        // 5. Compute timing & cryptographic QR token
+        const startDt = new Date();
+        const endDt = new Date(startDt.getTime() + hours * 3600 * 1000);
+        const pad = n => String(n).padStart(2, '0');
+        const startFormatted = `${startDt.getFullYear()}-${pad(startDt.getMonth()+1)}-${pad(startDt.getDate())} ${pad(startDt.getHours())}:${pad(startDt.getMinutes())}:${pad(startDt.getSeconds())}`;
+        const endFormatted = `${endDt.getFullYear()}-${pad(endDt.getMonth()+1)}-${pad(endDt.getDate())} ${pad(endDt.getHours())}:${pad(endDt.getMinutes())}:${pad(endDt.getSeconds())}`;
+        const qrToken = crypto.randomBytes(16).toString("hex");
+
+        // 6. Record in parking_bookings
+        await connection.query(
+            `INSERT INTO parking_bookings
+             (booking_id, lot_id, user_id, vehicle_number, customer_name, customer_phone, slot_number, start_time, end_time, duration_hours, total_amount, status, qr_token)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', ?)`,
+            [
+                bookingId,
+                lot.parking_code,
+                resolvedUserId,
+                cleanPlate,
+                cleanCustomerName,
+                cleanCustomerPhone,
+                assignedSlotNumber,
+                startFormatted,
+                endFormatted,
+                hours,
+                totalAmount,
+                qrToken
+            ]
+        );
+
+        await connection.commit();
+        connection.release();
+
+        const remainingSpots = Math.max(Number(lot.available_slots) - 1, 0);
+
+        // 7. Real-Time Broadcasts to all connected Traffic and Parking views
+        emitParkingUpdate({
+            lotId: lot.parking_code,
+            parkingCode: lot.parking_code,
+            slotNumber: assignedSlotNumber,
+            status: "Booked",
+            bookingId,
+            availableSlots: remainingSpots,
+            occupiedSlots: Number(lot.occupied_slots) + 1
+        });
+        broadcastLotState(lot.parking_code);
+
+        res.status(201).json({
+            success: true,
+            message: `Parking Bay ${assignedSlotNumber} reserved successfully!`,
+            booking: {
+                bookingId,
+                lotId: lot.parking_code,
+                lotName: lot.name,
+                slotNumber: assignedSlotNumber,
+                floor: targetSlot ? (targetSlot.floor || "Level 1") : "Ground Floor",
+                slotType: targetSlot ? (targetSlot.slot_type || "car") : "car",
+                vehicleNumber: cleanPlate,
+                customerName: cleanCustomerName,
+                customerPhone: cleanCustomerPhone,
+                durationHours: hours,
+                totalAmount,
+                qrToken,
+                startTime: startFormatted,
+                endTime: endFormatted,
+                slotsRemainingAfter: remainingSpots
+            }
+        });
+    } catch (err) {
+        if (connection) {
+            await connection.rollback().catch(() => {});
+            connection.release();
+        }
+        console.error("Atomic parking booking error:", err);
+        res.status(500).json({ success: false, message: "Database error processing parking reservation: " + err.message });
+    }
 });
 
 // =========================================================

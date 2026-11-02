@@ -186,7 +186,8 @@ function recordLoginSuccess(identifier) {
 // =========================================================
 
 router.post("/api/login", async (req, res) => {
-    const { loginId, password } = req.body;
+    const loginId = req.body.loginId || req.body.email || req.body.username || req.body.phone || req.body.mobile || req.body.staffId;
+    const { password } = req.body;
 
     if (!loginId || !password) {
         return res.status(400).json({
@@ -525,7 +526,8 @@ router.post("/api/auth/reset-password", async (req, res) => {
 // =========================================================
 
 router.post("/api/staff-login", async (req, res) => {
-    const { staffId, password } = req.body;
+    const staffId = req.body.staffId || req.body.loginId || req.body.email || req.body.username;
+    const { password } = req.body;
 
     if (!staffId || !password) {
         return res.status(400).json({

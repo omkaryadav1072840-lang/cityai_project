@@ -17,9 +17,26 @@
  const CRIME_API_URL =
      "https://your-backend-domain/api/gorakhpur-crime";
 
-const API_BASE = (typeof window !== "undefined" && window.API_BASE_URL !== undefined)
-    ? window.API_BASE_URL
-    : (typeof window !== "undefined" && (window.location.port === "5000" || window.location.protocol === "file:") ? "http://localhost:5000" : "");
+const API_BASE = (() => {
+    if (typeof window !== "undefined") {
+        try {
+            localStorage.removeItem("smartcity_api_server");
+            localStorage.removeItem("smartcity_mobile_server_url");
+        } catch (_) {}
+        if (window.API_BASE_URL) return window.API_BASE_URL.replace(/\/+$/, "");
+        if (window.location) {
+            const loc = window.location;
+            if (loc.protocol === "file:") return "http://127.0.0.1:5000";
+            if (loc.port === "5000" || loc.port === "3000") return loc.origin;
+            if (loc.port && loc.port !== "5000" && loc.port !== "3000") {
+                return `${loc.protocol}//${loc.hostname}:5000`;
+            }
+            if (loc.hostname) return `${loc.protocol}//${loc.hostname}:5000`;
+            return loc.origin || "http://127.0.0.1:5000";
+        }
+    }
+    return "http://127.0.0.1:5000";
+})();
 
 const CRIME_API_URL = `${API_BASE}/api/police/stats`;
 

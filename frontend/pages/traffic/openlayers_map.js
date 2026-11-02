@@ -45,7 +45,13 @@ class SmartCityTrafficMap {
 
     init() {
         if (!window.ol) {
-            console.error("OpenLayers library (ol) not loaded!");
+            this._initRetries = (this._initRetries || 0) + 1;
+            if (this._initRetries < 40) {
+                console.warn(`OpenLayers library (ol) loading... retry #${this._initRetries}`);
+                setTimeout(() => this.init(), 100);
+            } else {
+                console.error("OpenLayers library (ol) failed to load from CDN.");
+            }
             return;
         }
 
@@ -137,8 +143,25 @@ class SmartCityTrafficMap {
             visible: true
         });
 
-        // Popup Overlay
-        const popupElement = document.getElementById('map-popup');
+        // Popup Overlay (with safe automatic fallback container)
+        let popupElement = document.getElementById('map-popup');
+        if (!popupElement) {
+            popupElement = document.createElement('div');
+            popupElement.id = 'map-popup';
+            popupElement.className = 'trf-ol-popup';
+            popupElement.style.display = 'none';
+            popupElement.innerHTML = `
+                <a href="javascript:void(0)" id="map-popup-closer" class="trf-ol-popup-closer">✕</a>
+                <div id="popup-content"></div>
+            `;
+            document.body.appendChild(popupElement);
+        }
+
+        const closer = popupElement.querySelector('#map-popup-closer');
+        if (closer) {
+            closer.onclick = () => this.closePopup();
+        }
+
         this.overlay = new ol.Overlay({
             element: popupElement,
             autoPan: { animation: { duration: 250 } }
@@ -227,17 +250,50 @@ class SmartCityTrafficMap {
     startCoordinatePickMode(callback) {
         this.pickingCoordinates = true;
         this.onCoordinatePicked = callback;
-        const banner = document.getElementById('map-coord-pick-banner');
-        if (banner) banner.style.display = 'flex';
-        this.map.getTargetElement().style.cursor = 'crosshair';
+        const banner1 = document.getElementById('map-coord-pick-banner');
+        if (banner1) banner1.style.display = 'flex';
+        const banner2 = document.getElementById('map-coord-pick-banner-admin');
+        if (banner2) banner2.style.display = 'flex';
+        if (this.map && this.map.getTargetElement()) {
+            this.map.getTargetElement().style.cursor = 'crosshair';
+        }
     }
 
     stopCoordinatePickMode() {
         this.pickingCoordinates = false;
         this.onCoordinatePicked = null;
-        const banner = document.getElementById('map-coord-pick-banner');
-        if (banner) banner.style.display = 'none';
-        this.map.getTargetElement().style.cursor = '';
+        const banner1 = document.getElementById('map-coord-pick-banner');
+        if (banner1) banner1.style.display = 'none';
+        const banner2 = document.getElementById('map-coord-pick-banner-admin');
+        if (banner2) banner2.style.display = 'none';
+        if (this.map && this.map.getTargetElement()) {
+            this.map.getTargetElement().style.cursor = '';
+        }
+    }
+
+    showPopup(coordinate, htmlContent) {
+        let popupEl = document.getElementById('map-popup');
+        let popupContent = document.getElementById('popup-content');
+        if (!popupEl) {
+            popupEl = document.createElement('div');
+            popupEl.id = 'map-popup';
+            popupEl.className = 'trf-ol-popup';
+            popupEl.innerHTML = `
+                <a href="javascript:void(0)" id="map-popup-closer" class="trf-ol-popup-closer">✕</a>
+                <div id="popup-content"></div>
+            `;
+            document.body.appendChild(popupEl);
+            popupContent = popupEl.querySelector('#popup-content');
+            const closer = popupEl.querySelector('#map-popup-closer');
+            if (closer) closer.onclick = () => this.closePopup();
+        }
+        if (popupContent && htmlContent) {
+            popupContent.innerHTML = htmlContent;
+        }
+        popupEl.style.display = 'block';
+        if (this.overlay) {
+            this.overlay.setPosition(coordinate);
+        }
     }
 
     resetView() {
@@ -255,10 +311,22 @@ class SmartCityTrafficMap {
         }
     }
 
+    setTarget(targetElementId) {
+        if (!targetElementId) return;
+        this.targetId = targetElementId;
+        if (!this.map) return;
+        this.map.setTarget(targetElementId);
+        setTimeout(() => {
+            this.updateSize();
+        }, 60);
+    }
+
     closePopup() {
         if (this.overlay) {
             this.overlay.setPosition(undefined);
         }
+        const popupEl = document.getElementById('map-popup');
+        if (popupEl) popupEl.style.display = 'none';
     }
 
     toggleHeatmap(show) {
@@ -295,6 +363,7 @@ class SmartCityTrafficMap {
         const layers = {
             junctions: this.junctionLayer,
             signals: this.signalLayer,
+            cameras: this.cameraLayer,
             parking: this.parkingLayer,
             incidents: this.incidentLayer,
             routes: this.routeLayer,
@@ -305,6 +374,58 @@ class SmartCityTrafficMap {
             waterlogging: this.waterloggingLayer
         };
         if (layers[name]) layers[name].setVisible(show);
+    }
+
+    setLayerVisibility(name, show) {
+        if (name === "congestion" || name === "heatmap") {
+            return this.toggleHeatmap(show);
+        }
+        if (name === "cameras") {
+            if (this.cameraLayer) this.cameraLayer.setVisible(show);
+            return;
+        }
+        this.toggleLayer(name, show);
+    }
+
+    flyToCoordinates(lng, lat, zoom = 15.5) {
+        if (!this.map) return;
+        this.map.getView().animate({
+            center: ol.proj.fromLonLat([lng, lat]),
+            zoom,
+            duration: 800
+        });
+    }
+
+    enableMarkerDrag(onDragEndCallback) {
+        this.disableMarkerDrag();
+        this.translateInteraction = new ol.interaction.Translate({
+            layers: [this.junctionLayer, this.cameraLayer, this.signalLayer]
+        });
+        this.translateInteraction.on('translateend', (evt) => {
+            const feature = evt.features.item(0);
+            if (feature) {
+                const geom = feature.getGeometry();
+                const lonLat = ol.proj.toLonLat(geom.getCoordinates());
+                const props = feature.getProperties();
+                if (onDragEndCallback) {
+                    onDragEndCallback(props, lonLat[1], lonLat[0]);
+                }
+            }
+        });
+        this.map.addInteraction(this.translateInteraction);
+        if (this.map && this.map.getTargetElement()) {
+            this.map.getTargetElement().style.cursor = 'move';
+        }
+    }
+
+    disableMarkerDrag() {
+        if (this.translateInteraction) {
+            this.map.removeInteraction(this.translateInteraction);
+            this.translateInteraction = null;
+        }
+        if (this.map && this.map.getTargetElement()) {
+            this.map.getTargetElement().style.cursor = '';
+        }
     }
 
     // Data Rendering
@@ -845,25 +966,26 @@ class SmartCityTrafficMap {
 
     getParkingStyle(feature) {
         const lot = feature.get('data') || {};
-        const avail = lot.available_slots !== undefined ? lot.available_slots : lot.availableSlots;
+        const avail = lot.available_slots !== undefined ? lot.available_slots : (lot.availableSpots !== undefined ? lot.availableSpots : 0);
+        const rate = lot.hourly_rate !== undefined ? lot.hourly_rate : (lot.hourlyRate !== undefined ? lot.hourlyRate : 20);
         const color = (avail > 10) ? '#0284c7' : (avail > 0 ? '#d97706' : '#dc2626');
 
         return new ol.style.Style({
             image: new ol.style.RegularShape({
                 points: 4,
-                radius: 9,
+                radius: 10,
                 angle: Math.PI / 4,
                 fill: new ol.style.Fill({ color }),
                 stroke: new ol.style.Stroke({ color: '#ffffff', width: 2 })
             }),
             text: new ol.style.Text({
-                text: `🅿️ ${avail || 0} free`,
-                offsetY: -15,
-                font: 'bold 10px Arial, sans-serif',
+                text: `🅿️ ${avail} Free • ₹${rate}/hr`,
+                offsetY: -16,
+                font: 'bold 11px Arial, sans-serif',
                 fill: new ol.style.Fill({ color: '#0f172a' }),
                 stroke: new ol.style.Stroke({ color: '#ffffff', width: 2.5 }),
-                backgroundFill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.9)' }),
-                padding: [2, 4, 2, 4]
+                backgroundFill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.95)' }),
+                padding: [2, 6, 2, 6]
             })
         });
     }

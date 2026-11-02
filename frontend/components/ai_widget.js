@@ -7,19 +7,43 @@
 (function (window) {
     "use strict";
 
+    function _getAiApiBase() {
+        if (typeof window !== "undefined") {
+            const loc = window.location;
+
+            try {
+                localStorage.removeItem("smartcity_api_server");
+                localStorage.removeItem("smartcity_mobile_server_url");
+            } catch (_) {}
+
+            if (window.API_BASE_URL) return window.API_BASE_URL.replace(/\/+$/, "");
+
+            if (loc) {
+                if (loc.port === "5000" || loc.port === "3000") return "";
+                if (loc.hostname && loc.port) return `${loc.protocol}//${loc.hostname}:5000`;
+                if (loc.hostname && loc.hostname !== "localhost") return `${loc.protocol}//${loc.hostname}:5000`;
+            }
+        }
+        return "http://127.0.0.1:5000";
+    }
+
     const SmartCityAIWidget = {
         sessionId: null,
         isOpen: false,
         isBusy: false,
 
         init: function () {
-            if (document.getElementById("scUniversalAIWindow") || document.getElementById("scUniversalAIFab")) return;
+            // Aggressively purge any legacy floating elements and popup DOM
+            const purgeLegacy = () => {
+                ["scGlobalAIFloatingBtn", "scGlobalAIPopup", "scGlobalAIChatPopup", "scWidgetSuggestions", "scWidgetMessages"].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.remove();
+                });
+                document.querySelectorAll(".sc-ai-popup, .sc-ai-float-btn, [id='scGlobalAIChatPopup'], [id='scGlobalAIFloatingBtn']").forEach(el => el.remove());
+            };
+            purgeLegacy();
 
-            // Remove legacy floating button if realtime.js created one
-            const oldBtn = document.getElementById("scGlobalAIFloatingBtn");
-            if (oldBtn) oldBtn.remove();
-            const oldPopup = document.getElementById("scGlobalAIPopup");
-            if (oldPopup) oldPopup.remove();
+            if (document.getElementById("scUniversalAIWindow") || document.getElementById("scUniversalAIFab")) return;
 
             this.sessionId = localStorage.getItem("sc_ai_session_id") || `SESS-${Date.now().toString(36).toUpperCase()}`;
             localStorage.setItem("sc_ai_session_id", this.sessionId);
@@ -28,6 +52,7 @@
             this.renderDOM();
             this.bindEvents();
             this.updateAuthStatus();
+            setTimeout(purgeLegacy, 500);
         },
 
         injectStyles: function () {
@@ -371,9 +396,7 @@
                     const headers = { "Content-Type": "application/json" };
                     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-                    const endpoint = (window.location.port === "5000" || window.location.pathname.startsWith("/"))
-                        ? "/api/ai/chat"
-                        : "http://localhost:5000/api/ai/chat";
+                    const endpoint = `${_getAiApiBase()}/api/ai/chat`;
 
                     const response = await fetch(endpoint, {
                         method: "POST",
@@ -488,9 +511,7 @@
                 const headers = { "Content-Type": "application/json" };
                 if (token) headers["Authorization"] = `Bearer ${token}`;
 
-                const endpoint = (window.location.port === "5000" || window.location.pathname.startsWith("/"))
-                    ? `/api/ai/predictions/${encodeURIComponent(predictionId)}/feedback`
-                    : `http://localhost:5000/api/ai/predictions/${encodeURIComponent(predictionId)}/feedback`;
+                const endpoint = `${_getAiApiBase()}/api/ai/predictions/${encodeURIComponent(predictionId)}/feedback`;
 
                 await fetch(endpoint, {
                     method: "POST",

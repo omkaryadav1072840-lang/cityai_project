@@ -143,8 +143,7 @@ const defaultAllowedOrigins = [
     "http://localhost:8080",
     "http://127.0.0.1:8080",
     "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "capacitor://localhost"
+    "http://127.0.0.1:8000"
 ];
 
 const customOrigins = (CORS_ORIGINS || CORS_ORIGIN || "")
@@ -155,7 +154,7 @@ const customOrigins = (CORS_ORIGINS || CORS_ORIGIN || "")
 const allowedOrigins = customOrigins.length > 0 ? customOrigins : defaultAllowedOrigins;
 
 const isLocalDevOrigin = (origin) => {
-    return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    return /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin);
 };
 
 const corsOptions = {
@@ -451,45 +450,47 @@ app.use(generalErrorHandler);
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, HOST, () => {
-    console.log(`🚀 SmartCity AI Backend running at http://localhost:${PORT}`);
-    
-    // Detect LAN IP for instant Mobile / PWA testing on physical devices
-    const os = require('os');
-    const ifaces = os.networkInterfaces();
-    let lanIp = null;
-    for (const dev in ifaces) {
-        for (const details of ifaces[dev]) {
-            if (details.family === 'IPv4' && !details.internal) {
-                lanIp = details.address;
-                break;
+if (require.main === module) {
+    server.listen(PORT, HOST, () => {
+        console.log(`🚀 SmartCity AI Backend running at http://localhost:${PORT}`);
+        
+        // Detect LAN IP for instant Mobile / PWA testing on physical devices
+        const os = require('os');
+        const ifaces = os.networkInterfaces();
+        let lanIp = null;
+        for (const dev in ifaces) {
+            for (const details of ifaces[dev]) {
+                if (details.family === 'IPv4' && !details.internal) {
+                    lanIp = details.address;
+                    break;
+                }
             }
+            if (lanIp) break;
         }
-        if (lanIp) break;
-    }
-    if (lanIp) {
-        console.log(`📱 [Mobile / PWA Live]: http://${lanIp}:${PORT}`);
-        console.log(`💡 [College Demo]: Connect your phone to Wi-Fi/Hotspot & open the URL above to install & demo the app!`);
-    }
+        if (lanIp) {
+            console.log(`📱 [Mobile / PWA Live]: http://${lanIp}:${PORT}`);
+            console.log(`💡 [College Demo]: Connect your phone to Wi-Fi/Hotspot & open the URL above to install & demo the app!`);
+        }
 
-    console.log(`📡 Socket.IO real-time server running`);
-    trafficEngine.setSocketIO(io);
-    trafficEngine.start();
-    slaEngine.start(io, 60000);
-    if (process.env.SIMULATE_AMBULANCES !== "false") {
-        ambulanceSimulator.startSimulation().catch(err => {
-            console.warn("Ambulance simulation init warning:", err.message);
-        });
-    }
-    try {
-        const { runWorkforceMigration } = require("./migrations/waste_workforce_migration");
-        runWorkforceMigration().catch(err => {
-            console.warn("Waste workforce auto-migration notice:", err.message);
-        });
-    } catch (migErr) {
-        console.warn("Could not load workforce migration:", migErr.message);
-    }
-});
+        console.log(`📡 Socket.IO real-time server running`);
+        trafficEngine.setSocketIO(io);
+        trafficEngine.start();
+        slaEngine.start(io, 60000);
+        if (process.env.SIMULATE_AMBULANCES !== "false") {
+            ambulanceSimulator.startSimulation().catch(err => {
+                console.warn("Ambulance simulation init warning:", err.message);
+            });
+        }
+        try {
+            const { runWorkforceMigration } = require("./migrations/waste_workforce_migration");
+            runWorkforceMigration().catch(err => {
+                console.warn("Waste workforce auto-migration notice:", err.message);
+            });
+        } catch (migErr) {
+            console.warn("Could not load workforce migration:", migErr.message);
+        }
+    });
+}
 
 // =========================================================
 // GRACEFUL SHUTDOWN

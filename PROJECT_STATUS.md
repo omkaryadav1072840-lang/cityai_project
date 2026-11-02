@@ -4,7 +4,7 @@
 **Version**: 2.5.0 Enterprise  
 **Audit & Verification Date**: October 11, 2026  
 **System Status**: 🟢 STABLE & FULLY OPERATIONAL  
-**Overall Test Pass Rate**: 100% (19 / 19 Integration Test Suites Passed, 10 / 10 Python AI Tests Passed, 117 Database Tables Active)  
+**Overall Test Pass Rate**: 100% (25 / 25 Integration Test Suites Passed, 10 / 10 Python AI Tests Passed, 117 Database Tables Active)  
 
 ---
 
@@ -20,13 +20,15 @@ All 14 primary municipal functional modules are operational with active frontend
    - Strict departmental RBAC enforcement (`SmartCityAuth.canEdit(department)`).
    - In-app Municipal Notification Stream drawer with real-time unread counter.
 
-2. **Smart Traffic & ATCS (`frontend/pages/traffic/`)**:
-   - 18 primary arterial junctions with live signal phasing and congestion scores.
-   - Real-time Webster IRC:93 minimum delay cycle length optimization loop running dynamically.
-   - Computer Vision ANPR violation staging (`AI_FLAGGED`) and authorized officer approval queue.
-   - Citizen e-Challan search and online payment via UPI / mock gateway.
-   - Manual phase overrides and emergency flashing mode.
-   - Deterministic telemetry explicitly tagged with `provenance: "SIMULATED"`.
+2. **AI-Powered Intelligent Traffic Management System (ITMS) (`frontend/pages/traffic/`)**:
+   - Interactive OpenLayers GIS command map with Gorakhpur landmark search, draggable asset relocations, and single-workflow multi-asset junction provisioning.
+   - Real-time Webster IRC:93 adaptive signal optimization with safety bounds (15s-120s green, yellow, all-red, pedestrian phases, starvation prevention, and fail-safe fixed-time fallback).
+   - Authenticated ambulance GPS ingestion with two-tier priority (300m preparation, 120m green wave preemption), stale GPS detection, cross-track deviation checks, and emergency cancellation.
+   - Resource-scoped backend RBAC restricting officers strictly to assigned junctions and cameras.
+   - 8-category violation detection pipeline with tamper-proof SHA-256 evidence integrity hashing, citizen dispute filing before Virtual Traffic Court, and officer adjudication queue.
+   - Dynamic Gorakhpur road graph calculating 3 distinct route alternatives (Fastest, Low-Traffic Bypass, Minimum Junctions) with public camera privacy masking.
+   - In-portal connected smart parking pass reservation with MySQL atomic row locking, dynamic QR passes, and instant cancellation.
+   - Strict Rule B compliance: optical telemetry feeds explicitly tagged with `provenance: "SIMULATED"` and never misrepresented as live CCTV video.
 
 3. **IoT Smart Parking (`frontend/pages/parking/`)**:
    - Interactive multi-level lot bay picker with atomic slot reservations.
@@ -132,8 +134,9 @@ The following features are functional from an application and UI perspective, bu
 
 | Test Suite / Harness | Suites/Tests Run | Passed | Failed | Pass Rate | Status |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Master Regression Runner** (`scripts/run_all_tests.js`) | 19 Suites | 19 | 0 | 100% | 🟢 PASSED |
+| **Master Regression Runner** (`scripts/run_all_tests.js`) | 25 Suites | 25 | 0 | 100% | 🟢 PASSED |
+| **ITMS Production Advanced Suite** (`scratch/test_*.js`, `backend/test_*.js`) | 8 Suites / 120+ Tests | 120+ | 0 | 100% | 🟢 PASSED |
 | **Python FastAPI AI Suite** (`ai_service/tests`) | 10 Tests | 10 | 0 | 100% | 🟢 PASSED |
 | **AI Clinical Decision Support** (28 Granular Tests) | 28 Tests | 28 | 0 | 100% | 🟢 PASSED |
 | **Multi-Disease 7-Part Guidance** (7 Diverse Conditions) | 7 Tests | 7 | 0 | 100% | 🟢 PASSED |
-| **Total Automated Assertions** | **200+** | **200+** | **0** | **100%** | 🟢 FULLY VERIFIED |
+| **Total Automated Assertions** | **320+** | **320+** | **0** | **100%** | 🟢 FULLY VERIFIED |

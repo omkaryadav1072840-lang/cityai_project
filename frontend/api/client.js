@@ -7,8 +7,13 @@
 
 (function () {
     function getApiBase() {
-        if (typeof window !== "undefined" && window.API_BASE_URL !== undefined) {
-            return window.API_BASE_URL;
+        if (typeof window !== "undefined") {
+            if (window.SmartCityAuth && typeof window.SmartCityAuth.getApiBase === "function") {
+                return window.SmartCityAuth.getApiBase();
+            }
+            if (window.API_BASE_URL !== undefined) {
+                return window.API_BASE_URL;
+            }
         }
         return "";
     }

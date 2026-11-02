@@ -12,10 +12,10 @@
     <link rel="canonical" href="https://smartcity.gorakhpur.gov.in/">
 
     <!-- Favicon & Touch Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/logo.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png">
-    <link rel="apple-touch-icon" href="/logo.png">
-    <link rel="shortcut icon" href="/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="shortcut icon" href="logo.png">
     <link rel="manifest" href="manifest.json">
 
     <!-- Open Graph / Social Meta -->
@@ -23,7 +23,7 @@
     <meta property="og:url" content="https://smartcity.gorakhpur.gov.in/">
     <meta property="og:title" content="SmartCity AI — Integrated Urban Operations & Citizen Platform">
     <meta property="og:description" content="Live urban operations: Traffic heatmaps, emergency dispatch, hospital beds, and smart parking powered by grounded AI.">
-    <meta property="og:image" content="/smartcity-og-preview.png">
+    <meta property="og:image" content="smartcity-og-preview.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="675">
 
@@ -36,7 +36,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.socket.io" crossorigin>
-    <link rel="preload" href="/logo.png" as="image" fetchpriority="high">
+    <link rel="preload" href="logo.png" as="image" fetchpriority="high">
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -45,9 +45,36 @@
     <link rel="stylesheet" href="index.css?v=3.5">
     <link rel="stylesheet" href="components/ui_components.css?v=3.5">
     <link rel="stylesheet" href="components/cookie_consent.css">
-    <link rel="stylesheet" href="components/ai_widget.css?v=3.5">
-    <!-- Auth Helpers -->
+    <link rel="stylesheet" href="components/ai_widget.css?v=4.0">
+    <!-- Auth Helpers & Cache Cleanup -->
     <script src="js/auth-helpers.js"></script>
+    <script>
+        (function() {
+            try {
+                if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                        keys.forEach(function(k) {
+                            if (k !== 'smartcity-v15-clean') {
+                                caches.delete(k);
+                            }
+                        });
+                    });
+                }
+            } catch(e) {}
+            function killLegacy() {
+                var el = document.getElementById("scGlobalAIChatPopup");
+                if (el) el.remove();
+                var btn = document.getElementById("scGlobalAIFloatingBtn");
+                if (btn) btn.remove();
+                document.querySelectorAll(".sc-ai-popup, .sc-ai-float-btn").forEach(function(n) { n.remove(); });
+            }
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", killLegacy);
+            } else {
+                killLegacy();
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -76,10 +103,9 @@
 
     <div class="nav-links">
         <a href="#hero">Home</a>
-        <a href="#services">Services</a>
         <a href="#aiAssistant" onclick="if(window.openAiAssistant){openAiAssistant();return false;}">AI Assistant</a>
-        <a href="#map">Live Map</a>
         <a href="#cityReports">Reports</a>
+        <a href="#map">Live Map</a>
         <a href="#howItWorks">How It Works</a>
         <a href="#about">About</a>
         <a href="#emergencyHelplines">Emergency</a>
@@ -113,11 +139,11 @@
                 Experience unified civic governance powered by real-time IoT telemetry, grounded AI municipal assistance, live hospital bed occupancy at AIIMS & BRD, smart parking, and SLA-guaranteed grievance resolution.
             </p>
             <div class="sc-hero-actions">
-                <a href="#services" class="sc-btn-hero-primary">
-                    <span>🚀</span> Explore City Services
+                <a href="#map" class="sc-btn-hero-primary">
+                    <span>🗺️</span> Explore Live Map
                 </a>
-                <a href="#map" class="sc-btn-hero-secondary">
-                    <span>🗺️</span> Live Navigation Map
+                <a href="#cityReports" class="sc-btn-hero-secondary">
+                    <span>📊</span> City Reports
                 </a>
                 <button type="button" onclick="openGrievanceModal()" class="sc-btn-hero-secondary">
                     <span>📋</span> Lodge Grievance
@@ -264,370 +290,6 @@
             <button id="aiSpeakerBtn" class="ai-speaker-btn" type="button" title="Toggle Voice Response">🔊</button>
             <button id="sendButton">Send ➔</button>
         </div>
-    </div>
-</section>
-
-<!-- =====================================================
-     LIVE CITY OPERATIONS & TELEMETRY COUNTER (Animated)
-===================================================== -->
-<section class="sc-telemetry-banner" id="liveCityTelemetry" style="max-width: 1320px; margin: 30px auto; padding: 24px 28px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15); color: #ffffff;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 22px;">📡</span>
-            <div>
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: #38bdf8; font-weight: 800;">INTEGRATED COMMAND & CONTROL CENTER (ICCC)</div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #f8fafc;">Live Gorakhpur Municipal Telemetry</h3>
-            </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 4px 12px; border-radius: 9999px; font-size: 11.5px; font-weight: 700;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px #34d399; animation: pulse 1.5s infinite;"></span>
-                70 Wards Live Telemetry Stream
-            </span>
-            <span style="font-size: 11.5px; color: #94a3b8;" id="telemetryLastUpdated">Refreshed: Just now</span>
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px;">
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
-            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Wards Monitored</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #38bdf8; margin: 4px 0;" class="sc-counter" data-target="70">70</div>
-            <div style="font-size: 11px; color: #64748b;">100% City Coverage</div>
-        </div>
-
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
-            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Citizens Served</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #34d399; margin: 4px 0;" class="sc-counter" data-target="1280000" data-format="compact">1.28M+</div>
-            <div style="font-size: 11px; color: #64748b;">Gorakhpur Metropolitan</div>
-        </div>
-
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
-            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Avg Ambulance ETA</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #f43f5e; margin: 4px 0;" class="sc-counter-decimal" data-target="6.2">6.2m</div>
-            <div style="font-size: 11px; color: #64748b;">Green Wave Preempted</div>
-        </div>
-
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
-            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Signal Uptime</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #fbbf24; margin: 4px 0;" class="sc-counter-decimal" data-target="99.4">99.4%</div>
-            <div style="font-size: 11px; color: #64748b;">42 ATCS Crossings</div>
-        </div>
-
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
-            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Active IoT Sensors</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #a78bfa; margin: 4px 0;" class="sc-counter" data-target="342">342</div>
-            <div style="font-size: 11px; color: #64748b;">Water, Waste & Traffic</div>
-        </div>
-
-        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 14px; padding: 14px 16px; text-align: left;">
-            <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;">SLA Resolution Rate</div>
-            <div style="font-size: 2rem; font-weight: 900; color: #38bdf8; margin: 4px 0;" class="sc-counter-decimal" data-target="98.2">98.2%</div>
-            <div style="font-size: 11px; color: #64748b;">Guaranteed Grievance SLA</div>
-        </div>
-    </div>
-</section>
-
-<!-- =====================================================
-     3. OFFICIAL SMARTCITY SERVICES DIRECTORY
-===================================================== -->
-<section class="sc-section" id="services">
-    <div class="sc-section-header">
-        <span class="sc-section-badge">Civic Portals & Modules</span>
-        <h2 class="sc-section-title">Official Municipal Services</h2>
-        <p class="sc-section-subtitle">
-            Direct access to Gorakhpur's integrated citizen portals. Each module provides dedicated workflows for public citizens and authorized departmental staff.
-        </p>
-    </div>
-
-    <div class="sc-services-grid">
-        <!-- 1. Traffic -->
-        <a href="pages/traffic/traffic.html" class="sc-service-card">
-            <div class="sc-service-icon-box">🚦</div>
-            <div class="sc-service-title">
-                <span>Smart Traffic & Signals</span>
-                <span style="font-size: 11px; color: #16a34a; font-weight: 700;">LIVE ADAPTIVE</span>
-            </div>
-            <p class="sc-service-desc">
-                Real-time congestion heatmaps across 42 junctions, AI emergency green waves, optical CCTV feeds, and e-Challan payment.
-            </p>
-            <div class="sc-service-footer">
-                <span>Launch Traffic Grid</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 2. Healthcare -->
-        <a href="pages/hospital/hospital.html" class="sc-service-card">
-            <div class="sc-service-icon-box">🏥</div>
-            <div class="sc-service-title">
-                <span>Healthcare & Hospital Beds</span>
-                <span style="font-size: 11px; color: #2563eb; font-weight: 700;">AIIMS • BRD</span>
-            </div>
-            <p class="sc-service-desc">
-                Live ICU and general bed tracker, digital OPD queue passes, doctor appointment scheduling, and Ayushman QR Health Pass.
-            </p>
-            <div class="sc-service-footer">
-                <span>Access Health Portal</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 3. Smart Parking -->
-        <a href="pages/parking/parking.html" class="sc-service-card">
-            <div class="sc-service-icon-box">🅿️</div>
-            <div class="sc-service-title">
-                <span>IoT Smart Parking</span>
-                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">FASTAG RFID</span>
-            </div>
-            <p class="sc-service-desc">
-                Real-time bay vacancy at Golghar, Railway Station, and Civil Lines. Instant slot reservation and barrier QR ticketing.
-            </p>
-            <div class="sc-service-footer">
-                <span>Find & Book Parking</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 4. Waste Management -->
-        <a href="pages/waste/waste.html" class="sc-service-card">
-            <div class="sc-service-icon-box">🗑️</div>
-            <div class="sc-service-title">
-                <span>Intelligent Waste System</span>
-                <span style="font-size: 11px; color: #d97706; font-weight: 700;">IOT SENSORS</span>
-            </div>
-            <p class="sc-service-desc">
-                Smart ultrasonic bin fill monitoring, automated garbage vehicle route dispatch, and citizen overflowing bin reporting.
-            </p>
-            <div class="sc-service-footer">
-                <span>Monitor Waste Grid</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 5. Water Supply -->
-        <a href="pages/water/water.html" class="sc-service-card">
-            <div class="sc-service-icon-box">💧</div>
-            <div class="sc-service-title">
-                <span>SCADA Water & Drainage</span>
-                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">PRESSURE SENSORS</span>
-            </div>
-            <p class="sc-service-desc">
-                Live municipal pipeline pressure telemetry, automated tubewell schedules, water quality sensor logs, and supply alerts.
-            </p>
-            <div class="sc-service-footer">
-                <span>Check Water Status</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 6. Emergency SOS -->
-        <a href="pages/emergency/emergency.html" class="sc-service-card">
-            <div class="sc-service-icon-box">🚨</div>
-            <div class="sc-service-title">
-                <span>Emergency SOS & Response</span>
-                <span style="font-size: 11px; color: #dc2626; font-weight: 700;">24/7 DISPATCH</span>
-            </div>
-            <p class="sc-service-desc">
-                Immediate multi-agency dispatch linking Ambulance (108), Police (112), and Fire Brigade (101) with live vehicle GPS tracking.
-            </p>
-            <div class="sc-service-footer">
-                <span>Open Emergency Center</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 7. Police & Safety -->
-        <a href="pages/police/police.html" class="sc-service-card">
-            <div class="sc-service-icon-box">👮</div>
-            <div class="sc-service-title">
-                <span>City Police & Public Safety</span>
-                <span style="font-size: 11px; color: #4338ca; font-weight: 700;">PCR BEATS</span>
-            </div>
-            <p class="sc-service-desc">
-                Locate nearest police stations, view live PCR beat patrol radiuses, lost & found registry, and report local civic safety concerns.
-            </p>
-            <div class="sc-service-footer">
-                <span>Police Services</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 8. Tourism & Heritage -->
-        <a href="pages/famous/famous.html" class="sc-service-card">
-            <div class="sc-service-icon-box">⭐</div>
-            <div class="sc-service-title">
-                <span>Heritage, Tourism & Culture</span>
-                <span style="font-size: 11px; color: #ea580c; font-weight: 700;">EXPLORE GKP</span>
-            </div>
-            <p class="sc-service-desc">
-                Interactive tourism guides to Ramgarh Tal, Gorakhnath Dham, Planetarium, and historical cultural landmarks.
-            </p>
-            <div class="sc-service-footer">
-                <span>Explore City Places</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 9. Grievance Redressal -->
-        <div class="sc-service-card" style="cursor: pointer;" onclick="openGrievanceModal()">
-            <div class="sc-service-icon-box">📋</div>
-            <div class="sc-service-title">
-                <span>Citizen Grievance Redressal</span>
-                <span style="font-size: 11px; color: #2563eb; font-weight: 700;">GUARANTEED SLA</span>
-            </div>
-            <p class="sc-service-desc">
-                Lodge civic complaints with instant tracking ID and strict municipal SLA deadlines (2 to 48 hours). Track real-time progress.
-            </p>
-            <div class="sc-service-footer">
-                <span>Lodge / Track Complaint</span>
-                <span>➔</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- =====================================================
-     3B. MUNICIPAL WATER & SCADA INFRASTRUCTURE HUB
-===================================================== -->
-<section class="sc-section" id="waterInfrastructureHub" style="padding-top: 40px; border-top: 1px solid #e2e8f0; margin-top: 30px;">
-    <div class="sc-section-header">
-        <span class="sc-section-badge" style="background: rgba(2, 132, 199, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #0284c7;">
-            💧 Gorakhpur Jal Sansthan & SCADA Grid
-        </span>
-        <h2 class="sc-section-title">Water & Drainage Infrastructure Management</h2>
-        <p class="sc-section-subtitle">
-            Comprehensive municipal water lifecycle operations: real-time SCADA telemetry, subterranean 3D digital twins, treatment plants, gravity sewers, and citizen grievance resolution.
-        </p>
-    </div>
-
-    <div class="sc-services-grid" id="waterHubGrid">
-        <!-- 1. Water Management -->
-        <a href="pages/water/water.html" class="sc-service-card" id="card-water-management">
-            <div class="sc-service-icon-box" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">💧</div>
-            <div class="sc-service-title">
-                <span>Water Management</span>
-                <span style="font-size: 11px; color: #0284c7; font-weight: 700;">CIVIC HUB</span>
-            </div>
-            <p class="sc-service-desc">
-                Public water supply dashboard, municipal ward delivery schedules, Jal Sansthan lab water quality index, and emergency tanker dispatch.
-            </p>
-            <div class="sc-service-footer">
-                <span>Access Water Portal</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 2. Water Admin Panel (Role-Gated) -->
-        <a href="pages/water/water.html?view=admin" class="sc-service-card" id="card-water-admin" data-role-required="admin" data-dept="water">
-            <div class="sc-service-icon-box" style="background: rgba(234, 88, 12, 0.12); color: #ea580c;">🛡️</div>
-            <div class="sc-service-title">
-                <span>Water Admin Panel</span>
-                <span style="font-size: 11px; color: #ea580c; font-weight: 700;" id="badge-water-admin">ADMIN ONLY</span>
-            </div>
-            <p class="sc-service-desc">
-                Administrative control over tanks, WTPs, STPs, booster pumps, valves, supply routing decisions, draft route approvals, and staff RBAC permissions.
-            </p>
-            <div class="sc-service-footer">
-                <span id="footer-text-water-admin">Open Admin Panel</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 3. 3D Pipeline Map -->
-        <a href="pages/water/water.html?tab=3d" class="sc-service-card" id="card-water-3d">
-            <div class="sc-service-icon-box" style="background: rgba(147, 51, 234, 0.12); color: #9333ea;">🧊</div>
-            <div class="sc-service-title">
-                <span>3D Pipeline Map</span>
-                <span style="font-size: 11px; color: #9333ea; font-weight: 700;">DIGITAL TWIN</span>
-            </div>
-            <p class="sc-service-desc">
-                Interactive Three.js WebGL visualization of subterranean pipelines, overhead tanks, WTPs, STPs, valves, pumps, and inspection manholes.
-            </p>
-            <div class="sc-service-footer">
-                <span>Launch 3D Explorer</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 4. Water Network Monitoring -->
-        <a href="pages/water/water.html?tab=monitoring" class="sc-service-card" id="card-water-monitoring">
-            <div class="sc-service-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">🌊</div>
-            <div class="sc-service-title">
-                <span>Water Network Monitoring</span>
-                <span style="font-size: 11px; color: #10b981; font-weight: 700;">LIVE SCADA</span>
-            </div>
-            <p class="sc-service-desc">
-                Real-time pressure gradients, flow velocity vectors, automated booster pump actuators, valve positioning, and supervisory audit ledger.
-            </p>
-            <div class="sc-service-footer">
-                <span>Monitor SCADA Feed</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 5. Tanks & Treatment Plants -->
-        <a href="pages/water/water.html?tab=assets" class="sc-service-card" id="card-water-assets">
-            <div class="sc-service-icon-box" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">🏢</div>
-            <div class="sc-service-title">
-                <span>Tanks & Treatment Plants</span>
-                <span style="font-size: 11px; color: #d97706; font-weight: 700;">FACILITIES</span>
-            </div>
-            <p class="sc-service-desc">
-                City overhead reservoirs, Rohin WTP, Ramgarh Tal Central STP, aeration clarifiers, tertiary filtration batches, and supply area mapping.
-            </p>
-            <div class="sc-service-footer">
-                <span>View Facilities</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 6. Water Supply Routes -->
-        <a href="pages/water/water.html?tab=routes" class="sc-service-card" id="card-water-routes">
-            <div class="sc-service-icon-box" style="background: rgba(14, 165, 233, 0.12); color: #0ea5e9;">🚰</div>
-            <div class="sc-service-title">
-                <span>Water Supply Routes</span>
-                <span style="font-size: 11px; color: #0ea5e9; font-weight: 700;">POTABLE TRUNKS</span>
-            </div>
-            <p class="sc-service-desc">
-                Clean drinking water primary transmission trunks, feeder distribution pipelines, catchment sector limits, and hydraulic balance.
-            </p>
-            <div class="sc-service-footer">
-                <span>Inspect Supply Routes</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 7. Drainage/Sewage Network -->
-        <a href="pages/water/water.html?tab=sewage" class="sc-service-card" id="card-water-sewage">
-            <div class="sc-service-icon-box" style="background: rgba(194, 65, 12, 0.12); color: #c2410c;">📐</div>
-            <div class="sc-service-title">
-                <span>Drainage/Sewage Network</span>
-                <span style="font-size: 11px; color: #c2410c; font-weight: 700;">SEWER PLANNER</span>
-            </div>
-            <p class="sc-service-desc">
-                Gravity interceptor sewers, stormwater drainage channels, road centerline alignment, manhole placements, and separation validation.
-            </p>
-            <div class="sc-service-footer">
-                <span>Open Sewer Planner</span>
-                <span>➔</span>
-            </div>
-        </a>
-
-        <!-- 8. Water Complaints -->
-        <a href="pages/water/water.html?tab=complaints" class="sc-service-card" id="card-water-complaints">
-            <div class="sc-service-icon-box" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">📋</div>
-            <div class="sc-service-title">
-                <span>Water Complaints</span>
-                <span style="font-size: 11px; color: #ef4444; font-weight: 700;">GRIEVANCE DESK</span>
-            </div>
-            <p class="sc-service-desc">
-                Lodge and track complaints regarding water quality, dirty water, low pressure, no supply, pipe leakage, and sewage overflow with map pin & photo.
-            </p>
-            <div class="sc-service-footer">
-                <span>Lodge / Track Complaint</span>
-                <span>➔</span>
-            </div>
-        </a>
     </div>
 </section>
 
@@ -1288,7 +950,6 @@
 <script defer src="components/analytics.js"></script>
 <script defer src="components/ui_components.js"></script>
 <script defer src="components/smartcity_map.js"></script>
-<script defer src="js/mobile-app.js"></script>
 <script defer src="api/client.js"></script>
 <script defer src="api/auth.api.js"></script>
 <script defer src="api/traffic.api.js"></script>
@@ -1300,11 +961,11 @@
 <script defer src="api/police.api.js"></script>
 <script defer src="api/ai.api.js"></script>
 <script defer src="api/index.js"></script>
-<script defer src="components/ai_widget.js?v=3.5"></script>
-<script defer src="auth.js?v=3.5"></script>
-<script defer src="realtime.js?v=3.5"></script>
-<script defer src="components/pwa_manager.js?v=3.5"></script>
-<script defer src="script.js?v=3.5"></script>
+<script defer src="components/ai_widget.js?v=4.1"></script>
+<script defer src="auth.js?v=4.1"></script>
+<script defer src="realtime.js?v=4.1"></script>
+<script defer src="components/pwa_manager.js?v=4.1"></script>
+<script defer src="script.js?v=4.1"></script>
 
 <!-- Navbar scroll glass effect -->
 <script>

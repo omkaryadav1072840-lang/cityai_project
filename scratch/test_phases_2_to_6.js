@@ -58,8 +58,8 @@ async function runPhases2To6Tests() {
     // Ambulance Green Wave (600m Preemption)
     const ambNear = await trafficAIService.processAmbulanceApproaching({
         ambulance_id: "AMB-01",
-        latitude: 26.7610,
-        longitude: 83.3735,
+        latitude: 26.7595,
+        longitude: 83.3729,
         junction_id: "JNC-01"
     });
     assert(ambNear.success === true, "Ambulance approach tracking executed");

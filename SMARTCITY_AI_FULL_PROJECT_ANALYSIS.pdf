@@ -1,0 +1,310 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 7 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+7 0 obj
+<< /Length 5926 >>
+stream
+0.8 0.8 0.8 RG 1 w 40 35 m 572 35 l S
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 25 Td (CONFIDENTIAL & PROPRIETARY | B.TECH MAJOR PROJECT AUDIT) Tj ET
+BT /F2 8 Tf 0.4 0.4 0.4 rg 522 25 Td (Page 1) Tj ET
+0.1 0.25 0.5 RG 2 w 40 755 m 572 755 l S
+BT /F3 18 Tf 0.05 0.15 0.4 rg 40 740 Td (SMARTCITY AI - PLATFORM TECHNICAL ARCHITECTURE) Tj ET
+BT /F3 13 Tf 0.1 0.3 0.6 rg 40 712 Td (Gorakhpur Smart City Operations & Intelligent Municipal Operating System) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 692 Td (Version: 2.5.0 Enterprise | Node.js Express 5 + MySQL 8.0 + Python FastAPI ML + Leaflet GIS) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 680 Td (+ Socket.IO) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 666 Td (Target Deployment: Municipal Corporation Gorakhpur \(Nagar Nigam\) & ICCC Command Center) Tj ET
+0.85 0.9 0.95 rg 40 638 532 18 re f
+0.2 0.4 0.7 RG 1 w 40 638 532 18 re S
+BT /F3 11 Tf 0.1 0.25 0.5 rg 46 642 Td (1. SYSTEM ARCHITECTURE & TOPOLOGY) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 618 Td (SMARTCITY AI is designed around a high-concurrency, Single Source of Truth municipal) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 606 Td (architecture. It integrates citizen portals, staff workstations, IoT sensor telemetry, and) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 594 Td (administrative control under a unified event-driven backend.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 580 Td (* Express 5 Gateway \(Port 5000\): High-throughput Node.js API server handling 29 REST route) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 568 Td (modules, Gzip/Deflate zlib payload compression \(70-85% bandwidth reduction\), JWT token) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 556 Td (lifecycle, and role-based access control.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 542 Td (* Socket.IO Real-Time Engine \(Port 5000\): WebSocket server managing active rooms) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 530 Td (\(ambulance-tracking, parking-updates, emergency-alerts, water-updates, waste-updates,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 518 Td (city-updates\) with real-time push daemons.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 504 Td (* FastAPI ML Intelligence Service \(Port 8000\): Asynchronous Python 3.13 microservice hosting) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 492 Td (Scikit-Learn Random Forest Regressors, Gradient Boosting Classifiers, and Tfidf/Logistic) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 480 Td (Regression clinical NLP models.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 466 Td (* MySQL 8.0 Enterprise Relational Store: 117 active tables with connection pooling \(max 20) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 454 Td (concurrent connections\), storing users, sensors, hospital beds, parking bays, traffic) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 442 Td (junctions, and immutable audit logs.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 428 Td (* Dual GIS Spatial Engine: Leaflet 1.9.4 and OpenLayers 9.2.4 running in client browsers,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 416 Td (supporting custom GeoJSON layers, vector styling, and dynamic GPS vehicle radar tracking.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 402 Td (* IoT Hardware & Firmware Tier: ESP32 microcontrollers deployed with ultrasonic depth) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 390 Td (sensors \(HC-SR04\), PIR footfall detection \(HC-SR501\), and WiFi REST telemetry ingestion.) Tj ET
+0.85 0.9 0.95 rg 40 372 532 18 re f
+0.2 0.4 0.7 RG 1 w 40 372 532 18 re S
+BT /F3 11 Tf 0.1 0.25 0.5 rg 46 376 Td (2. MASTER ALGORITHM CATALOG \(FORMULAS, MATH & CODE LOCATION\)) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 352 Td (The platform incorporates 12 production-grade deterministic and machine-learning algorithms) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 340 Td (across municipal domains:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 326 Td (* 1. Webster Signal Optimization \(IRC:93\): Calculates optimum cycle length C0 and green) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 314 Td (phase splits for 42 junctions.) Tj ET
+0.94 0.95 0.97 rg 40 232 532 76 re f
+0.75 0.8 0.88 RG 0.5 w 40 232 532 76 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 297 Td (Formula: C0 = \(1.5L + 5\) / \(1 - Y\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 286 Td (L = Total lost time = \(lost_per_phase * num_phases\) + all_red = 12s) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 275 Td (Y = Sum of critical flow ratios \(q_i / s_i\), s_i = 1800 vph saturation flow) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 264 Td (Effective Green Split: g_i = \(y_i / Y\) * \(C0 - L\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 253 Td (Safety Constraints: 45s <= C0 <= 150s, Min Green = 15s, Max Green = 120s, Yellow = 4s) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 242 Td (Location: backend/services/traffic_engine.js | backend/services/traffic_ai_service.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 216 Td (* 2. Topological Graph Dijkstra Pathfinding: Calculates 3 real route alternatives across) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 204 Td (Gorakhpur road network \(17 nodes, 18 arterial links\).) Tj ET
+0.94 0.95 0.97 rg 40 133 532 65 re f
+0.75 0.8 0.88 RG 0.5 w 40 133 532 65 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 187 Td (Graph G = \(V, E\), Adjacency list with live junction congestion weights) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 176 Td (Cost Function 1 \(Fastest Arterial\): Time = Distance / \(SpeedLimit * \(1 - Congestion/100 * 0.7\)\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 165 Td (Cost Function 2 \(Low-Traffic Bypass\): Cost = BaseTime * \(1 + \(\(max\(0, Congestion - 30\)/15\)^2.2\)\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 154 Td (Cost Function 3 \(Min-Junction Route\): Cost = BaseTime + \(isJunction ? 4.5 mins : 0.5 mins\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 143 Td (Location: backend/services/gorakhpur_road_graph.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 117 Td (* 3. Geodesic Haversine Spherical Distance: Measures true earth-curvature distance between) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 105 Td (vehicles and intersections for emergency preemption.) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 9 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+9 0 obj
+<< /Length 6581 >>
+stream
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 765 Td (SMARTCITY AI - GORAKHPUR MUNICIPAL PLATFORM | TECHNICAL AUDIT) Tj ET
+0.8 0.8 0.8 RG 1 w 40 758 m 572 758 l S
+0.8 0.8 0.8 RG 1 w 40 35 m 572 35 l S
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 25 Td (CONFIDENTIAL & PROPRIETARY | B.TECH MAJOR PROJECT AUDIT) Tj ET
+BT /F2 8 Tf 0.4 0.4 0.4 rg 522 25 Td (Page 2) Tj ET
+0.94 0.95 0.97 rg 40 672 532 76 re f
+0.75 0.8 0.88 RG 0.5 w 40 672 532 76 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 737 Td (a = sin^2\(dLat/2\) + cos\(lat1\)*cos\(lat2\)*sin^2\(dLon/2\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 726 Td (c = 2 * atan2\(sqrt\(a\), sqrt\(1-a\)\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 715 Td (Distance d = R * c  \(Earth Radius R = 6,371,000 meters\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 704 Td (Green Wave Trigger: When Ambulance distance d <= 600m to approaching junction) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 693 Td (Action: Interlocking lock opposing cross streets to Red; lock transit axis Green for 180s) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 682 Td (Location: backend/services/traffic_ai_service.js | backend/services/ambulance_corridor_service.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 656 Td (* 4. Waste Collection TSP Nearest-Neighbor: Solves Traveling Salesperson Problem for) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 644 Td (municipal compactor trucks collecting overflowing dustbins.) Tj ET
+0.94 0.95 0.97 rg 40 595 532 43 re f
+0.75 0.8 0.88 RG 0.5 w 40 595 532 43 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 627 Td (Heuristic: Greedy Nearest Neighbor across bins with fill_level >= 70%) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 616 Td (Estimated Route Time = Sum\(Collection_Time_per_bin [8 min] + Transit_Time [3.5 min/km]\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 605 Td (Location: backend/services/waste_ai_service.js | backend/controllers/waste.controller.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 579 Td (* 5. Hydraulic Leak & Pipe Burst Anomaly Detection: SCADA water loss and pressure gradient) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 567 Td (evaluation.) Tj ET
+0.94 0.95 0.97 rg 40 507 532 54 re f
+0.75 0.8 0.88 RG 0.5 w 40 507 532 54 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 550 Td (Loss Rate Pct = \(\(Inflow_Rate_LPS - Outflow_Rate_LPS\) / Inflow_Rate_LPS\) * 100) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 539 Td (Critical Rupture: Pressure < 1.6 bar AND Loss > 22% -> Score 0.94 \(Immediate Valve Shutoff\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 528 Td (Pressure Drop: Pressure < 2.0 bar AND Loss > 15% -> Score 0.78 \(Acoustic Leak Inspection\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 517 Td (Location: backend/services/water_ai_service.js | backend/services/water_intelligence_service.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 491 Td (* 6. Clinical RAG Hybrid Lexical-Semantic Search: Evidence-based clinical decision support) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 479 Td (querying ICMR, MoHFW, AIIMS, and WHO guidelines.) Tj ET
+0.94 0.95 0.97 rg 40 419 532 54 re f
+0.75 0.8 0.88 RG 0.5 w 40 419 532 54 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 462 Td (Step 1: Multilingual tokenization + 3-character n-gram shingles \(handles Hinglish typos\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 451 Td (Step 2: BM25 / TF-IDF token overlap scoring + Keyword \(+6.0\) + Topic Boost \(+8.0\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 440 Td (Step 3: Score normalization \(>= 0.15 threshold\) + SHA-256 Checksum Verification) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 429 Td (Location: backend/services/clinical_rag_service.js | backend/services/clinical_care_assistant_service.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 403 Td (* 7. Multi-Criteria Priority Scoring & SLA Ladder: Determines incident urgency and escalates) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 391 Td (delinquent requests automatically.) Tj ET
+0.94 0.95 0.97 rg 40 331 532 54 re f
+0.75 0.8 0.88 RG 0.5 w 40 331 532 54 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 374 Td (SLA Deadlines: CRITICAL = 2 Hours, HIGH = 6 Hours, MEDIUM = 24 Hours, LOW = 72 Hours) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 363 Td (Escalation Daemon: Ticks every 60s, queries overdue requests, sets status = 'Escalated') Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 352 Td (Emits WebSocket alerts: 'request:escalated' and 'notification:new') Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 341 Td (Location: backend/services/priority_engine.js | backend/services/sla_engine.js) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 315 Td (* 8. Computer Vision & ANPR Staging Workflow: Vehicle detection, license plate OCR, and) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 303 Td (violation staging.) Tj ET
+0.94 0.95 0.97 rg 40 254 532 43 re f
+0.75 0.8 0.88 RG 0.5 w 40 254 532 43 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 286 Td (Plate Pattern Validation: ^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$ \(e.g. UP53BZ4821\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 275 Td (Human-in-the-Loop Guardrail: Violations staged as 'AI_FLAGGED'; require staff sign-off) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 264 Td (Location: backend/services/cv_anpr_service.js | ai_service/camera_vision.py) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 238 Td (* 9. Machine Learning Predictive Pipelines: Offline and online Scikit-Learn models with) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 226 Td (joblib persistence.) Tj ET
+0.94 0.95 0.97 rg 40 166 532 54 re f
+0.75 0.8 0.88 RG 0.5 w 40 166 532 54 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 209 Td (Traffic Congestion: RandomForestRegressor with TimeSeriesSplit cross-validation) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 198 Td (Waste Priority: GradientBoostingClassifier \(Normal, Medium, High, Immediate Dispatch\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 187 Td (Clinical Intent: TfidfVectorizer + Calibrated Logistic Regression \(0% Emergency False Negatives\)) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 176 Td (Location: ai_service/artifacts/models/*.joblib | ai_service/training/*.py) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 150 Td (* 10. Ultrasonic Time-of-Flight Firmware Physics: IoT dustbin depth measurement.) Tj ET
+0.94 0.95 0.97 rg 40 79 532 65 re f
+0.75 0.8 0.88 RG 0.5 w 40 79 532 65 re S
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 133 Td (Sound Velocity in Air: 343 m/s = 0.0343 cm/microsecond) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 122 Td (Distance \(cm\) = \(Echo_Duration_us * 0.0343\) / 2.0) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 111 Td (Fill Percentage \(%\) = \(\(Total_Bin_Depth_cm - Distance\) / Total_Bin_Depth_cm\) * 100) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 100 Td (PIR Interrupt: Footfall deposit increment via IRAM_ATTR ISR on pin change) Tj ET
+BT /F2 8 Tf 0.1 0.15 0.25 rg 48 89 Td (Location: iot_hardware/esp32_smart_dustbin.ino) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 11 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+11 0 obj
+<< /Length 5663 >>
+stream
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 765 Td (SMARTCITY AI - GORAKHPUR MUNICIPAL PLATFORM | TECHNICAL AUDIT) Tj ET
+0.8 0.8 0.8 RG 1 w 40 758 m 572 758 l S
+0.8 0.8 0.8 RG 1 w 40 35 m 572 35 l S
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 25 Td (CONFIDENTIAL & PROPRIETARY | B.TECH MAJOR PROJECT AUDIT) Tj ET
+BT /F2 8 Tf 0.4 0.4 0.4 rg 522 25 Td (Page 3) Tj ET
+0.85 0.9 0.95 rg 40 736 532 18 re f
+0.2 0.4 0.7 RG 1 w 40 736 532 18 re S
+BT /F3 11 Tf 0.1 0.25 0.5 rg 46 740 Td (3. CORE MODULES & FUNCTION INVENTORY) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 716 Td (The table below catalogs key functions across core backend services and their operational) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 704 Td (responsibilities:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 690 Td (* backend/services/traffic_engine.js:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 676 Td (* start\(\) / stop\(\): Initializes 1s signal phase timer and 4s simulated camera telemetry) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 664 Td (tick.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 650 Td (* tickSignalCycles\(\): Manages countdowns, transitions Green->Yellow->Red, checks phase) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 638 Td (conflict interlocking.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 624 Td (* updateSimulatedTelemetry\(\): Applies natural vehicle flow jitter \(+-7 veh/min\) and triggers) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 612 Td (congestion updates.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 598 Td (* recalculateJunctionCongestionFromCameras\(\): Computes Level of Service \(LOS\)) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 586 Td (volume-to-capacity and speed drop.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 572 Td (* dispatchEmergencyCorridor\(corridorId\): Activates priority route, sets mode='Emergency) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 560 Td (Corridor', locks transit Green.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 546 Td (* deactivateEmergencyCorridor\(corridorId\): Restores junctions to 'Operational' AI Adaptive) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 534 Td (mode.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 520 Td (* backend/services/gorakhpur_road_graph.js:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 506 Td (* findNearestNode\(queryOrCoords\): Resolves landmark names or GPS coordinates to topological) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 494 Td (road network nodes.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 480 Td (* calculateThreeRoutes\(origin, destination\): Computes Fastest, Low-Traffic, and Min-Junction) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 468 Td (paths simultaneously.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 454 Td (* _dijkstra\(startId, targetId, costFn\): Generic Dijkstra priority-queue shortest-path) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 442 Td (solver.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 428 Td (* backend/services/clinical_care_assistant_service.js:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 414 Td (* detectLanguage\(text\): Analyzes Devanagari Unicode range [\\u0900-\\u097F] and Hinglish) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 402 Td (markers to select Hindi/English.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 388 Td (* extractMedicineFromQuery\(text\): Fuzzy regex normalizer for brand/generic medicines) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 376 Td (\(paracetamol, metformin\).) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 362 Td (* triageEmergency\(text\): Evaluates acute cardiac, stroke, trauma, or respiratory red-flags.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 348 Td (* generateClinicalResponse\(\): Synthesizes 7-part comprehensive patient guidance with MySQL) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 336 Td (database grounding.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 322 Td (* backend/services/water_intelligence_service.js:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 308 Td (* haversineMeters\(lat1, lon1, lat2, lon2\): Calculates sphere geodesic distance.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 294 Td (* distToSegmentMeters\(pLat, pLng, aLat, aLng, bLat, bLng\): Calculates point-to-pipeline) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 282 Td (perpendicular distance.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 268 Td (* verifyWaterQualityAgainstRegulations\(\): Validates BOD, COD, TSS, pH, and Coliform against) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 256 Td (CPCB standards.) Tj ET
+0.85 0.9 0.95 rg 40 238 532 18 re f
+0.2 0.4 0.7 RG 1 w 40 238 532 18 re S
+BT /F3 11 Tf 0.1 0.25 0.5 rg 46 242 Td (4. SOCKET.IO REAL-TIME CHANNELS & DAEMONS) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 218 Td (Socket.IO handles bi-directional messaging with JWT handshake authentication and room) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 206 Td (segregation:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 192 Td (* Rooms: ambulance-tracking, parking-updates, emergency-alerts, water-updates,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 180 Td (waste-updates, city-updates) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 166 Td (* Traffic Signal Update: traffic:signal_update \(emitted every 1s on phase change\) |) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 154 Td (traffic:telemetry_tick \(every 4s\)) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 140 Td (* Ambulance Radar Tracking: ambulance:location-updated \(emitted every 2s with lat, lng,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 128 Td (speed, bearing, battery\)) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 114 Td (* Green Wave Alerts: traffic:ambulance_green_wave | traffic:emergency_corridor_active |) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 102 Td (traffic:emergency_corridor_cleared) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 88 Td (* Emergency SOS Ticker: emergency:new-sos \(instant high-priority broadcast\) |) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 76 Td (emergency:resolved) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 13 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> >>
+endobj
+13 0 obj
+<< /Length 6186 >>
+stream
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 765 Td (SMARTCITY AI - GORAKHPUR MUNICIPAL PLATFORM | TECHNICAL AUDIT) Tj ET
+0.8 0.8 0.8 RG 1 w 40 758 m 572 758 l S
+0.8 0.8 0.8 RG 1 w 40 35 m 572 35 l S
+BT /F2 8 Tf 0.4 0.4 0.4 rg 40 25 Td (CONFIDENTIAL & PROPRIETARY | B.TECH MAJOR PROJECT AUDIT) Tj ET
+BT /F2 8 Tf 0.4 0.4 0.4 rg 522 25 Td (Page 4) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 740 Td (* Civic SLA Ticker: request:escalated \(emitted by 60s SLA daemon when deadline is breached\)) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 728 Td (| notification:new) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 714 Td (* IoT Dustbin Updates: waste:bin-updated \(triggered on ESP32 sensor ingest\) |) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 702 Td (waste:vehicle-location) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 688 Td (* Hospital Bed Telemetry: hospital:bed-updated | bed_status_changed \(real-time ward) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 676 Td (occupancy sync\)) Tj ET
+0.85 0.9 0.95 rg 40 658 532 18 re f
+0.2 0.4 0.7 RG 1 w 40 658 532 18 re S
+BT /F3 11 Tf 0.1 0.25 0.5 rg 46 662 Td (5. REST API ENDPOINT CATALOG \(29 ROUTE MODULES\)) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 638 Td (All APIs follow RESTful conventions, prefixed with /api, and secured via security) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 626 Td (middlewares:) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 612 Td (* Authentication \(/api/auth\): POST /api/register, POST /api/login, POST /api/staff-login,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 600 Td (POST /api/auth/otp/send, POST /api/auth/otp/verify, GET /api/auth/me, PUT /api/auth/profile,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 588 Td (GET /api/user/activities) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 574 Td (* Traffic & ATCS \(/api/traffic\): GET /api/traffic/junctions, GET /api/traffic/signals, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 562 Td (/api/traffic/optimize-signal, POST /api/traffic/signals/override, GET) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 550 Td (/api/traffic/alternative-routes, GET /api/traffic/cameras, GET) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 538 Td (/api/traffic/violations/search, POST /api/traffic/violations/:id/dispute) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 524 Td (* Emergency & Ambulances \(/api/emergency, /api/ambulances\): POST /api/emergency/sos, GET) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 512 Td (/api/emergency/incidents, PUT /api/emergency/incidents/:id/status, GET /api/ambulances, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 500 Td (/api/ambulances/:id/location, POST /api/traffic/ambulance-preemption) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 486 Td (* Hospital & Health \(/api/hospital, /api/patients, /api/doctors\): GET /api/hospitals, GET) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 474 Td (/api/hospital/beds, GET /api/hospital/bed-surge, POST /api/appointments/book-strict, GET) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 462 Td (/api/patients/:id/qr, POST /api/patients/verify-qr, POST /api/doctor/consultation) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 448 Td (* Smart Parking \(/api/parking\): GET /api/parking/lots, GET /api/parking/slots, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 436 Td (/api/parking/book, GET /api/parking/my-bookings, POST /api/parking/entry, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 424 Td (/api/parking/exit) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 410 Td (* Smart Waste \(/api/waste\): GET /api/waste/bins, POST /api/waste/prediction, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 398 Td (/api/waste/optimize-route, POST /api/waste/report, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 386 Td (/api/waste/dustbin-terminal/sensor-data) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 372 Td (* SCADA Water \(/api/water\): GET /api/water/tanks, GET /api/water/pipelines, GET) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 360 Td (/api/water/anomalies, GET /api/water/schedules, POST /api/water/tanker-bookings) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 346 Td (* AI Assistant & RAG \(/api/ai\): POST /api/ai/chat, POST /api/ai/assistant, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 334 Td (/api/ai/clinical-care/chat, GET /api/ai/predictions) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 320 Td (* Public Safety & Tourism \(/api/police, /api/famous-places\): GET /api/police/stations, POST) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 308 Td (/api/police/complaints, GET /api/famous-places, GET /api/famous/reviews) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 294 Td (* ICCC Command Center \(/api/admin\): GET /api/admin/command-center, GET /api/admin/stats,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 282 Td (POST /api/admin/what-if-simulation) Tj ET
+0.85 0.9 0.95 rg 40 264 532 18 re f
+0.2 0.4 0.7 RG 1 w 40 264 532 18 re S
+BT /F3 11 Tf 0.1 0.25 0.5 rg 46 268 Td (6. TECHNOLOGY STACK & SECURITY SPECIFICATIONS) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 244 Td (Frontend: HTML5, CSS3 Glassmorphic Token System, Vanilla ES6+ JS, Leaflet 1.9.4, OpenLayers) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 232 Td (9.2.4, Socket.IO Client 4.8.1, QRCode.js, Capacitor 8.5 \(Android APK\).) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 218 Td (Backend: Node.js 20+, Express.js 5.2.1, Socket.IO 4.8.3, mysql2/promise \(Connection Pool: 20) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 206 Td (conns\), jsonwebtoken \(JWT\), zlib HTTP compression, multer, helmet, nodemailer.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 192 Td (AI & Machine Learning: Python 3.13, FastAPI, Uvicorn, Scikit-learn \(RandomForest,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 180 Td (GradientBoosting, LogisticRegression\), Pandas, NumPy, Joblib, OpenCV \(cv2\), Google Gemini) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 168 Td (1.5 Flash.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 154 Td (Database: MySQL 8.0+ Enterprise, 117 tables, utf8mb4_unicode_ci charset, ACID compliant) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 142 Td (transactions.) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 128 Td (Security & Privacy: DPDP Act PII redaction \(Aadhaar, PAN, Cards, Passwords\), in-memory token) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 116 Td (blacklist, rate limiters \(authRateLimiter: 10 req/15m, sosRateLimiter: 5 req/1m,) Tj ET
+BT /F1 9 Tf 0.15 0.15 0.15 rg 40 104 Td (aiRateLimiter: 30 req/1m\), inputSanitizer XSS protection.) Tj ET
+endstream
+endobj
+xref
+0 14
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000135 00000 n 
+0000000205 00000 n 
+0000000273 00000 n 
+0000000348 00000 n 
+0000000494 00000 n 
+0000006472 00000 n 
+0000006618 00000 n 
+0000013251 00000 n 
+0000013399 00000 n 
+0000019115 00000 n 
+0000019263 00000 n 
+trailer
+<< /Size 14 /Root 1 0 R >>
+startxref
+25502
+%%EOF

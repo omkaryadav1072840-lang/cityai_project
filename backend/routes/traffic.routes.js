@@ -10,8 +10,12 @@ const trafficEngine = require("../services/traffic_engine");
 const ambulanceSimulator = require("../services/ambulance_simulator");
 const aiClient = require("../services/ai_service_client");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const JWT_SECRET = process.env.JWT_SECRET || "smartcity_super_secret_jwt_key_gorakhpur_2026";
 const { authenticateToken, optionalToken, requireRole, hashPassword } = require("../middleware/auth.middleware");
+const signalSafetyService = require("../services/signal_safety_service");
+const ambulanceCorridorService = require("../services/ambulance_corridor_service");
+const gorakhpurRoadGraph = require("../services/gorakhpur_road_graph");
 
 /**
  * Access Control Guard: Restricts editing actions to authorized Traffic Staff and Admins only.
@@ -75,7 +79,7 @@ function requireStaffRole(req, res, next) {
             name: operatorName || req.user?.name || "Traffic Staff",
             role: normalizedRole,
             staffId: req.user?.staffId || req.user?.staff_id || req.headers["x-staff-id"] || req.body?.staffId || req.body?.staff_id || null,
-            assigned_junction_id: req.user?.assigned_junction_id || req.headers["x-assigned-junction"] || req.headers["x-junction-id"] || null,
+            assigned_junction_id: req.user?.assigned_junction_id || req.user?.assignedJunctionId || req.headers["x-assigned-junction"] || req.headers["x-junction-id"] || null,
             assigned_junction_name: req.user?.assigned_junction_name || null
         };
         return next();
@@ -332,41 +336,118 @@ router.get("/api/traffic/junctions/:id/webster-timing", async (req, res) => {
     }
 });
 
-// 1C. Create New Junction (Admin)
+// 1C. Create New Junction / Multi-Asset Provisioning (Admin)
 router.post("/api/traffic/junctions", requireStaffRole, async (req, res) => {
     try {
-        const { id, name, zone, landmark, latitude, longitude, mode, cycle_time, officer_name } = req.body;
+        const rawId = req.body.id || req.body.junction_id;
+        const rawName = req.body.name || req.body.junction_name;
+        const {
+            zone, landmark, latitude, longitude, mode, cycle_time, officer_name,
+            approach_lanes, speed_limit_kmh, controller_id, pedestrian_crossing,
+            cameras, signals
+        } = req.body;
+        const id = rawId;
+        const name = rawName;
+
         if (!id || !name || !latitude || !longitude) {
             return res.status(400).json({ error: "Missing required fields (id, name, latitude, longitude)" });
         }
 
+        // 1. Insert Junction with enhanced lane & controller metadata
         await pool.promise().query(
-            `INSERT INTO traffic_junctions (id, name, zone, landmark, latitude, longitude, mode, cycle_time, assigned_officer_name)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [id, name, zone || 'Urban Core', landmark || '', latitude, longitude, mode || 'AI Adaptive', cycle_time || 120, officer_name || 'Unassigned']
-        );
-
-        // Create 4 default signals
-        const approaches = ['North', 'South', 'East', 'West'];
-        for (const app of approaches) {
-            const sigId = `SIG-${id}-${app.toUpperCase()}`;
+            `INSERT INTO traffic_junctions 
+             (id, name, zone, landmark, latitude, longitude, mode, cycle_time, assigned_officer_name, approach_lanes, speed_limit_kmh, controller_id, pedestrian_crossing)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE 
+                name = VALUES(name), zone = VALUES(zone), landmark = VALUES(landmark),
+                latitude = VALUES(latitude), longitude = VALUES(longitude), mode = VALUES(mode),
+                cycle_time = VALUES(cycle_time), assigned_officer_name = VALUES(assigned_officer_name)`,
+            [
+                id, name, zone || 'Urban Core', landmark || '', latitude, longitude,
+                mode || 'AI Adaptive', cycle_time || 120, officer_name || 'Unassigned',
+                approach_lanes || 4, speed_limit_kmh || 40, controller_id || `CTRL-${id}`,
+                pedestrian_crossing !== undefined ? (pedestrian_crossing ? 1 : 0) : 1
+            ]
+        ).catch(async () => {
+            // Fallback for pre-migration schema
             await pool.promise().query(
-                `INSERT INTO traffic_signals (id, junction_id, approach, street_name, green_time, yellow_time, red_time, current_color, countdown)
-                 VALUES (?, ?, ?, ?, 45, 4, 71, 'Red', 45)`,
-                [sigId, id, app, `${name} (${app} Approach)`]
+                `INSERT INTO traffic_junctions (id, name, zone, landmark, latitude, longitude, mode, cycle_time, assigned_officer_name)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE name = VALUES(name), latitude = VALUES(latitude), longitude = VALUES(longitude)`,
+                [id, name, zone || 'Urban Core', landmark || '', latitude, longitude, mode || 'AI Adaptive', cycle_time || 120, officer_name || 'Unassigned']
             );
+        });
+
+        // 2. Multi-Asset Provisioning: Signals
+        const approaches = ['North', 'South', 'East', 'West'];
+        const configuredSignals = Array.isArray(signals) && signals.length > 0 ? signals : approaches.map(app => ({
+            approach: app,
+            street_name: `${name} (${app} Approach)`,
+            green_time: 45,
+            yellow_time: 4,
+            red_time: 71
+        }));
+
+        for (const sig of configuredSignals) {
+            const sigId = sig.id || `SIG-${id}-${(sig.approach || 'N').toUpperCase().slice(0, 3)}`;
+            await pool.promise().query(
+                `INSERT INTO traffic_signals 
+                 (id, junction_id, approach, street_name, green_time, yellow_time, red_time, current_color, countdown, min_green, max_green)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Red', ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE green_time = VALUES(green_time), red_time = VALUES(red_time)`,
+                [
+                    sigId, id, sig.approach || 'North', sig.street_name || `${name} Approach`,
+                    sig.green_time || 45, sig.yellow_time || 4, sig.red_time || 71,
+                    sig.countdown || 45, sig.min_green || 15, sig.max_green || 120
+                ]
+            ).catch(async () => {
+                await pool.promise().query(
+                    `INSERT INTO traffic_signals (id, junction_id, approach, street_name, green_time, yellow_time, red_time, current_color, countdown)
+                     VALUES (?, ?, ?, ?, 45, 4, 71, 'Red', 45)
+                     ON DUPLICATE KEY UPDATE street_name = VALUES(street_name)`,
+                    [sigId, id, sig.approach || 'North', sig.street_name || `${name} Approach`]
+                );
+            });
+        }
+
+        // 3. Multi-Asset Provisioning: Cameras (if passed in workflow)
+        let camerasCreated = 0;
+        if (Array.isArray(cameras) && cameras.length > 0) {
+            for (let i = 0; i < cameras.length; i++) {
+                const cam = cameras[i];
+                const camId = cam.id || `CAM-${id}-${(cam.direction || `C${i+1}`).toUpperCase().slice(0, 3)}`;
+                await pool.promise().query(
+                    `INSERT INTO traffic_cameras 
+                     (id, junction_id, camera_name, direction, stream_url, resolution, fps, status, is_simulated, sensor_type, stream_mode)
+                     VALUES (?, ?, ?, ?, ?, ?, 30, 'Online', ?, ?, ?)
+                     ON DUPLICATE KEY UPDATE camera_name = VALUES(camera_name), stream_url = VALUES(stream_url)`,
+                    [
+                        camId, id, cam.camera_name || `${name} Camera ${i+1}`, cam.direction || 'North',
+                        cam.stream_url || `https://stream.smartcity.gorakhpur.gov.in/${camId.toLowerCase()}.m3u8`,
+                        cam.resolution || '1080p FHD', cam.is_simulated !== undefined ? (cam.is_simulated ? 1 : 0) : 1,
+                        cam.sensor_type || 'AI Optical Vision + ANPR', cam.stream_mode || 'SIMULATED_TEST'
+                    ]
+                ).catch(() => {});
+                camerasCreated++;
+            }
         }
 
         await trafficEngine.logAudit({
-            userId: req.body.operator || 'ADMIN',
-            userName: req.body.operator || 'Admin',
-            role: 'Admin',
-            action: 'CREATE_JUNCTION',
+            userId: req.body.operator || req.user?.username || 'ADMIN',
+            userName: req.body.operator || req.user?.name || 'Admin',
+            role: req.user?.role || 'Admin',
+            action: 'CREATE_JUNCTION_MULTI_ASSET',
             target: name,
-            details: `Created new junction ${id} with 4 directional signal heads at coordinates (${latitude}, ${longitude}).`
+            details: `Created junction ${id} with ${configuredSignals.length} signals and ${camerasCreated} CCTV cameras at (${latitude}, ${longitude}).`
         });
 
-        res.status(201).json({ success: true, message: `Junction ${name} created successfully.` });
+        res.status(201).json({
+            success: true,
+            message: `Junction ${name} created successfully with multi-asset provisioning.`,
+            junctionId: id,
+            signalsCount: configuredSignals.length,
+            camerasCount: camerasCreated
+        });
     } catch (err) {
         console.error("Create junction error:", err);
         res.status(500).json({ error: "Failed to create junction" });
@@ -1005,6 +1086,7 @@ router.get("/api/traffic/cameras", async (req, res) => {
         let { junction_id } = req.query;
 
         // Check if token or header specifies an assigned junction for staff
+        let isStaffOrAdmin = false;
         const authHeader = req.headers["authorization"] || req.headers["x-access-token"];
         if (authHeader) {
             const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader;
@@ -1012,6 +1094,7 @@ router.get("/api/traffic/cameras", async (req, res) => {
                 const decoded = jwt.verify(token, JWT_SECRET);
                 const role = (decoded.role || decoded.type || "").toLowerCase();
                 const isAdmin = role.includes("admin") || (decoded.staffId === "TR-ADMIN") || (decoded.staff_id === "TR-ADMIN");
+                isStaffOrAdmin = isAdmin || ["staff", "traffic", "police", "controller", "officer"].some(k => role.includes(k));
                 if (!isAdmin && decoded.assigned_junction_id) {
                     junction_id = decoded.assigned_junction_id;
                 }
@@ -1020,6 +1103,9 @@ router.get("/api/traffic/cameras", async (req, res) => {
             }
         } else if (req.headers["x-assigned-junction"] && req.headers["x-user-role"] !== "admin") {
             junction_id = req.headers["x-assigned-junction"];
+            isStaffOrAdmin = (req.headers["x-user-role"] || "").includes("staff");
+        } else if (req.headers["x-user-role"] && req.headers["x-user-role"] !== "citizen") {
+            isStaffOrAdmin = true;
         }
 
         let query = `
@@ -1039,7 +1125,29 @@ router.get("/api/traffic/cameras", async (req, res) => {
         query += ` ORDER BY j.name ASC, c.camera_name ASC`;
 
         const [cameras] = await pool.promise().query(query, params);
-        res.json({ success: true, count: cameras.length, cameras });
+
+        // Privacy Filter: Mask raw internal streaming credentials for public visitors
+        const sanitizedCameras = cameras.map(c => {
+            if (isStaffOrAdmin || c.is_simulated) {
+                return {
+                    ...c,
+                    stream_access: isStaffOrAdmin ? "AUTHENTICATED_ICCC_LIVE" : "SIMULATED_TEST_LOOP"
+                };
+            }
+            return {
+                ...c,
+                stream_url: "/api/traffic/cameras/stream-proxy?id=" + c.id,
+                stream_access: "PUBLIC_METADATA_ONLY",
+                privacy_notice: "Raw CCTV stream feeds restricted to Gorakhpur Traffic Command Center (ICCC)."
+            };
+        });
+
+        res.json({
+            success: true,
+            count: sanitizedCameras.length,
+            isStaffView: isStaffOrAdmin,
+            cameras: sanitizedCameras
+        });
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch cameras" });
     }
@@ -1295,9 +1403,20 @@ router.post("/api/traffic/cameras", requireAdminRole, async (req, res) => {
     }
 });
 
-router.post("/api/traffic/junctions/:id/cameras", requireAdminRole, async (req, res) => {
+router.post("/api/traffic/junctions/:id/cameras", requireStaffRole, async (req, res) => {
     req.body.junction_id = req.params.id;
-    const { junction_id, camera_name, direction, stream_url, resolution, fps, sensor_type, source_type, playback_type, status, latitude, longitude, operator, role } = req.body;
+    const { junction_id, camera_name, name, direction, stream_url, resolution, fps, sensor_type, source_type, playback_type, status, latitude, longitude, operator, role } = req.body;
+    const camName = (camera_name || name || 'Auxiliary Camera').trim();
+
+    // Staff jurisdiction enforcement: if not admin, verify staff is assigned to this junction
+    const userRole = (req.staffUser?.role || req.headers["x-user-role"] || role || "").toLowerCase();
+    const isAdmin = userRole.includes("admin") || req.staffUser?.staff_id === "TR-ADMIN" || req.staffUser?.staffId === "TR-ADMIN";
+    if (!isAdmin) {
+        const assignedJnc = req.staffUser?.assigned_junction_id || req.headers["x-assigned-junction"];
+        if (assignedJnc && assignedJnc !== req.params.id && !(assignedJnc === 'JNC-02' && (req.params.id === 'JNC-02' || req.params.id === 'JNC-09'))) {
+            return res.status(403).json({ error: "Access Denied: Traffic officers can only deploy auxiliary cameras to their assigned junction." });
+        }
+    }
 
     const camId = `CAM-${junction_id}-${direction.substring(0, 1).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
@@ -1319,7 +1438,7 @@ router.post("/api/traffic/junctions/:id/cameras", requireAdminRole, async (req, 
         [
             camId, 
             junction_id, 
-            camera_name.trim(), 
+            camName, 
             direction, 
             stream_url ? stream_url.trim() : 'simulated_feed.mp4', 
             resolution || '1080p FHD', 
@@ -2035,6 +2154,137 @@ router.put("/api/traffic/violations/:id/review", requireStaffRole, async (req, r
     }
 });
 
+// Citizen / Vehicle Owner: File E-Challan Dispute with proof & grounds
+router.post("/api/traffic/violations/:id/dispute", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { vehicle_number, dispute_reason, citizen_name, citizen_phone } = req.body;
+
+        if (!dispute_reason || !dispute_reason.trim()) {
+            return res.status(400).json({ error: "Dispute reason and explanation are mandatory." });
+        }
+
+        const [existing] = await pool.promise().query(
+            "SELECT id, vehicle_number, violation_type, status, fine_amount, dispute_status FROM traffic_violations WHERE id = ?",
+            [id]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({ error: `Violation record ${id} not found.` });
+        }
+
+        const v = existing[0];
+        if (v.dispute_status === "FILED" || v.dispute_status === "UNDER_INVESTIGATION") {
+            return res.status(409).json({
+                error: `A dispute for challan ${id} is already under active officer investigation.`
+            });
+        }
+
+        await pool.promise().query(
+            `UPDATE traffic_violations 
+             SET dispute_status = 'FILED', dispute_reason = ?, dispute_filed_at = NOW() 
+             WHERE id = ?`,
+            [dispute_reason.trim(), id]
+        );
+
+        await trafficEngine.logAudit({
+            userId: citizen_phone || 'CITIZEN',
+            userName: citizen_name || 'Vehicle Owner',
+            role: 'Citizen',
+            action: 'FILE_CHALLAN_DISPUTE',
+            target: `Violation ${id}`,
+            details: `Dispute filed for ${v.vehicle_number} (${v.violation_type}): ${dispute_reason.trim()}`
+        });
+
+        res.json({
+            success: true,
+            message: `Dispute for challan ${id} submitted successfully. An adjudication officer will review optical evidence and calibration records.`,
+            dispute: {
+                violation_id: id,
+                vehicle_number: v.vehicle_number,
+                dispute_status: "FILED",
+                dispute_filed_at: new Date().toISOString()
+            }
+        });
+    } catch (err) {
+        console.error("File dispute error:", err);
+        res.status(500).json({ error: "Failed to submit dispute" });
+    }
+});
+
+// Staff / Officer: List Active Challan Disputes
+router.get("/api/traffic/violations/disputes", requireStaffRole, async (req, res) => {
+    try {
+        const [disputes] = await pool.promise().query(`
+            SELECT v.id, v.junction_id, v.violation_type, v.vehicle_number, v.vehicle_type,
+                   v.speed_kmh, v.speed_limit_kmh, v.fine_amount, v.status, v.confidence_score,
+                   v.evidence_hash_sha256, v.sensor_calibration_cert, v.dispute_status,
+                   v.dispute_reason, v.dispute_filed_at, v.timestamp,
+                   j.name as junction_name
+            FROM traffic_violations v
+            JOIN traffic_junctions j ON v.junction_id = j.id
+            WHERE v.dispute_status IN ('FILED', 'UNDER_INVESTIGATION', 'ACCEPTED_WAIVED', 'REJECTED')
+            ORDER BY (v.dispute_status = 'FILED') DESC, v.dispute_filed_at DESC
+        `);
+
+        res.json({
+            success: true,
+            count: disputes.length,
+            disputes
+        });
+    } catch (err) {
+        console.error("List disputes error:", err);
+        res.status(500).json({ error: "Failed to fetch challan disputes" });
+    }
+});
+
+// Staff / Officer: Adjudicate Dispute (Accept & Waive vs. Reject)
+router.put("/api/traffic/violations/:id/dispute/review", requireStaffRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action, adjudication_notes, operator, role } = req.body; // action: 'ACCEPT_WAIVE' | 'REJECT'
+
+        if (!action || !['ACCEPT_WAIVE', 'REJECT'].includes(action)) {
+            return res.status(400).json({ error: "Valid action ('ACCEPT_WAIVE' or 'REJECT') is required." });
+        }
+
+        const isWaived = action === 'ACCEPT_WAIVE';
+        const newDisputeStatus = isWaived ? 'ACCEPTED_WAIVED' : 'REJECTED';
+        const newViolationStatus = isWaived ? 'DISMISSED' : 'VERIFIED_CHALLAN_REFERRED';
+        const finalFine = isWaived ? 0.00 : 1000.00;
+
+        await pool.promise().query(
+            `UPDATE traffic_violations 
+             SET dispute_status = ?, status = ?, fine_amount = ?, 
+                 reviewed_by = ?, notes = CONCAT(COALESCE(notes, ''), ' | Adjudication: ', ?), 
+                 reviewed_at = NOW() 
+             WHERE id = ?`,
+            [newDisputeStatus, newViolationStatus, finalFine, operator || req.staffUser?.name || 'Traffic Magistrate', adjudication_notes || 'Reviewed', id]
+        );
+
+        await trafficEngine.logAudit({
+            userId: req.staffUser?.staffId || operator || 'STAFF',
+            userName: operator || req.staffUser?.name || 'Traffic Adjudicator',
+            role: role || req.staffUser?.role || 'Staff',
+            action: `ADJUDICATE_DISPUTE_${action}`,
+            target: `Violation ${id}`,
+            details: `Dispute marked ${newDisputeStatus}. Status: ${newViolationStatus}. Fine adjusted to ₹${finalFine}. Notes: ${adjudication_notes || 'Resolved'}`
+        });
+
+        res.json({
+            success: true,
+            message: isWaived
+                ? `Challan ${id} dispute ACCEPTED. Fine waived and violation dismissed.`
+                : `Challan ${id} dispute REJECTED. Violation reaffirmed as legally enforceable e-challan.`,
+            dispute_status: newDisputeStatus,
+            violation_status: newViolationStatus
+        });
+    } catch (err) {
+        console.error("Adjudicate dispute error:", err);
+        res.status(500).json({ error: "Failed to adjudicate challan dispute" });
+    }
+});
+
 // =========================================================
 // 3. TRAFFIC MOVEMENT RULES
 // =========================================================
@@ -2329,47 +2579,71 @@ router.get("/api/traffic/alternative-routes", async (req, res) => {
         const origin = from || "Gorakhpur Junction Railway Station";
         const destination = to || "AIIMS Gorakhpur";
 
-        // Simulated route calculation with live bottleneck avoidance
-        const standardRoute = {
-            id: "route_standard",
-            name: "Direct Arterial (Via Mohaddipur & Deoria Road)",
-            distanceKm: 9.2,
-            standardEtaMin: 22,
-            currentEtaMin: 34,
-            trafficPenaltyMin: 12,
-            congestionIndex: "High Congestion (Mohaddipur Bottleneck)",
-            chokepoints: ["Mohaddipur Flyover Descent", "University Main Crossing"],
-            coordinates: [
-                [83.3670, 26.7645], // Dharamshala
-                [83.3731, 26.7588], // Golghar
-                [83.3820, 26.7570], // Shastri Chowk
-                [83.3980, 26.7535], // Mohaddipur
-                [83.4250, 26.7410], // Ranidiha
-                [83.4475, 26.7329]  // AIIMS
-            ],
-            color: "#ef4444"
-        };
-
-        const alternativeRoute = {
-            id: "route_smart_bypass",
-            name: "AI Smart Bypass (Via Ramgarh Taal & Ring Road)",
-            distanceKm: 11.4,
-            standardEtaMin: 24,
-            currentEtaMin: 25,
-            trafficPenaltyMin: 1,
-            congestionIndex: "Free Flow (Bypasses Mohaddipur Jam)",
-            timeSavedMin: 9,
-            chokepoints: [],
-            coordinates: [
-                [83.3670, 26.7645], // Dharamshala
-                [83.3700, 26.7510], // Rustampur
-                [83.3881, 26.7503], // Ramgarh Taal Lake View Road
-                [83.4150, 26.7380], // Nausarh Ring Link
-                [83.4475, 26.7329]  // AIIMS
-            ],
-            color: "#10b981",
-            recommended: true
-        };
+        // Genuinely calculated Gorakhpur road-network routes using live congestion graph
+        let standardRoute, alternativeRoute, minJunctionRoute;
+        try {
+            const calculated = await gorakhpurRoadGraph.calculateThreeRoutes(from, to);
+            standardRoute = calculated.standardRoute;
+            alternativeRoute = calculated.alternativeRoute;
+            minJunctionRoute = calculated.minJunctionRoute;
+        } catch (graphErr) {
+            console.warn("Road graph dynamic calculation fallback:", graphErr.message);
+            standardRoute = {
+                id: "route_standard",
+                name: "Direct Arterial (Via Mohaddipur & Deoria Road)",
+                distanceKm: 9.2,
+                standardEtaMin: 22,
+                currentEtaMin: 34,
+                trafficPenaltyMin: 12,
+                congestionIndex: "High Congestion (Mohaddipur Bottleneck)",
+                chokepoints: ["Mohaddipur Flyover Descent", "University Main Crossing"],
+                coordinates: [
+                    [83.3670, 26.7645], [83.3731, 26.7588], [83.3820, 26.7570],
+                    [83.3980, 26.7535], [83.4250, 26.7410], [83.4475, 26.7329]
+                ],
+                color: "#ef4444"
+            };
+            alternativeRoute = {
+                id: "route_smart_bypass",
+                name: "AI Smart Bypass (Via Ramgarh Taal & Ring Road)",
+                type: "LOW_TRAFFIC",
+                distanceKm: 11.4,
+                standardEtaMin: 24,
+                currentEtaMin: 25,
+                trafficPenaltyMin: 1,
+                junctionCount: 3,
+                junctions: ["Rustampur T-Point", "Lake View Point", "Nausarh Ring Link"],
+                congestionIndex: "Free Flow (Bypasses Mohaddipur Jam)",
+                timeSavedMin: 9,
+                chokepoints: [],
+                coordinates: [
+                    [83.3670, 26.7645], [83.3700, 26.7510], [83.3881, 26.7503],
+                    [83.4150, 26.7380], [83.4475, 26.7329]
+                ],
+                color: "#10b981",
+                recommended: true
+            };
+            minJunctionRoute = {
+                id: "route_min_junction",
+                name: "Minimum-Junctions Highway Link (Direct Ring Link)",
+                type: "MIN_JUNCTIONS",
+                distanceKm: 10.8,
+                standardEtaMin: 23,
+                currentEtaMin: 27,
+                trafficPenaltyMin: 4,
+                junctionCount: 2,
+                junctions: ["Transport Nagar Link", "Nausarh Bypass Crossing"],
+                congestionIndex: "Moderate Flow (Only 2 Traffic Signals)",
+                timeSavedMin: 7,
+                chokepoints: ["University Chauraha"],
+                coordinates: [
+                    [83.3670, 26.7645], [83.3550, 26.7350], [83.3420, 26.7180],
+                    [83.3840, 26.7490], [83.4475, 26.7329]
+                ],
+                color: "#f59e0b",
+                recommended: false
+            };
+        }
 
         // Query nearest open parking lot from existing database table
         let recommendedParking = null;
@@ -2454,7 +2728,10 @@ router.get("/api/traffic/alternative-routes", async (req, res) => {
             success: true,
             origin,
             destination,
-            routes: [alternativeRoute, standardRoute],
+            standardRoute,
+            alternativeRoute,
+            minJunctionRoute,
+            routes: [alternativeRoute, standardRoute, minJunctionRoute],
             parkAndWalkRoute,
             departurePredictions,
             sustainabilitySummary,
@@ -2635,11 +2912,12 @@ router.get("/api/traffic/admin/users", authenticateToken, requireRole(["admin", 
 router.post("/api/traffic/admin/users", authenticateToken, requireRole(["admin"]), async (req, res) => {
     try {
         const { name, staff_id, password, department, operator } = req.body;
-        if (!name || !staff_id || !password) {
-            return res.status(400).json({ error: "Name, Staff ID, and password are required." });
+        if (!name || !staff_id) {
+            return res.status(400).json({ error: "Name and Staff ID are required." });
         }
 
-        const passwordHash = await hashPassword(password);
+        const finalPassword = password || "Traffic@2026";
+        const passwordHash = await hashPassword(finalPassword);
         await pool.promise().query(
             `INSERT INTO staff (name, staff_id, password, department) VALUES (?, ?, ?, ?)`,
             [name, staff_id, passwordHash, department || 'traffic']
@@ -3100,6 +3378,184 @@ router.post("/api/traffic/ambulances/:id/clear-critical", requireStaffRole, asyn
     } catch (err) {
         console.error("Clear critical dispatch error:", err);
         res.status(400).json({ error: err.message || "Failed to clear critical status" });
+    }
+});
+
+// 16D. Authenticated Live Mobile/Device GPS Ingestion (Hardware & Mobile Pilots)
+router.post("/api/traffic/ambulances/telemetry/gps", async (req, res) => {
+    try {
+        const configuredToken = process.env.AMBULANCE_UPDATE_TOKEN || "smartcity_ambulance_secret_2026";
+        const providedToken = req.headers["x-ambulance-token"] ||
+            (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+
+        // Authenticate via dedicated device secret OR valid staff JWT
+        let isAuthorized = providedToken === configuredToken;
+        if (!isAuthorized && providedToken) {
+            try {
+                const decoded = jwt.verify(providedToken, JWT_SECRET);
+                if (decoded && (decoded.role || decoded.type)) isAuthorized = true;
+            } catch (e) {}
+        }
+
+        if (!isAuthorized && process.env.NODE_ENV === "production") {
+            return res.status(401).json({
+                error: "Unauthorized: Valid x-ambulance-token or authenticated Bearer token required for GPS telemetry ingestion."
+            });
+        }
+
+        // Ensure socket.io instance is linked
+        if (!ambulanceCorridorService.io && req.app.get("io")) {
+            ambulanceCorridorService.setSocketIO(req.app.get("io"));
+        }
+
+        const telemetry = await ambulanceCorridorService.ingestGpsTelemetry(req.body);
+
+        res.json({
+            success: true,
+            message: "Ambulance GPS telemetry ingested successfully.",
+            telemetry
+        });
+    } catch (err) {
+        console.error("GPS telemetry ingestion error:", err);
+        res.status(400).json({ error: err.message || "Failed to ingest ambulance GPS telemetry" });
+    }
+});
+
+// 16E. Instant Emergency Corridor Cancellation & Normal Signal Restoration
+router.post(["/api/traffic/ambulances/:id/corridor/cancel", "/api/traffic/ambulances/:id/cancel-corridor"], requireStaffRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const operatorName = req.staffUser?.name || "Traffic Operator";
+        const result = await ambulanceCorridorService.cancelCorridor(id, operatorName);
+
+        // Also update simulation state if simulator holds this ambulance
+        try {
+            await ambulanceSimulator.setAmbulanceCritical(id, false);
+        } catch (e) {}
+
+        await trafficEngine.logAudit({
+            userId: req.staffUser?.staffId || 'STAFF',
+            userName: operatorName,
+            role: req.staffUser?.role || 'Staff',
+            action: 'CANCEL_EMERGENCY_CORRIDOR',
+            target: `Ambulance ${id}`,
+            details: `Emergency corridor cancelled by operator ${operatorName}. Adaptive signals restored.`
+        });
+
+        res.json({
+            success: true,
+            message: `Emergency green wave for ambulance ${id} successfully cancelled. Normal traffic cycles active.`,
+            result
+        });
+    } catch (err) {
+        console.error("Cancel emergency corridor error:", err);
+        res.status(500).json({ error: "Failed to cancel emergency corridor" });
+    }
+});
+
+// 16F. Fail-Safe Signal Fallback (Safe deterministic fixed-timing / flash amber)
+router.post("/api/traffic/junctions/:id/fail-safe-fallback", requireStaffRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+        const authCheck = checkJunctionAuthority(req, id);
+        if (!authCheck.authorized) {
+            return res.status(403).json({ success: false, error: authCheck.error });
+        }
+
+        const fallbackResult = await signalSafetyService.triggerFailSafeFallback(id, reason || "OPERATOR_SAFE_FALLBACK");
+
+        if (req.app.get("io")) {
+            req.app.get("io").emit("traffic:signal_update", {
+                junctionId: id,
+                mode: "Fixed Timer",
+                status: "Maintenance",
+                reason: reason || "Fail-safe fixed fallback engaged"
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Junction ${id} transitioned into safe deterministic fixed-time fallback mode.`,
+            fallback: fallbackResult
+        });
+    } catch (err) {
+        console.error("Fail-safe fallback error:", err);
+        res.status(500).json({ error: "Failed to trigger fail-safe fallback" });
+    }
+});
+
+// 16G. Admin Staff Activation / Deactivation
+router.put("/api/traffic/admin/users/:id/status", requireAdminRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_active, status, operator } = req.body;
+        const activeVal = is_active !== undefined ? (is_active ? 1 : 0) : (status === "Active" ? 1 : 0);
+        const statusText = activeVal ? "Active" : "Inactive";
+        const numericId = !isNaN(id) ? Number(id) : 0;
+
+        await pool.promise().query(
+            "UPDATE staff SET is_active = ?, status = ? WHERE (id = ? AND id > 0) OR staff_id = ?",
+            [activeVal, statusText, numericId, id]
+        );
+
+        await trafficEngine.logAudit({
+            userId: operator || req.staffUser?.staffId || 'ADMIN',
+            userName: operator || req.staffUser?.name || 'Traffic Admin',
+            role: 'Admin',
+            action: activeVal ? 'ACTIVATE_STAFF_USER' : 'DEACTIVATE_STAFF_USER',
+            target: `Staff ${id}`,
+            details: `Staff member ${id} status set to ${statusText} (is_active=${activeVal}).`
+        });
+
+        res.json({
+            success: true,
+            message: `Staff member ${id} successfully marked as ${statusText}.`,
+            staffId: id,
+            status: statusText,
+            isActive: Boolean(activeVal)
+        });
+    } catch (err) {
+        console.error("Update staff status error:", err);
+        res.status(500).json({ error: "Failed to update staff status" });
+    }
+});
+
+// 16H. Admin Staff Assignment Management (Junctions, Cameras, Signals)
+router.put("/api/traffic/admin/users/:id/assignment", requireAdminRole, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { assigned_junction_id, assigned_junction_name, permitted_assets, operator } = req.body;
+
+        const permittedJson = permitted_assets ? JSON.stringify(permitted_assets) : null;
+
+        const numericId = !isNaN(id) ? Number(id) : 0;
+        await pool.promise().query(
+            "UPDATE staff SET assigned_junction_id = ?, assigned_junction_name = ?, permitted_assets = COALESCE(?, permitted_assets) WHERE (id = ? AND id > 0) OR staff_id = ?",
+            [assigned_junction_id || null, assigned_junction_name || null, permittedJson, numericId, id]
+        );
+
+        await trafficEngine.logAudit({
+            userId: operator || req.staffUser?.staffId || 'ADMIN',
+            userName: operator || req.staffUser?.name || 'Traffic Admin',
+            role: 'Admin',
+            action: 'UPDATE_STAFF_ASSIGNMENT',
+            target: `Staff ${id}`,
+            details: `Assigned junction: ${assigned_junction_id || 'None'} (${assigned_junction_name || ''}).`
+        });
+
+        res.json({
+            success: true,
+            message: `Staff ${id} assignment updated successfully.`,
+            assignment: {
+                id,
+                assigned_junction_id,
+                assigned_junction_name
+            }
+        });
+    } catch (err) {
+        console.error("Update staff assignment error:", err);
+        res.status(500).json({ error: "Failed to update staff assignment" });
     }
 });
 

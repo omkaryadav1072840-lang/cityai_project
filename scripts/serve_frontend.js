@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.FRONTEND_PORT || 3000;
-const BACKEND_TARGET = process.env.BACKEND_URL || 'http://localhost:5000';
+const BACKEND_TARGET = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
 const FRONTEND_DIR = path.join(__dirname, '..', 'frontend');
 
 const MIME_TYPES = {
